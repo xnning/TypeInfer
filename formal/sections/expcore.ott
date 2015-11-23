@@ -1,0 +1,213 @@
+% Formalization of Explicit CoC
+
+embed {{ tex-preamble
+  \newcommand{\labeledjudge}[1]{\vdash_{\!\!\mathsf{#1} } }
+  \newcommand{\kw}[1]{\mathbf{#1} }
+}}
+
+%%% Metavariables
+metavar x, y, z, d, X, D, K, N, cc {{ tex c }}, bb {{ tex b }}, nn {{ tex n }}, uu {{ tex u }} ::= {{ com Variable names }}
+indexvar i, j, n, m ::= {{ com Index variables }}
+
+%%% Syntax
+grammar
+
+%% Expressions
+e, t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
+  | x                         ::  :: Var        {{ com Variable }}
+  | star                      ::  :: Star       {{ com Type of Types }}
+  | square                    :: M:: Square     {{ com Type of Star }}
+  | e1 e2                     ::  :: App        {{ com Application }}
+  | \ x . e                   ::  :: Lam        {{ com Abstraction }}
+  | \ x: sigma . e            ::  :: LamAnn     {{ com Abstraction with annotation }}
+  | castup e                  ::  :: CastUp     {{ com Cast Up }}
+  | castdown e                ::  :: CastDown   {{ com Cast Down }}
+  | t1 -> t2                  :: M:: Fun        {{ com Function Type}}
+  | Pi (x: t ) . t2           ::  :: FunAnn     {{ com Explicit Pi type}}
+  | mu x : t . e              :: M:: Mu         {{ com Polymorphic Recursion }}
+  | e1 [ x |-> e2 ]           :: M:: Sub        {{ com Substitution }}
+  | ( e )                     :: M:: Parens     {{ com Parenthesized expression }}
+  | let x = e1 in e2          ::  :: LetBinding {{ com Let binding }}
+  | t1 -> t2                  :: M:: FuncType   {{ com Function type }}
+  | lit                       :: M:: Literals   {{ com Literals }}
+  | e *                       :: M:: Starred    {{ com Starred expression }}
+  | << e >>                   :: M:: ExprVec
+  | e1 (+) e2                 :: M:: ExprUnion
+  | ( << u : t1 >> ) -> t2    :: M:: FuncTypeVec
+  | ( << u : t1 >>n ) -> t2   :: M:: FuncTypeVecN
+  | ( u : t1 ) -> t2          :: M:: DepFuncType
+  | \ << u : t >> . e         :: M:: LamVec
+  | \ << u : t >>n . e        :: M:: LamVecN
+  | e1 [ << e2 |-> t2 >> ]    :: M:: SubstVec
+  | D @ << u >>               :: M:: Datatype
+  | D @ << u >>n              :: M:: DatatypeN
+  | e1 [ D @ << u >> |-> e3 ] :: M:: ExprSubst
+  | \\\ e                     :: M:: LineHack
+  | & e                       :: M:: AlignHack
+  | @@                        :: M:: DummyExpr
+  | let x * : t = e2 in e1    :: M:: StarBinding
+  | s                         :: M:: Sort
+  | foldn [ t ] e             :: M:: CastUpMulti
+  | unfoldn e                 :: M:: CastDownMulti
+  | K << u >> << e >>         :: M:: Constructor
+  | foldnp [ t ] e            :: M:: CastUpMultiP
+  | unfoldnp e                :: M:: CastDownMultiP
+  | e : : sigma                ::  :: Annotation  {{ com Annotation }}
+
+S {{ tex \sigma }} :: 'S_'    ::= {{ com Polytype}}
+  | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }}
+
+R {{ tex \rho }} :: 'R_'     ::= {{ com Rhotype}}
+  | t                         ::  :: Monotype {{ com Mono}}
+  | Pi (x: S1 ). S2             ::  :: FunOnPolytype {{ com FunPoly}}
+
+%% Literals
+lit :: 'lit_' ::=
+  | int                 :: M:: IntType
+  | bool                :: M:: BoolType
+  | three               :: M:: Number
+
+%% Sorts
+s, ss {{ tex t }} :: 's_' ::= {{ com Sorts }}
+  | star                ::  :: Star                  {{ com Star }}
+  | square              ::  :: Square                {{ com Square }}
+
+th {{ tex \theta }} :: 'th_' ::=  {{ com Classifier  }}
+  | L              ::  :: Prgm  {{ com Logic }}
+  | P              ::  :: Logic {{ com Program  }}
+
+sig {{ tex \Sigma }} :: 'sig_' ::=  {{ com Positivity  }}
+  | +              ::  :: pos  {{ com Positive }}
+  | -              ::  :: neg {{ com Negative  }}
+
+%% Contexts
+G {{ tex \Gamma }}     :: 'G_' ::= {{ com Contexts }}
+  | empty              ::  :: Empty       {{ com Empty }}
+  | G , x : t          ::  :: Binding     {{ com Variable Binding }}
+  | G , let x = s : t  ::  :: Let         {{ com Let Binding }}
+  | G , G'             :: M:: CtxBind     {{ com Context Binding }}
+  | G [ x |-> e ]      :: M:: CtxSubst    {{ com Context substitution }}
+  | G *                :: M:: CtxStar     {{ com Starred context }}
+  | ee : tt            :: M:: BindCoC
+
+%% Values
+v :: 'v_' ::=                               {{ com Values   }}
+  | star                 ::  :: Star       {{ com Type of Types }}
+  | \ x . e              ::  :: Lam        {{ com Abstraction  }}
+  | castup e             ::  :: CastUp     {{ com Cast Up }}
+
+%% Explicit core
+ec {{ tex e }}, tc {{ tex \tau }}, Tc {{ tex \sigma }} :: 'ec_' ::=       {{ com Expressions    }}
+  | x                           ::  :: Var        {{ com Variable }}
+  | star                        ::  :: Star       {{ com Type of Types }}
+  | ec1 ec2                     ::  :: App        {{ com Application }}
+  | \ x . ec                    ::  :: Lam        {{ com Abstraction }}
+  | castup ec                   ::  :: CastUp     {{ com Cast Up}}
+  | castdown ec                 ::  :: CastDown   {{ com Cast Down }}
+
+%%% Terminals
+terminals :: 'terminals_' ::=
+  | \        ::  :: lambda    {{ tex \lambda }}
+  | Pi       ::  :: pi        {{ tex \Pi }}
+  | sigma    ::  :: sigma     {{ tex \sigma }}
+  | forall   ::  :: forall    {{ tex \forall}}
+  | mu       ::  :: mu        {{ tex \mu }}
+  | star     ::  :: star      {{ tex \star }}
+  | square   ::  :: square    {{ tex \Box }}
+  | empty    ::  :: empty     {{ tex \varnothing }}
+  | L        ::  :: logic     {{ tex \mathsf{L} }}
+  | P        ::  :: program     {{ tex \mathsf{P} }}
+  | ->       ::  :: to        {{ tex \rightarrow }}
+  | -->      ::  :: steps     {{ tex \longrightarrow }}
+  | -->>     ::  :: nsteps    {{ tex \longrightarrow_n }}
+  | ->>      ::  :: msteps    {{ tex \twoheadrightarrow }}
+  | |->      ::  :: mapsto    {{ tex \mapsto }}
+  | castup   ::  :: castup    {{ tex \mathsf{cast}^{\uparrow} }}
+  | ]        ::  :: bracketr  {{ tex \ottsym{]} \, }}
+  | |-       ::  :: turnstile {{ tex \vdash }}
+  | ==       ::  :: equiv     {{ tex \equiv }}
+  | =a       ::  :: alphaeq   {{ tex \equiv }}
+  | =b       ::  :: betaeq    {{ tex =_{\beta} }}
+  | castdown ::  :: castdown  {{ tex \mathsf{cast}_{\downarrow} }}
+  | let      ::  :: let       {{ tex \kw{let} }}
+  | letrec   ::  :: letrec    {{ tex \kw{letrec} }}
+  | in       ::  :: key_in    {{ tex \kw{in} }}
+  | eqb      ::  :: eqb       {{ tex =_{\beta} }}
+  | int      ::  :: int       {{ tex \mathit{Int} }}
+  | bool     ::  :: bool      {{ tex \mathit{Bool} }}
+  | three    ::  :: three     {{ tex 3 }}
+  | elt      ::  :: elt       {{ tex \in }}
+  | *        ::  :: upstar    {{ tex ^{*} }}
+  | .        ::  :: dot       {{ tex .~ }}
+  | =>       ::  :: match     {{ tex \Rightarrow }}
+  | /=       ::  :: ineq      {{ tex \not \eq }}
+  | data     ::  :: data      {{ tex \kw{data} }}
+  | case     ::  :: case      {{ tex \kw{case} }}
+  | of       ::  :: of        {{ tex \kw{of} }}
+  | <<       ::  :: vecl      {{ tex \,\overline{ }}
+  | >>       ::  :: vecr      {{ tex }\, }}
+  | >>n      ::  :: vecrn     {{ tex }^{n}\, }}
+  | @        ::  :: marker    {{ tex }}
+  | ~>       ::  :: transto   {{ tex \rightsquigarrow }}
+  | ~~>      ::  :: transtohl {{ tex \rightsquigarrow }}
+  | (+)      ::  :: union     {{ tex \uplus }}
+  | :=       ::  :: define    {{ tex \triangleq ~ }}
+  | &        ::  :: align     {{ tex & }}
+  | \\\      ::  :: newline   {{ tex \\ & }}
+  | @@       ::  :: dummy     {{ tex }}
+  | foldn    ::  :: foldn     {{ tex \mathsf{cast}_{\uparrow}^n }}
+  | unfoldn  ::  :: unfoldn   {{ tex \mathsf{cast}_{\downarrow}^n }}
+  | cast     ::  :: cast      {{ tex \mathsf{cast} }}
+  | fold     ::  :: fold      {{ tex \mathsf{fold} }}
+  | unfold   ::  :: unfold    {{ tex \mathsf{unfold} }}
+  | foldnp   ::  :: foldnp    {{ tex \mathsf{cast}_{\uparrow}^{n+1} }}
+  | unfoldnp ::  :: unfoldnp  {{ tex \mathsf{cast}_{\downarrow}^{n+1} }}
+  | bar      ::  :: bar       {{ tex \bar }}
+
+%%% Fomulae
+formula :: 'formula_' ::=
+  | judgement                          ::   :: judgement
+  | G1 = G2                            ::   :: context_rewrite
+  | Gs1 = Gs2                          ::   :: context_rewrite_src
+  | e1 = e2                            ::   :: rewrite
+  | e1 /= e2                           ::   :: inequality
+  | e1 =b e2                           ::   :: beta_equality
+  | e1 =a e2                           ::   :: alpha_equality
+  | e1 == e2                           ::   :: equivalence
+  | ( formula )                        ::   :: parens
+  | x : t elt G                        ::   :: context_inclusion
+  | formula \\                         ::   :: lbhack {{ tex [[formula]] \ottlinebreak }}
+  | u : A elt Gs                       ::   :: context_inclusion_src
+  | << formula >>                      ::   :: formula_vector
+  | E1 = E2                            ::   :: rewrite_src
+  | e1 := e2                           ::   :: definition
+  | x fresh G                          ::   :: freshment
+    {{ tex [[x]] \not \in \kw{dom}([[G]]) }}
+  | ee1 =b ee2                         ::   :: beta_equality_coc
+  | p1 => E1 elt << p2 => E2 >>        ::   :: pattern_inclusion
+  | |- Gs ~> G  ::   :: trans_context
+    {{ tex \labeledjudge{wf} [[Gs]] [[~>]] [[G]] }}
+  | Gs  |- pgm : A ~> e  ::   :: trans_program
+    {{ tex [[Gs]] \labeledjudge{pg} [[pgm]] : [[A]] [[~>]] [[e]] }}
+  | Gs  |- decl : Gs' ~> e  ::   :: trans_decl
+    {{ tex [[Gs]] \labeledjudge{d} [[decl]] : [[Gs']] [[~>]] [[e]] }}
+  | Gs  |- p => E : B -> A ~> e  ::   :: trans_pattern
+    {{ tex [[Gs]] \labeledjudge{p} [[p]] [[=>]] [[E]] : [[B]] [[->]] [[A]] [[~>]] [[e]] }}
+  | Gs  |- E : A ~> e  ::   :: trans_expr
+    {{ tex [[Gs]] \labeledjudge{s} [[E]] : [[A]] [[~>]] [[e]] }}
+  | |- Gs  ::   :: srcty_context
+    {{ tex \labeledjudge{wf} [[Gs]] }}
+  | Gs  |- pgm : A  ::   :: srcty_program
+    {{ tex [[Gs]] \labeledjudge{pg} [[pgm]] : [[A]] }}
+  | Gs  |- decl : Gs'  ::   :: srcty_decl
+    {{ tex [[Gs]] \labeledjudge{d} [[decl]] : [[Gs']] }}
+  | Gs  |- p => E : B -> A  ::   :: srcty_pattern
+    {{ tex [[Gs]] \labeledjudge{p} [[p]] [[=>]] [[E]] : [[B]] [[->]] [[A]] }}
+  | Gs  |- E : A  ::   :: srcty_expr
+    {{ tex [[Gs]] \labeledjudge{s} [[E]] : [[A]] }}
+
+%%% Subrule
+subrules
+  v <:: e
+  ec <:: e
+

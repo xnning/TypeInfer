@@ -1,0 +1,129 @@
+\section{type check}
+
+\subsection{Syntax}
+\gram{\otte\ottinterrule
+      \ottS\ottinterrule
+      \ottR\ottinterrule
+      %\ottG\ottinterrule
+  }
+\\[2.0mm]
+
+% \subsection{Operational Semantics}
+% \ottdefnstep{}
+% \ottusedrule{\ottdruleSXXMu{}}
+
+\subsection{non syntax-directed Typing}
+% \ottdefnctx{}\ottinterrule
+% \ottdefnexpr{}
+% \ottusedrule{\ottdruleTXXMu{}}
+
+\newcommand{\pgm}{\mathsf{P}}
+\newcommand{\nat}{\mathsf{nat}}
+\newcommand{\logic}{\mathsf{L}}
+\newcommand{\judge}{\Gamma\vdash}
+\newcommand{\checktype}{\Gamma\vdash^\leftarrow}
+\newcommand{\infertype}{\Gamma\vdash^\rightarrow}
+\newcommand{\checktypeno}{\vdash^\leftarrow}
+\newcommand{\infertypeno}{\vdash^\rightarrow}
+
+
+\framebox{$ \judge e : \sigma$ }
+
+\[
+\inferrule*[right=Ax]
+{} {\judge \star : \star}
+\]
+
+\[
+\inferrule*[right=Var]
+{x : \sigma \in \Gamma} {\judge x : \sigma}
+\]
+
+
+\[
+\inferrule*[right=App]
+{\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2[x \mapsto e_2]}
+\]
+
+\[
+\inferrule*[right=Lam]
+{\Gamma,x: \tau \vdash e : \sigma } {\judge (\lambda x.\, e) : (\Pi x: \tau. \sigma)}
+\]
+
+\[
+\inferrule*[right=LamAnn]
+{\Gamma,x: \sigma \vdash e : \sigma_2 } {\judge (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
+\]
+
+\[
+\inferrule*[right=ExplicitPi]
+{\judge \tau_1 : \star \\ \Gamma, x:\tau_1 \vdash \tau_2 : \star} {\judge (\Pi x:\tau_1. \tau_2) : \star}
+\]
+
+\[
+\inferrule*[right=CastUp]
+{\judge e : \tau_2 \\ \judge \tau_1 : \star \\ \tau_1 \longrightarrow \tau_2} {\judge (\mathsf{cast}^\uparrow\ e) : \tau_1}
+\]
+
+\[
+\inferrule*[right=CastDown]
+{\judge e : \tau_1 \\ \judge \tau_2 : \star \\ \tau_1 \longrightarrow \tau_2} {\judge (\mathsf{cast}_\downarrow\ e) : \tau_2}
+\]
+
+\[
+\inferrule*[right=Let]
+{\judge e_1 : \sigma \\ \Gamma,x: \sigma \vdash e_2: \tau} {\judge ( let\ x = e_1\ in\ e_2 ) : \tau }
+\]
+
+%\[
+%\inferrule*[right=Inst]
+%{\judge e : \sigma' \\ \sigma' \sqsubseteq \sigma} {\judge e : \sigma }
+%\]
+
+\[
+\inferrule*[right=Inst]
+{\judge e : \forall (\alpha_i : \tau_i). \sigma \\ \tau_{\beta i}: \tau_i }
+{\judge e : \sigma[\alpha_i \mapsto \tau_{\beta i}] }
+\]
+
+\[
+\inferrule*[right=Gen]
+{\judge e : \sigma \\
+\alpha_i \notin free(\Gamma) \\
+\tau_i : \star \\
+\alpha_i : \tau_i \vdash \sigma : \star}
+{\judge e : \forall(\alpha_i : \tau_i). \sigma }
+\]
+
+\[
+\inferrule*[right=Ann]
+{\judge e : \sigma }
+{\judge (e :: \sigma) : \sigma }
+\]
+
+
+\framebox{$ \judge \sigma : \star$ }
+
+\[
+\inferrule*[right=ImplicitPi]
+{\judge \tau : \star \\ \Gamma, x:\tau \vdash \rho : \star} {\judge (\forall x : \tau. \rho) : \star}
+\]
+
+\framebox{$ \judge \rho : \star$ }
+
+\[
+\inferrule*[right=FunPoly]
+{\judge \sigma_1 : \star \\ \Gamma, x:\sigma_1 \vdash \sigma_2 : \star} {\judge (\Pi x : \sigma_1. \sigma_2) : \star}
+\]
+%\framebox{$ \sigma' \sqsubseteq \sigma$ }
+
+%\[
+%\inferrule*[]
+%{\tau_b = [\alpha_i \mapsto \gamma_i\ where\ \gamma_i : \tau_i]\tau_a \\
+%\beta_i \notin free(\Pi (\alpha_i:\tau_i) \tau_a) \\
+%\tau_{\beta i} : \star \\
+%\beta_i: \tau_{\beta i} \vdash \tau_b :\star
+%}
+%{\Pi (\alpha_i:\tau_i). \tau_a \sqsubseteq \Pi (\beta_i:\tau_{\beta i}). \tau_b}
+%\]
+
