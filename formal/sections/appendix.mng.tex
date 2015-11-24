@@ -154,3 +154,36 @@
 {\polymorphic \sigma \sqsubseteq \rho } {\instcheck \sigma \sqsubseteq \rho}
 \]
 
+\framebox{subst\_let}
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\begin{lstlisting}
+subst_let t = case t of
+    Var n -> case (fromJust $ lookup context n) of
+            Let body -> body
+            _ -> n
+    App e1 e2 -> (subst_let e1) (subst_let e2)
+    ...
+\end{lstlisting}
+
