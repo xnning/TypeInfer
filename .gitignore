@@ -15,42 +15,17 @@ cabal.config
 .stack-work/
 
 *.DS_Store
-doc/*.aux
-doc/*.log
-doc/*.bbl
-doc/*.out
-doc/*.blg
-doc/*.synctex.gz
-doc/*.fls
-doc/auto/
-doc/_region_.tex
-doc/*.fdb_latexmk
-/doc/sections/auto/
 .texpadtmp/
 *.ptb
 doc/main.pdf
 
 
-/doc/sections/appendix.tex
-/doc/sections/datatypes.tex
-/doc/sections/discussion.mng.tex
-/doc/sections/discussion.tex
-/doc/sections/examples.mng.tex
-/doc/sections/examples.tex
-/doc/sections/explicitcore.tex
-/doc/sections/overview.mng.tex
-/doc/sections/overview.tex
-/doc/sections/recursion.tex
-/doc/sections/otthelper.tex
-/doc/sections/expcore.ott.tex
-/doc/sections/conclusion.tex
-/doc/sections/related.tex
-/newcore/main.aux
-/newcore/main.log
-/newcore/main.pdf
-/newcore/sections/appendix.tex
-/newcore/sections/expcore.ott.tex
-/newcore/sections/otthelper.tex
+/formal/main.aux
+/formal/main.log
+/formal/main.pdf
+/formal/sections/appendix.tex
+/formal/sections/expcore.ott.tex
+/formal/sections/otthelper.tex
 /src/Parser.hs
 /src/Tokens.hs
 
