@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.10.4)  16 NOV 2015 14:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2015.10.4)  24 NOV 2015 16:22
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -579,21 +579,14 @@ Package atveryend Info: Empty hook `AfterLastShipout' on input line 125.
 (./main.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 125.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 125.
-
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: BC33F3F0E953BC63A8983629E8C12F6D;193
-(rerunfilecheck)             After:  6C4CE0C8FDCE02F5523BD68EBBFD9E3A;178.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 6C4CE0C8FDCE02F5523BD68EBBFD9E3A;178.
  ) 
 Here is how much of TeX's memory you used:
- 10579 strings out of 493089
- 150304 string characters out of 6134842
+ 10589 strings out of 493089
+ 150419 string characters out of 6134842
  288964 words of memory out of 5000000
- 13895 multiletter control sequences out of 15000+600000
+ 13905 multiletter control sequences out of 15000+600000
  19932 words of font info for 51 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  30i,16n,35p,820b,380s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -609,7 +602,7 @@ f-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2015/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2015/texmf-di
 st/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2015/texmf-dist/fonts/t
 ype1/urw/times/utmr8a.pfb>
-Output written on main.pdf (1 page, 99761 bytes).
+Output written on main.pdf (1 page, 106171 bytes).
 PDF statistics:
  71 PDF objects out of 1000 (max. 8388607)
  56 compressed objects within 1 object stream

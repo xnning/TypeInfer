@@ -17,8 +17,6 @@ cabal.config
 *.DS_Store
 .texpadtmp/
 *.ptb
-doc/main.pdf
-
 
 /formal/main.aux
 /formal/main.log
