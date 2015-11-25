@@ -52,7 +52,7 @@ e, t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
   | K << u >> << e >>         :: M:: Constructor
   | foldnp [ t ] e            :: M:: CastUpMultiP
   | unfoldnp e                :: M:: CastDownMultiP
-  | e : : sigma                ::  :: Annotation  {{ com Annotation }}
+  | e : sigma                ::  :: Annotation  {{ com Annotation }}
 
 S {{ tex \sigma }} :: 'S_'    ::= {{ com Polytype}}
   | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }}

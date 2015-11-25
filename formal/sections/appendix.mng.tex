@@ -12,7 +12,7 @@
 % \ottdefnstep{}
 % \ottusedrule{\ottdruleSXXMu{}}
 
-\subsection{non syntax-directed Typing}
+\subsection{syntax-directed Typing}
 % \ottdefnctx{}\ottinterrule
 % \ottdefnexpr{}
 % \ottusedrule{\ottdruleTXXMu{}}
@@ -39,13 +39,18 @@
 \newcommand{\polyinfercheck}{\vdash^{poly}_\delta}
 
 \newcommand{\polymorphic}{\vdash^{dsk}}
+\newcommand{\polymorphicstar}{\vdash^{dsk\star}}
+
+\newcommand{\substlet}{\textcolor{blue}{subst\_let}}
 
 
 \framebox{$ \judge e : \sigma$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
-\inferrule*[right=Ax]
+\hl{$
+\inferrule*[right=AX]
 {} {\infercheck \star : \star}
+$}
 \]
 
 \[
@@ -55,65 +60,77 @@
 
 \[
 \inferrule*[right=Lam-Infer]
-{\Gamma,x: \tau \infertypeno e : \rho \\ \checktype (\Pi x:\tau.\rho):\star } {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho)}
+{\Gamma,x: \tau \infertypeno e : \rho \\ \hl{$\checktype (\Pi x:\tau.\rho):\star$} } {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho)}
 \]
 
 \[
 \inferrule*[right=Lam-Check]
-{\checktype (\Pi x:\sigma_1. \sigma_2):\star \\ \Gamma,x: \sigma_1 \checktypeno e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+{\Gamma,x: \sigma_1 \checktypeno e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
 \[
 \inferrule*[right=LamAnn-Infer]
-{\sigma_2 = subst\_let(\sigma_1) \\ \Gamma,x: \sigma_2 \infertypeno e : \rho } {\infertype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_2. \rho)}
+{\hl{$\checktype \sigma_1:\star$} \\
+\sigma_2 = \substlet(\sigma_1) \\ \Gamma,x: \sigma_2 \infertypeno e : \rho } {\infertype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_2. \rho)}
 \]
 
 \[
 \inferrule*[right=LamAnn-Check]
-{\sigma_2 = subst\_let(\sigma_1) \\ \polymorphic \sigma_3 \sqsubseteq \sigma_2 \\ \Gamma,x: \sigma_2 \polycheck e : \sigma_4 } {\checktype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_3. \sigma_4)}
+{\hl{$\checktype \sigma_1:\star$} \\
+\sigma_2 = \substlet(\sigma_1) \\ \polymorphic \sigma_3 \sqsubseteq \sigma_2 \\ \Gamma,x: \sigma_2 \polycheck e : \sigma_4 } {\checktype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_3. \sigma_4)}
 \]
 
 \[
 \inferrule*[right=App]
 {\infertype e_1 : (\Pi x:\sigma_1. \sigma_2) \\
 \polycheck e_2 : \sigma_1 \\
-\instinfercheck \sigma_2 [x \mapsto e_2] \sqsubseteq \rho}
+\instinfercheck \hl{$\sigma_2 [x \mapsto e_2]$} \sqsubseteq \rho}
 {\infercheck e_1\,e_2 : \rho}
 \]
 
 \[
+\hl{$
 \inferrule*[right=ExplicitPi]
 {\checktype \tau_1 : \star \\ \Gamma, x:\tau_1 \checktypeno \tau_2 : \star} {\infercheck (\Pi x:\tau_1. \tau_2) : \star}
+$}
 \]
 
 \[
 \inferrule*[right=Ann]
-{\sigma_2 = subst\_let(\sigma) \\
+{\hl{$\checktype \sigma : \star$} \\
+\sigma_2 = \substlet(\sigma) \\
 \polycheck (e:\sigma_2) \\
 \instinfercheck e : \rho }
-{\infercheck (e :: \sigma) : \rho }
+{\infercheck (e : \sigma) : \rho }
 \]
 
 \[
+\hl{$
 \inferrule*[right=CastUp-Check]
 {\infertype e : \rho_2 \\ \rho_1 \longrightarrow \rho_2} {\checktype (\mathsf{cast}^\uparrow\ e) : \rho_1}
+$}
 \]
 
 \[
+\hl{$
 \inferrule*[right=CastDown-Infer]
 {\infertype e : \rho_1 \\ \rho_1 \longrightarrow \rho_2} {\infertype (\mathsf{cast}_\downarrow\ e) : \rho_2}
+$}
 \]
 
 \[
+\hl{$
 \inferrule*[right=CastDown-Check]
 {\infertype e : \rho_1 \\ \rho_1 \longrightarrow \rho_2 \\ \instcheck \rho_2 \sqsubseteq \rho_3} {\checktype (\mathsf{cast}_\downarrow\ e) : \rho_3}
+$}
 \]
 
 \[
 \inferrule*[right=Let]
-{\polyinfer e_1 : \sigma \\ \Gamma, let\ x:\sigma = subst\_let(e1) \infercheckno e_2: \rho}
+{\polyinfer e_1 : \sigma \\ \Gamma, let\ x:\sigma = \substlet(e1) \infercheckno e_2: \rho}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
+(The substitution let rule is also workable)
 
 \framebox{$ \judge \sigma : \star$ }
 
@@ -133,7 +150,9 @@
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ x=ftv(\rho)-ftv(\Gamma) \\ x:\tau \\ \checktype (\forall x:\tau. \rho):\star } {\polyinfer e :(\forall x:\tau. \rho)}
+{\infertype e :\rho \\ x=ftv(\rho)-ftv(\Gamma) \\
+\hl{$x:\tau$} \\
+\hl{$\checktype (\forall x:\tau. \rho):\star$} } {\polyinfer e :(\forall x:\tau. \rho)}
 \]
 
 \[
@@ -145,7 +164,7 @@
 
 \[
 \inferrule*[right=Inst-Infer]
-{\tau_\beta : \tau}
+{\hl{$\tau_\beta : \tau$}}
 {\instinfer \forall x:\tau. \rho \sqsubseteq \rho[x \mapsto \tau_\beta]}
 \]
 
@@ -183,7 +202,82 @@ subst_let t = case t of
     Var n -> case (fromJust $ lookup context n) of
             Let body -> body
             _ -> n
-    App e1 e2 -> (subst_let e1) (subst_let e2)
+    App e1 e2 -> App (subst_let e1) (subst_let e2)
     ...
 \end{lstlisting}
+
+\framebox{$pr(\sigma)=\forall a:\tau.\rho$: float out all $\forall$s, the same as the paper}
+
+\[
+\inferrule*[right=PR-POLY]
+{pr(\rho_1) = \forall b:\tau_2. \rho_2 \\ a \cap b = \emptyset} {pr(\forall a:\tau_1. \rho_1) = \forall a:\tau_1. \forall b:\tau_2. \rho_2}
+\]
+
+\[
+\inferrule*[right=PR-FUN]
+{pr(\sigma_2) = \forall a:\tau. \rho_2 \\ a \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forall a:\tau_1. \Pi x:\sigma_1. \rho_2}
+\]
+
+\[
+\inferrule*[right=\hl{PR-OTHER-CASE}]
+{  } {pr(\tau)=\tau}
+\]
+
+\framebox{$\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2$: almost same, take care of kinds}
+
+\[
+\inferrule*[right=DEEP-SKOL]
+{pr(\sigma_2)=\forall a:\tau. \rho \\ a \notin ftv(\sigma_1) \\
+\hl{$a \notin ftv(\Sigma)$} \\
+\hl{$\Sigma, a:\tau$} \polymorphicstar \sigma_1 \sqsubseteq \rho }
+{\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2}
+\]
+
+\framebox{$\Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2$}
+
+\[
+\inferrule*[right=SPEC]
+{\hl{$\Sigma \vdash \beta: \tau$} \\
+\hl{$\Sigma, \beta:\tau$} \polymorphicstar \rho_1[a \mapsto \beta] \sqsubseteq \rho_2}
+{\Sigma \polymorphicstar \forall a:\tau.\rho_1 \sqsubseteq \rho_2}
+\]
+
+\[
+\inferrule*[right=FUN]
+{\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
+\Sigma \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
+{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \sigma_4}
+\]
+
+\[
+\inferrule*[right=MONO]
+{\hl{$ \tau \in \Sigma$}}
+{\Sigma \polymorphicstar \tau \sqsubseteq \tau}
+\]
+
+\[
+\hl{$
+\inferrule*[right=OTHER-CASE]
+{  \alpha-equal(\sigma_1, \sigma_2)  }
+{ \Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2}
+$}
+\]
+
+\framebox{$\Sigma \vdash a: \tau$: in order to use dsk*-mono, two variable with same name should have same kind}
+
+\[
+\hl{$
+\inferrule*[right=EXISTS]
+{ a:\tau \in \Sigma}
+{ \Sigma \vdash a:\tau}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=NOT\_EXISTS]
+{ b \notin \Sigma}
+{ \Sigma \vdash b:\tau}
+$}
+\]
 
