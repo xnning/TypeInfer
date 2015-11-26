@@ -113,15 +113,8 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=CastDown-Infer]
-{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \rho_2} {\infertype (\mathsf{cast}_\downarrow\ e) : \rho_2}
-$}
-\]
-
-\[
-\hl{$
-\inferrule*[right=CastDown-Check]
-{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \rho_2 \\ \instcheck \rho_2 \sqsubseteq \rho_3} {\checktype (\mathsf{cast}_\downarrow\ e) : \rho_3}
+\inferrule*[right=CastDown]
+{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \sigma \\ \instinfercheck \sigma \sqsubseteq \rho_2} {\infercheck (\mathsf{cast}_\downarrow\ e) : \rho_2}
 $}
 \]
 
