@@ -8,8 +8,6 @@ module Environment (
     initialEnv,
     multiSubst,
     teleToEnv,
-    lookupTVar,
-    extendCtxWithTvar,
     ftv,
     instantiate,
     generalization,
@@ -33,7 +31,7 @@ import           PrettyPrint
 
 type Env = [(TmName, Expr)]
 type Sub = [(TmName, Expr)]
-data Context = Ctx {_env :: Env, _tvarenv :: Env}
+data Context = Ctx {_env :: Env}
 
 makeLenses ''Context
 
@@ -44,7 +42,7 @@ runTcMonad :: Context -> TcMonad a -> (Either T.Text a)
 runTcMonad env m = runExcept $ evalStateT (runFreshMT m) env
 
 initialEnv :: Context
-initialEnv = Ctx [] []
+initialEnv = Ctx []
 
 lookupTy :: (MonadState Context m, MonadError T.Text m) => TmName -> m Expr
 lookupTy v = do
@@ -53,22 +51,10 @@ lookupTy v = do
     Nothing  -> throwError $ T.concat ["Ty Not in scope: ", T.pack . show $ v]
     Just res -> return res
 
-lookupTVar :: (MonadState Context m, MonadError T.Text m) => TmName -> m Expr
-lookupTVar v = do
-  ctx <- gets _tvarenv
-  case lookup v ctx of
-    Nothing  -> throwError $ T.concat ["TVar Not in scope: ", T.pack . show $ v]
-    Just res -> return res
-
 extendCtx :: (MonadState Context m) => Env -> m a -> m a
 extendCtx d c = do
   ctx <- get
   withNewEnv (d ++ (_env ctx)) c
-
-extendCtxWithTvar :: (MonadState Context m) => Env -> m ()
-extendCtxWithTvar d = do
-  ctx <- get
-  put ctx{_tvarenv = d ++ (_tvarenv ctx)}
 
 multiSubst :: Sub -> Expr -> Expr
 multiSubst sub typ = (foldl (\ty (x, t) -> subst x t ty) typ sub)
@@ -109,9 +95,8 @@ instantiate ty = case ty of
      work (Cons rb) body = do
          let ((x, Embed t), b) = unrebind rb
          newName <- genName
-         extendCtxWithTvar [(newName, t)]
-         let b' = subst x (Var newName) b
-             body' = subst x (Var newName) body
+         let b' = subst x (TVar newName t) b
+             body' = subst x (TVar newName t) body
          work b' body'
 
 -- generalization used in let
@@ -119,47 +104,52 @@ generalization :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -
 generalization ty = do
     free <- ftv ty
     free_ctx <- ftvctx
-    let diff = free Set.\\ free_ctx
-    freewithty <- mapM (\n -> do
-                           t <- lookupTVar n
-                           return (n, t))
-                       (Set.toList diff)
+    let freewithty = free `ftv_diff` free_ctx
     if null freewithty then return ty
     else return $ epiWithName freewithty ty
 
 -- free variables
-ftv ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m (Set.Set TmName)
-ftv (Var n) = return $ Set.singleton n
+type Freevar = [(TmName, Expr)]
+
+ftv ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
+ftv (Var n) = return [(n, undefined)]
+ftv (Skolem n k) = return [(n, k)]
+ftv (TVar n k) = return [(n, k)]
 ftv (App t1 t2) = do
     t1' <- ftv t1
     t2' <- ftv t2
-    return (t1' `Set.union` t2')
+    return (t1' `ftv_union` t2')
 ftv (Fun t1 t2) = do
     t1' <- ftv t1
     t2' <- ftv t2
-    return (t1' `Set.union` t2')
+    return (t1' `ftv_union` t2')
 ftv (Pi bnd) = do
      (bind, b) <- unbind bnd
      b' <- ftv b
      bind' <- ftvtele bind
-     return $ b' Set.\\ bind'
-ftv _ = return Set.empty
+     return $ b' `ftv_diff` bind'
+ftv _ = return []
 
-ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m (Set.Set TmName)
-ftvtele Empty = return Set.empty
+ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m Freevar
+ftvtele Empty = return []
 ftvtele (Cons rb) = do
    let ((x, Embed t), b) = unrebind rb
    t' <- ftv t
    b' <- ftvtele b
-   return $ t' `Set.union` b'
+   return $ t' `ftv_union` b'
 
-ftvctx ::(MonadState Context m, MonadError T.Text m, Fresh m) =>  m (Set.Set TmName)
+ftvctx ::(MonadState Context m, MonadError T.Text m, Fresh m) =>  m Freevar
 ftvctx = do
     ctx <- gets _env
     foldM (\fv (_, t)-> do
                 t' <- ftv t
-                return $ fv `Set.union` t')
-          Set.empty
+                return $ fv `ftv_union` t')
+          []
           ctx
 
+ftv_diff :: Freevar -> Freevar -> Freevar
+ftv_diff s1 s2 = filter (\(nm, _) -> not $ nm `elem` lst) s1 where lst = map fst s2
+
+ftv_union :: Freevar -> Freevar -> Freevar
+ftv_union s1 s2 = foldr (\var@(nm, _) acc -> if nm `elem` lst then acc else acc ++ [var] ) s1 s2 where lst = map fst s1
 

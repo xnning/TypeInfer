@@ -77,9 +77,8 @@ infer (Var x) = do
 infer (Lam bnd) = do
   (x, body) <- unbind bnd
   newName <- genName
-  extendCtxWithTvar [(newName, estar)]
-  (body_type, sub) <- extendCtx [(x, Var newName)] $ infer body
-  return (Fun (multiSubst sub $ Var newName) body_type, sub)
+  (body_type, sub) <- extendCtx [(x, TVar newName estar)] $ infer body
+  return (Fun (multiSubst sub $ TVar newName estar) body_type, sub)
 
 infer (App m n) = do
   (t1, s1) <- infer m
@@ -87,9 +86,8 @@ infer (App m n) = do
         (t2, se) <- infer n
         let s2 = se `compose` s1
         newName <- genName
-        extendCtxWithTvar [(newName, estar)]
-        s3 <- unification (multiSubst s2 t1) (Fun t2 $ Var newName)
-        return (multiSubst s3 $ Var newName, s3 `compose` s2 `compose` s1)
+        s3 <- unification (multiSubst s2 t1) (Fun t2 $ TVar newName estar)
+        return (multiSubst s3 $ TVar newName estar, s3 `compose` s2 `compose` s1)
 
 infer (Let bnd) = do
   ((x, Embed e), e2) <- unbind bnd
@@ -119,7 +117,7 @@ infer (PrimOp op m n) = do
      s3 <- unification (multiSubst s2 t1) Nat
      s4 <- unification (multiSubst s3 t2) Nat
      return (Nat, s4 `compose` s3 `compose` s2 `compose` s1)
-infer e = throwError $ T.concat ["Type checking ", showExpr e, " falied"]
+infer e = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
 
 
 -- helper functions
@@ -162,7 +160,8 @@ oneStep e = do
 
 getType :: Expr -> TcMonad Expr
 getType (Kind Star) = return estar
-getType (Var n) = lookupTVar n
+getType (Skolem _ t) = return t
+getType (TVar _ t)   = return t
 getType (Fun e1 e2) = do
     e1' <- getType e1
     e2' <- getType e2
@@ -172,7 +171,7 @@ getType (Fun e1 e2) = do
 getType Nat = return  estar
 getType (Lit{}) = return Nat
 getType (PrimOp{}) = return Nat
-getType e = throwError $ T.concat ["get type ", showExpr e, " falied"]
+getType e = throwError $ T.concat ["unexpected type in unification ", showExpr e]
 
 unification :: Expr -> Expr -> TcMonad Sub
 unification t1 t2 = do
@@ -184,16 +183,17 @@ unification t1 t2 = do
              sub <- unification t12 t22
              sub2 <- unification (multiSubst sub t11) (multiSubst sub t21)
              return $ sub2 `compose` sub
-         unify (App t1 ts1) (App t2 ts2) = unify (Fun ts1 t1) (Fun ts2 t2)
-         unify (Var n) t = varBind n t
-         unify t (Var n) = varBind n t
-         unify Nat Nat   = return []
-         unify (Kind Star) (Kind Star) = return []
+         unify (App t1 ts1) (App t2 ts2)             = unify (Fun ts1 t1) (Fun ts2 t2)
+         unify  Nat          Nat                     = return []
+         unify (Kind Star)  (Kind Star)              = return []
+         unify (TVar n m)   (TVar n2 m2)   | n == n2 = return []
+         unify (Skolem n m) (Skolem n2 m2) | n == n2 = return []
+         unify (TVar n _)    t                       = varBind n t
+         unify  t           (TVar n _)               = varBind n t
          unify e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
-         varBind n t = if aeq t (Var n) then return []
-                       else do freevar <- ftv t
-                               if n `Set.member` freevar then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
-                               else return [(n,t)]
+         varBind n t = do freevar <- ftv t
+                          if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
+                          else return [(n,t)]
 
 compose :: Sub -> Sub -> Sub
 compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1

@@ -40,6 +40,10 @@ data Expr = Var TmName
           | Ann Expr Expr
 
           | Fun Expr Expr
+
+          -- helper
+          | Skolem TmName Expr -- TmName : Expr
+          | TVar   TmName Expr
   deriving (Show, Generic, Typeable)
 
 data Operation = Mult
@@ -72,6 +76,7 @@ instance Subst Expr ClassTag
 
 instance Subst Expr Expr where
   isvar (Var v) = Just (SubstName v)
+  isvar (TVar v _ ) = Just (SubstName v)
   isvar _ = Nothing
 
 
