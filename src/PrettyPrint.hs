@@ -45,6 +45,21 @@ instance Pretty Expr where
     e1' <- ppr e1
     e2' <- ppr e2
     return (PP.parens $ e1' <+> text "→" <+> e2' )
+  ppr (LamAnn bnd) = lunbind bnd $ \((x, Embed ann), body) -> do
+    let x' = text . show $ x
+    ann' <- ppr ann
+    body' <- ppr body
+    return (PP.parens $ text "λ" <> x' <+> text ":" <+> ann' <+> dot <+> body')
+  ppr (CastUp e) = do
+    e' <- ppr e
+    return (PP.parens $ text "castup" <+> e')
+  ppr (CastDown e) = do
+    e' <- ppr e
+    return (PP.parens $ text "castdown" <+> e')
+  ppr (Ann e1 e2) = do
+    e1' <- ppr e1
+    e2' <- ppr e2
+    return (PP.parens $ e1' <+> text ":" <+> e2')
 
 instance Pretty Operation where
   ppr Add = return . text $ "+"

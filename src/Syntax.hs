@@ -26,7 +26,6 @@ data Tele = Empty
 data Expr = Var TmName
           | App Expr Expr
           | Lam (Bind TmName Expr)
-          | Fun Expr Expr
           | Pi (Bind Tele Expr)
           | Kind Kinds
 
@@ -34,6 +33,13 @@ data Expr = Var TmName
           | Nat
           | Lit Int
           | PrimOp Operation Expr Expr
+
+          | LamAnn (Bind (TmName, Embed Expr) Expr)
+          | CastUp Expr
+          | CastDown Expr
+          | Ann Expr Expr
+
+          | Fun Expr Expr
   deriving (Show, Generic, Typeable)
 
 data Operation = Mult
@@ -87,6 +93,9 @@ evar = Var . string2Name
 
 elam :: String -> Expr -> Expr
 elam t b = Lam (bind (string2Name t) b)
+
+elamann :: String -> Expr -> Expr -> Expr
+elamann t ann b = LamAnn (bind (s2n t, embed ann) b)
 
 epi :: [(String, Expr)] -> Expr -> Expr
 epi t b = Pi (bind (mkTele t) b)

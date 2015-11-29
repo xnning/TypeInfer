@@ -20,6 +20,8 @@ import Tokens
     in     { TokenIn }
     mu     { TokenMu }
     nat    { TokenNat }
+    castup { TokenF}
+    castdown { TokenU }
     id     { TokenSym $$ }
     digits { TokenInt $$ }
     ':'    { TokenColon }
@@ -53,9 +55,13 @@ expr : '\\' id '.' expr                         { elam $2 $4 }
 
      -- surface language
      | expr '+' expr                            { PrimOp Add $1 $3 }
-     | expr '->' expr                           { earr $1 $3 }
      | let id '=' expr in expr                  { elet $2 $4 $6 }
      | aexp                                     { $1 }
+
+     | '\\' id ':' expr '.' expr                { elamann $2 $4 $6 }
+     | castup expr                              { CastUp $2 }
+     | castdown expr                            { CastDown $2 }
+     | expr ':' expr                            { Ann $1 $3 }
 
 aexp : aexp term                                { App $1 $2 }
      | term                                     { $1 }
