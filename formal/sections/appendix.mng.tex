@@ -44,7 +44,7 @@
 \newcommand{\substlet}{\textcolor{blue}{subst\_let}}
 
 
-\framebox{$ \judge e : \sigma$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
+\framebox{$ \judge e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
 \hl{$
@@ -65,19 +65,21 @@ $}
 
 \[
 \inferrule*[right=Lam-Check]
-{\Gamma,x: \sigma_1 \checktypeno e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+{\Gamma,x: \sigma_1 \polycheck e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
 \[
 \inferrule*[right=LamAnn-Infer]
-{\hl{$\checktype \sigma_1:\star$} \\
-\sigma_2 = \substlet(\sigma_1) \\ \Gamma,x: \sigma_2 \infertypeno e : \rho } {\infertype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_2. \rho)}
+{
+\hl{$\checktype \sigma:\star$} \\
+\Gamma,x: \sigma \infertypeno e : \rho } {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho)}
 \]
 
 \[
 \inferrule*[right=LamAnn-Check]
-{\hl{$\checktype \sigma_1:\star$} \\
-\sigma_2 = \substlet(\sigma_1) \\ \polymorphic \sigma_3 \sqsubseteq \sigma_2 \\ \Gamma,x: \sigma_2 \polycheck e : \sigma_4 } {\checktype (\lambda x:\sigma_1.\, e) : (\Pi x: \sigma_3. \sigma_4)}
+{
+\hl{$\checktype \sigma:\star$} \\
+\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
 \[
@@ -97,9 +99,9 @@ $}
 
 \[
 \inferrule*[right=Ann]
-{\hl{$\checktype \sigma : \star$} \\
-\sigma_2 = \substlet(\sigma) \\
-\polycheck (e:\sigma_2) \\
+{
+\hl{$\checktype \sigma : \star$} \\
+\polycheck (e:\sigma) \\
 \instinfercheck e : \rho }
 {\infercheck (e : \sigma) : \rho }
 \]
@@ -120,10 +122,9 @@ $}
 
 \[
 \inferrule*[right=Let]
-{\polyinfer e_1 : \sigma \\ \Gamma, let\ x:\sigma = \substlet(e1) \infercheckno e_2: \rho}
+{\polyinfer e_1 : \sigma \\ \infercheck e_2[x \mapsto e_1]: \rho}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
-(The substitution let rule is also workable)
 
 \framebox{$ \judge \sigma : \star$ }
 
@@ -139,7 +140,7 @@ $}
 {\checktype \sigma_1 : \star \\ \Gamma, x:\sigma_1 \checktypeno \sigma_2 : \star} {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star}
 \]
 
-\framebox{$ \Gamma \polyinfercheck \tau : \sigma$ }
+\framebox{$ \Gamma \polyinfercheck e : \sigma$ }
 
 \[
 \inferrule*[right=Gen-Infer]
@@ -166,9 +167,6 @@ $}
 {\polymorphic \sigma \sqsubseteq \rho } {\instcheck \sigma \sqsubseteq \rho}
 \]
 
-\framebox{subst\_let}
-
-
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -189,15 +187,6 @@ $}
   breakatwhitespace=true,
   tabsize=3
 }
-
-\begin{lstlisting}
-subst_let t = case t of
-    Var n -> case (fromJust $ lookup context n) of
-            Let body -> body
-            _ -> n
-    App e1 e2 -> App (subst_let e1) (subst_let e2)
-    ...
-\end{lstlisting}
 
 \framebox{$pr(\sigma)=\forall a:\tau.\rho$: float out all $\forall$s, the same as the paper}
 
