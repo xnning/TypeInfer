@@ -151,7 +151,7 @@ $}
 
 \[
 \inferrule*[right=Gen-Check]
-{x \notin ftv(\Gamma) \\ \infertype e :\rho \\ pr(\sigma) = \forall x. \rho} {\polycheck e : \sigma}
+{x \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forall x: \tau. \rho} {\polycheck e : \sigma}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
