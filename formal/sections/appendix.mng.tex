@@ -102,7 +102,7 @@ $}
 {
 \hl{$\checktype \sigma : \star$} \\
 \polycheck (e:\sigma) \\
-\instinfercheck e : \rho }
+\instinfercheck \sigma : \rho }
 {\infercheck (e : \sigma) : \rho }
 \]
 
@@ -215,7 +215,7 @@ $}
 {\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2}
 \]
 
-\framebox{$\Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2$}
+\framebox{$\Sigma \polymorphicstar \sigma_1 \sqsubseteq \rho$}
 
 \[
 \inferrule*[right=SPEC]
@@ -225,10 +225,21 @@ $}
 \]
 
 \[
-\inferrule*[right=FUN]
+\hl{$
+\inferrule*[right=FUN1]
+{
+\Sigma, x:\sigma_1 \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
+{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_1. \sigma_4}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=FUN2]
 {\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
-\Sigma \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
-{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \sigma_4}
+\Sigma, x:\sigma_1, y:\sigma_3 \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
+{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi y:\sigma_3. \sigma_4}
+$}
 \]
 
 \[
