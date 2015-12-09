@@ -86,12 +86,12 @@ genName = fresh (string2Name "a")
 -- instantiation used in var
 instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 instantiate ty = case ty of
-     Pi bnd -> do
+     Forall bnd -> do
         (bind, b) <- unbind bnd
         work bind b
      x -> return x
     where
-     work Empty body = return body
+     work Empty body = instantiate body
      work (Cons rb) body = do
          let ((x, Embed t), b) = unrebind rb
          newName <- genName

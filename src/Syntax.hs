@@ -27,6 +27,7 @@ data Expr = Var TmName
           | App Expr Expr
           | Lam (Bind TmName Expr)
           | Pi (Bind Tele Expr)
+          | Forall (Bind Tele Expr)
           | Kind Kinds
 
           | Let (Bind (TmName, Embed Expr) Expr)
