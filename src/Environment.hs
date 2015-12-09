@@ -141,7 +141,7 @@ generalization ty = do
     free_ctx <- ftvctx
     let freewithty = free `ftv_diff` free_ctx
     if null freewithty then return ty
-    else return $ epiWithName freewithty ty
+    else return $ forallWithName freewithty ty
 
 -- free variables
 type Freevar = [(TmName, Expr)]
