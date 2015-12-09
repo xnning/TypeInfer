@@ -198,6 +198,53 @@ unification t1 t2 = do
 compose :: Sub -> Sub -> Sub
 compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
 
+-- dsk*
+subCheckRho :: Expr -> Expr -> TcMonad Sub
+-- SPEC
+subCheckRho sigma1@(Forall _) rho2 = do
+    rho1 <- instantiate sigma1
+    subCheckRho rho1 rho2
+-- FUN
+subCheckRho rho1 rho2@(Pi _) = fun rho1 rho2
+subCheckRho rho1@(Pi _) rho2 = fun rho1 rho2
+-- OTHER-CASE
+subCheckRho rho1 rho2 = unification rho1 rho2
+
+fun :: Expr -> Expr -> TcMonad Sub
+fun rho1 rho2 = do
+    (nm1, a1, r1, b1, sub1) <- unpi rho1
+    (nm2, a2, r2, b2, sub2) <- unpi (multiSubst sub1 rho2)
+    sub3 <- subCheck a2 (multiSubst sub2 a1)
+    let sub4 = sub3 `compose` sub2 `compose` sub1
+    let a1' = multiSubst sub4 a1
+        a2' = multiSubst sub4 a2
+    newName1 <-genName
+    newName2 <-genName
+    let subst1 = [(nm1, Skolem newName1 a1')] `compose` sub4
+        subst2 = [(nm2, Skolem (if aeq a1' a2' then newName1 else newName2) a2')] `compose` sub4
+        rho1' = mkpi (substTele subst1 r1) (multiSubst subst2 b1)
+        rho2' = mkpi (substTele subst1 r2) (multiSubst subst2 b2)
+    sub5 <- subCheckRho rho1' rho2'
+    return $ sub5 `compose` sub4
+
+unpi (Pi bd) = do
+    (tele, body) <- unbind bd
+    let Cons bnd = tele
+        ((nm, Embed t), rest) = unrebind bnd
+    return (nm, t, rest, body, [])
+unpi tau = do
+    x <- genName
+    y <- genName
+    nm1 <- genName
+    let a1 = TVar x estar
+        r1 = TVar y estar
+    sub <- unification tau $ epiWithName [(nm1, a1)] r1
+    return (nm1, multiSubst sub a1, Empty, multiSubst sub r1, sub)
+
+mkpi tele body =
+    case tele of Empty -> body
+                 _     -> Pi (bind tele body)
+
 -- pr
 pr :: Expr -> TcMonad ([Expr], Expr)
 -- PR-POLY
