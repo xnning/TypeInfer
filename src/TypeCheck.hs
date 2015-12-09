@@ -198,3 +198,29 @@ unification t1 t2 = do
 compose :: Sub -> Sub -> Sub
 compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
 
+-- pr
+pr :: Expr -> TcMonad ([Expr], Expr)
+-- PR-POLY
+pr (Forall bd) = do
+    (tele, body_type) <- unbind bd
+    go tele [] body_type
+    where go Empty acc body_type = do
+            (acc', rho) <- pr body_type
+            return (acc ++ acc', rho)
+          go (Cons bnd) acc body_type = do
+            let ((nm, Embed t), rest) = unrebind bnd
+            x <- genName
+            let sub = [(nm, Skolem x t)]
+                rest' = substTele sub rest
+                body_type' = multiSubst sub body_type
+            go rest' (acc ++ [Skolem x t]) body_type'
+-- PR-FUN
+pr (Pi bd) = do
+    (tele, body_type) <- unbind bd
+    (skole, rho) <- pr body_type
+    if null skole
+    then return ([], Pi bd)
+    else return (skole, Pi (bind tele rho))
+-- PR-OTHER-CASE
+pr t = return ([], t)
+
