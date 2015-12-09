@@ -30,6 +30,17 @@ instance Pretty Expr where
       else do
         delta' <- ppr delta
         return (PP.parens $ text "Π" <> delta' <+> dot <+> b')
+  ppr (Forall bnd) = lunbind bnd $ \(delta, b) -> do
+    let Cons bb = delta
+    let ((x, Embed t), bb') = unrebind bb
+    b' <- ppr b
+    if (show x == "_" && isEmpty bb')
+      then do
+        t' <- ppr t
+        return (PP.parens $ t' <+> text "→" <+> b')
+      else do
+        delta' <- ppr delta
+        return (PP.parens $ text "∀" <> delta' <+> dot <+> b')
   ppr (Let bnd) = lunbind bnd $ \((x, Embed e1), e2) -> do
     e1' <- ppr e1
     e2' <- ppr e2
@@ -52,10 +63,10 @@ instance Pretty Expr where
     return (PP.parens $ text "λ" <> x' <+> text ":" <+> ann' <+> dot <+> body')
   ppr (CastUp e) = do
     e' <- ppr e
-    return (PP.parens $ text "castup" <+> e')
+    return (PP.parens $ text "cast↑" <+> e')
   ppr (CastDown e) = do
     e' <- ppr e
-    return (PP.parens $ text "castdown" <+> e')
+    return (PP.parens $ text "cast↓" <+> e')
   ppr (Ann e1 e2) = do
     e1' <- ppr e1
     e2' <- ppr e2
