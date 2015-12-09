@@ -83,6 +83,31 @@ teleToEnv (Cons rb) = (x, t) : teleToEnv b
 genName :: (Fresh m) => m TmName
 genName = fresh (string2Name "a")
 
+-- pr
+pr :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m ([Expr], Expr)
+-- PR-POLY
+pr (Forall bd) = do
+    (tele, body_type) <- unbind bd
+    go tele [] body_type
+    where go Empty acc body_type = do
+            (acc', rho) <- pr body_type
+            return (acc ++ acc', rho)
+          go (Cons bnd) acc body_type = do
+            let ((nm, Embed t), rest) = unrebind bnd
+            x <- genName
+            let sub = [(nm, Skolem x t)]
+                rest' = substTele sub rest
+                body_type' = multiSubst sub body_type
+            go rest' (acc ++ [Skolem x t]) body_type'
+-- PR-FUN
+pr (Pi bd) = do
+    (tele, body_type) <- unbind bd
+    (skole, rho) <- pr body_type
+    if null skole
+    then return ([], Pi bd)
+    else return (skole, Pi (bind tele rho))
+-- PR-OTHER-CASE
+pr t = return ([], t)
 instSigma ::  (MonadState Context m, MonadError T.Text m, Fresh m)  => Expr -> Mode -> m (Expr, Sub)
 -- INST INFER
 instSigma t Infer = do
