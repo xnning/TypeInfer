@@ -22,6 +22,8 @@ done = mzero
 -- | Small step, call-by-value operational semantics
 step :: Expr -> MaybeT FreshM Expr
 step (Var{}) = done
+step (TVar{}) = done
+step (Skolem{}) = done
 step (Kind{}) = done
 step (Lam{}) = done
 step (Pi{}) = done
@@ -43,6 +45,9 @@ step (PrimOp op (Lit n) (Lit m)) = do
 step (PrimOp op e1 e2) =
   PrimOp <$> pure op <*> step e1 <*> pure e2
   <|> PrimOp <$> pure op <*> pure e1 <*> step e2
+step (CastUp{}) = done
+step (CastDown (CastUp e)) = return e
+step (CastDown e) = CastDown <$> step e
 
 evalOp :: Operation -> Int -> Int -> Int
 evalOp Add = (+)
