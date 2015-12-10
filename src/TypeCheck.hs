@@ -14,6 +14,8 @@ import           Syntax
 import           Environment
 import qualified Data.Set as Set
 
+import           Data.List(intersect)
+
 done :: MonadPlus m => m a
 done = mzero
 
@@ -197,6 +199,23 @@ unification t1 t2 = do
 
 compose :: Sub -> Sub -> Sub
 compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
+
+-----------------------------------------
+-----------------------------------------
+
+-- dsk
+subCheck :: Expr -> Expr -> TcMonad Sub
+subCheck sigma1 sigma2 = do
+    (skole, rho) <- pr sigma2
+    let skole' = map (\(Skolem x _) -> x) skole
+    sub <- subCheckRho sigma1 rho
+    t1 <- fmap (map fst) $ substEnv sub ftvctx
+    t2 <- fmap (map fst) . ftv $ multiSubst sub sigma1
+    t3 <- fmap (map fst) . ftv $ multiSubst sub sigma2
+    let bad_fv = skole' `intersect` (t1 ++ t2 ++ t3)
+    if null bad_fv
+    then return sub
+    else throwError $ T.concat ["Type ", showExpr sigma1, " is not as least as polymorphic as type ", showExpr sigma2]
 
 -- dsk*
 subCheckRho :: Expr -> Expr -> TcMonad Sub
