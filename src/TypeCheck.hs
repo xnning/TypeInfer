@@ -264,6 +264,36 @@ mkpi tele body =
     case tele of Empty -> body
                  _     -> Pi (bind tele body)
 
+-- GEN INFER
+inferSigma :: Expr -> TcMonad (Expr, Sub)
+inferSigma expr = do
+    (rho, sub) <- infertype expr
+    sigma <- generalization rho
+    return (sigma, sub)
+
+-- GEN CHECK
+checkSigma :: Expr -> Expr -> TcMonad (Expr, Sub)
+checkSigma expr sigma = do
+    (skole, rho) <- pr sigma
+    let skole' = map (\(Skolem x _) -> x) skole
+    (res, sub) <- checktype expr rho
+    t1 <- fmap (map fst) $ substEnv sub ftvctx
+    t2 <- fmap (map fst) . ftv $ multiSubst sub sigma
+    let bad_fv = skole' `intersect` (t1 ++ t2)
+    if null bad_fv
+    then return (res, sub)
+    else throwError $ T.concat ["CheckSigma ", showExpr expr, " : ", showExpr sigma, "fail"]
+
+instSigma ::  Expr -> Mode -> TcMonad (Expr, Sub)
+-- INST INFER
+instSigma t Infer = do
+    ty <- instantiate t
+    return (ty, [])
+-- INST CHECK
+instSigma t (Check ty) = do
+    sub <- subCheck t ty
+    return (multiSubst sub ty, sub)
+
 -- pr
 pr :: Expr -> TcMonad ([Expr], Expr)
 -- PR-POLY

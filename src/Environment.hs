@@ -12,7 +12,9 @@ module Environment (
     instantiate,
     generalization,
     substEnv,
-    genName
+    genName,
+    substTele,
+    ftvctx
     ) where
 
 import           Control.Applicative
@@ -80,18 +82,14 @@ teleToEnv (Cons rb) = (x, t) : teleToEnv b
   where
     ((x, Embed t), b) = unrebind rb
 
+substTele :: Sub -> Tele -> Tele
+substTele sub Empty = Empty
+substTele sub (Cons rb) = Cons $ rebind (x, Embed (multiSubst sub t)) (substTele sub b)
+  where
+    ((x, Embed t), b) = unrebind rb
+
 genName :: (Fresh m) => m TmName
 genName = fresh (string2Name "a")
-
-instSigma ::  (MonadState Context m, MonadError T.Text m, Fresh m)  => Expr -> Mode -> m (Expr, Sub)
--- INST INFER
-instSigma t Infer = do
-    ty <- instantiate t
-    return (ty, [])
--- INST CHECK
-instSigma t (Check ty) = do
-    sub <- subCheck t ty
-    return (multiSubst sub ty, sub)
 
 -- instantiation used in var
 instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
