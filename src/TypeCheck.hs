@@ -92,9 +92,9 @@ infer (Var x) mode = do
 
 infer (Lam bnd) Infer = do
   (x, body) <- unbind bnd
-  newName <- genName
-  (body_type, sub) <- extendCtx [(x, TVar newName estar)] $ infertype body
-  let res = epiWithName [(x, multiSubst sub $ TVar newName estar)] body_type
+  tvar <- genTVar estar
+  (body_type, sub) <- extendCtx [(x, tvar)] $ infertype body
+  let res = epiWithName [(x, multiSubst sub tvar)] body_type
   (_, sub2) <- checktype res estar
   return (res, sub2 `compose` sub)
 
@@ -322,10 +322,10 @@ fun rho1 rho2 = do
     let sub4 = sub3 `compose` sub2 `compose` sub1
     let a1' = multiSubst sub4 a1
         a2' = multiSubst sub4 a2
-    newName1 <-genName
-    newName2 <-genName
-    let subst1 = [(nm1, Skolem newName1 a1')] `compose` sub4
-        subst2 = [(nm2, Skolem (if aeq a1' a2' then newName1 else newName2) a2')] `compose` sub4
+    newName1 <- genSkolemVar a1'
+    newName2 <- genSkolemVar a2'
+    let subst1 = [(nm1, newName1 )] `compose` sub4
+        subst2 = [(nm2, if aeq a1' a2' then newName1 else newName2)] `compose` sub4
         rho1' = mkpi (substTele subst1 r1) (multiSubst subst2 b1)
         rho2' = mkpi (substTele subst1 r2) (multiSubst subst2 b2)
     sub5 <- subCheckRho rho1' rho2'
@@ -337,11 +337,9 @@ unpi (Pi bd) = do
         ((nm, Embed t), rest) = unrebind bnd
     return (nm, t, rest, body, [])
 unpi tau = do
-    x <- genName
-    y <- genName
     nm1 <- genName
-    let a1 = TVar x estar
-        r1 = TVar y estar
+    a1 <- genTVar estar
+    r1 <- genTVar estar
     sub <- unification tau $ epiWithName [(nm1, a1)] r1
     return (nm1, multiSubst sub a1, Empty, multiSubst sub r1, sub)
 
@@ -390,11 +388,11 @@ pr (Forall bd) = do
             return (acc ++ acc', rho)
           go (Cons bnd) acc body_type = do
             let ((nm, Embed t), rest) = unrebind bnd
-            x <- genName
-            let sub = [(nm, Skolem x t)]
+            x <- genSkolemVar t
+            let sub = [(nm, x)]
                 rest' = substTele sub rest
                 body_type' = multiSubst sub body_type
-            go rest' (acc ++ [Skolem x t]) body_type'
+            go rest' (acc ++ [x]) body_type'
 -- PR-FUN
 pr (Pi bd) = do
     (tele, body_type) <- unbind bd

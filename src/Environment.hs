@@ -13,6 +13,8 @@ module Environment (
     generalization,
     substEnv,
     genName,
+    genSkolemVar,
+    genTVar,
     substTele,
     ftvctx
     ) where
@@ -88,24 +90,31 @@ substTele sub (Cons rb) = Cons $ rebind (x, Embed (multiSubst sub t)) (substTele
   where
     ((x, Embed t), b) = unrebind rb
 
+-- generate name
 genName :: (Fresh m) => m TmName
 genName = fresh (string2Name "a")
+
+genTVar :: (Fresh m) => Expr -> m Expr
+genTVar t = do nm <- genName
+               return $ TVar nm t
+
+genSkolemVar :: (Fresh m) => Expr -> m Expr
+genSkolemVar t = do nm <- genName
+                    return $ Skolem nm t
 
 -- instantiation used in var
 instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 instantiate ty = case ty of
-     Forall bnd -> do
-        (bind, b) <- unbind bnd
-        work bind b
-     x -> return x
-    where
-     work Empty body = instantiate body
+     Forall bnd -> do (bind, b) <- unbind bnd
+                      work bind b
+     _          -> return ty
+  where
+     work Empty body     = instantiate body
      work (Cons rb) body = do
          let ((x, Embed t), b) = unrebind rb
-         newName <- genName
-         let b' = subst x (TVar newName t) b
-             body' = subst x (TVar newName t) body
-         work b' body'
+         tvar <- genTVar t
+         work (subst x tvar b)
+              (subst x tvar body)
 
 -- generalization used in let
 generalization :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
