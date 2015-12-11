@@ -119,27 +119,40 @@ generalization ty = do
 -- free variables
 type Freevar = [(TmName, Expr)]
 
-ftv ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
-ftv (Var n) = return [(n, undefined)]
+ftv :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
+ftv (Var    n  ) = return [(n, undefined)]
 ftv (Skolem n k) = return [(n, k)]
-ftv (TVar n k) = return [(n, k)]
-ftv (App t1 t2) = do
-    t1' <- ftv t1
-    t2' <- ftv t2
-    return (t1' `ftv_union` t2')
-ftv (Pi bnd) = do
+ftv (TVar   n k) = return [(n, k)]
+ftv (App  t1 t2) = ftv_do_union t1 t2
+ftv (Ann   e  t) = ftv_do_union e  t
+ftv (Pi     bnd) = ftv_fun bnd
+ftv (Forall bnd) = ftv_fun bnd
+ftv (CastUp   e) = ftv e
+ftv (CastDown e) = ftv e
+ftv (Lam    bnd) = do
+     (x, body) <- unbind bnd
+     body'     <- ftv body
+     return $ body' `ftv_diff` [(x, undefined)]
+ftv (Let    bnd) = do
+     ((x, Embed e), body) <- unbind bnd
+     e'    <- ftv e
+     body' <- ftv body
+     return $ e' `ftv_union` body' `ftv_diff` [(x, undefined)]
+ftv           _  = return []
+
+ftv_do_union :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> Expr -> m Freevar
+ftv_do_union e1 e2 = do
+    e1' <- ftv e1
+    e2' <- ftv e2
+    return $ e1' `ftv_union` e2'
+
+ftv_fun :: (MonadState Context m, MonadError T.Text m, Fresh m) => Bind Tele Expr -> m Freevar
+ftv_fun bnd = do
      (bind, b) <- unbind bnd
-     bind' <- ftvtele bind
-     b' <- ftv b
-     bound <- boundtele bind
-     return $ bind' `ftv_union` b' `ftv_diff` bound
-ftv (Forall bnd) = do
-     (bind, b) <- unbind bnd
-     bind' <- ftvtele bind
-     b' <- ftv b
-     bound <- boundtele bind
-     return $ bind' `ftv_union` b' `ftv_diff` bound
-ftv _ = return []
+     bind'     <- ftvtele bind
+     b'        <- ftv b
+     bound     <- boundtele bind
+     return    $ bind' `ftv_union` b' `ftv_diff` bound
 
 ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m Freevar
 ftvtele Empty = return []
