@@ -15,7 +15,8 @@ module Environment (
     genSkolemVar,
     genTVar,
     substTele,
-    ftvctx
+    ftvctx,
+    Sub
     ) where
 
 import           Control.Applicative

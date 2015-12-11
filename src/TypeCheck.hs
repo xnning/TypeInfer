@@ -16,8 +16,6 @@ import qualified Data.Set as Set
 
 import           Data.List(intersect)
 
-data Mode = Infer | Check Expr
-
 done :: MonadPlus m => m a
 done = mzero
 
@@ -72,12 +70,10 @@ eval x = runFreshM (tc step x)
 -- | type checker with positivity and contractiveness test
 typecheck :: Expr -> (Either T.Text Expr)
 typecheck e = runTcMonad initialEnv $ do
-    (e', sub) <- infertype e
-    let ty =  multiSubst sub e'
-    ty' <- generalization ty
-    return ty'
+    (ty, _) <- infertype e
+    generalization ty
 
-type Sub = [(TmName, Expr)]
+data Mode = Infer | Check Expr
 
 infertype :: Expr -> TcMonad (Expr, Sub)
 infertype e = infer e Infer
@@ -89,71 +85,74 @@ infer :: Expr -> Mode -> TcMonad (Expr, Sub)
 -- if Mode is (Check ty), ty is rho
 infer (Var x) mode = do
   sigma <- lookupTy x
-  t <- instSigma sigma mode
-  return t
+  instSigma sigma mode
 
 infer (Lam bnd) Infer = do
   (x, body) <- unbind bnd
-  tvar <- genTVar estar
-  (body_type, sub) <- extendCtx [(x, tvar)] $ infertype body
-  let res = epiWithName [(x, multiSubst sub tvar)] body_type
-  (_, sub2) <- checktype res estar
-  return (res, sub2 `compose` sub)
+  tau <- genTVar estar
+  (rho, sub) <- extendCtx [(x, tau)] $ infertype body
+  let res = epiWithName [(x, multiSubst sub tau)] rho
+  return (res, sub)
 
-infer (Lam bnd) (Check rho1)  = do
+infer (Lam bnd) (Check rho)  = do
   (x, body) <- unbind bnd
-  (nm1, a1, r1, b1, sub1) <- unpi rho1
-  (ans, sub3) <- substEnv sub1 $ do
-    let sub2 = [(nm1, Skolem x a1)] `compose` sub1
-    extendCtx [(x, multiSubst sub1 a1)] $ checktype body (mkpi (substTele sub2 r1) (multiSubst sub2 b1))
-  return (ans, sub3 `compose` sub1)
+  (nm1, sigma1, sigma2, sub1) <- unpi rho
+  substEnv sub1 $ do
+     let skole = [(nm1, Skolem x sigma1)]
+     (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body (multiSubst skole sigma2)
+     return (ans, sub2 `compose` sub1)
 
 infer (LamAnn bnd) Infer = do
   ((x, Embed t), body) <- unbind bnd
   (_, sub1) <- checktype t estar
-  (body_type, sub2) <- substEnv sub1 $ extendCtx [(x, multiSubst sub1 t)] $ infertype body
-  let sub = sub2 `compose` sub1
-  let res = epiWithName [(x, multiSubst sub t)] body_type
-  return (res, sub)
+  let t' = multiSubst sub1 t
+  substEnv sub1 $ do
+    (body_type, sub2) <- extendCtx [(x, t')] $ infertype body
+    let res = epiWithName [(x, multiSubst sub2 t')] body_type
+    return (res, sub2 `compose` sub1)
 
 infer (LamAnn bnd) (Check ty) = do
   ((x, Embed t), body) <- unbind bnd
-  (nm1, a1, r1, b1, sub1) <- unpi ty
-  (_, sub2) <- checktype t estar
-  substEnv (sub2 `compose` sub1) $ do
-    sub3 <- subCheck a1 t
-    substEnv sub3 $ do
-        let sub4 = sub3 `compose` sub2 `compose` sub1
-        extendCtx [(x, multiSubst sub4 t)] $ do
-            (_, sub5) <- checkSigma body $ mkpi (substTele sub4 r1) (multiSubst sub4 b1)
-            return (multiSubst (sub5 `compose` sub4) ty, sub5 `compose` sub4)
+  (_, sub1) <- checktype t estar
+  let sigma = multiSubst sub1 t
+  let ty' = multiSubst sub1 ty
+  substEnv sub1 $ do
+    (nm1, sigma1, sigma2, sub2) <- unpi ty'
+    substEnv sub2 $ do
+      let sigma' = multiSubst sub2 sigma
+      sub3 <- subCheck sigma1 sigma'
+      substEnv sub3 $ do
+          let sigma'' = multiSubst sub3 sigma'
+          extendCtx [(x, sigma'')] $ do
+              (_, sub4) <- checkSigma body $ (multiSubst sub3 sigma2)
+              return (multiSubst (sub4 `compose` sub3) ty', sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 
-infer (App m n) mode = do
-  (rho1, sub1) <- infertype m
-  (nm1, a1, r1, b1, sub2) <- unpi rho1
-  let sub = sub2 `compose` sub1
-  substEnv sub $ do
-    (_, sub3) <- checkSigma n a1
-    let sub4 = sub3 `compose` sub
-    let app_type = case r1 of Empty -> b1
-                              _     -> Pi (bind (substTele sub4 r1) (multiSubst sub4 b1))
-    (res, sub5) <- instSigma app_type mode
-    return (res, sub5 `compose` sub4)
+infer (App e1 e2) mode = do
+  (rho1, sub1) <- infertype e1
+  (nm1, sigma1, sigma2, sub2) <- unpi rho1
+  substEnv (sub2 `compose` sub1) $ do
+    (_, sub3) <- checkSigma e2 sigma1
+    let app_type = multiSubst sub3 $  multiSubst [(nm1, e1)] sigma2
+    (res, sub4) <- instSigma app_type mode
+    return (res, sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 
 infer (Ann expr ty) mode = do
   (_, sub1) <- checktype ty estar
+  let ty' = multiSubst sub1 ty
   substEnv sub1 $ do
-     (_, sub2) <- checkSigma expr ty
+     (_, sub2) <- checkSigma expr ty'
+     let ty'' = multiSubst sub2 ty'
      substEnv sub2 $ do
-        (res, sub3) <- instSigma ty mode
+        (res, sub3) <- instSigma ty'' mode
         return (res, sub3 `compose` sub2 `compose` sub1)
 
 infer (Let bnd) mode = do
   ((x, Embed e), body) <- unbind bnd
-  (et, s1) <- infertype e
-  let e2 = multiSubst ([(x, multiSubst s1 e)] `compose` s1) body
-  (rho, s2) <- infer e2 mode
-  return (rho, s2 `compose` s1)
+  (_, s1) <- infertype e
+  substEnv s1 $ do
+      let e2 = multiSubst [(x, e)] body
+      (rho, s2) <- infer e2 mode
+      return (rho, s2 `compose` s1)
 
 infer (Kind Star) Infer = return (estar, [])
 infer (Kind Star) (Check ty) = do
@@ -179,69 +178,29 @@ infer (PrimOp op m n) mode = do
                   Check ty -> do
                              s5 <- unification ty Nat
                              return (Nat, s5 `compose` s4 `compose` s3 `compose` s2 `compose` s1)
-infer (Pi ty) mode = do
-    sub <- case mode of Infer -> return []
-                        Check typ -> unification typ estar
-    let (Pi ty') = multiSubst sub (Pi ty)
-    (tele, body) <- unbind ty'
-    (_, sub2) <- go tele body
-    return (estar, sub `compose` sub2)
-    where
-        go Empty body = checktype body estar
-        go (Cons bnd) body = do
-            let ((x, Embed t), rest) = unrebind bnd
-            (_, sub) <- checktype t estar
-            extendCtx [(x, t)] $ do (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
-                                    return $ (res, sub `compose` sub2)
-
-infer (Forall ty) mode = do
-    sub <- case mode of Infer -> return []
-                        Check typ -> unification typ estar
-    let (Forall ty') = multiSubst sub (Forall ty)
-    (tele, body) <- unbind ty'
-    (_, sub2) <- go tele body
-    return (estar, sub `compose` sub2)
-    where
-        go Empty body = checktype body estar
-        go (Cons bnd) body = do
-            let ((x, Embed t), rest) = unrebind bnd
-            (_, sub) <- checktype t estar
-            extendCtx [(x, t)] $ do (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
-                                    return $ (res, sub `compose` sub2)
-
-infer (TVar _ t) Infer = return (t, [])
-infer (TVar _ t) (Check ty) = do
-    sub <- unification t ty
-    return (multiSubst sub t, sub)
-
+infer (Pi ty) mode = inferFun ty mode
+infer (Forall ty) mode = inferFun ty mode
 infer e _ = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
 
+inferFun ty mode = do
+    sub <- case mode of Infer -> return []
+                        Check typ -> unification typ estar
+    (tele', body') <- unbind ty
+    let tele = substTele sub tele'
+        body = multiSubst sub body'
+    (_, sub2) <- go tele body
+    return (estar, sub2 `compose` sub)
+    where
+        go Empty body = checktype body estar
+        go (Cons bnd) body = do
+            let ((x, Embed t), rest) = unrebind bnd
+            (_, sub) <- checktype t estar
+            substEnv sub $ extendCtx [(x, multiSubst sub t)] $ do
+                (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
+                return $ (res, sub2 `compose` sub)
+
+
 -- helper functions
-
-checkfail e ty = throwError $ T.concat ["Type checking failed, expect ", showExpr e, " to have type ", showExpr ty]
-
-check :: Expr -> Expr -> TcMonad ()
-check m a = do
-  (b, _) <- infertype m
-  checkEq b a
-
-checkArg :: Expr -> Tele -> TcMonad ()
-checkArg _ Empty = return ()
-checkArg e (Cons rb) = do
-  let ((x, Embed a), t') = unrebind rb
-  check e a
-
-checkDelta :: Tele -> TcMonad ()
-checkDelta Empty = return ()
-checkDelta (Cons bnd) = do
-  extendCtx [(x, t)] (checkDelta t')
-
-  where
-    ((x, Embed t), t') = unrebind bnd
-
-unPi :: Expr -> TcMonad (Bind Tele Expr)
-unPi (Pi bnd) = return bnd
-unPi e = throwError $ T.concat ["Expected pi type, got ", showExpr e, " instead"]
 
 -- | alpha equality
 checkEq :: Expr -> Expr -> TcMonad ()
@@ -255,7 +214,6 @@ oneStep e = do
     Nothing -> throwError $ T.concat ["Cannot reduce ", showExpr e]
     Just e' -> return e'
 
-
 getType :: Expr -> TcMonad Expr
 getType (Kind Star) = return estar
 getType (Skolem _ t) = return t
@@ -263,6 +221,7 @@ getType (TVar _ t)   = return t
 getType Nat = return  estar
 getType (Lit{}) = return Nat
 getType (PrimOp{}) = return Nat
+getType (Pi{})     = return estar
 getType e = throwError $ T.concat ["unexpected type in unification ", showExpr e]
 
 -- TODO: castup castdown let ect. appear in unification
@@ -318,18 +277,16 @@ subCheckRho rho1 rho2 = unification rho1 rho2
 
 fun :: Expr -> Expr -> TcMonad Sub
 fun rho1 rho2 = do
-    (nm1, a1, r1, b1, sub1) <- unpi rho1
-    (nm2, a2, r2, b2, sub2) <- unpi (multiSubst sub1 rho2)
+    (nm1, a1, r1, sub1) <- unpi rho1
+    (nm2, a2, r2, sub2) <- unpi (multiSubst sub1 rho2)
     sub3 <- subCheck a2 (multiSubst sub2 a1)
     let sub4 = sub3 `compose` sub2 `compose` sub1
     let a1' = multiSubst sub4 a1
         a2' = multiSubst sub4 a2
-    newName1 <- genSkolemVar a1'
-    newName2 <- genSkolemVar a2'
-    let subst1 = [(nm1, newName1 )] `compose` sub4
-        subst2 = [(nm2, if aeq a1' a2' then newName1 else newName2)] `compose` sub4
-        rho1' = mkpi (substTele subst1 r1) (multiSubst subst2 b1)
-        rho2' = mkpi (substTele subst1 r2) (multiSubst subst2 b2)
+    let subst1 = sub4
+        subst2 = (if aeq a1' a2' then [(nm2, Skolem nm1 a1')] else []) `compose` sub4
+        rho1' = multiSubst subst1 r1
+        rho2' = multiSubst subst2 r2
     sub5 <- subCheckRho rho1' rho2'
     return $ sub5 `compose` sub4
 
@@ -337,13 +294,15 @@ unpi (Pi bd) = do
     (tele, body) <- unbind bd
     let Cons bnd = tele
         ((nm, Embed t), rest) = unrebind bnd
-    return (nm, t, rest, body, [])
+    newnm <- genName
+    let sub = [(nm, Skolem newnm t)]
+    return (newnm, t, mkpi (substTele sub rest) (multiSubst sub body), [])
 unpi tau = do
     nm1 <- genName
     a1 <- genTVar estar
     r1 <- genTVar estar
     sub <- unification tau $ epiWithName [(nm1, a1)] r1
-    return (nm1, multiSubst sub a1, Empty, multiSubst sub r1, sub)
+    return (nm1, a1, r1, sub)
 
 mkpi tele body =
     case tele of Empty -> body
