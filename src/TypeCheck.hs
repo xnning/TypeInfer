@@ -23,33 +23,35 @@ done = mzero
 
 -- | Small step, call-by-value operational semantics
 step :: Expr -> MaybeT FreshM Expr
-step (Var{}) = done
-step (TVar{}) = done
-step (Skolem{}) = done
-step (Kind{}) = done
-step (Lam{}) = done
-step (Pi{}) = done
-step (Lit{}) = done
-step (Nat) = done
+-- S_BETA
 step (App (Lam bnd) t2) = do
   (delta, b) <- unbind bnd
   return $ subst delta t2 b
+-- S_APP
 step (App t1 t2) =
-  App <$> step t1 <*> pure t2
+      App <$> step t1 <*> pure t2
   <|> App <$> pure t1 <*> step t2
+-- S_CastDownUp
+step (CastDown (CastUp e)) = return e
+-- S_CastDown
+step (CastDown e) = CastDown <$> step e
+-- Let
+-- eval definition. subst body.
 step (Let bnd) = do
   ((n, Embed e), b) <- unbind bnd
   let n' = name2String n
-  elet n' <$> step e <*> pure b <|> pure (subst n e b)
+  elet n' <$>     step e <*> pure b
+              <|> pure (subst n e b)
+-- prim operation
+-- eval op. eval n. eval m
 step (PrimOp op (Lit n) (Lit m)) = do
   let x = evalOp op
   return (Lit (n `x` m))
 step (PrimOp op e1 e2) =
-  PrimOp <$> pure op <*> step e1 <*> pure e2
+      PrimOp <$> pure op <*> step e1 <*> pure e2
   <|> PrimOp <$> pure op <*> pure e1 <*> step e2
-step (CastUp{}) = done
-step (CastDown (CastUp e)) = return e
-step (CastDown e) = CastDown <$> step e
+step (Ann e t)  =  (Ann <$> step e <*> pure t)
+step _    = done
 
 evalOp :: Operation -> Int -> Int -> Int
 evalOp Add = (+)
