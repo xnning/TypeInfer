@@ -52,10 +52,6 @@ instance Pretty Expr where
     e2' <- ppr e2
     op' <- ppr op
     return $ PP.parens (e1' <+> op' <+> e2')
-  ppr (Fun e1 e2) = do
-    e1' <- ppr e1
-    e2' <- ppr e2
-    return (PP.parens $ e1' <+> text "→" <+> e2' )
   ppr (LamAnn bnd) = lunbind bnd $ \((x, Embed ann), body) -> do
     let x' = text . show $ x
     ann' <- ppr ann

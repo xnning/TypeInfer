@@ -40,8 +40,6 @@ data Expr = Var TmName
           | CastDown Expr
           | Ann Expr Expr
 
-          | Fun Expr Expr
-
           -- helper
           | Skolem TmName Expr -- TmName : Expr
           | TVar   TmName Expr
@@ -90,7 +88,7 @@ polyid = elam "y" (evar "y")
 
 -- pi x : ⋆ . x -> x
 polyidty :: Expr
-polyidty = epi [("x", estar)] (earr (evar "x") (evar "x"))
+polyidty = epi [("x", estar)] (epi [("y", evar "x")] (evar "y"))
 
 -- smart constructors
 
@@ -111,9 +109,6 @@ epiWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)
 
 forallWithName :: [(TmName, Expr)] -> Expr -> Expr
 forallWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Forall (bind pi b)
-
-earr :: Expr -> Expr -> Expr
-earr t1 t2 = Fun t1 t2
 
 estar :: Expr
 estar = Kind Star

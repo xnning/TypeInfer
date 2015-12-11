@@ -270,13 +270,13 @@ unification t1 t2 = do
     t2' <- getType t2
     checkEq t1' t2'
     unify t1 t2
-   where unify (App t1 ts1) (App t2 ts2)             = unify (Fun ts1 t1) (Fun ts2 t2)
-         unify  Nat          Nat                     = return []
+   where unify  Nat          Nat                     = return []
          unify (Kind Star)  (Kind Star)              = return []
          unify (TVar n m)   (TVar n2 m2)   | n == n2 = return []
          unify (Skolem n m) (Skolem n2 m2) | n == n2 = return []
          unify (TVar n _)    t                       = varBind n t
          unify  t           (TVar n _)               = varBind n t
+         unify  e1  e2                  | aeq e1 e2  = return []
          unify e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
          varBind n t = do freevar <- ftv t
                           if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
