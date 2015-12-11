@@ -90,7 +90,8 @@ infer (Var x) mode = do
 infer (Lam bnd) Infer = do
   (x, body) <- unbind bnd
   tau <- genTVar estar
-  (rho, sub) <- extendCtx [(x, tau)] $ infertype body
+  let body' = subst x (Skolem x tau) body
+  (rho, sub) <- extendCtx [(x, tau)] $ infertype body'
   let res = epiWithName [(x, multiSubst sub tau)] rho
   return (res, sub)
 
@@ -98,8 +99,8 @@ infer (Lam bnd) (Check rho)  = do
   (x, body) <- unbind bnd
   (nm1, sigma1, sigma2, sub1) <- unpi rho
   substEnv sub1 $ do
-     let skole = [(nm1, Skolem x sigma1)]
-     (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body (multiSubst skole sigma2)
+     let body' = subst x (Skolem nm1 sigma1) body
+     (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body' sigma2
      return (ans, sub2 `compose` sub1)
 
 infer (LamAnn bnd) Infer = do
@@ -107,7 +108,8 @@ infer (LamAnn bnd) Infer = do
   (_, sub1) <- checktype t estar
   let t' = multiSubst sub1 t
   substEnv sub1 $ do
-    (body_type, sub2) <- extendCtx [(x, t')] $ infertype body
+    let body' = subst x (Skolem x t') body
+    (body_type, sub2) <- extendCtx [(x, t')] $ infertype body'
     let res = epiWithName [(x, multiSubst sub2 t')] body_type
     return (res, sub2 `compose` sub1)
 
@@ -123,9 +125,11 @@ infer (LamAnn bnd) (Check ty) = do
       sub3 <- subCheck sigma1 sigma'
       substEnv sub3 $ do
           let sigma'' = multiSubst sub3 sigma'
+          let body' = if aeq sigma'' sigma1 then subst x (Skolem nm1 sigma'') body else subst x (Skolem x sigma'') body
           extendCtx [(x, sigma'')] $ do
-              (_, sub4) <- checkSigma body $ (multiSubst sub3 sigma2)
-              return (multiSubst (sub4 `compose` sub3) ty', sub4 `compose` sub3 `compose` sub2 `compose` sub1)
+              (_, sub4) <- checkSigma body' $ (multiSubst sub3 sigma2)
+              let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
+              return (multiSubst sub ty, sub)
 
 infer (App e1 e2) mode = do
   (rho1, sub1) <- infertype e1
@@ -150,7 +154,7 @@ infer (Let bnd) mode = do
   ((x, Embed e), body) <- unbind bnd
   (_, s1) <- infertype e
   substEnv s1 $ do
-      let e2 = multiSubst [(x, e)] body
+      let e2 = subst x e body
       (rho, s2) <- infer e2 mode
       return (rho, s2 `compose` s1)
 
@@ -180,25 +184,25 @@ infer (PrimOp op m n) mode = do
                              return (Nat, s5 `compose` s4 `compose` s3 `compose` s2 `compose` s1)
 infer (Pi ty) mode = inferFun ty mode
 infer (Forall ty) mode = inferFun ty mode
+infer (TVar _ t) mode = inferVar t mode
+infer (Skolem _ t) mode = inferVar t mode
 infer e _ = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
 
 inferFun ty mode = do
     sub <- case mode of Infer -> return []
                         Check typ -> unification typ estar
-    (tele', body') <- unbind ty
-    let tele = substTele sub tele'
-        body = multiSubst sub body'
-    (_, sub2) <- go tele body
-    return (estar, sub2 `compose` sub)
-    where
-        go Empty body = checktype body estar
-        go (Cons bnd) body = do
-            let ((x, Embed t), rest) = unrebind bnd
-            (_, sub) <- checktype t estar
-            substEnv sub $ extendCtx [(x, multiSubst sub t)] $ do
-                (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
-                return $ (res, sub2 `compose` sub)
+    substEnv sub $ do
+       let p = multiSubst sub $ Pi ty
+       (nm, a, r, sub) <- unpi p
+       (_, sub1) <- checktype a estar
+       substEnv sub1 $ do
+           (_, sub2) <- checktype (multiSubst sub1 r) estar
+           return (estar, sub2 `compose` sub1 `compose` sub)
 
+inferVar t Infer = return (t, [])
+inferVar t (Check ty) = do
+    sub <- unification t ty
+    return (multiSubst sub t, sub)
 
 -- helper functions
 
@@ -224,7 +228,6 @@ getType (PrimOp{}) = return Nat
 getType (Pi{})     = return estar
 getType e = throwError $ T.concat ["unexpected type in unification ", showExpr e]
 
--- TODO: castup castdown let ect. appear in unification
 unification :: Expr -> Expr -> TcMonad Sub
 unification t1 t2 = do
     t1' <- getType t1
