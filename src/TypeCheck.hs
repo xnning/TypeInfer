@@ -186,6 +186,16 @@ infer (Pi ty) mode = inferFun ty mode
 infer (Forall ty) mode = inferFun ty mode
 infer (TVar _ t) mode = inferVar t mode
 infer (Skolem _ t) mode = inferVar t mode
+infer (CastUp e) (Check rho1) = do
+    rho2 <- oneStep rho1
+    checktype e rho2
+infer (CastDown e) mode = do
+    (rho1, sub1) <- infertype e
+    substEnv sub1 $ do
+        sigma <- oneStep rho1
+        (res, sub2) <- instSigma sigma mode
+        return (res, sub2 `compose` sub1)
+
 infer e _ = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
 
 inferFun ty mode = do
