@@ -98,30 +98,33 @@ infer (Lam bnd) Infer = do
   (_, sub2) <- checktype res estar
   return (res, sub2 `compose` sub)
 
-infer (Lam bnd) (Check ty)  = do
+infer (Lam bnd) (Check rho1)  = do
   (x, body) <- unbind bnd
-  case ty of
-    Pi bd -> do
-        (tele, body_type) <- unbind bd
-        let Cons bnd' = tele
-            ((nm, Embed t), rest) = unrebind bnd'
-            sub = [(nm, TVar x t)]
-            body_type' = Pi (bind (substTele sub rest) (multiSubst sub body_type))
-        extendCtx [(x, t)] $ checktype body body_type'
-    TVar nm typ -> do
-        t1 <- genName
-        t2 <- genName
-        sub <- unification ty $ epiWithName [(t1, estar)] (TVar t2 estar)
-        substEnv sub $ do  (res, sub2) <- extendCtx [(x, TVar t1 estar)] $ checktype body (TVar t2 estar)
-                           return (res, sub2 `compose` sub)
-    _ -> checkfail (Lam bnd) ty
+  (nm1, a1, r1, b1, sub1) <- unpi rho1
+  (ans, sub3) <- substEnv sub1 $ do
+    let sub2 = [(nm1, Skolem x a1)] `compose` sub1
+    extendCtx [(x, multiSubst sub1 a1)] $ checktype body (mkpi (substTele sub2 r1) (multiSubst sub2 b1))
+  return (ans, sub3 `compose` sub1)
 
 infer (LamAnn bnd) Infer = do
   ((x, Embed t), body) <- unbind bnd
-  checktype t estar
-  (body_type, sub) <- extendCtx [(x, t)] $ infertype body
+  (_, sub1) <- checktype t estar
+  (body_type, sub2) <- substEnv sub1 $ extendCtx [(x, multiSubst sub1 t)] $ infertype body
+  let sub = sub2 `compose` sub1
   let res = epiWithName [(x, multiSubst sub t)] body_type
   return (res, sub)
+
+infer (LamAnn bnd) (Check ty) = do
+  ((x, Embed t), body) <- unbind bnd
+  (nm1, a1, r1, b1, sub1) <- unpi ty
+  (_, sub2) <- checktype t estar
+  substEnv (sub2 `compose` sub1) $ do
+    sub3 <- subCheck a1 t
+    substEnv sub3 $ do
+        let sub4 = sub3 `compose` sub2 `compose` sub1
+        extendCtx [(x, multiSubst sub4 t)] $ do
+            (_, sub5) <- checkSigma body $ mkpi (substTele sub4 r1) (multiSubst sub4 b1)
+            return (multiSubst (sub5 `compose` sub4) ty, sub5 `compose` sub4)
 
 infer (App m n) mode = do
   (rho1, sub1) <- infertype m
@@ -145,7 +148,7 @@ infer (Ann expr ty) mode = do
 
 infer (Let bnd) mode = do
   ((x, Embed e), body) <- unbind bnd
-  (_, s1) <- infertype e
+  (et, s1) <- infertype e
   let e2 = multiSubst ([(x, multiSubst s1 e)] `compose` s1) body
   (rho, s2) <- infer e2 mode
   return (rho, s2 `compose` s1)
@@ -189,7 +192,20 @@ infer (Pi ty) mode = do
             extendCtx [(x, t)] $ do (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
                                     return $ (res, sub `compose` sub2)
 
-infer (Forall tele) _ = undefined
+infer (Forall ty) mode = do
+    sub <- case mode of Infer -> return []
+                        Check typ -> unification typ estar
+    let (Forall ty') = multiSubst sub (Forall ty)
+    (tele, body) <- unbind ty'
+    (_, sub2) <- go tele body
+    return (estar, sub `compose` sub2)
+    where
+        go Empty body = checktype body estar
+        go (Cons bnd) body = do
+            let ((x, Embed t), rest) = unrebind bnd
+            (_, sub) <- checktype t estar
+            extendCtx [(x, t)] $ do (res, sub2) <- go (substTele sub rest) (multiSubst sub body)
+                                    return $ (res, sub `compose` sub2)
 
 infer (TVar _ t) Infer = return (t, [])
 infer (TVar _ t) (Check ty) = do
@@ -242,28 +258,19 @@ getType :: Expr -> TcMonad Expr
 getType (Kind Star) = return estar
 getType (Skolem _ t) = return t
 getType (TVar _ t)   = return t
-getType (Fun e1 e2) = do
-    e1' <- getType e1
-    e2' <- getType e2
-    checkEq e1' estar
-    checkEq e2' estar
-    return estar
 getType Nat = return  estar
 getType (Lit{}) = return Nat
 getType (PrimOp{}) = return Nat
 getType e = throwError $ T.concat ["unexpected type in unification ", showExpr e]
 
+-- TODO: castup castdown let ect. appear in unification
 unification :: Expr -> Expr -> TcMonad Sub
 unification t1 t2 = do
     t1' <- getType t1
     t2' <- getType t2
     checkEq t1' t2'
     unify t1 t2
-   where unify (Fun t11 t12) (Fun t21 t22) =  do
-             sub <- unification t12 t22
-             sub2 <- unification (multiSubst sub t11) (multiSubst sub t21)
-             return $ sub2 `compose` sub
-         unify (App t1 ts1) (App t2 ts2)             = unify (Fun ts1 t1) (Fun ts2 t2)
+   where unify (App t1 ts1) (App t2 ts2)             = unify (Fun ts1 t1) (Fun ts2 t2)
          unify  Nat          Nat                     = return []
          unify (Kind Star)  (Kind Star)              = return []
          unify (TVar n m)   (TVar n2 m2)   | n == n2 = return []
