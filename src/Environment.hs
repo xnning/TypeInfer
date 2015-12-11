@@ -7,7 +7,6 @@ module Environment (
     TcMonad,
     initialEnv,
     multiSubst,
-    teleToEnv,
     ftv,
     instantiate,
     generalization,
@@ -55,34 +54,31 @@ lookupTy v = do
     Nothing  -> throwError $ T.concat ["Ty Not in scope: ", T.pack . show $ v]
     Just res -> return res
 
+-- change env
+
 extendCtx :: (MonadState Context m) => Env -> m a -> m a
-extendCtx d c = do
-  ctx <- get
-  withNewEnv (d ++ (_env ctx)) c
+extendCtx d act = do
+  origin <- gets _env
+  withNewEnv (d ++ origin) act
+
+withNewEnv :: (MonadState Context m) => Env -> m a -> m a
+withNewEnv env act = do
+  origin <- gets _env
+  put $ Ctx {_env = env}
+  res <- act
+  put $ Ctx {_env = origin}
+  return res
+
+substEnv ::  (MonadState Context m)  => Sub -> m a -> m a
+substEnv sub act = do
+  origin <- gets _env
+  let env = map (\(t,e) -> (t, multiSubst sub e)) origin
+  withNewEnv env act
+
+-- subst
 
 multiSubst :: Sub -> Expr -> Expr
 multiSubst sub typ = (foldl (\ty (x, t) -> subst x t ty) typ sub)
-
-substEnv ::  (MonadState Context m)  => Sub -> m a -> m a
-substEnv sub c = do
-  ctx <- get
-  let env = map (\(t,e) -> (t, multiSubst sub e)) $ _env ctx
-  withNewEnv env c
-
-withNewEnv :: (MonadState Context m) => Env -> m a -> m a
-withNewEnv env c = do
-  ctx <- get
-  put ctx{_env = env}
-  res <- c
-  ctx2 <- get
-  put ctx2{_env = _env ctx}
-  return res
-
-teleToEnv :: Tele -> Env
-teleToEnv Empty  = []
-teleToEnv (Cons rb) = (x, t) : teleToEnv b
-  where
-    ((x, Embed t), b) = unrebind rb
 
 substTele :: Sub -> Tele -> Tele
 substTele sub Empty = Empty
