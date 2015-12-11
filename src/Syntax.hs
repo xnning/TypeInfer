@@ -108,6 +108,9 @@ epi t b = Pi (bind (mkTele t) b)
 epiWithName :: [(TmName, Expr)] -> Expr -> Expr
 epiWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Pi (bind pi b)
 
+eforall :: [(String, Expr)] -> Expr -> Expr
+eforall t b = Forall (bind (mkTele t) b)
+
 forallWithName :: [(TmName, Expr)] -> Expr -> Expr
 forallWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Forall (bind pi b)
 

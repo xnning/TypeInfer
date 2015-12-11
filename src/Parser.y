@@ -16,6 +16,7 @@ import Tokens
     fold   { TokenF }
     unfold { TokenU }
     pi     { TokenPi }
+    forall { TokenForall }
     let    { TokenLet }
     in     { TokenIn }
     mu     { TokenMu }
@@ -52,6 +53,7 @@ import Tokens
 
 expr : '\\' id '.' expr                         { elam $2 $4 }
      | pi teles '.' expr                        { epi $2 $4  }
+     | forall teles '.' expr                    { eforall $2 $4 }
 
      -- surface language
      | expr '+' expr                            { PrimOp Add $1 $3 }
