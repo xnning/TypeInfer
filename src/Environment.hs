@@ -127,15 +127,12 @@ ftv (App t1 t2) = do
     t1' <- ftv t1
     t2' <- ftv t2
     return (t1' `ftv_union` t2')
-ftv (Fun t1 t2) = do
-    t1' <- ftv t1
-    t2' <- ftv t2
-    return (t1' `ftv_union` t2')
 ftv (Pi bnd) = do
      (bind, b) <- unbind bnd
      bind' <- ftvtele bind
      b' <- ftv b
-     return $ bind' `ftv_union` b'
+     bound <- boundtele bind
+     return $ bind' `ftv_union` b' `ftv_diff` bound
 ftv (Forall bnd) = do
      (bind, b) <- unbind bnd
      bind' <- ftvtele bind
