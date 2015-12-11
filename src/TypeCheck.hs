@@ -136,7 +136,7 @@ infer (App e1 e2) mode = do
   (nm1, sigma1, sigma2, sub2) <- unpi rho1
   substEnv (sub2 `compose` sub1) $ do
     (_, sub3) <- checkSigma e2 sigma1
-    let app_type = multiSubst sub3 $  multiSubst [(nm1, e1)] sigma2
+    let app_type = multiSubst sub3 $  multiSubst [(nm1, e2)] sigma2
     (res, sub4) <- instSigma app_type mode
     return (res, sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 

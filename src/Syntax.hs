@@ -76,6 +76,7 @@ instance Subst Expr ClassTag
 instance Subst Expr Expr where
   isvar (Var v) = Just (SubstName v)
   isvar (TVar v _ ) = Just (SubstName v)
+  isvar (Skolem v _) = Just (SubstName v)
   isvar _ = Nothing
 
 
