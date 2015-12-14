@@ -16,6 +16,10 @@ import qualified Data.Set as Set
 
 import           Data.List(intersect)
 
+-----------------------------------------
+--  Operational Semantics
+-----------------------------------------
+
 done :: MonadPlus m => m a
 done = mzero
 
@@ -67,7 +71,16 @@ tc f a = do
 eval :: Expr -> Expr
 eval x = runFreshM (tc step x)
 
--- | type checker with positivity and contractiveness test
+oneStep :: (MonadError T.Text m) => Expr -> m Expr
+oneStep e = do
+  case runFreshM . runMaybeT $ (step e) of
+    Nothing -> throwError $ T.concat ["Cannot reduce ", showExpr e]
+    Just e' -> return e'
+
+-----------------------------------------
+--  Typing Rules: Bi-Directional
+-----------------------------------------
+
 typecheck :: Expr -> (Either T.Text Expr)
 typecheck e = runTcMonad initialEnv $ do
     (ty, _) <- infertype e
@@ -182,9 +195,9 @@ infer (PrimOp op m n) mode = do
                   Check ty -> do
                              s5 <- unification ty Nat
                              return (Nat, s5 `compose` s4 `compose` s3 `compose` s2 `compose` s1)
-infer (Pi ty) mode = inferFun ty mode
+infer (Pi ty) mode     = inferFun ty mode
 infer (Forall ty) mode = inferFun ty mode
-infer (TVar _ t) mode = inferVar t mode
+infer (TVar _ t) mode   = inferVar t mode
 infer (Skolem _ t) mode = inferVar t mode
 infer (CastUp e) (Check rho1) = do
     rho2 <- oneStep rho1
@@ -214,19 +227,18 @@ inferVar t (Check ty) = do
     sub <- unification t ty
     return (multiSubst sub t, sub)
 
--- helper functions
+compose :: Sub -> Sub -> Sub
+compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
+
+-----------------------------------------
+--  Unification
+-----------------------------------------
 
 -- | alpha equality
 checkEq :: Expr -> Expr -> TcMonad ()
 checkEq e1 e2 =
   unless (aeq e1 e2) $ throwError $
     T.concat ["Couldn't match: ", showExpr e1, " with ", showExpr e2]
-
-oneStep :: (MonadError T.Text m) => Expr -> m Expr
-oneStep e = do
-  case runFreshM . runMaybeT $ (step e) of
-    Nothing -> throwError $ T.concat ["Cannot reduce ", showExpr e]
-    Just e' -> return e'
 
 getType :: Expr -> TcMonad Expr
 getType (Kind Star) = return estar
@@ -256,10 +268,8 @@ unification t1 t2 = do
                           if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
                           else return [(n,t)]
 
-compose :: Sub -> Sub -> Sub
-compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
-
 -----------------------------------------
+--  Polymorphic Relation
 -----------------------------------------
 
 -- dsk
@@ -321,6 +331,10 @@ mkpi tele body =
     case tele of Empty -> body
                  _     -> Pi (bind tele body)
 
+-----------------------------------------
+--  Generalization
+-----------------------------------------
+
 -- GEN INFER
 inferSigma :: Expr -> TcMonad (Expr, Sub)
 inferSigma expr = do
@@ -341,6 +355,10 @@ checkSigma expr sigma = do
     then return (res, sub)
     else throwError $ T.concat ["CheckSigma ", showExpr expr, " : ", showExpr sigma, "fail"]
 
+-----------------------------------------
+--  Instantiation
+-----------------------------------------
+
 instSigma ::  Expr -> Mode -> TcMonad (Expr, Sub)
 -- INST INFER
 instSigma t Infer = do
@@ -350,6 +368,10 @@ instSigma t Infer = do
 instSigma t (Check ty) = do
     sub <- subCheck t ty
     return (multiSubst sub ty, sub)
+
+-----------------------------------------
+--  Pr: floating foralls.
+-----------------------------------------
 
 -- pr
 pr :: Expr -> TcMonad ([Expr], Expr)
