@@ -91,7 +91,7 @@ infer (Lam bnd) Infer = do
   (x, body) <- unbind bnd
   tau <- genTVar estar
   let body' = subst x (Skolem x tau) body
-  (rho, sub) <- extendCtx [(x, tau)] $ infertype body'
+  (rho, sub) <- infertype body'
   let res = epiWithName [(x, multiSubst sub tau)] rho
   return (res, sub)
 
@@ -100,7 +100,7 @@ infer (Lam bnd) (Check rho)  = do
   (nm1, sigma1, sigma2, sub1) <- unpi rho
   substEnv sub1 $ do
      let body' = subst x (Skolem nm1 sigma1) body
-     (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body' sigma2
+     (ans, sub2) <- checktype body' sigma2
      return (ans, sub2 `compose` sub1)
 
 infer (LamAnn bnd) Infer = do
@@ -109,7 +109,7 @@ infer (LamAnn bnd) Infer = do
   let t' = multiSubst sub1 t
   substEnv sub1 $ do
     let body' = subst x (Skolem x t') body
-    (body_type, sub2) <- extendCtx [(x, t')] $ infertype body'
+    (body_type, sub2) <- infertype body'
     let res = epiWithName [(x, multiSubst sub2 t')] body_type
     return (res, sub2 `compose` sub1)
 
@@ -125,18 +125,18 @@ infer (LamAnn bnd) (Check ty) = do
       sub3 <- subCheck sigma1 sigma'
       substEnv sub3 $ do
           let sigma'' = multiSubst sub3 sigma'
-          let body' = if aeq sigma'' sigma1 then subst x (Skolem nm1 sigma'') body else subst x (Skolem x sigma'') body
-          extendCtx [(x, sigma'')] $ do
-              (_, sub4) <- checkSigma body' $ (multiSubst sub3 sigma2)
-              let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
-              return (multiSubst sub ty, sub)
+              sigma1' = multiSubst sub3 sigma1
+          let body' = if aeq sigma'' sigma1' then subst x (Skolem nm1 sigma'') body else subst x (Skolem x sigma'') body
+          (_, sub4) <- checkSigma body' $ (multiSubst sub3 sigma2)
+          let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
+          return (multiSubst sub ty, sub)
 
 infer (App e1 e2) mode = do
   (rho1, sub1) <- infertype e1
   (nm1, sigma1, sigma2, sub2) <- unpi rho1
   substEnv (sub2 `compose` sub1) $ do
     (_, sub3) <- checkSigma e2 sigma1
-    let app_type = multiSubst sub3 $  multiSubst [(nm1, e2)] sigma2
+    let app_type = multiSubst sub3 $ subst nm1 e2 sigma2
     (res, sub4) <- instSigma app_type mode
     return (res, sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 
