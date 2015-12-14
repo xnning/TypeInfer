@@ -120,7 +120,7 @@ $}
 \[
 \hl{$
 \inferrule*[right=CastUp-Check]
-{\infertype e : \rho_2 \\ \rho_1 \longrightarrow \rho_2} {\checktype (\mathsf{cast}^\uparrow\ e) : \rho_1}
+{ \rho_1 \longrightarrow \rho_2 \\ \checktype e : \rho_2 } {\checktype (\mathsf{cast}^\uparrow\ e) : \rho_1}
 $}
 \]
 
@@ -133,7 +133,8 @@ $}
 
 \[
 \inferrule*[right=Let]
-{\polyinfer e_1 : \sigma \\ \infercheck e_2[x \mapsto e_1]: \rho}
+{\polyinfer e_1 : \sigma \\
+\hl{$\infercheck e_2[x \mapsto e_1]: \rho$}}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
 
