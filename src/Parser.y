@@ -13,8 +13,6 @@ import Tokens
 
 
 %token
-    fold   { TokenF }
-    unfold { TokenU }
     pi     { TokenPi }
     forall { TokenForall }
     let    { TokenLet }
