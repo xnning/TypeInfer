@@ -60,7 +60,7 @@ $}
 
 \[
 \inferrule*[right=Lam-Infer]
-{\Gamma,x: \tau \infertypeno e : \rho \\ \hl{$\checktype (\Pi x:\tau.\rho):\star$} } {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho)}
+{\Gamma,x: \tau \infertypeno e : \rho} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho)}
 \]
 
 \[
@@ -76,10 +76,21 @@ $}
 \]
 
 \[
-\inferrule*[right=LamAnn-Check]
+\hl{$
+\inferrule*[right=LamAnn-Check1]
 {
-\hl{$\checktype \sigma:\star$} \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+\checktype \sigma:\star\\
+\Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=LamAnn-Check2]
+{
+\checktype \sigma:\star \\
+\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma, y:\sigma_1 \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi y: \sigma_1. \sigma_2)}
+$}
 \]
 
 \[
