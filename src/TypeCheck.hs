@@ -174,34 +174,20 @@ infer (Let bnd) mode = do
       (rho, s2) <- infer e2 mode
       return (rho, s2 `compose` s1)
 
-infer (Kind Star) Infer = return (estar, [])
-infer (Kind Star) (Check ty) = do
-    sub <- unification ty estar
-    return (estar, sub)
-
-infer Nat Infer = return (estar, [])
-infer Nat (Check ty) = do
-    sub <- unification ty estar
-    return (estar, sub)
-infer (Lit{}) Infer = return (Nat, [])
-infer (Lit{}) (Check ty) = do
-    sub <- unification ty Nat
-    return (Nat, sub)
+infer (Kind Star) mode = instSigma estar mode
+infer Nat         mode = instSigma estar mode
+infer (Lit{})     mode = instSigma Nat mode
 infer (PrimOp op m n) mode = do
-  (t1, s1) <- infertype m
-  substEnv s1 $ do
-     (t2, se) <- infertype n
-     let s2 = se `compose` s1
-     s3 <- unification (multiSubst s2 t1) Nat
-     s4 <- unification (multiSubst s3 t2) Nat
-     case mode of Infer -> return (Nat, s4 `compose` s3 `compose` s2 `compose` s1)
-                  Check ty -> do
-                             s5 <- unification ty Nat
-                             return (Nat, s5 `compose` s4 `compose` s3 `compose` s2 `compose` s1)
+  (_, sub1) <- checktype m Nat
+  substEnv sub1 $ do
+      (_, sub2) <- checktype n Nat
+      substEnv sub2 $ do
+          (_, sub3) <- instSigma Nat mode
+          return (Nat, sub3 `compose` sub2 `compose` sub1)
 infer (Pi ty) mode     = inferFun ty mode
 infer (Forall ty) mode = inferFun ty mode
-infer (TVar _ t) mode   = inferVar t mode
-infer (Skolem _ t) mode = inferVar t mode
+infer (TVar _ t) mode   = instSigma t mode
+infer (Skolem _ t) mode = instSigma t mode
 infer (CastUp e) (Check rho1) = do
     rho2 <- oneStep rho1
     checktype e rho2
@@ -215,8 +201,7 @@ infer (CastDown e) mode = do
 infer e _ = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
 
 inferFun ty mode = do
-    sub <- case mode of Infer -> return []
-                        Check typ -> unification typ estar
+    (_, sub) <- instSigma estar mode
     substEnv sub $ do
        let p = multiSubst sub $ Pi ty
        (nm, a, r, sub) <- unpi p
@@ -224,11 +209,6 @@ inferFun ty mode = do
        substEnv sub1 $ do
            (_, sub2) <- checktype (multiSubst sub1 r) estar
            return (estar, sub2 `compose` sub1 `compose` sub)
-
-inferVar t Infer = return (t, [])
-inferVar t (Check ty) = do
-    sub <- unification t ty
-    return (multiSubst sub t, sub)
 
 compose :: Sub -> Sub -> Sub
 compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
@@ -253,15 +233,11 @@ unification t1 t2 = do
             t2' = multiSubst sub t2
         checkEq (multiSubst sub2 k1) k2
         unify t1' t2' sub
-   where unify  Nat          Nat           sub             = return sub
-         unify (Kind Star)  (Kind Star)    sub             = return sub
-         unify (TVar n m)   (TVar n2 m2)   sub | n == n2   = return sub
-         unify (Skolem n m) (Skolem n2 m2) sub | n == n2   = return sub
-         unify (TVar n _)    t             sub             = varBind n t sub
-         unify  t           (TVar n _)     sub             = varBind n t sub
-         unify  e1  e2                     sub | aeq e1 e2 = return sub
-         unify  e1  e2                     _               =
-                throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
+   where unify (TVar n _) (TVar n2 _) sub | n == n2   = return sub
+         unify (TVar n _)  t          sub             = varBind n t sub
+         unify  t         (TVar n _)  sub             = varBind n t sub
+         unify  e1        e2          sub | aeq e1 e2 = return sub
+         unify  e1        e2            _             = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
          varBind n t sub =
                 do freevar <- ftv t
                    if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
@@ -365,7 +341,7 @@ instSigma t Infer = do
     return (ty, [])
 -- INST CHECK
 instSigma t (Check ty) = do
-    sub <- subCheck t ty
+    sub <- subCheckRho t ty
     return (multiSubst sub ty, sub)
 
 -----------------------------------------
