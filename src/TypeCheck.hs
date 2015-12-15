@@ -240,33 +240,29 @@ checkEq e1 e2 =
   unless (aeq e1 e2) $ throwError $
     T.concat ["Couldn't match: ", showExpr e1, " with ", showExpr e2]
 
-getType :: Expr -> TcMonad Expr
-getType (Kind Star) = return estar
-getType (Skolem _ t) = return t
-getType (TVar _ t)   = return t
-getType Nat = return  estar
-getType (Lit{}) = return Nat
-getType (PrimOp{}) = return Nat
-getType (Pi{})     = return estar
-getType e = throwError $ T.concat ["unexpected type in unification ", showExpr e]
-
 unification :: Expr -> Expr -> TcMonad Sub
 unification t1 t2 = do
-    t1' <- getType t1
-    t2' <- getType t2
-    checkEq t1' t2'
-    unify t1 t2
-   where unify  Nat          Nat                     = return []
-         unify (Kind Star)  (Kind Star)              = return []
-         unify (TVar n m)   (TVar n2 m2)   | n == n2 = return []
-         unify (Skolem n m) (Skolem n2 m2) | n == n2 = return []
-         unify (TVar n _)    t                       = varBind n t
-         unify  t           (TVar n _)               = varBind n t
-         unify  e1  e2                  | aeq e1 e2  = return []
-         unify e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
-         varBind n t = do freevar <- ftv t
-                          if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
-                          else return [(n,t)]
+    (k1, sub1) <- infertype t1
+    substEnv sub1 $ do
+        (k2, sub2) <- infertype (multiSubst sub1 t2)
+        let sub = sub2 `compose` sub1
+            t1' = multiSubst sub t1
+            t2' = multiSubst sub t2
+        checkEq (multiSubst sub2 k1) k2
+        unify t1' t2' sub
+   where unify  Nat          Nat           sub             = return sub
+         unify (Kind Star)  (Kind Star)    sub             = return sub
+         unify (TVar n m)   (TVar n2 m2)   sub | n == n2   = return sub
+         unify (Skolem n m) (Skolem n2 m2) sub | n == n2   = return sub
+         unify (TVar n _)    t             sub             = varBind n t sub
+         unify  t           (TVar n _)     sub             = varBind n t sub
+         unify  e1  e2                     sub | aeq e1 e2 = return sub
+         unify  e1  e2                     _               =
+                throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
+         varBind n t sub =
+                do freevar <- ftv t
+                   if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
+                   else return $ [(n,t)] `compose` sub
 
 -----------------------------------------
 --  Polymorphic Relation
