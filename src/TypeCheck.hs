@@ -29,6 +29,9 @@ step :: Expr -> MaybeT FreshM Expr
 step (App (Lam bnd) t2) = do
   (delta, b) <- unbind bnd
   return $ subst delta t2 b
+step (App (LamAnn bnd) t2) = do
+  ((delta, _), b) <- unbind bnd
+  return $ subst delta t2 b
 -- S_APP
 step (App t1 t2) =
       App <$> step t1 <*> pure t2
