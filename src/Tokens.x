@@ -16,7 +16,7 @@ tokens :-
   castup                        { \s -> TokenF }
   castdown                      { \s -> TokenU }
   \/\\                          { \s -> TokenPi }
-  fall                          { \s -> TokenForall }
+  \\\/                          { \s -> TokenForall }
   mu                            { \s -> TokenMu }
   nat                           { \s -> TokenNat }
   $digit+                       { \s -> TokenInt (read s) }

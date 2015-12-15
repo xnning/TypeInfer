@@ -105,11 +105,17 @@ elamann t ann b = LamAnn (bind (s2n t, embed ann) b)
 epi :: [(String, Expr)] -> Expr -> Expr
 epi t b = Pi (bind (mkTele t) b)
 
+epiNoDenp :: Expr -> Expr -> Expr
+epiNoDenp t b = epi [("x", t)] b
+
 epiWithName :: [(TmName, Expr)] -> Expr -> Expr
 epiWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Pi (bind pi b)
 
 eforall :: [(String, Expr)] -> Expr -> Expr
 eforall t b = Forall (bind (mkTele t) b)
+
+eforallStar :: String -> Expr -> Expr
+eforallStar t b = eforall [(t, estar)] b
 
 forallWithName :: [(TmName, Expr)] -> Expr -> Expr
 forallWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Forall (bind pi b)
