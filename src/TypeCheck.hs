@@ -223,25 +223,33 @@ checkEq e1 e2 =
   unless (aeq e1 e2) $ throwError $
     T.concat ["Couldn't match: ", showExpr e1, " with ", showExpr e2]
 
-unification :: Expr -> Expr -> TcMonad Sub
-unification t1 t2 = do
-    (k1, sub1) <- infertype t1
-    substEnv sub1 $ do
-        (k2, sub2) <- infertype (multiSubst sub1 t2)
-        let sub = sub2 `compose` sub1
-            t1' = multiSubst sub t1
-            t2' = multiSubst sub t2
-        checkEq (multiSubst sub2 k1) k2
-        unify t1' t2' sub
-   where unify (TVar n _) (TVar n2 _) sub | n == n2   = return sub
-         unify (TVar n _)  t          sub             = varBind n t sub
-         unify  t         (TVar n _)  sub             = varBind n t sub
-         unify  e1        e2          sub | aeq e1 e2 = return sub
-         unify  e1        e2            _             = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
-         varBind n t sub =
-                do freevar <- ftv t
-                   if n `elem` (map fst freevar) then throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t]
-                   else return $ [(n,t)] `compose` sub
+-- unify tau tau
+unify :: Expr -> Expr -> TcMonad Sub
+unify (TVar n _)   (TVar n2 _) | n == n2 = return []
+unify (TVar n k)    t                    = varBind n k t
+unify  t           (TVar n k)            = varBind n k t
+unify (CastUp e)   (CastUp e2)           = unify e e2
+unify (CastDown e) (CastDown e2)         = unify e e2
+unify (App n m)    (App a b )            = multiUnify [(n, a), (m, b)]
+unify (Ann n m)    (Ann a b)             = multiUnify [(n, a), (m, b)]
+unify  e1           e2       | aeq e1 e2 = return []
+unify  e1           e2                   = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
+
+multiUnify :: [(Expr, Expr)] -> TcMonad Sub
+multiUnify [] = return []
+multiUnify ((t1,t2):tl) = do
+    sub1 <- unify t1 t2
+    sub2 <- substEnv sub1 $ multiUnify (map (\(x,y)->(multiSubst sub1 x, multiSubst sub1 y)) tl)
+    return $ sub2 `compose` sub1
+
+varBind :: TmName -> Expr -> Expr -> TcMonad Sub
+varBind n k t = do
+   (_, sub1) <- checktype t k
+   let t' = multiSubst sub1 t
+   freevar <- ftv t'
+   unless ( not $ n `elem` (map fst freevar)) $
+      throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
+   return $ [(n,t')] `compose` sub1
 
 -----------------------------------------
 --  Polymorphic Relation
@@ -271,7 +279,7 @@ subCheckRho sigma1@(Forall _) rho2 = do
 subCheckRho rho1 rho2@(Pi _) = fun rho1 rho2
 subCheckRho rho1@(Pi _) rho2 = fun rho1 rho2
 -- OTHER-CASE
-subCheckRho rho1 rho2 = unification rho1 rho2
+subCheckRho rho1 rho2 = unify rho1 rho2
 
 fun :: Expr -> Expr -> TcMonad Sub
 fun rho1 rho2 = do
@@ -299,7 +307,7 @@ unpi tau = do
     nm1 <- genName
     a1 <- genTVar estar
     r1 <- genTVar estar
-    sub <- unification tau $ epiWithName [(nm1, a1)] r1
+    sub <- unify tau $ epiWithName [(nm1, a1)] r1
     return (nm1, a1, r1, sub)
 
 mkpi tele body =
