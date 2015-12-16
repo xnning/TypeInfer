@@ -286,3 +286,20 @@ $}
 $}
 \]
 
+\begin{lstlisting}
+unify ta tb =
+    (t1, k1) = find(ta)
+    (t2, k2) = find(tb)
+    if t1 and t2 are both of form D p1 p2...
+        unify(t1_pi, t2_pi)
+    else if t1 is variable
+        checktype t2 k1
+        union(t1, t2)
+    else if t2 is variable
+        checktype t1 k2
+        union(t1, t2)
+    else if a-equal(t1, t2)
+        done
+    else
+        error 'cannot unify ta and tb'
+\end{lstlisting}
