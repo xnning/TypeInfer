@@ -24,23 +24,25 @@ data Tele = Empty
 
 -- | Syntax of the core, with optimization of aggregate bindings
 data Expr = Var TmName
+          | Kind Kinds
           | App Expr Expr
           | Lam (Bind TmName Expr)
-          | Pi (Bind Tele Expr)
-          | Forall (Bind Tele Expr)
-          | Kind Kinds
-
-          | Let (Bind (TmName, Embed Expr) Expr)
-          | Nat
-          | Lit Int
-          | PrimOp Operation Expr Expr
-
           | LamAnn (Bind (TmName, Embed Expr) Expr)
           | CastUp Expr
           | CastDown Expr
           | Ann Expr Expr
+          | Let (Bind (TmName, Embed Expr) Expr)
 
-          -- helper
+          -- rho sigma
+          | Pi (Bind Tele Expr)
+          | Forall (Bind Tele Expr)
+
+          -- natural
+          | Nat
+          | Lit Int
+          | PrimOp Operation Expr Expr
+
+          -- helper, not in syntax
           | Skolem TmName Expr -- TmName : Expr
           | TVar   TmName Expr
   deriving (Show, Generic, Typeable)
