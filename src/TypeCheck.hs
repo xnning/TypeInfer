@@ -142,7 +142,7 @@ infer (LamAnn bnd) (Check ty) = do
       substEnv sub3 $ do
           let sigma'' = multiSubst sub3 sigma'
               sigma1' = multiSubst sub3 sigma1
-          let body' = if aeq sigma'' sigma1' then subst x (Skolem nm1 sigma'') body else subst x (Skolem x sigma'') body
+          let body' = subst x (Skolem nm1 sigma'') body
           (_, sub4) <- checkSigma body' $ (multiSubst sub3 sigma2)
           let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
           return (multiSubst sub ty, sub)
@@ -290,7 +290,7 @@ fun rho1 rho2 = do
     let a1' = multiSubst sub4 a1
         a2' = multiSubst sub4 a2
     let subst1 = sub4
-        subst2 = (if aeq a1' a2' then [(nm2, Skolem nm1 a1')] else []) `compose` sub4
+        subst2 = [(nm2, Skolem nm1 a1')] `compose` sub4
         rho1' = multiSubst subst1 r1
         rho2' = multiSubst subst2 r2
     sub5 <- subCheckRho rho1' rho2'
