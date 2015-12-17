@@ -77,19 +77,10 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=LamAnn-Check1]
-{
-\checktype \sigma:\star\\
-\Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
-$}
-\]
-
-\[
-\hl{$
-\inferrule*[right=LamAnn-Check2]
+\inferrule*[right=LamAnn-Check]
 {
 \checktype \sigma:\star \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma, y:\sigma_1 \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi y: \sigma_1. \sigma_2)}
+\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 $}
 \]
 
@@ -238,19 +229,10 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=FUN1]
-{
-\Sigma, x:\sigma_1 \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
-{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_1. \sigma_4}
-$}
-\]
-
-\[
-\hl{$
-\inferrule*[right=FUN2]
+\inferrule*[right=FUN]
 {\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
-\Sigma, x:\sigma_1, y:\sigma_3 \polymorphicstar  \sigma_2 \sqsubseteq \sigma_4}
-{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi y:\sigma_3. \sigma_4}
+\Sigma, x:\sigma_1 \polymorphicstar  \sigma_2 \sqsubseteq \rho_4}
+{\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4}
 $}
 \]
 
