@@ -48,18 +48,18 @@ main = runInputT defaultSettings loop
             outputStrLn ("\n--- Evaluation result ---\n\n" ++ (T.unpack . showExpr $ xs') ++ "\n")
             loop
 
-        -- TODO: refactor :tp and :tl
-        ":t" -> processCMD progm $
+        ":p" -> processCMD progm $
+          \xs -> do
+            outputStrLn ("\n--- Pretty printing ---\n\n" ++ (T.unpack . showExpr $ xs) ++ "\n")
+            loop
+
+        _ -> processCMD e $
           \xs -> do
             case typecheck xs of
               Left err  -> outputStrLn . T.unpack $ err
               Right typ -> outputStrLn ("\n--- Typing result ---\n\n" ++ (T.unpack . showExpr $ typ) ++ "\n")
             loop
 
-        _ -> processCMD e $
-          \xs -> do
-            outputStrLn ("\n--- Pretty printing ---\n\n" ++ (T.unpack . showExpr $ xs) ++ "\n")
-            loop
       where
         processCMD expr func =
           case parseExpr . unwords $ expr of
