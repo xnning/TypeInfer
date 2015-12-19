@@ -43,6 +43,8 @@
 
 \newcommand{\substlet}{\textcolor{blue}{subst\_let}}
 
+\newcommand{\forallvars}[1]{\forall \overbar{#1}}
+
 
 \framebox{$ \judge e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -76,12 +78,10 @@ $}
 \]
 
 \[
-\hl{$
 \inferrule*[right=LamAnn-Check]
 {
-\checktype \sigma:\star \\
+\hl{$\checktype \sigma:\star$} \\
 \polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
-$}
 \]
 
 \[
@@ -132,37 +132,41 @@ $}
 \framebox{$ \judge \sigma : \star$ }
 
 \[
+\hl{$
 \inferrule*[right=ImplicitPi]
 {\checktype \tau : \star \\ \Gamma, x:\tau \checktypeno \rho : \star} {\infercheck (\forall x : \tau. \rho) : \star}
+$}
 \]
 
 \framebox{$ \judge \rho : \star$ }
 
 \[
+\hl{$
 \inferrule*[right=FunPoly]
 {\checktype \sigma_1 : \star \\ \Gamma, x:\sigma_1 \checktypeno \sigma_2 : \star} {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star}
+$}
 \]
 
 \framebox{$ \Gamma \polyinfercheck e : \sigma$ }
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ x=ftv(\rho)-ftv(\Gamma) \\
-\hl{$x:\tau$} \\
-\hl{$\checktype (\forall x:\tau. \rho):\star$} } {\polyinfer e :(\forall x:\tau. \rho)}
+{\infertype e :\rho \\ \overbar{x}=ftv(\rho)-ftv(\Gamma) \\
+\hl{$\overbar{x:\tau}$} \\
+\hl{$\checktype (\forallvars{x:\tau}. \rho):\star$} } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
-{x \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forall x: \tau. \rho} {\polycheck e : \sigma}
+{\overbar{x} \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forallvars{x:\tau} . \rho} {\polycheck e : \sigma}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
 
 \[
 \inferrule*[right=Inst-Infer]
-{\hl{$\tau_\beta : \tau$}}
-{\instinfer \forall x:\tau. \rho \sqsubseteq \rho[x \mapsto \tau_\beta]}
+{\hl{$\overbar{\tau_\beta : \tau}$}}
+{\instinfer \forallvars{x:\tau} . \rho \sqsubseteq \rho[\overbar{x \mapsto \tau_\beta}]}
 \]
 
 \[
@@ -191,16 +195,16 @@ $}
   tabsize=3
 }
 
-\framebox{$pr(\sigma)=\forall a:\tau.\rho$: float out all $\forall$s, the same as the paper}
+\framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho$: float out all $\forall$s, the same as the paper}
 
 \[
 \inferrule*[right=PR-POLY]
-{pr(\rho_1) = \forall b:\tau_2. \rho_2 \\ a \cap b = \emptyset} {pr(\forall a:\tau_1. \rho_1) = \forall a:\tau_1. \forall b:\tau_2. \rho_2}
+{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \\ \overbar{a} \cap \overbar{b} = \emptyset} {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2}
 \]
 
 \[
 \inferrule*[right=PR-FUN]
-{pr(\sigma_2) = \forall a:\tau. \rho_2 \\ a \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forall a:\tau_1. \Pi x:\sigma_1. \rho_2}
+{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2}
 \]
 
 \[
@@ -212,9 +216,9 @@ $}
 
 \[
 \inferrule*[right=DEEP-SKOL]
-{pr(\sigma_2)=\forall a:\tau. \rho \\ a \notin ftv(\sigma_1) \\
-\hl{$a \notin ftv(\Sigma)$} \\
-\hl{$\Sigma, a:\tau$} \polymorphicstar \sigma_1 \sqsubseteq \rho }
+{pr(\sigma_2)=\forallvars{a:\tau}. \rho \\ a \notin ftv(\sigma_1) \\
+\hl{$\Sigma \vdash \overbar{a:\tau}$} \\
+\hl{$\Sigma, \overbar{a:\tau}$} \polymorphicstar \sigma_1 \sqsubseteq \rho }
 {\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2}
 \]
 
@@ -222,15 +226,16 @@ $}
 
 \[
 \inferrule*[right=SPEC]
-{\hl{$\Sigma \vdash \beta: \tau$} \\
-\hl{$\Sigma, \beta:\tau$} \polymorphicstar \rho_1[a \mapsto \beta] \sqsubseteq \rho_2}
-{\Sigma \polymorphicstar \forall a:\tau.\rho_1 \sqsubseteq \rho_2}
+{\hl{$\Sigma \vdash \overbar{\beta: \tau}$} \\
+\hl{$\Sigma, \overbar{\beta:\tau}$} \polymorphicstar \rho_1[\overbar{a \mapsto \beta}] \sqsubseteq \rho_2}
+{\Sigma \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
 \]
 
 \[
 \hl{$
 \inferrule*[right=FUN]
 {\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
+\Sigma \vdash x:\sigma_1 \\
 \Sigma, x:\sigma_1 \polymorphicstar  \rho_2 \sqsubseteq \rho_4}
 {\Sigma \polymorphicstar \Pi x:\sigma_1. \rho_2 \sqsubseteq \Pi x:\sigma_3. \rho_4}
 $}
@@ -258,6 +263,7 @@ $}
 \hl{$
 \inferrule*[right=LAMANN]
 {
+\Sigma \vdash x:\sigma_1 \\
 \Sigma, x:\sigma_1 \polymorphic \sigma_2 \sqsubseteq \sigma_4}
 {\Sigma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4}
 $}
@@ -299,7 +305,7 @@ $}
 $}
 \]
 
-\framebox{$\Sigma \vdash a: \tau$: in order to use dsk*-mono, two variable with same name should have same kind}
+\framebox{$\Sigma \vdash a: \tau$: two variable with same name should have same kind}
 
 \[
 \hl{$
