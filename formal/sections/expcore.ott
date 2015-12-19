@@ -3,6 +3,7 @@
 embed {{ tex-preamble
   \newcommand{\labeledjudge}[1]{\vdash_{\!\!\mathsf{#1} } }
   \newcommand{\kw}[1]{\mathbf{#1} }
+  \newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
 }}
 
 %%% Metavariables
@@ -13,7 +14,7 @@ indexvar i, j, n, m ::= {{ com Index variables }}
 grammar
 
 %% Expressions
-e, t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
+t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
   | x                         ::  :: Var        {{ com Variable }}
   | star                      ::  :: Star       {{ com Type of Types }}
   | square                    :: M:: Square     {{ com Type of Star }}
@@ -54,12 +55,12 @@ e, t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
   | unfoldnp e                :: M:: CastDownMultiP
   | e : sigma                ::  :: Annotation  {{ com Annotation }}
 
-S {{ tex \sigma }} :: 'S_'    ::= {{ com Polytype}}
-  | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }}
+e, S {{ tex \sigma }} :: 'S_'    ::= {{ com Polytype}}
+  | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }} {{ tex \forall \overbar{x:\tau} . [[R]] }}
 
 R {{ tex \rho }} :: 'R_'     ::= {{ com Rhotype}}
   | t                         ::  :: Monotype {{ com Mono}}
-  | Pi (x: S1 ). S2             ::  :: FunOnPolytype {{ com FunPoly}}
+  | Pi (x: S1 ). S2             ::  :: FunOnPolytype {{ com FunPoly}} {{ tex \Pi \overbar{x:[[S1]]} . [[S2]] }}
 
 %% Literals
 lit :: 'lit_' ::=
@@ -162,7 +163,6 @@ terminals :: 'terminals_' ::=
   | unfold   ::  :: unfold    {{ tex \mathsf{unfold} }}
   | foldnp   ::  :: foldnp    {{ tex \mathsf{cast}_{\uparrow}^{n+1} }}
   | unfoldnp ::  :: unfoldnp  {{ tex \mathsf{cast}_{\downarrow}^{n+1} }}
-  | bar      ::  :: bar       {{ tex \bar }}
 
 %%% Fomulae
 formula :: 'formula_' ::=
@@ -207,7 +207,4 @@ formula :: 'formula_' ::=
     {{ tex [[Gs]] \labeledjudge{s} [[E]] : [[A]] }}
 
 %%% Subrule
-subrules
-  v <:: e
-  ec <:: e
 
