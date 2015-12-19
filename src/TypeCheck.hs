@@ -223,17 +223,43 @@ checkEq e1 e2 =
   unless (aeq e1 e2) $ throwError $
     T.concat ["Couldn't match: ", showExpr e1, " with ", showExpr e2]
 
--- unify tau tau
+-- unify
 unify :: Expr -> Expr -> TcMonad Sub
-unify (TVar n _)   (TVar n2 _) | n == n2 = return []
-unify (TVar n k)    t                    = varBind n k t
-unify  t           (TVar n k)            = varBind n k t
-unify (CastUp e)   (CastUp e2)           = unify e e2
-unify (CastDown e) (CastDown e2)         = unify e e2
-unify (App n m)    (App a b )            = multiUnify [(n, a), (m, b)]
-unify (Ann n m)    (Ann a b)             = multiUnify [(n, a), (m, b)]
-unify  e1           e2       | aeq e1 e2 = return []
-unify  e1           e2                   = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " falied"]
+unify e1 e2 = do
+    pr1@(skom1, body1) <- pr e1
+    pr2@(skom2, body2) <- pr e2
+    unless (length skom1 == length skom2) $ unifyError e1 e2
+    if null skom1
+    then go e1 e2
+    else unify_fun pr1 pr2
+ where -- no forall in go
+       go e1@(Pi bnd1) e2@(Pi bnd2)             = do
+          (nm1, a1, r1, _) <- unpi e1
+          (nm2, a2, r2, _) <- unpi e2
+          newnm <- genSkolemVar a1
+          multiUnify [(a1, a2), (subst nm1 newnm r1, subst nm2 newnm r2)]
+       go (TVar n _)   (TVar n2 _) | n == n2 = return []
+       go (TVar n k)    t                    = varBind n k t
+       go  t           (TVar n k)            = varBind n k t
+       go (CastUp e)   (CastUp e2)           = unify e e2
+       go (CastDown e) (CastDown e2)         = unify e e2
+       go (App n m)    (App a b )            = multiUnify [(n, a), (m, b)]
+       go (Ann n m)    (Ann a b)             = multiUnify [(n, a), (m, b)]
+       go (Lam bd1)    (Lam bd2)             = do
+          (x1, body1) <- unbind bd1
+          (x2, body2) <- unbind bd2
+          newnm <- genName
+          let newvar = Var newnm
+          unify (subst x1 newvar body1) (subst x2 newvar body2)
+       go (LamAnn bd1) (LamAnn bd2)          = do
+          ((x1, Embed t1), body1) <- unbind bd1
+          ((x2, Embed t2), body2) <- unbind bd2
+          newnm <- genSkolemVar t1
+          multiUnify [(t1, t2), (subst x1 newnm body1, subst x2 newnm body2)]
+       go  e1           e2       | aeq e1 e2 = return []
+       go  e1           e2                   = unifyError e1 e2
+
+unifyError e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " failed"]
 
 multiUnify :: [(Expr, Expr)] -> TcMonad Sub
 multiUnify [] = return []
@@ -251,6 +277,17 @@ varBind n k t = do
       throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
    return $ [(n,t')] `compose` sub1
 
+unify_fun ([], body1) ([], body2) = unify body1 body2
+unify_fun ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) = do
+    sub1 <- unify t1 t2
+    let rest1' = map (multiSubst sub1) rest1
+        body1' = multiSubst sub1 body1
+    let sub2 = sub1 `compose` [(nm2, Skolem nm1 t1)]
+        rest2' = map (multiSubst sub2) rest2
+        body2' = multiSubst sub2 body2
+    sub3 <- unify_fun (rest1', body1') (rest2', body2')
+    return $ sub3 `compose` sub1
+
 -----------------------------------------
 --  Polymorphic Relation
 -----------------------------------------
@@ -267,7 +304,7 @@ subCheck sigma1 sigma2 = do
     let bad_fv = skole' `intersect` (t1 ++ t2 ++ t3)
     if null bad_fv
     then return sub
-    else throwError $ T.concat ["Type ", showExpr sigma1, " is not as least as polymorphic as type ", showExpr sigma2]
+    else throwError $ T.concat ["Type ", showExpr sigma1, " is not at least as polymorphic as type ", showExpr sigma2]
 
 -- dsk*
 subCheckRho :: Expr -> Expr -> TcMonad Sub
@@ -278,6 +315,38 @@ subCheckRho sigma1@(Forall _) rho2 = do
 -- FUN
 subCheckRho rho1 rho2@(Pi _) = fun rho1 rho2
 subCheckRho rho1@(Pi _) rho2 = fun rho1 rho2
+-- APP
+subCheckRho (App tau1 sigma1) (App tau2 sigma2) = do
+    sub1 <- unify sigma1 sigma2
+    substEnv sub1 $ do
+        sub2 <- subCheckRho (multiSubst sub1 tau1) (multiSubst sub1 tau2)
+        return $ sub2 `compose` sub1
+-- LAM
+subCheckRho (Lam bd1) (Lam bd2) = do
+  (x1, body1) <- unbind bd1
+  (x2, body2) <- unbind bd2
+  let body2' = subst x2 (Var x1) body2
+  subCheck body1 body2'
+-- LAMANN
+subCheckRho (LamAnn bd1) (LamAnn bd2) = do
+  ((x1, Embed t1), body1) <- unbind bd1
+  ((x2, Embed t2), body2) <- unbind bd2
+  sub1 <- unify t1 t2
+  newnm <- genSkolemVar (multiSubst sub1 t1)
+  let body1' = subst x1 newnm . multiSubst sub1 $ body1
+  let body2' = subst x2 newnm . multiSubst sub1 $ body2
+  sub2 <- subCheck body1' body2'
+  return $ sub2 `compose` sub1
+-- ANN
+subCheckRho (Ann sigma1 sigma2) (Ann sigma3 sigma4) = do
+    sub1 <- unify sigma2 sigma4
+    substEnv sub1 $ do
+        sub2 <- subCheck (multiSubst sub1 sigma1) (multiSubst sub1 sigma2)
+        return $ sub2 `compose` sub1
+-- CASTUP
+subCheckRho (CastUp sigma1) (CastUp sigma2) = subCheck sigma1 sigma2
+-- CASTDOWN
+subCheckRho (CastDown sigma1) (CastDown sigma2) = subCheck sigma1 sigma2
 -- OTHER-CASE
 subCheckRho rho1 rho2 = unify rho1 rho2
 
@@ -285,14 +354,13 @@ fun :: Expr -> Expr -> TcMonad Sub
 fun rho1 rho2 = do
     (nm1, a1, r1, sub1) <- unpi rho1
     (nm2, a2, r2, sub2) <- unpi (multiSubst sub1 rho2)
-    sub3 <- subCheck a2 (multiSubst sub2 a1)
+    -- sigma3 <= sigma1
+    sub3 <- subCheck (multiSubst sub1 a2) (multiSubst sub2 a1)
     let sub4 = sub3 `compose` sub2 `compose` sub1
     let a1' = multiSubst sub4 a1
-        a2' = multiSubst sub4 a2
-    let subst1 = sub4
-        subst2 = [(nm2, Skolem nm1 a1')] `compose` sub4
-        rho1' = multiSubst subst1 r1
-        rho2' = multiSubst subst2 r2
+    let rho1' = multiSubst sub4 r1
+        rho2' = multiSubst ([(nm2, Skolem nm1 a1')] `compose` sub4) r2
+    -- x:sigma1 |- rho2 <= rho4
     sub5 <- subCheckRho rho1' rho2'
     return $ sub5 `compose` sub4
 
