@@ -28,3 +28,5 @@ cabal.config
 /src/Tokens.hs
 
 *.swp
+
+/doc/*.pdf
