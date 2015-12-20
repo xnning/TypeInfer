@@ -111,7 +111,7 @@ $}
 \[
 \hl{$
 \inferrule*[right=CastUp-Check]
-{ \rho_1 \longrightarrow \rho_2 \\ \checktype e : \rho_2 } {\checktype (\mathsf{cast}^\uparrow\ e) : \rho_1}
+{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\mathsf{cast}^\uparrow\ e) : \rho}
 $}
 \]
 
@@ -158,7 +158,7 @@ $}
 
 \[
 \inferrule*[right=Gen-Check]
-{\overbar{x} \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forallvars{x:\tau} . \rho} {\polycheck e : \sigma}
+{\overbar{x:\tau} \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forallvars{\hl{$x:\tau$}} . \rho} {\polycheck e : \sigma}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
