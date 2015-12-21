@@ -55,6 +55,7 @@ step (PrimOp op (Lit n) (Lit m)) = do
 step (PrimOp op e1 e2) =
       PrimOp <$> pure op <*> step e1 <*> pure e2
   <|> PrimOp <$> pure op <*> pure e1 <*> step e2
+-- annotation
 step (Ann e t)  =  (Ann <$> step e <*> pure t)
 step _    = done
 
@@ -188,9 +189,9 @@ infer (Pi ty) mode     = inferFun ty mode
 infer (Forall ty) mode = inferFun ty mode
 infer (TVar _ t) mode   = instSigma t mode
 infer (Skolem _ t) mode = instSigma t mode
-infer (CastUp e) (Check rho1) = do
-    rho2 <- oneStep rho1
-    checktype e rho2
+infer (CastUp e) (Check rho) = do
+    sigma <- oneStep rho
+    checkSigma e sigma
 infer (CastDown e) mode = do
     (rho1, sub1) <- infertype e
     substEnv sub1 $ do
@@ -358,10 +359,10 @@ fun rho1 rho2 = do
     sub3 <- subCheck (multiSubst sub1 a2) (multiSubst sub2 a1)
     let sub4 = sub3 `compose` sub2 `compose` sub1
     let a1' = multiSubst sub4 a1
-    let rho1' = multiSubst sub4 r1
+    let sigma2 = multiSubst sub4 r1
         rho2' = multiSubst ([(nm2, Skolem nm1 a1')] `compose` sub4) r2
-    -- x:sigma1 |- rho2 <= rho4
-    sub5 <- subCheckRho rho1' rho2'
+    -- x:sigma1 |- sigma2 <= rho4
+    sub5 <- subCheckRho sigma2 rho2'
     return $ sub5 `compose` sub4
 
 unpi (Pi bd) = do
