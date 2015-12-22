@@ -115,21 +115,18 @@ in current system without annotation
 ``` haskell
 let Int = nat in
 let String = nat in
-let PairT = \a.\b. /\(c:*)./\(/\a./\b.c).c in
-let Pair = \a.\b.\x.\y.
-        ((castup (castup (\c . \f : (/\a./\ b. c) . f x y))):(PairT a b)) in
-let fst = \a.\b.\p:PairT a b. (castdown (castdown p)) a (\x. \y. x) in
-let snd = \a.\b.\p:PairT a b. (castdown (castdown p)) b (\x. \y. y) in
-let Expr = \t. /\(expr:/\*.*)./\(/\Int. expr Int). /\(/\String. expr String).
-        /\(/\(a:*)(b:*)./\expr a./\ expr b. expr (PairT a b)). expr t in
+let PairT = \a:*.\b:*.\/c./\(/\a./\b.c).c in
+let Pair = ((\x.\y.castup (castup (\f. f x y))):(\/a.\/b./\a./\b.PairT a b)) in
+let fst = (\p. (castdown (castdown p)) (\x.\y.x)):(\/a.\/b./\PairT a b. a) in
+let snd = (\p. (castdown (castdown p)) (\x.\y.y)):(\/a.\/b./\PairT a b. b) in
+let Expr = \/t. \/(expr:/\*.*)./\(/\Int. expr Int). /\(/\String. expr String).
+        /\(\/a.\/b./\expr a./\expr b. expr (PairT a b)). expr t in
 let Id = \a. a in
-let eval = \t. \e:Expr t. castdown ((castdown e) Id (\x. castup x) (\x. castup x)
-        (\a.\b.\x:Id a.\y:Id b. (castup (Pair a b (castdown x) (castdown y))))) in
-let I = \x. ((castup (\expr.\i.\s.\p. i x)):(Expr Int)) in
-let S = \x. ((castup (\expr.\i.\s.\p. i x)):(Expr String)) in
-let P = \a.\b.\x:Expr a.\y:Expr b. ((castup (\expr.\i.\s.\p.
-    p a b ((castdown x) expr i s p) ((castdown y) expr i s p))):(Expr (PairT a b))) in
-let test =  eval (PairT Int String) (P Int String (I 1) (S 2))
-in fst Int String test
+let eval = \e. e (\x. x) (\x. x) (\x.\y. (Pair x y)) in
+let I = \x.     \i.\s.\p. i x in
+let S = \x.     \i.\s.\p. s x in
+let P = \x. \y. \i.\s.\p. p (x i s p) (y i s p) in
+let test =  eval (P (I 1) (S 2)) in
+fst test
 ```
 
