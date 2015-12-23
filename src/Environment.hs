@@ -127,8 +127,12 @@ type Freevar = [(TmName, Expr)]
 
 ftv :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
 ftv (Var    n  ) = return [(n, undefined)]
-ftv (Skolem n k) = return [(n, k)]
-ftv (TVar   n k) = return [(n, k)]
+ftv (Skolem n k) = do
+    f1 <- ftv k
+    return $ [(n, k)] `ftv_union` f1
+ftv (TVar   n k) = do
+    f1 <- ftv k
+    return $ [(n, k)] `ftv_union` f1
 ftv (App  t1 t2) = ftv_do_union t1 t2
 ftv (Ann   e  t) = ftv_do_union e  t
 ftv (Pi     bnd) = ftv_fun bnd
