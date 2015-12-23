@@ -113,9 +113,9 @@ infer (Lam bnd) Infer = do
 
 infer (Lam bnd) (Check rho)  = do
   (x, body) <- unbind bnd
-  (nm1, sigma1, sigma2, sub1) <- unpi rho
+  (sigma1, sigma2, sub1) <- unpiWithName rho x
   substEnv sub1 $ do
-     (ans, sub2) <- extendCtx [(nm1, sigma1)] $ checktype (subst x (Var nm1) body) sigma2
+     (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body sigma2
      return (ans, sub2 `compose` sub1)
 
 infer (LamAnn bnd) Infer = do
@@ -133,14 +133,13 @@ infer (LamAnn bnd) (Check ty) = do
   let sigma = multiSubst sub1 t
   let ty' = multiSubst sub1 ty
   substEnv sub1 $ do
-    (nm1, sigma1, sigma2, sub2) <- unpi ty'
+    (sigma1, sigma2, sub2) <- unpiWithName ty' x
     substEnv sub2 $ do
       let sigma' = multiSubst sub2 sigma
       sub3 <- subCheck sigma1 sigma'
       substEnv sub3 $ do
           let sigma'' = multiSubst sub3 sigma'
-          let body' = subst x (Var nm1) body
-          (_, sub4) <- extendCtx [(nm1, sigma'')] $ checkSigma body' $ (multiSubst sub3 sigma2)
+          (_, sub4) <- extendCtx [(x, sigma'')] $ checkSigma body $ (multiSubst sub3 sigma2)
           let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
           return (multiSubst sub ty, sub)
 
@@ -361,6 +360,18 @@ fun rho1 rho2 = do
     sub5 <- extendCtx [(nm1, a1')] $ subCheckRho sigma2 rho2'
     return $ sub5 `compose` sub4
 
+unpiWithName (Pi bd) x = do
+    (tele, body) <- unbind bd
+    let Cons bnd = tele
+        ((nm, Embed t), rest) = unrebind bnd
+        v = Var x
+    return (t, mkpi (subst nm v rest) (subst nm v body), [])
+unpiWithName tau x = do
+    a1 <- genTVar estar
+    r1 <- genTVar estar
+    sub <- unify tau $ epiWithName [(x, a1)] r1
+    return (a1, r1, sub)
+
 unpi (Pi bd) = do
     (tele, body) <- unbind bd
     let Cons bnd = tele
@@ -368,10 +379,8 @@ unpi (Pi bd) = do
     return (nm, t, mkpi rest body, [])
 unpi tau = do
     nm1 <- genName
-    a1 <- genTVar estar
-    r1 <- genTVar estar
-    sub <- unify tau $ epiWithName [(nm1, a1)] r1
-    return (nm1, a1, r1, sub)
+    (a, r, sub) <- unpiWithName tau nm1
+    return (nm1, a, r, sub)
 
 mkpi tele body =
     case tele of Empty -> body
