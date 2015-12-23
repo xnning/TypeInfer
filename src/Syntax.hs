@@ -76,11 +76,25 @@ instance Subst Expr Tele
 instance Subst Expr ClassTag
 
 instance Subst Expr Expr where
-  isvar (Var v) = Just (SubstName v)
-  isvar (TVar v _ ) = Just (SubstName v)
-  isvar (Skolem v _) = Just (SubstName v)
-  isvar _ = Nothing
-
+  subst tm a expr = go expr
+    where
+      go (Var tm2)   | tm == tm2 = a
+                     | otherwise = Var tm2
+      go (TVar v ty) | tm == v = a
+                     | otherwise = TVar v (go ty)
+      go (Skolem v ty) | tm == v = a
+                     | otherwise = Skolem v (go ty)
+      go (App e1 e2) = App (go e1) (go e2)
+      go (Lam bd)    = Lam (subst tm a bd)
+      go (LamAnn bd) = LamAnn (subst tm a bd)
+      go (CastDown e) = CastDown (go e)
+      go (CastUp e  ) = CastUp (go e)
+      go (Ann e1 e2 ) = Ann (go e1) (go e2)
+      go (Let bd)     = Let (subst tm a bd)
+      go (Pi bd)      = Pi (subst tm a bd)
+      go (Forall bd)  = Forall (subst tm a bd)
+      go (PrimOp op e1 e2) = PrimOp op (go e1) (go e2)
+      go x            = x
 
 -- Examples
 
