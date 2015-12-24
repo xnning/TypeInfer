@@ -88,28 +88,27 @@ in current system with all annotations
 ``` haskell
 let Int = nat in
 let String = nat in
-let PairT = \a:*.\b:*. /\(c:*)./\(/\a./\b.c).c in
-let Pair = \a:*.\b:*.\x:a.\y:b.
-        ((castup (castup (\c : * . \f : (/\a./\ b. c) . f x y))):(PairT a b)) in
+let PairT = \a:*.\b:*. (c:*) -> (a -> b -> c) -> c in
+let Pair = \a:*.\b:*.\x:a.\y:b.  ((castup (castup (\c : * . \f : (a -> b -> c) . f x y))):(PairT a b)) in
 let fst = \a:*.\b:*.\p:PairT a b. (castdown (castdown p)) a (\x : a . \y : b . x) in
 let snd = \a:*.\b:*.\p:PairT a b. (castdown (castdown p)) b (\x : a . \y : b . y) in
-let Expr = \t:*. /\(expr:/\*.*)./\(/\Int. expr Int). /\(/\String. expr String).
-          /\(/\(a:*)(b:*)./\expr a./\ expr b. expr (PairT a b)). expr t in
+let Expr = \t:*. (expr:* -> *) -> (Int -> expr Int) -> (String -> expr String) ->
+    ((a:*) -> (b:*) -> expr a -> expr b -> expr (PairT a b)) -> expr t in
 let Id = \a:*. a in
-let eval = \t:*. \e:Expr t. castdown ((castdown e) Id
-        (\x:Int. ((castup x):(Id Int)))
-        (\x:String. ((castup x):(Id String)))
-        (\a:*.\b:*.\x:Id a.\y:Id b. ((castup (Pair a b (castdown x) (castdown y))):(Id (PairT a b)))))
-let I = \x:Int. ((castup (\expr:(/\*.*).\i:(/\Int.expr Int).\s:(/\String.expr String).
-        \p:(/\(a:*)(b:*)./\expr a./\ expr b. expr (PairT a b)). i x) ):(Expr Int)) in
-let S = \x:String. ((castup (\expr:(/\*.*).\i:(/\Int.expr Int).\s:(/\String.expr String).
-        \p:(/\(a:*)(b:*)./\expr a./\ expr b. expr (PairT a b)). s x) ):(Expr String)) in
-let P = \a:*.\b:*.\x:Expr a.\y:Expr b. ((castup (\expr:(/\*.*).\i:(/\Int.expr Int).
-        \s:(/\String.expr String).\p:(/\(a:*)(b:*)./\expr a./\ expr b. expr (PairT a b)).
-        p a b ((castdown x) expr i s p) ((castdown y) expr i s p))):(Expr (PairT a b))) in
-let test =  eval (PairT Int String) (P Int String (I 1) (S 2))
-in fst Int String test
+let eval = \t:*. \e:Expr t. castdown ((castdown e) Id (\x:Int. ((castup x):(Id Int)))
+    (\x:String. ((castup x):(Id String)))
+    (\a:*.\b:*.\x:Id a.\y:Id b. ((castup (Pair a b (castdown x) (castdown y))):(Id (PairT a b))))) in
+let I = \x:Int. ((castup (\expr:(* -> *).\i:(Int -> expr Int).\s:(String -> expr String).
+    \p:((a:*) -> (b:*) -> expr a -> expr b -> expr (PairT a b)). i x) ):(Expr Int)) in
+let S = \x:String. ((castup (\expr:(* -> *).\i:(Int -> expr Int).\s:(String -> expr String).
+    \p:((a:*) -> (b:*) -> expr a -> expr b -> expr (PairT a b)). s x)):(Expr String)) in
+let P = \a:*.\b:*.\x:Expr a.\y:Expr b. ((castup (\expr:(* -> *).\i:(Int -> expr Int).
+    \s:(String -> expr String).  \p:((a:*) -> (b:*) -> expr a -> expr b -> expr (PairT a b)).
+    p a b ((castdown x) expr i s p) ((castdown y) expr i s p)))
+    :(Expr (PairT a b))) in
+let test =  eval (PairT Int String) (P Int String (I 1) (S 2)) in fst Int String test
 ```
+
 \newpage
 
 in current system without annotation
@@ -117,23 +116,21 @@ in current system without annotation
 ``` haskell
 let Int = nat in
 let String = nat in
-let PairT = \a.\b.\/c./\(/\a./\b.c).c in
-let Pair = ((\x.\y.castup (castup (\f. f x y))):(\/a.\/b./\a./\b.PairT a b)) in
-let fst = (\p. (castdown (castdown p)) (\x.\y.x)):(\/a.\/b./\PairT a b. a) in
-let snd = (\p. (castdown (castdown p)) (\x.\y.y)):(\/a.\/b./\PairT a b. b) in
-let Expr = \t. \/(expr:/\*.*)./\(/\Int. expr Int). /\(/\String. expr String).
-        /\(\/a.\/b./\expr a./\expr b. expr (PairT a b)). expr t in
+let PairT = \a.\b.\/c. (a->b->c) -> c in
+let Pair = ((\x.\y.castup (castup (\f. f x y))):(\/a.\/b. a -> b -> PairT a b)) in
+let fst = (\p. (castdown (castdown p)) (\x.\y.x)):(\/a.\/b. PairT a b -> a) in
+let snd = (\p. (castdown (castdown p)) (\x.\y.y)):(\/a.\/b. PairT a b -> b) in
+let Expr = \t. \/(expr:*->*). (Int -> expr Int) -> (String -> expr String) ->
+        (\/a.\/b.expr a -> expr b -> expr (PairT a b)) -> expr t in
 let Id = \a. a in
-let eval = (\e. castdown ((castdown e)
-        (\x. (castup x):(Id Int))
-        (\x. (castup x):(Id String))
-        ((\x.\y. (castup (Pair (castdown x) (castdown y)))):(\/a.\/b./\Id a./\Id b. Id (PairT a b)))))
-        :(\/a. /\Expr a. a) in
+let eval = (\e. castdown ((castdown e) (\x. (castup x):(Id Int))
+    (\x. (castup x):(Id String))
+    ((\x.\y. (castup (Pair (castdown x) (castdown y)))):(\/a.\/b. Id a -> Id b -> Id (PairT a b)))))
+    :(\/a. Expr a -> a) in
 let I = \x. (castup (\i.\s.\p. i x)):(Expr Int) in
 let S = \x. (castup (\i.\s.\p. s x)):(Expr String) in
 let P = (\x. \y. castup (\i.\s.\p. p ((castdown x) i s p) ((castdown y) i s p)))
-        :(\/a.\/b. /\Expr a./\Expr b. Expr (PairT a b)) in
-let test =  eval (P (I 1) (S 2)) in
-fst test
+    :(\/a.\/b. Expr a -> Expr b -> Expr (PairT a b)) in
+let test =  eval (P (I 3) (S 2)) in fst test
 ```
 

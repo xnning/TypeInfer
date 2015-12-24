@@ -51,8 +51,8 @@ import Tokens
 
 expr : '\\' id '.' expr                         { elam $2 $4 }
      | pi teles '.' expr                        { epi $2 $4  }
-     -- if no name is given, then no dependency.
-     | pi expr '.' expr                         { epiNoDenp $2 $4 }
+     | expr '->' expr                           { epiNoDenp $1 $3 }
+     | tele '->' expr                           { epi [$1] $3 }
      | forall teles '.' expr                    { eforall $2 $4 }
      -- if no type is given, * by default
      | forall id '.' expr                       { eforallStar $2 $4 }
