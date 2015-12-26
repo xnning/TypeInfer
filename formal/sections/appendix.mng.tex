@@ -21,7 +21,6 @@
 \newcommand{\pgm}{\mathsf{P}}
 \newcommand{\nat}{\mathsf{nat}}
 \newcommand{\logic}{\mathsf{L}}
-\newcommand{\judge}{\Gamma\vdash}
 
 \newcommand{\checktype}{\Gamma\vdash_\Downarrow}
 \newcommand{\infertype}{\Gamma\vdash_\Uparrow}
@@ -42,12 +41,10 @@
 \newcommand{\polymorphic}{\vdash^{dsk}}
 \newcommand{\polymorphicstar}{\vdash^{dsk\star}}
 
-\newcommand{\substlet}{\textcolor{blue}{subst\_let}}
-
 \newcommand{\forallvars}[1]{\forall \overbar{#1}}
 
 
-\framebox{$ \judge e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
+\framebox{$ \infercheck e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
 \hl{$
@@ -130,7 +127,7 @@ $}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
 
-\framebox{$ \judge \sigma : \star$ }
+\framebox{$ \infercheck \sigma : \star$ }
 
 \[
 \hl{$
@@ -139,7 +136,7 @@ $}
 $}
 \]
 
-\framebox{$ \judge \rho : \star$ }
+\framebox{$ \infercheck \rho : \star$ }
 
 \[
 \hl{$
