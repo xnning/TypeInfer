@@ -91,6 +91,7 @@ typecheck e = runTcMonad initialEnv $ do
     generalization ty
 
 data Mode = Infer | Check Expr
+    deriving (Show)
 
 infertype :: Expr -> TcMonad (Expr, Sub)
 infertype e = infer e Infer
@@ -150,7 +151,7 @@ infer (App e1 e2) mode = do
     (_, sub3) <- checkSigma e2 sigma1
     let app_type = multiSubst sub3 $ subst nm1 e2 sigma2
     (res, sub4) <- instSigma app_type mode
-    return (res, sub4 `compose` (sub3 `compose` (sub2 `compose` sub1)))
+    return (res, sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 
 infer (Ann expr ty) mode = do
   (_, sub1) <- checktype ty estar
@@ -180,8 +181,8 @@ infer (PrimOp op m n) mode = do
       substEnv sub2 $ do
           (_, sub3) <- instSigma Nat mode
           return (Nat, sub3 `compose` sub2 `compose` sub1)
-infer (Pi ty) mode     = inferFun ty mode
-infer (Forall ty) mode = inferFun ty mode
+infer p@(Pi ty) mode     = inferFun p mode
+infer (Forall ty) mode = inferFun (Pi ty) mode
 infer (TVar _ t) mode   = instSigma t mode
 infer (Skolem _ t) mode = instSigma t mode
 infer (CastUp e) (Check rho) = do
@@ -194,12 +195,12 @@ infer (CastDown e) mode = do
         (res, sub2) <- instSigma sigma mode
         return (res, sub2 `compose` sub1)
 
-infer e _ = throwError $ T.concat ["Type checking ", showExpr e, " failed"]
+infer e mode = throwError $ T.concat ["Type checking ", showExpr e, " with mode ", T.pack $ show mode, " failed"]
 
 inferFun ty mode = do
     (_, sub) <- instSigma estar mode
     substEnv sub $ do
-       let p = multiSubst sub $ Pi ty
+       let p = multiSubst sub ty
        (nm, a, r, sub) <- unpi p
        (_, sub1) <- checktype a estar
        substEnv sub1 $ do
