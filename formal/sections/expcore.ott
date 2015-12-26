@@ -13,10 +13,24 @@ indexvar i, j, n, m ::= {{ com Index variables }}
 %%% Syntax
 grammar
 
-%% Expressions
-t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
+%% Mono type
+t {{ tex \tau }} :: 't_' ::=       {{ com Unifiable Type    }}
   | x                         ::  :: Var        {{ com Variable }}
   | star                      ::  :: Star       {{ com Type of Types }}
+  | t1 t2                     ::  :: App        {{ com Application }}
+  | \ x . t                   ::  :: Lam        {{ com Abstraction }}
+  | \ x: t1 . t2              ::  :: LamAnn     {{ com Abstraction with annotation }}
+  | castup t                  ::  :: CastUp     {{ com Cast Up }}
+  | castdown t                ::  :: CastDown   {{ com Cast Down }}
+  | Pi (x: t1 ) . t2          ::  :: FunAnn     {{ com Explicit Pi type}}
+  | let x = t1 in t2          ::  :: LetBinding {{ com Let binding }}
+  | t1 : t2                   ::  :: Annotation  {{ com Annotation }}
+
+%% Expressions
+R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
+  | t                         ::  :: MonoType   {{ com UnifiableType }}
+  | x                         :: M:: Var        {{ com Variable }}
+  | star                      :: M:: Star       {{ com Type of Types }}
   | square                    :: M:: Square     {{ com Type of Star }}
   | e1 e2                     ::  :: App        {{ com Application }}
   | \ x . e                   ::  :: Lam        {{ com Abstraction }}
@@ -24,10 +38,11 @@ t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
   | castup e                  ::  :: CastUp     {{ com Cast Up }}
   | castdown e                ::  :: CastDown   {{ com Cast Down }}
   | t1 -> t2                  :: M:: Fun        {{ com Function Type}}
-  | Pi (x: t ) . t2           ::  :: FunAnn     {{ com Explicit Pi type}}
+  | Pi (x: t1 ) . t2          :: M:: FunAnn     {{ com Explicit Pi type}}
   | mu x : t . e              :: M:: Mu         {{ com Polymorphic Recursion }}
   | e1 [ x |-> e2 ]           :: M:: Sub        {{ com Substitution }}
   | ( e )                     :: M:: Parens     {{ com Parenthesized expression }}
+  | Pi (x: S1 ). S2           ::  :: FunOnPolytype {{ com FunPoly}} {{ tex \Pi x:[[S1]] . [[S2]] }}
   | let x = e1 in e2          ::  :: LetBinding {{ com Let binding }}
   | t1 -> t2                  :: M:: FuncType   {{ com Function type }}
   | lit                       :: M:: Literals   {{ com Literals }}
@@ -53,14 +68,11 @@ t {{ tex \tau }} :: 'e_' ::=       {{ com Expressions    }}
   | K << u >> << e >>         :: M:: Constructor
   | foldnp [ t ] e            :: M:: CastUpMultiP
   | unfoldnp e                :: M:: CastDownMultiP
-  | e : sigma                ::  :: Annotation  {{ com Annotation }}
+  | e : sigma                 ::  :: Annotation  {{ com Annotation }}
 
-e, S {{ tex \sigma }} :: 'S_'    ::= {{ com Polytype}}
+e, S {{ tex \sigma }} :: 'S_'    ::= {{ com Poly Type}}
   | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }} {{ tex \forall \overbar{x:\tau} . [[R]] }}
 
-R {{ tex \rho }} :: 'R_'     ::= {{ com Rhotype}}
-  | t                         ::  :: Monotype {{ com Mono}}
-  | Pi (x: S1 ). S2             ::  :: FunOnPolytype {{ com FunPoly}} {{ tex \Pi \overbar{x:[[S1]]} . [[S2]] }}
 
 %% Literals
 lit :: 'lit_' ::=
