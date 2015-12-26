@@ -42,7 +42,7 @@ R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
   | mu x : t . e              :: M:: Mu         {{ com Polymorphic Recursion }}
   | e1 [ x |-> e2 ]           :: M:: Sub        {{ com Substitution }}
   | ( e )                     :: M:: Parens     {{ com Parenthesized expression }}
-  | Pi (x: S1 ). S2           ::  :: FunOnPolytype {{ com FunPoly}} {{ tex \Pi x:[[S1]] . [[S2]] }}
+  | Pi (x: S1 ). S2           ::  :: ExplicitPi {{ com Explicit Pi type }}
   | let x = e1 in e2          ::  :: LetBinding {{ com Let binding }}
   | t1 -> t2                  :: M:: FuncType   {{ com Function type }}
   | lit                       :: M:: Literals   {{ com Literals }}
