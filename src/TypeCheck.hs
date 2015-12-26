@@ -229,7 +229,7 @@ unify e1 e2 = do
     unless (length skom1 == length skom2) $ unifyError e1 e2
     if null skom1
     then go e1 e2
-    else unify_fun pr1 pr2
+    else unifyForall pr1 pr2
  where -- no forall in go
        go e1@(Pi bnd1) e2@(Pi bnd2)             = do
           (nm1, a1, r1, _) <- unpi e1
@@ -237,8 +237,8 @@ unify e1 e2 = do
           newnm <- genSkolemVar a1
           multiUnify [(a1, a2), (subst nm1 newnm r1, subst nm2 newnm r2)]
        go (TVar n _)   (TVar n2 _) | n == n2 = return []
-       go (TVar n k)    t                    = varBind n k t
-       go  t           (TVar n k)            = varBind n k t
+       go (TVar n k)    t                    = unifyTVar n k t
+       go  t           (TVar n k)            = unifyTVar n k t
        go (CastUp e)   (CastUp e2)           = unify e e2
        go (CastDown e) (CastDown e2)         = unify e e2
        go (App n m)    (App a b )            = multiUnify [(n, a), (m, b)]
@@ -260,6 +260,7 @@ unify e1 e2 = do
 unifyError :: (MonadError T.Text m) => Expr -> Expr -> m a
 unifyError e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " failed"]
 
+-- unify all pairs given
 multiUnify :: [(Expr, Expr)] -> TcMonad Sub
 multiUnify [] = return []
 multiUnify ((t1,t2):tl) = do
@@ -267,8 +268,9 @@ multiUnify ((t1,t2):tl) = do
     sub2 <- substEnv sub1 $ multiUnify (map (\(x,y)->(multiSubst sub1 x, multiSubst sub1 y)) tl)
     return $ sub2 `compose` sub1
 
-varBind :: TmName -> Expr -> Expr -> TcMonad Sub
-varBind n k t = do
+-- unify TVar with type
+unifyTVar :: TmName -> Expr -> Expr -> TcMonad Sub
+unifyTVar n k t = do
    (_, sub1) <- checktype t k
    let t' = multiSubst sub1 t
    freevar <- ftv t'
@@ -276,16 +278,18 @@ varBind n k t = do
       throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
    return $ [(n,t')] `compose` sub1
 
-unify_fun :: ([Expr], Expr) -> ([Expr], Expr) -> TcMonad Sub
-unify_fun ([], body1) ([], body2) = unify body1 body2
-unify_fun ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) = do
+-- unify two forall
+-- the type of Skolem should be same. then check body
+unifyForall :: ([Expr], Expr) -> ([Expr], Expr) -> TcMonad Sub
+unifyForall ([], body1) ([], body2) = unify body1 body2
+unifyForall ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) = do
     sub1 <- unify t1 t2
     let rest1' = map (multiSubst sub1) rest1
         body1' = multiSubst sub1 body1
     let sub2 = sub1 `compose` [(nm2, Skolem nm1 t1)]
         rest2' = map (multiSubst sub2) rest2
         body2' = multiSubst sub2 body2
-    sub3 <- unify_fun (rest1', body1') (rest2', body2')
+    sub3 <- unifyForall (rest1', body1') (rest2', body2')
     return $ sub3 `compose` sub1
 
 -----------------------------------------
@@ -313,8 +317,8 @@ subCheckRho sigma1@(Forall _) rho2 = do
     rho1 <- instantiate sigma1
     subCheckRho rho1 rho2
 -- FUN
-subCheckRho rho1 rho2@(Pi _) = fun rho1 rho2
-subCheckRho rho1@(Pi _) rho2 = fun rho1 rho2
+subCheckRho rho1 rho2@(Pi _) = subCheckRhoFun rho1 rho2
+subCheckRho rho1@(Pi _) rho2 = subCheckRhoFun rho1 rho2
 -- APP
 subCheckRho (App tau1 sigma1) (App tau2 sigma2) = do
     sub1 <- unify sigma1 sigma2
@@ -350,8 +354,8 @@ subCheckRho (CastDown sigma1) (CastDown sigma2) = subCheck sigma1 sigma2
 -- OTHER-CASE
 subCheckRho rho1 rho2 = unify rho1 rho2
 
-fun :: Expr -> Expr -> TcMonad Sub
-fun rho1 rho2 = do
+subCheckRhoFun :: Expr -> Expr -> TcMonad Sub
+subCheckRhoFun rho1 rho2 = do
     (nm1, a1, r1, sub1) <- unpi rho1
     (nm2, a2, r2, sub2) <- unpi (multiSubst sub1 rho2)
     -- sigma3 <= sigma1
@@ -363,35 +367,6 @@ fun rho1 rho2 = do
     -- x:sigma1 |- sigma2 <= rho4
     sub5 <- extendCtx [(nm1, a1')] $ subCheckRho sigma2 rho2'
     return $ sub5 `compose` sub4
-
-unpiWithName :: Expr -> TmName -> TcMonad (Expr, Expr, Sub)
-unpiWithName (Pi bd) x = do
-    (tele, body) <- unbind bd
-    let Cons bnd = tele
-        ((nm, Embed t), rest) = unrebind bnd
-        v = Var x
-    return (t, mkpi (subst nm v rest) (subst nm v body), [])
-unpiWithName tau x = do
-    a1 <- genTVar estar
-    r1 <- genTVar estar
-    sub <- unify tau $ epiWithName [(x, a1)] r1
-    return (a1, r1, sub)
-
-unpi :: Expr -> TcMonad (TmName, Expr, Expr, Sub)
-unpi (Pi bd) = do
-    (tele, body) <- unbind bd
-    let Cons bnd = tele
-        ((nm, Embed t), rest) = unrebind bnd
-    return (nm, t, mkpi rest body, [])
-unpi tau = do
-    nm1 <- genName
-    (a, r, sub) <- unpiWithName tau nm1
-    return (nm1, a, r, sub)
-
-mkpi :: Tele -> Expr -> Expr
-mkpi tele body =
-    case tele of Empty -> body
-                 _     -> Pi (bind tele body)
 
 -----------------------------------------
 --  Generalization
@@ -460,4 +435,43 @@ pr (Pi bd) = do
     else return (skole, Pi (bind tele rho))
 -- PR-OTHER-CASE
 pr t = return ([], t)
+
+-----------------------------------------
+--  Helper
+-----------------------------------------
+
+-- given: Πx:t1. t2
+-- return (x, t1, t2, substitution)
+unpi :: Expr -> TcMonad (TmName, Expr, Expr, Sub)
+unpi (Pi bd) = do
+    (tele, body) <- unbind bd
+    let Cons bnd = tele
+        ((nm, Embed t), rest) = unrebind bnd
+    return (nm, t, mkpi rest body, [])
+unpi tau = do
+    nm1 <- genName
+    (a, r, sub) <- unpiWithName tau nm1
+    return (nm1, a, r, sub)
+
+-- given: Πx:t1. t2, y
+-- return (y, t1, t2[x->y], substitution)
+unpiWithName :: Expr -> TmName -> TcMonad (Expr, Expr, Sub)
+unpiWithName (Pi bd) x = do
+    (tele, body) <- unbind bd
+    let Cons bnd = tele
+        ((nm, Embed t), rest) = unrebind bnd
+        v = Var x
+    return (t, mkpi (subst nm v rest) (subst nm v body), [])
+unpiWithName tau x = do
+    a1 <- genTVar estar
+    r1 <- genTVar estar
+    sub <- unify tau $ epiWithName [(x, a1)] r1
+    return (a1, r1, sub)
+
+-- given: [(x, t1)], t2
+-- return: Πx:t1. t2
+mkpi :: Tele -> Expr -> Expr
+mkpi tele body =
+    case tele of Empty -> body
+                 _     -> Pi (bind tele body)
 
