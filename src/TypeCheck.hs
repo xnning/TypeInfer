@@ -271,12 +271,48 @@ multiUnify ((t1,t2):tl) = do
 -- unify TVar with type
 unifyTVar :: TmName -> Expr -> Expr -> TcMonad Sub
 unifyTVar n k t = do
+   unifiable <- unifiableType t
+   unless unifiable $ unifiableError t
    (_, sub1) <- checktype t k
    let t' = multiSubst sub1 t
    freevar <- ftv t'
    unless ( not $ n `elem` (map fst freevar)) $
       throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
    return $ [(n,t')] `compose` sub1
+
+unifiableType :: Expr -> TcMonad Bool
+unifiableType (TVar _ _ )   = return True
+unifiableType (Skolem _ _ ) = return True
+unifiableType (Var _)       = return True
+unifiableType (Kind Star)   = return True
+unifiableType Nat           = return True
+unifiableType (App e1 e2)   = multiUnifiableType [e1,e2]
+unifiableType (Ann e1 e2)   = multiUnifiableType [e1, e2]
+unifiableType (CastUp e)    = unifiableType e
+unifiableType (CastDown e)  = unifiableType e
+unifiableType (Lam bnd) = do
+  (_, body) <- unbind bnd
+  unifiableType body
+unifiableType (LamAnn bnd) = do
+  (_, body) <- unbind bnd
+  unifiableType body
+unifiableType e@(Pi _)       = do
+  (_, t, body, _) <- unpi e
+  multiUnifiableType [t, body]
+unifiableType (Let bnd)     = do
+  ((_, Embed e), b) <- unbind bnd
+  multiUnifiableType [e, b]
+unifiableType _             = return False
+
+multiUnifiableType :: [Expr] -> TcMonad Bool
+multiUnifiableType [] = return True
+multiUnifiableType (hd:tl) = do
+    r1 <- unifiableType hd
+    if r1 then multiUnifiableType tl
+    else return False
+
+unifiableError :: (MonadError T.Text m) => Expr -> m a
+unifiableError e1 = throwError $ T.concat ["type ", showExpr e1, " is not unifiable"]
 
 -- unify two forall
 -- the type of Skolem should be same. then check body
