@@ -197,6 +197,7 @@ infer (CastDown e) mode = do
 
 infer e mode = throwError $ T.concat ["Type checking ", showExpr e, " with mode ", T.pack $ show mode, " failed"]
 
+inferFun :: Expr -> Mode -> TcMonad (Expr, Sub)
 inferFun ty mode = do
     (_, sub) <- instSigma estar mode
     substEnv sub $ do
@@ -256,6 +257,7 @@ unify e1 e2 = do
        go  e1           e2       | aeq e1 e2 = return []
        go  e1           e2                   = unifyError e1 e2
 
+unifyError :: (MonadError T.Text m) => Expr -> Expr -> m a
 unifyError e1 e2 = throwError $ T.concat ["unification ", showExpr e1, " and ", showExpr e2, " failed"]
 
 multiUnify :: [(Expr, Expr)] -> TcMonad Sub
@@ -274,6 +276,7 @@ varBind n k t = do
       throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
    return $ [(n,t')] `compose` sub1
 
+unify_fun :: ([Expr], Expr) -> ([Expr], Expr) -> TcMonad Sub
 unify_fun ([], body1) ([], body2) = unify body1 body2
 unify_fun ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) = do
     sub1 <- unify t1 t2
@@ -361,6 +364,7 @@ fun rho1 rho2 = do
     sub5 <- extendCtx [(nm1, a1')] $ subCheckRho sigma2 rho2'
     return $ sub5 `compose` sub4
 
+unpiWithName :: Expr -> TmName -> TcMonad (Expr, Expr, Sub)
 unpiWithName (Pi bd) x = do
     (tele, body) <- unbind bd
     let Cons bnd = tele
@@ -373,6 +377,7 @@ unpiWithName tau x = do
     sub <- unify tau $ epiWithName [(x, a1)] r1
     return (a1, r1, sub)
 
+unpi :: Expr -> TcMonad (TmName, Expr, Expr, Sub)
 unpi (Pi bd) = do
     (tele, body) <- unbind bd
     let Cons bnd = tele
@@ -383,6 +388,7 @@ unpi tau = do
     (a, r, sub) <- unpiWithName tau nm1
     return (nm1, a, r, sub)
 
+mkpi :: Tele -> Expr -> Expr
 mkpi tele body =
     case tele of Empty -> body
                  _     -> Pi (bind tele body)
