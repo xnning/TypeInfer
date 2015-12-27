@@ -18,6 +18,7 @@ cabal.config
 .texpadtmp/
 *.ptb
 
+/formal/main.out
 /formal/main.aux
 /formal/main.log
 /formal/main.pdf
