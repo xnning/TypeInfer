@@ -9,6 +9,61 @@
   }
 \\[2.0mm]
 
+\subsection{Operational Semantics: Call by value}
+
+\[
+\inferrule*[right=S-App1]
+{ e_1 \longrightarrow e_1'  }
+{ e_1 e_2 \longrightarrow e_1' e_2}
+\]
+
+\[
+\inferrule*[right=S-App2]
+{ e_2 \longrightarrow e_2'  }
+{ e_1 e_2 \longrightarrow e_1 e_2'}
+\]
+
+\[
+\inferrule*[right=S-Beta]
+{  }
+{ (\lambda x. e_1) e_2 \longrightarrow e_1 [x\mapsto e_2] }
+\]
+
+\[
+\inferrule*[right=S-BetaAnn]
+{  }
+{ (\lambda x:\sigma. e_1) e_2 \longrightarrow e_1 [x\mapsto e_2] }
+\]
+
+\[
+\inferrule*[right=S-CastDownUp]
+{  }
+{ \mathsf{cast}^\downarrow(\mathsf{cast}^\uparrow\ e)  \longrightarrow e }
+\]
+
+\[
+\inferrule*[right=S-CastDown]
+{ e \longrightarrow e' }
+{ \mathsf{cast}^\downarrow e  \longrightarrow  \mathsf{cast}^\downarrow e' }
+\]
+
+\[
+\inferrule*[right=S-Ann]
+{ e \longrightarrow e'  }
+{ e:\sigma \longrightarrow e':\sigma}
+\]
+
+\[
+\inferrule*[right=S-Let1]
+{ e_1 \longrightarrow e_1'  }
+{ let\ x = e_1\ in\ e_2 \longrightarrow let\ x = e_1'\ in\ e_2 }
+\]
+
+\[
+\inferrule*[right=S-Let2]
+{  }
+{ let\ x = e_1\ in\ e_2 \longrightarrow e_2[x\mapsto e_1] }
+\]
 
 \subsection{syntax-directed Typing}
 
