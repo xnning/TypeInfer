@@ -23,7 +23,7 @@ import           Data.List(intersect)
 done :: MonadPlus m => m a
 done = mzero
 
--- | Small step, call-by-value operational semantics
+-- | Small step, call-by-name operational semantics
 step :: Expr -> MaybeT FreshM Expr
 -- S_BETA
 step (App (Lam bnd) t2) = do
@@ -40,13 +40,14 @@ step (App t1 t2) =
 step (CastDown (CastUp e)) = return e
 -- S_CastDown
 step (CastDown e) = CastDown <$> step e
--- Let
--- eval definition. subst body.
+-- S-Let
 step (Let bnd) = do
   ((n, Embed e), b) <- unbind bnd
   let n' = name2String n
   elet n' <$>     step e <*> pure b
               <|> pure (subst n e b)
+-- S-Ann
+step (Ann e t)  =  (Ann <$> step e <*> pure t)
 -- prim operation
 -- eval op. eval n. eval m
 step (PrimOp op (Lit n) (Lit m)) = do
@@ -55,8 +56,6 @@ step (PrimOp op (Lit n) (Lit m)) = do
 step (PrimOp op e1 e2) =
       PrimOp <$> pure op <*> step e1 <*> pure e2
   <|> PrimOp <$> pure op <*> pure e1 <*> step e2
--- annotation
-step (Ann e t)  =  (Ann <$> step e <*> pure t)
 step _    = done
 
 evalOp :: Operation -> Int -> Int -> Int

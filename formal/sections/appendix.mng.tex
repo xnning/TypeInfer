@@ -9,19 +9,7 @@
   }
 \\[2.0mm]
 
-\subsection{Operational Semantics: Call by value}
-
-\[
-\inferrule*[right=S-App1]
-{ e_1 \longrightarrow e_1'  }
-{ e_1 e_2 \longrightarrow e_1' e_2}
-\]
-
-\[
-\inferrule*[right=S-App2]
-{ e_2 \longrightarrow e_2'  }
-{ e_1 e_2 \longrightarrow e_1 e_2'}
-\]
+\subsection{Operational Semantics: Call by name}
 
 \[
 \inferrule*[right=S-Beta]
@@ -33,6 +21,12 @@
 \inferrule*[right=S-BetaAnn]
 {  }
 { (\lambda x:\sigma. e_1) e_2 \longrightarrow e_1 [x\mapsto e_2] }
+\]
+
+\[
+\inferrule*[right=S-App]
+{ e_1 \longrightarrow e_1'  }
+{ e_1 e_2 \longrightarrow e_1' e_2}
 \]
 
 \[
