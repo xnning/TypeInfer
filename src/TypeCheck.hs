@@ -288,13 +288,9 @@ unifiableType (App e1 e2)   = multiUnifiableType [e1,e2]
 unifiableType (Ann e1 e2)   = multiUnifiableType [e1, e2]
 unifiableType (CastUp e)    = unifiableType e
 unifiableType (CastDown e)  = unifiableType e
-unifiableType (Lam bnd) = do
-  (_, body) <- unbind bnd
-  unifiableType body
-unifiableType (LamAnn bnd) = do
-  (_, body) <- unbind bnd
-  unifiableType body
-unifiableType e@(Pi _)       = do
+unifiableType (Lam bnd)     = return True
+unifiableType (LamAnn bnd)  = return True
+unifiableType e@(Pi _)      = do
   (_, t, body, _) <- unpi e
   multiUnifiableType [t, body]
 unifiableType (Let bnd)     = do

@@ -18,8 +18,8 @@ t {{ tex \tau }} :: 't_' ::=       {{ com Unifiable Type    }}
   | x                         ::  :: Var        {{ com Variable }}
   | star                      ::  :: Star       {{ com Type of Types }}
   | t1 t2                     ::  :: App        {{ com Application }}
-  | \ x . t                   ::  :: Lam        {{ com Abstraction }}
-  | \ x: t1 . t2              ::  :: LamAnn     {{ com Abstraction with annotation }}
+  | \ x . e                   ::  :: Lam        {{ com Abstraction }}
+  | \ x: sigma . e            ::  :: LamAnn     {{ com Abstraction with annotation }}
   | castup t                  ::  :: CastUp     {{ com Cast Up }}
   | castdown t                ::  :: CastDown   {{ com Cast Down }}
   | Pi (x: t1 ) . t2          ::  :: FunAnn     {{ com Explicit Pi type}}
@@ -33,8 +33,8 @@ R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
   | star                      :: M:: Star       {{ com Type of Types }}
   | square                    :: M:: Square     {{ com Type of Star }}
   | e1 e2                     ::  :: App        {{ com Application }}
-  | \ x . e                   ::  :: Lam        {{ com Abstraction }}
-  | \ x: sigma . e            ::  :: LamAnn     {{ com Abstraction with annotation }}
+  | \ x . e                   :: M:: Lam        {{ com Abstraction }}
+  | \ x: sigma . e            :: M:: LamAnn     {{ com Abstraction with annotation }}
   | castup e                  ::  :: CastUp     {{ com Cast Up }}
   | castdown e                ::  :: CastDown   {{ com Cast Down }}
   | t1 -> t2                  :: M:: Fun        {{ com Function Type}}
