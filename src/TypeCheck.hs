@@ -230,14 +230,14 @@ unify e1 e2 = do
     then go e1 e2
     else unifyForall pr1 pr2
  where -- no forall in go
-       go e1@(Pi bnd1) e2@(Pi bnd2)             = do
+       go  e1           e2       | aeq e1 e2 = return []
+       go (TVar n k)    t                    = unifyTVar n k t
+       go  t           (TVar n k)            = unifyTVar n k t
+       go e1@(Pi bnd1) e2@(Pi bnd2)          = do
           (nm1, a1, r1, _) <- unpi e1
           (nm2, a2, r2, _) <- unpi e2
           newnm <- genSkolemVar a1
           multiUnify [(a1, a2), (subst nm1 newnm r1, subst nm2 newnm r2)]
-       go (TVar n _)   (TVar n2 _) | n == n2 = return []
-       go (TVar n k)    t                    = unifyTVar n k t
-       go  t           (TVar n k)            = unifyTVar n k t
        go (CastUp e)   (CastUp e2)           = unify e e2
        go (CastDown e) (CastDown e2)         = unify e e2
        go (App n m)    (App a b )            = multiUnify [(n, a), (m, b)]
@@ -253,7 +253,6 @@ unify e1 e2 = do
           ((x2, Embed t2), body2) <- unbind bd2
           newnm <- genSkolemVar t1
           multiUnify [(t1, t2), (subst x1 newnm body1, subst x2 newnm body2)]
-       go  e1           e2       | aeq e1 e2 = return []
        go  e1           e2                   = unifyError e1 e2
 
 unifyError :: (MonadError T.Text m) => Expr -> Expr -> m a
