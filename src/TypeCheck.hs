@@ -208,7 +208,7 @@ inferFun ty mode = do
            return (estar, sub2 `compose` sub1 `compose` sub)
 
 compose :: Sub -> Sub -> Sub
-compose s1 s2 = map (\(n, t) -> (n, multiSubst s1 t)) s2 ++ s1
+compose s2 s1 = map (\(n, t) -> (n, multiSubst s2 t)) s1 ++ s2
 
 -----------------------------------------
 --  Unification

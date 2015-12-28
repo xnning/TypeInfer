@@ -188,14 +188,17 @@ $}
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ \overbar{x}=ftv(\rho)-ftv(\Gamma) \\
-\hl{$\overbar{x:\tau}$} \\
+{\infertype e :\rho \\ \overbar{\hl{$x:\tau$}}=ftv(\rho)-ftv(\Gamma) \\
 \hl{$\checktype (\forallvars{x:\tau}. \rho):\star$} } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
-{\overbar{x:\tau} \notin ftv(\Gamma) \\ \checktype e :\rho \\ pr(\sigma) = \forallvars{\hl{$x:\tau$}} . \rho} {\polycheck e : \sigma}
+{
+pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
+\overbar{\hl{$x:\tau$}} \notin ftv(\Gamma) \\
+\checktype e :\rho
+} {\polycheck e : \sigma}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
