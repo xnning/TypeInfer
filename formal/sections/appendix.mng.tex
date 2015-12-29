@@ -509,17 +509,21 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \\
 
 \[
 \inferrule*[right=PR-POLY]
-{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \\ \overbar{a} \cap \overbar{b} = \emptyset} {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2}
+{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \transto{f}\\ \overbar{a} \cap \overbar{b} = \emptyset}
+{pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2 \\
+\transto{\lambda (x:\Pi (\overbar{a:\tau_1}) (\overbar{b:\tau_2}).\rho_2).\lambda (\overbar{a:\tau_1}). f\ (x\ \overbar{a})}}
 \]
 
 \[
 \inferrule*[right=PR-FUN]
-{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2}
+{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \transto{f} \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset}
+{pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2 \\
+\transto{\lambda (x:\Pi (\overbar{a:\tau}) (\overbar{b:\sigma_1}). \rho_2). \lambda (y:\sigma_1). f\ (\lambda (\overbar{a:\tau}). x\ a\ y) }}
 \]
 
 \[
 \inferrule*[right=PR-OTHER-CASE]
-{  } {pr(\tau)=\tau}
+{  } {pr(\tau)=\tau \transto {\lambda (x:\tau). x}}
 \]
 
 \framebox{$\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
