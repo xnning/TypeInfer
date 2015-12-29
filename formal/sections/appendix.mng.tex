@@ -497,12 +497,13 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \[
 \inferrule*[right=Inst-Infer]
 {\overbar{\tau_\beta : \tau}}
-{\instinfer \forallvars{x:\tau} . \rho \sqsubseteq \rho[\overbar{x \mapsto \tau_\beta}]}
+{\instinfer \forallvars{x:\tau} . \rho \sqsubseteq \rho[\overbar{x \mapsto \tau_\beta}] \transto {\lambda (a: \Pi (\overbar{x:\tau}).\rho). (a\ \overbar{\tau_\beta})}}
 \]
 
 \[
 \inferrule*[right=Inst-Check]
-{\polymorphic \sigma \sqsubseteq \rho } {\instcheck \sigma \sqsubseteq \rho}
+{\polymorphic \sigma \sqsubseteq \rho \transto {f}}
+{\instcheck \sigma \sqsubseteq \rho \transto {f}}
 \]
 
 \framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho$}
