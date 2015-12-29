@@ -479,17 +479,17 @@ $}
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ \overbar{x:\tau}=ftv(\rho)-ftv(\Gamma) \\
-\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
+{\infertype e :\rho \transto{t} \\ \overbar{x:\tau}=ftv(\rho)-ftv(\Gamma) \\
+\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho) \transto{\lambda (\overbar{x:\tau}). t}}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
 {
-pr(\sigma) = \forallvars{x:\tau}. \rho \\
+pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \overbar{x:\tau} \notin ftv(\Gamma) \\
-\checktype e :\rho
-} {\polycheck e : \sigma}
+\checktype e :\rho \transto{t}
+} {\polycheck e : \sigma \transto{f\ (\lambda (\overbar{x:\tau}). t)}}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
