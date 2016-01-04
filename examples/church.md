@@ -124,9 +124,8 @@ let Expr = \t. \/(expr:*->*). (Int -> expr Int) -> (String -> expr String) ->
         (\/a.\/b.expr a -> expr b -> expr (PairT a b)) -> expr t in
 let Id = \a. a in
 let eval = (\e. castdown ((castdown e) (\x. (castup x):(Id Int))
-    (\x. (castup x):(Id String))
-    ((\x.\y. (castup (Pair (castdown x) (castdown y)))):(\/a.\/b. Id a -> Id b -> Id (PairT a b)))))
-    :(\/a. Expr a -> a) in
+    (\x. castup x)
+    (\x.\y. (castup (Pair (castdown x) (castdown y)))))) :(\/a. Expr a -> a) in
 let I = \x. (castup (\i.\s.\p. i x)):(Expr Int) in
 let S = \x. (castup (\i.\s.\p. s x)):(Expr String) in
 let P = (\x. \y. castup (\i.\s.\p. p ((castdown x) i s p) ((castdown y) i s p)))
