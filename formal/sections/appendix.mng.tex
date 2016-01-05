@@ -395,8 +395,9 @@ $}
 
 \newcommand{\transto}[1]{\hl{$\leadsto#1$}}
 \newcommand{\translate}[2]{\colorbox{cyan!30}{$#1\leadsto#2$}}
+\newcommand{\invariant}[2]{\leadsto #1 :#2}
 
-\framebox{$ \infercheck e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
+\framebox{$ \infercheck e : \rho \invariant{t}{|\rho|}$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
 \inferrule*[right=AX]
@@ -484,7 +485,7 @@ $}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho \transto{t_2}}
 \]
 
-\framebox{$ \infercheck \sigma : \star$ }
+\framebox{$ \infercheck \sigma : \star \invariant{t}{*}$ }
 
 \[
 \inferrule*[right=ImplicitPi]
@@ -492,7 +493,7 @@ $}
 {\infercheck (\forall x : \tau. \rho) : \star \transto {\Pi (x:\tau_1). \rho_1}}
 \]
 
-\framebox{$ \infercheck \rho : \star$ }
+\framebox{$ \infercheck \rho : \star \invariant{t}{*}$ }
 
 \[
 \inferrule*[right=FunPoly]
@@ -501,7 +502,7 @@ $}
 {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star \transto{\Pi (x:\sigma_1'). \sigma_2'}}
 \]
 
-\framebox{$ \Gamma \polyinfercheck e : \sigma$ }
+\framebox{$ \Gamma \polyinfercheck e : \sigma \invariant{t}{|\sigma|}$ }
 
 \[
 \inferrule*[right=Gen-Infer]
@@ -518,7 +519,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 } {\polycheck e : \sigma \transto{f\ (\lambda (\overbar{x:\tau_1}). t)}}
 \]
 
-\framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
+\framebox{$ \instinfercheck \sigma \sqsubseteq \rho \invariant{f}{|\sigma|\to|\rho|}$ }
 
 \[
 \inferrule*[right=Inst-Infer]
@@ -534,7 +535,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 {\instcheck \sigma \sqsubseteq \rho \transto {f}}
 \]
 
-\framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho$}
+\framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho \invariant{f}{|\forallvars{x:\tau}.\rho|\to|\sigma|}$}
 
 \[
 \inferrule*[right=PR-POLY]
@@ -562,7 +563,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 { \translate{\tau}{\tau_2} } {pr(\tau)=\tau \transto {\lambda (x:\tau_2). x}}
 \]
 
-\framebox{$\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
+\framebox{$\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \invariant{f}{|\sigma_1|\to|\sigma_2}$}
 
 \[
 \inferrule*[right=DEEP-SKOL]
@@ -572,7 +573,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 {\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2}
 \]
 
-\framebox{$\Sigma \polymorphicstar \sigma_1 \sqsubseteq \rho$}
+\framebox{$\Sigma \polymorphicstar \sigma \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho|}$}
 
 \[
 \inferrule*[right=SPEC]
