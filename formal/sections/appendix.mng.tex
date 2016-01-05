@@ -394,6 +394,7 @@ $}
 \subsection{Translation}
 
 \newcommand{\transto}[1]{\hl{$\leadsto#1$}}
+\newcommand{\translate}[2]{\colorbox{cyan!30}{$#1\leadsto#2$}}
 
 \framebox{$ \infercheck e : \rho$ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -409,27 +410,34 @@ $}
 
 \[
 \inferrule*[right=Lam-Infer]
-{\Gamma,x: \tau \infertypeno e : \rho \transto{t}} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho) \transto {\lambda(x:\tau). t}}
+{\Gamma,x: \tau \infertypeno e : \rho \transto{t} \\
+\translate{\tau}{\tau_2}} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho) \transto {\lambda(x:\tau_2). t}}
 \]
 
 \[
 \inferrule*[right=Lam-Check]
-{\Gamma,x: \sigma_1 \polycheck e : \sigma_2 \transto{t} } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{\lambda(x:\sigma_1).t}}
+{\Gamma,x: \sigma_1 \polycheck e : \sigma_2 \transto{t}\\
+\translate{\sigma_1}{\sigma_3}
+} {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{\lambda(x:\sigma_3).t}}
 \]
 
 \[
 \inferrule*[right=LamAnn-Infer]
 {
 \checktype \sigma:\star \\
-\Gamma,x: \sigma \infertypeno e : \rho \transto{t} } {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho) \transto{\lambda(x:\sigma). t}}
+\Gamma,x: \sigma \infertypeno e : \rho \transto{t} \\
+\translate{\sigma}{\sigma_1}
+} {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho) \transto{\lambda(x:\sigma_1). t}}
 \]
 
 \[
 \inferrule*[right=LamAnn-Check]
 {
 \checktype \sigma:\star \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\ \Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t}}
-{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{ \lambda(x:\sigma_1). t[x\mapsto f\ x] }}
+\polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\ \Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t} \\
+\translate{\sigma_1}{\sigma_3}
+}
+{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{ \lambda(x:\sigma_3). t[x\mapsto f\ x] }}
 \]
 
 \[
@@ -457,7 +465,8 @@ $}
 
 \[
 \inferrule*[right=CastUp-Check]
-{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\mathsf{cast}^\uparrow\ e) : \rho \transto{\mathsf{cast}^\uparrow\ [\rho]\ e}}
+{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma \transto{t} \\
+\translate{\rho}{\rho_2}} {\checktype (\mathsf{cast}^\uparrow\ e) : \rho \transto{\mathsf{cast}^\uparrow\ [\rho_2]\ t}}
 \]
 
 \[
@@ -496,25 +505,27 @@ $}
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \transto{t} \\ \overbar{x:\tau}=ftv(\rho)-ftv(\Gamma) \\
-\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho) \transto{\lambda (\overbar{x:\tau}). t}}
+{\infertype e :\rho \transto{t} \\ \overbar{x:\tau}\transto{\overbar{\tau_1}}=ftv(\rho)-ftv(\Gamma) \\
+\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho) \transto{\lambda (\overbar{x:\tau_1}). t}}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
 {
 pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
-\overbar{x:\tau} \notin ftv(\Gamma) \\
+\overbar{x:\tau} \transto{\overbar{\tau_1}}\notin ftv(\Gamma) \\
 \checktype e :\rho \transto{t}
-} {\polycheck e : \sigma \transto{f\ (\lambda (\overbar{x:\tau}). t)}}
+} {\polycheck e : \sigma \transto{f\ (\lambda (\overbar{x:\tau_1}). t)}}
 \]
 
 \framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
 
 \[
 \inferrule*[right=Inst-Infer]
-{\overbar{\tau_\beta : \tau}}
-{\instinfer \forallvars{x:\tau} . \rho \sqsubseteq \rho[\overbar{x \mapsto \tau_\beta}] \transto {\lambda (a: \Pi (\overbar{x:\tau}).\rho). (a\ \overbar{\tau_\beta})}}
+{\overbar{\tau_\beta \transto {\tau_{\beta 1}}: \tau} \\
+\translate{\forallvars{x:\tau} . \rho}{\sigma_1}
+}
+{\instinfer \forallvars{x:\tau} . \rho \sqsubseteq \rho[\overbar{x \mapsto \tau_\beta}] \transto {\lambda (a: \sigma_1). (a\ \overbar{\tau_{\beta 1}})}}
 \]
 
 \[
@@ -527,21 +538,28 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 \[
 \inferrule*[right=PR-POLY]
-{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \transto{f}\\ \overbar{a} \cap \overbar{b} = \emptyset}
+{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \transto{f}\\ \overbar{a} \cap \overbar{b} = \emptyset \\
+\translate{\forallvars{a:\tau_1. b:\tau_2}. \rho_2  }{ \sigma} \\
+\translate{\tau_1}{\tau_3}
+}
 {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2 \\
-\transto{\lambda (x:\Pi (\overbar{a:\tau_1}) (\overbar{b:\tau_2}).\rho_2).\lambda (\overbar{a:\tau_1}). f\ (x\ \overbar{a})}}
+\transto{\lambda (x:\sigma).\lambda (\overbar{a:\tau_3}). f\ (x\ \overbar{a})}}
 \]
 
 \[
 \inferrule*[right=PR-FUN]
-{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \transto{f} \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset}
+{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \transto{f} \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset\\
+\translate{\Pi (\overbar{a:\tau}) (\overbar{b:\sigma_1}). \rho_2}{ \sigma_3 } \\
+\translate{\sigma_1}{\sigma_4} \\
+\translate{\tau}{\tau_2}
+}
 {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2 \\
-\transto{\lambda (x:\Pi (\overbar{a:\tau}) (\overbar{b:\sigma_1}). \rho_2). \lambda (y:\sigma_1). f\ (\lambda (\overbar{a:\tau}). x\ a\ y) }}
+\transto{\lambda (x:\sigma_3). \lambda (y:\sigma_4). f\ (\lambda (\overbar{a:\tau_2}). x\ a\ y) }}
 \]
 
 \[
 \inferrule*[right=PR-OTHER-CASE]
-{  } {pr(\tau)=\tau \transto {\lambda (x:\tau). x}}
+{ \translate{\tau}{\tau_2} } {pr(\tau)=\tau \transto {\lambda (x:\tau_2). x}}
 \]
 
 \framebox{$\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
