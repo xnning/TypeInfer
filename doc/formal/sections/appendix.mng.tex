@@ -70,8 +70,8 @@
 \newcommand{\instcheck}{\vdash^{inst}_\Downarrow}
 \newcommand{\instinfercheck}{\vdash^{inst}_\delta}
 
-\newcommand{\polyinfer}{\vdash^{poly}_\Uparrow}
-\newcommand{\polycheck}{\vdash^{poly}_\Downarrow}
+\newcommand{\polyinfer}{\Gamma\vdash^{poly}_\Uparrow}
+\newcommand{\polycheck}{\Gamma\vdash^{poly}_\Downarrow}
 \newcommand{\polyinfercheck}{\vdash^{poly}_\delta}
 
 \newcommand{\polymorphic}{\vdash^{dsk}}
@@ -385,7 +385,7 @@ $}
 \subsection{Translation}
 
 \newcommand{\transto}[1]{\hl{$\leadsto#1$}}
-\newcommand{\translate}[2]{\colorbox{cyan!30}{$#1\leadsto#2$}}
+\newcommand{\translate}[2]{\colorbox{cyan!30}{$\checktype#1:\star\leadsto#2$}}
 \newcommand{\cyancolorbox}[1]{\colorbox{cyan!30}{$#1$}}
 \newcommand{\invariant}[2]{\leadsto #1 :#2}
 
@@ -404,14 +404,14 @@ $}
 \[
 \inferrule*[right=Lam-Infer]
 {\Gamma,x: \tau \infertypeno e : \rho \transto{t} \\
-\translate{\tau}{\tau_2}} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho) \transto {\lambda(x:\tau_2). t}}
+\translate{\tau}{\tau'}} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho) \transto {\lambda(x:\tau'). t}}
 \]
 
 \[
 \inferrule*[right=Lam-Check]
 {\Gamma,x: \sigma_1 \polycheck e : \sigma_2 \transto{t}\\
-\translate{\sigma_1}{\sigma_3}
-} {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{\lambda(x:\sigma_3).t}}
+\translate{\sigma_1}{\sigma_1'}
+} {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{\lambda(x:\sigma_1').t}}
 \]
 
 \[
@@ -419,8 +419,8 @@ $}
 {
 \checktype \sigma:\star \\
 \Gamma,x: \sigma \infertypeno e : \rho \transto{t} \\
-\translate{\sigma}{\sigma_1}
-} {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho) \transto{\lambda(x:\sigma_1). t}}
+\translate{\sigma}{\sigma'}
+} {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho) \transto{\lambda(x:\sigma'). t}}
 \]
 
 \[
@@ -429,9 +429,9 @@ $}
 \checktype \sigma:\star \\
 \polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\
 \Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t} \\
-\translate{\sigma_1}{\sigma_3}
+\translate{\sigma_1}{\sigma_1'}
 }
-{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{ \lambda(x:\sigma_3). t[x\mapsto f\ x] }}
+{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{ \lambda(x:\sigma_1'). t[x\mapsto f\ x] }}
 \]
 
 \[
@@ -460,7 +460,7 @@ $}
 \[
 \inferrule*[right=CastUp-Check]
 { \rho \longrightarrow \sigma \\ \polycheck e : \sigma \transto{t} \\
-\translate{\rho}{\rho_2}} {\checktype (\castupe e) : \rho \transto{\castupe [\rho_2]\ t}}
+\translate{\rho}{\rho'}} {\checktype (\castupe e) : \rho \transto{\castupe [\rho']\ t}}
 \]
 
 \[
@@ -482,8 +482,8 @@ $}
 
 \[
 \inferrule*[right=ImplicitPi]
-{\checktype \tau : \star \transto{\tau_1}\\ \Gamma, x:\tau \checktypeno \rho : \star \transto{\rho_1}}
-{\infercheck (\forall x : \tau. \rho) : \star \transto {\Pi (x:\tau_1). \rho_1}}
+{\checktype \tau : \star \transto{\tau'}\\ \Gamma, x:\tau \checktypeno \rho : \star \transto{\rho'}}
+{\infercheck (\forall x : \tau. \rho) : \star \transto {\Pi (x:\tau'). \rho'}}
 \]
 
 \framebox{$ \infercheck \rho : \star \invariant{t}{*}$ }
