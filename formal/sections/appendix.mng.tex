@@ -11,6 +11,9 @@
 
 \subsection{Operational Semantics: Call by name}
 
+\newcommand{\castupe}{\ensuremath{\mathsf{cast}^{\uparrow}\ }}
+\newcommand{\castdowne}{\ensuremath{\mathsf{cast}^{\downarrow}\ }}
+
 \[
 \inferrule*[right=S-Beta]
 {  }
@@ -32,13 +35,13 @@
 \[
 \inferrule*[right=S-CastDownUp]
 {  }
-{ \mathsf{cast}^\downarrow(\mathsf{cast}^\uparrow\ e)  \longrightarrow e }
+{ \castdowne (\castupe e)  \longrightarrow e }
 \]
 
 \[
 \inferrule*[right=S-CastDown]
 { e \longrightarrow e' }
-{ \mathsf{cast}^\downarrow e  \longrightarrow  \mathsf{cast}^\downarrow e' }
+{ \castdowne  e  \longrightarrow  \castdowne  e' }
 \]
 
 \[
@@ -148,14 +151,14 @@ $}
 \[
 \hl{$
 \inferrule*[right=CastUp-Check]
-{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\mathsf{cast}^\uparrow\ e) : \rho}
+{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\castupe e) : \rho}
 $}
 \]
 
 \[
 \hl{$
 \inferrule*[right=CastDown]
-{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \sigma \\ \instinfercheck \sigma \sqsubseteq \rho_2} {\infercheck (\mathsf{cast}_\downarrow\ e) : \rho_2}
+{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \sigma \\ \instinfercheck \sigma \sqsubseteq \rho_2} {\infercheck (\castdowne e) : \rho_2}
 $}
 \]
 
@@ -300,7 +303,7 @@ $}
 \inferrule*[right=CASTUP]
 {
 \Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2}
-{\Sigma \polymorphicstar  (\mathsf{cast}^\uparrow\ \sigma_1) \sqsubseteq  (\mathsf{cast}^\uparrow\ \sigma_2)  }
+{\Sigma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2)  }
 $}
 \]
 
@@ -310,7 +313,7 @@ $}
 \inferrule*[right=CASTDOWN]
 {
 \Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2}
-{\Sigma \polymorphicstar  (\mathsf{cast}^\downarrow\ \sigma_1) \sqsubseteq  (\mathsf{cast}^\downarrow\ \sigma_2)  }
+{\Sigma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)  }
 $}
 \]
 
@@ -467,7 +470,7 @@ $}
 \[
 \inferrule*[right=CastUp-Check]
 { \rho \longrightarrow \sigma \\ \polycheck e : \sigma \transto{t} \\
-\translate{\rho}{\rho_2}} {\checktype (\mathsf{cast}^\uparrow\ e) : \rho \transto{\mathsf{cast}^\uparrow\ [\rho_2]\ t}}
+\translate{\rho}{\rho_2}} {\checktype (\castupe e) : \rho \transto{\castupe [\rho_2]\ t}}
 \]
 
 \[
@@ -475,7 +478,7 @@ $}
 {\infertype e : \rho_1 \transto{t}\\
 \rho_1 \longrightarrow \sigma \\
 \instinfercheck \sigma \sqsubseteq \rho_2\transto {f}}
-{\infercheck (\mathsf{cast}_\downarrow\ e) : \rho_2 \transto {f\ (\mathsf{cast}_\downarrow\ t)}}
+{\infercheck (\castdowne e) : \rho_2 \transto {f\ (\castdowne t)}}
 \]
 
 \[
@@ -623,7 +626,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \inferrule*[right=CASTUP]
 {
 \Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2}
-{\Sigma \polymorphicstar  (\mathsf{cast}^\uparrow\ \sigma_1) \sqsubseteq  (\mathsf{cast}^\uparrow\ \sigma_2)  }
+{\Sigma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2)  }
 \]
 
 
@@ -631,7 +634,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \inferrule*[right=CASTDOWN]
 {
 \Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2}
-{\Sigma \polymorphicstar  (\mathsf{cast}^\downarrow\ \sigma_1) \sqsubseteq  (\mathsf{cast}^\downarrow\ \sigma_2)  }
+{\Sigma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)  }
 \]
 
 \[
