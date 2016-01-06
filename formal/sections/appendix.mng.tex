@@ -434,7 +434,7 @@ $}
 {
 \checktype \sigma:\star \\
 \polymorphic \sigma_1 \sqsubseteq \sigma \transto{g} \\
-\cyancolorbox{f=\lambda x. g} \\
+\translate{\lambda x. g}{f} \\
 \Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t} \\
 \translate{\sigma_1}{\sigma_3}
 }
@@ -532,7 +532,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \[
 \inferrule*[right=Inst-Check]
 {\polymorphic \sigma \sqsubseteq \rho \transto {g} \\
-\cyancolorbox{f=\lambda x. g}
+\translate{\lambda x. g}{f}
 }
 {\instcheck \sigma \sqsubseteq \rho \transto {f}}
 \]
