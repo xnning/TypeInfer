@@ -18,13 +18,13 @@ cabal.config
 .texpadtmp/
 *.ptb
 
-/formal/main.out
-/formal/main.aux
-/formal/main.log
-/formal/main.pdf
-/formal/sections/appendix.tex
-/formal/sections/expcore.ott.tex
-/formal/sections/otthelper.tex
+*.out
+*.aux
+*.log
+*.pdf
+doc/**/appendix.tex
+doc/**/expcore.ott.tex
+doc/**/otthelper.tex
 /src/Parser.hs
 /src/Tokens.hs
 
