@@ -51,13 +51,7 @@
 \]
 
 \[
-\inferrule*[right=S-Let1]
-{ e_1 \longrightarrow e_1'  }
-{ let\ x = e_1\ in\ e_2 \longrightarrow let\ x = e_1'\ in\ e_2 }
-\]
-
-\[
-\inferrule*[right=S-Let2]
+\inferrule*[right=S-Let]
 {  }
 { let\ x = e_1\ in\ e_2 \longrightarrow e_2[x\mapsto e_1] }
 \]

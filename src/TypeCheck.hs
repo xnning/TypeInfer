@@ -44,8 +44,7 @@ step (CastDown e) = CastDown <$> step e
 step (Let bnd) = do
   ((n, Embed e), b) <- unbind bnd
   let n' = name2String n
-  elet n' <$>     step e <*> pure b
-              <|> pure (subst n e b)
+  pure (subst n e b)
 -- S-Ann
 step (Ann e t)  =  (Ann <$> step e <*> pure t)
 -- prim operation
