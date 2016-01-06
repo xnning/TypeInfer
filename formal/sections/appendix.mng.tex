@@ -433,8 +433,7 @@ $}
 \inferrule*[right=LamAnn-Check]
 {
 \checktype \sigma:\star \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \transto{g} \\
-\translate{\lambda x. g}{f} \\
+\polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\
 \Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t} \\
 \translate{\sigma_1}{\sigma_3}
 }
@@ -531,8 +530,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 \[
 \inferrule*[right=Inst-Check]
-{\polymorphic \sigma \sqsubseteq \rho \transto {g} \\
-\translate{\lambda x. g}{f}
+{\polymorphic \sigma \sqsubseteq \rho \transto {f}
 }
 {\instcheck \sigma \sqsubseteq \rho \transto {f}}
 \]
@@ -572,7 +570,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 {pr(\sigma_2)=\forallvars{a:\tau}. \rho \transto{f_1}\\ a \notin ftv(\sigma_1) \\
 \Sigma \vdash \overbar{a:\tau} \transto {\tau_1} \\
 \Sigma, \overbar{a:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \transto{f_2}}
-{\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto{ f_1\ (\lambda(\overbar{a:\tau_1}). f_2\ x) }}
+{\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto{\lambda x:\sigma_1. f_1\ (\lambda(\overbar{a:\tau_1}). f_2\ x) }}
 \]
 
 \framebox{$\Sigma \polymorphicstar \sigma \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho}$}
@@ -580,7 +578,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \[
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma_1, \sigma_2)  }
-{ \Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 \transto{x}}
+{ \Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 \transto{\lambda x:*. x}}
 \]
 
 \[
@@ -589,7 +587,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \Sigma, \overbar{\beta:\tau} \polymorphicstar \rho_1[\overbar{a \mapsto \beta}] \sqsubseteq \rho_2 \transto{f}
 }
 {\Sigma \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2 \\
-\transto { (\lambda x.\ f)\ (x\ \overbar{\beta_1}) }}
+\transto {\lambda x:( \Pi \overbar{a:\tau}.\rho_1  ). f\ (x\ \overbar{\beta_1}) }}
 \]
 
 \[
@@ -600,31 +598,18 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
  \translate{\sigma_3}{\sigma_5}
  }
 {\Sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4 \\
-\transto {\lambda y:\sigma_5 . f_2\ (x\ (f_1\ y))}
+\transto {\lambda x: ( \Pi x:\sigma_1. \sigma_2  ).\lambda y:\sigma_5 . f_2\ (x\ (f_1\ y))}
 }
 \]
 
 \[
 \inferrule*[right=APP]
 {
-\Sigma \polymorphicstar  \tau_1 \sqsubseteq \tau_2 \transto {f}}
-{\Sigma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \transto {\castupe f[x \mapsto \castdowne x]}}
-\]
-
-\[
-\inferrule*[right=LAM]
-{
-\Sigma \polymorphic \sigma_2 \sqsubseteq \sigma_4 \transto {f}}
-{\Sigma \polymorphicstar \lambda x. \sigma_2 \sqsubseteq \lambda x. \sigma_4 \transto {f}}
-\]
-
-\[
-\inferrule*[right=LAMANN]
-{
-\Sigma \vdash x:\sigma_1 \\
-\Sigma, x:\sigma_1 \polymorphic \sigma_2 \sqsubseteq \sigma_4 \transto{f}}
-{\Sigma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4 \\
-\transto {f}}
+\tau_1 \sigma_1 \longrightarrow \sigma_2 \\
+\tau_2 \sigma_2 \longrightarrow \sigma_3 \\
+\Sigma \polymorphic  \sigma_2 \sqsubseteq \sigma_3 \transto {f}}
+{\Sigma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \\
+\transto {\lambda x:\tau_1 \sigma_1. \castupe [\tau_2 \sigma_1]\ f\ (\castdowne x)}}
 \]
 
 \[
@@ -635,26 +620,23 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=CASTUP]
-{
-\Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
-{\Sigma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \transto {f}}
-\]
-
-
-\[
 \inferrule*[right=CASTDOWN]
 {
-\Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
-{\Sigma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2) \transto{\castupe f[x \mapsto \castdowne x]}}
+\castdowne \sigma_1 \longrightarrow \sigma_3 \\
+\castdowne \sigma_2 \longrightarrow \sigma_4 \\
+\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_4 \transto {f}}
+{\Sigma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)
+\transto{\lambda x:(\castdowne \sigma_1). \castupe [\castdowne \sigma_2]\ f\ (\castdowne x)}}
 \]
 
 \[
 \inferrule*[right=LET]
 {
-\Sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
+(let\ x = e_1\ in\ \sigma_1) \longrightarrow \sigma_3 \\
+(let\ x = e_1\ in\ \sigma_2) \longrightarrow \sigma_4 \\
+\Sigma \polymorphic  \sigma_3 \sqsubseteq \sigma_4 \transto {f}}
 {\Sigma \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) \\
-\transto {\castupe f[x\mapsto \castdowne x]}}
+\transto {\lambda x:(let\ x = e_1\ in\ \sigma_1). \castupe [(let\ x = e_1\ in\ \sigma_2)]\ f\ (\castdowne x)}}
 \]
 
 \framebox{$\Sigma \vdash a: \tau$: two variable with same name should have same kind}
