@@ -267,27 +267,10 @@ $}
 \hl{$
 \inferrule*[right=APP]
 {
-\Sigma \polymorphicstar  \tau_1 \sqsubseteq \tau_2}
-{\Sigma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1}
-$}
-\]
-
-\[
-\hl{$
-\inferrule*[right=LAM]
-{
-\Sigma \polymorphic \sigma_2 \sqsubseteq \sigma_4}
-{\Sigma \polymorphicstar \lambda x. \sigma_2 \sqsubseteq \lambda x. \sigma_4}
-$}
-\]
-
-\[
-\hl{$
-\inferrule*[right=LAMANN]
-{
-\Sigma \vdash x:\sigma_1 \\
-\Sigma, x:\sigma_1 \polymorphic \sigma_2 \sqsubseteq \sigma_4}
-{\Sigma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4}
+\tau_1 \sigma_1 \longrightarrow \sigma_2 \\
+\tau_2 \sigma_2 \longrightarrow \sigma_3 \\
+\Sigma \polymorphic  \sigma_2 \sqsubseteq \sigma_3 }
+{\Sigma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 }
 $}
 \]
 
