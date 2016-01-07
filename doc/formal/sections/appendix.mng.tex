@@ -72,6 +72,7 @@
 
 \newcommand{\polyinfer}{\Gamma\vdash^{poly}_\Uparrow}
 \newcommand{\polycheck}{\Gamma\vdash^{poly}_\Downarrow}
+\newcommand{\polycheckno}{\vdash^{poly}_\Downarrow}
 \newcommand{\polyinfercheck}{\vdash^{poly}_\delta}
 
 \newcommand{\polymorphic}{\vdash^{dsk}}
@@ -101,7 +102,7 @@ $}
 
 \[
 \inferrule*[right=Lam-Check]
-{\Gamma,x: \sigma_1 \polycheck e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+{\Gamma,x: \sigma_1 \polycheckno e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
 \[
@@ -115,7 +116,7 @@ $}
 \inferrule*[right=LamAnn-Check]
 {
 \hl{$\checktype \sigma:\star$} \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheck e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheckno e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
 \[
@@ -396,7 +397,7 @@ $}
 
 \[
 \inferrule*[right=Lam-Check]
-{\Gamma,x: \sigma_1 \polycheck e : \sigma_2 \transto{t}\\
+{\Gamma,x: \sigma_1 \polycheckno e : \sigma_2 \transto{t}\\
 \translate{\sigma_1}{\sigma_1'}
 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{\lambda(x:\sigma_1').t}}
 \]
@@ -415,7 +416,7 @@ $}
 {
 \checktype \sigma:\star \\
 \polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\
-\Gamma,x: \sigma \polycheck e : \sigma_2 \transto{t} \\
+\Gamma,x: \sigma \polycheckno e : \sigma_2 \transto{t} \\
 \translate{\sigma_1}{\sigma_1'}
 }
 {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \transto{ \lambda(x:\sigma_1'). t[x\mapsto f\ x] }}
