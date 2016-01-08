@@ -128,13 +128,6 @@ $}
 \]
 
 \[
-\hl{$
-\inferrule*[right=ExplicitPi]
-{\checktype \tau_1 : \star \\ \Gamma, x:\tau_1 \checktypeno \tau_2 : \star} {\infercheck (\Pi x:\tau_1. \tau_2) : \star}
-$}
-\]
-
-\[
 \inferrule*[right=Ann]
 {
 \hl{$\checktype \sigma : \star$} \\
@@ -164,8 +157,6 @@ $}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
 
-\framebox{$ \infercheck \sigma : \star$ }
-
 \[
 \hl{$
 \inferrule*[right=ImplicitPi]
@@ -173,11 +164,9 @@ $}
 $}
 \]
 
-\framebox{$ \infercheck \rho : \star$ }
-
 \[
 \hl{$
-\inferrule*[right=FunPoly]
+\inferrule*[right=ExplicitPi]
 {\checktype \sigma_1 : \star \\ \Gamma, x:\sigma_1 \checktypeno \sigma_2 : \star} {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star}
 $}
 \]
