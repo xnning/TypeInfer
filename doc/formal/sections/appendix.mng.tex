@@ -68,6 +68,7 @@
 
 \newcommand{\judge}{\Gamma\vdash}
 \newcommand{\forallvars}[1]{\forall \overbar{#1}}
+\newcommand{\olpolymorphic}[2]{\vdash^{ol} #1 \sqsubseteq #2}
 
 \framebox{$ \judge e : \sigma$ }
 
@@ -138,20 +139,100 @@
 
 \[
 \inferrule*[right=Subs]
-{\judge e : \sigma' \\ \sigma' \sqsubseteq \sigma} {\judge e : \sigma }
+{\judge e : \sigma' \\ \olpolymorphic{\sigma'} {\sigma}} {\judge e : \sigma }
 \]
 
-%\framebox{$ \sigma' \sqsubseteq \sigma$ }
+\framebox{$ \olpolymorphic \sigma {\sigma'}$ }
 
-%\[
-%\inferrule*[]
-%{\tau_b = [\alpha_i \mapsto \gamma_i\ where\ \gamma_i : \tau_i]\tau_a \\
-%\beta_i \notin free(\Pi (\alpha_i:\tau_i) \tau_a) \\
-%\tau_{\beta i} : \star \\
-%\beta_i: \tau_{\beta i} \vdash \tau_b :\star
-%}
-%{\Pi (\alpha_i:\tau_i). \tau_a \sqsubseteq \Pi (\beta_i:\tau_{\beta i}). \tau_b}
-%\]
+\[
+\inferrule*[right=Skol]
+{
+\hl{$\overbar{a:\tau}$} \notin ftv(\sigma)\\
+\olpolymorphic \sigma \rho \\
+}
+{\olpolymorphic \sigma {\forallvars{a:\tau}.\rho}}
+\]
+
+\[
+\inferrule*[right=Spec]
+{\hl{$\overbar{b: \tau}$} \\
+\olpolymorphic {\rho_1[\overbar{\tpmapsto \tau a b}]} {\rho_2}}
+{\olpolymorphic {\forallvars{a:\tau}.\rho_1} {\rho_2}}
+\]
+
+\[
+\inferrule*[right=Fun]
+{\olpolymorphic  {\sigma_3} {\sigma_1} \\
+\olpolymorphic  {\sigma_2} {\rho_4}}
+{ \olpolymorphic {\Pi x:\sigma_1. \sigma_2} {\Pi x:\sigma_3. \rho_4}}
+\]
+
+\[
+\hl{$
+\inferrule*[right=App]
+{
+\olpolymorphic {\tau_1} {\tau_2}
+}
+{\olpolymorphic {\tau_1\, \sigma_1} {\tau_2\, \sigma_1} \\
+}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=Lam]
+{
+\olpolymorphic {\sigma_1} {\sigma_2}}
+{\olpolymorphic {\lambda x. \sigma_1} {\lambda x. \sigma_2 }}
+$}
+\]
+
+
+\[
+\hl{$
+\inferrule*[right=Lamann]
+{
+\olpolymorphic {\sigma_2}{\sigma_4}}
+{\olpolymorphic {\lambda x:\sigma_1. \sigma_2} {\lambda x:\sigma_1. \sigma_4}
+}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=Ann]
+{
+\olpolymorphic {\sigma_1} {\sigma_3 }}
+{\olpolymorphic {\sigma_1:\sigma_2} {\sigma_3:\sigma_2 }}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=Castup]
+{
+\olpolymorphic {\sigma_1} {\sigma_2}}
+{\olpolymorphic {(\castupe \sigma_1)} {(\castupe \sigma_2) }}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=Castdown]
+{
+ \olpolymorphic {\sigma_1} {\sigma_2}}
+ { \olpolymorphic {(\castdowne \sigma_1)} {(\castdowne \sigma_2)}}
+$}
+\]
+
+\[
+\hl{$
+\inferrule*[right=Let]
+{
+\olpolymorphic {\sigma_1} {\sigma_2 }}
+{\olpolymorphic {(let\ x = e_1\ in\ \sigma_1)} {(let\ x = e_1\ in\ \sigma_2) }}
+$}
+\]
 
 
 \clearpage
