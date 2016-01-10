@@ -73,8 +73,10 @@
 \framebox{$ \judge e : \sigma$ }
 
 \[
+\hl{$
 \inferrule*[right=Ax]
 {} {\judge \star : \star}
+$}
 \]
 
 \[
@@ -94,7 +96,7 @@
 
 \[
 \inferrule*[right=App]
-{\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2[\tpmapsto {\sigma_1} x {e_2}]}
+{\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2\hl{$[\tpmapsto {\sigma_1} x {e_2}]$}}
 \]
 
 \[
@@ -104,37 +106,45 @@
 \]
 
 \[
+\hl{$
 \inferrule*[right=CastUp]
 {\judge e : \rho \\ \judge \sigma : \star \\ \rho \longrightarrow \sigma} {\judge (\mathsf{cast}^\uparrow\ e) : \sigma}
+$}
 \]
 
 \[
+\hl{$
 \inferrule*[right=CastDown]
 {\judge e : \rho \\ \judge \sigma : \star \\ \rho \longrightarrow \sigma} {\judge (\mathsf{cast}_\downarrow\ e) : \sigma}
+$}
 \]
 
 \[
 \inferrule*[right=Let]
-{\judge e_1 : \sigma_1 \\ \Gamma \vdash e_2[\tpmapsto {\sigma_1} x {e_1}]: \sigma_2} {\judge ( let\ x = e_1\ in\ e_2 ) : \sigma_2 }
+{\judge e_1 : \sigma_1 \\ \Gamma \vdash e_2\hl{$[\tpmapsto {\sigma_1} x {e_1}]$}: \sigma_2} {\judge ( let\ x = e_1\ in\ e_2 ) : \sigma_2 }
 \]
 
 \[
+\hl{$
 \inferrule*[right=ImplicitPi]
 {\judge \overbar{\tau} : \star \\ \Gamma, \overbar{x:\tau} \vdash \rho : \star} {\judge (\forallvars{x : \tau}. \rho) : \star}
+$}
 \]
 
 \[
+\hl{$
 \inferrule*[right=ExplicitPi]
 {\judge \sigma_1 : \star \\ \Gamma, x:\sigma_1 \vdash \sigma_2 : \star} {\judge (\Pi x:\sigma_1. \sigma_2) : \star}
+$}
 \]
 
 \[
 \inferrule*[right=Gen]
-{\judge e : \sigma \\
+{\judge e : \rho \\
 \alpha_i \notin free(\Gamma) \\
-\tau_i : \star \\
-\alpha_i : \tau_i \vdash \sigma : \star}
-{\judge e : \forall(\alpha_i : \tau_i). \sigma }
+\hl{$\tau_i : \star$} \\
+\hl{$\alpha_i : \tau_i \vdash \sigma : \star$}}
+{\judge e : \forall(\alpha_i : \tau_i). \rho }
 \]
 
 \[
