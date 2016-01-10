@@ -384,24 +384,24 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 \framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho$: float out all $\forall$s, the same as the paper}
 
 \[
-\inferrule*[right=PR-POLY]
+\inferrule*[right=Pr-poly]
 {pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \\ \overbar{a} \cap \overbar{b} = \emptyset} {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2}
 \]
 
 \[
-\inferrule*[right=PR-FUN]
+\inferrule*[right=Pr-fun]
 {pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2}
 \]
 
 \[
-\inferrule*[right=\hl{PR-OTHER-CASE}]
+\inferrule*[right=\hl{Pr-other-case}]
 {  } {pr(\tau)=\tau}
 \]
 
 \framebox{$\polymorphic \sigma_1 \sqsubseteq \sigma_2$}
 
 \[
-\inferrule*[right=DEEP-SKOL]
+\inferrule*[right=Deep-skol]
 {pr(\sigma_2)=\forallvars{a:\tau}. \rho \\ a \notin ftv(\sigma_1) \\
 \polymorphicstar \sigma_1 \sqsubseteq \rho }
 {\polymorphic \sigma_1 \sqsubseteq \sigma_2}
@@ -418,14 +418,14 @@ $}
 \]
 
 \[
-\inferrule*[right=SPEC]
+\inferrule*[right=Spec]
 {\hl{$\overbar{b: \tau}$} \\
 \polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2}
 {\Sigma \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
 \]
 
 \[
-\inferrule*[right=FUN]
+\inferrule*[right=Fun]
 {\polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
 \polymorphicstar  \sigma_2 \sqsubseteq \rho_4}
 { \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4}
@@ -433,7 +433,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=APP]
+\inferrule*[right=App]
 {
 \polymorphicstar \tau_1 \sqsubseteq \tau_2
 }
@@ -444,7 +444,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=LAM]
+\inferrule*[right=Lam]
 {
 \polymorphic \sigma_1 \sqsubseteq \sigma_2 }
 {\polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 }
@@ -454,7 +454,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=LAMANN]
+\inferrule*[right=Lamann]
 {
 \polymorphic \sigma_2 \sqsubseteq \sigma_4 }
 {\polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4
@@ -464,7 +464,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=ANN]
+\inferrule*[right=Ann]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_3 }
 {\polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 }
@@ -473,7 +473,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=CASTUP]
+\inferrule*[right=Castup]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 {\polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) }
@@ -482,7 +482,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=CASTDOWN]
+\inferrule*[right=Castdown]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 { \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)}
@@ -491,7 +491,7 @@ $}
 
 \[
 \hl{$
-\inferrule*[right=LET]
+\inferrule*[right=Let]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 { \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) }
@@ -692,7 +692,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho \invariant{f}{|\forallvars{x:\tau}.\rho|\to|\sigma|}$}
 
 \[
-\inferrule*[right=PR-POLY]
+\inferrule*[right=Pr-poly]
 {pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \transto{f}\\ \overbar{a} \cap \overbar{b} = \emptyset
 }
 {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2 \\
@@ -700,7 +700,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=PR-FUN]
+\inferrule*[right=Pr-fun]
 {pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \transto{f} \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset
 }
 {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2 \\
@@ -708,14 +708,14 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=PR-OTHER-CASE]
+\inferrule*[right=Pr-other-case]
 {  } {pr(\tau)=\tau \transto {\lambda (x:\translated{\tau}). x}}
 \]
 
 \framebox{$\polymorphic \sigma_1 \sqsubseteq \sigma_2 \invariant{f}{|\sigma_1|\to|\sigma_2|}$}
 
 \[
-\inferrule*[right=DEEP-SKOL]
+\inferrule*[right=Deep-skol]
 {pr(\sigma_2)=\forallvars{a:\tau}. \rho \transto{f_1}\\ a \notin ftv(\sigma_1) \\
 \Sigma \vdash \overbar{a:\tau} \\
 \Sigma, \overbar{a:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \transto{f_2}
@@ -732,7 +732,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=SPEC]
+\inferrule*[right=Spec]
 {\overbar{b: \tau} \\
 \polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2 \transto{f}
 }
@@ -741,7 +741,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=FUN]
+\inferrule*[right=Fun]
 {\polymorphic  \sigma_3 \sqsubseteq \sigma_1 \transto{f_1} \\
  \polymorphicstar  \sigma_2 \sqsubseteq \rho_4 \transto{f_2}
  }
@@ -751,7 +751,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=APP]
+\inferrule*[right=App]
 {
  \polymorphicstar \tau_1 \sqsubseteq \tau_2 \transto {f}\\
 }
@@ -760,7 +760,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=LAM]
+\inferrule*[right=Lam]
 {
  \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
 { \polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \transto {f}}
@@ -768,7 +768,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 
 \[
-\inferrule*[right=LAMANN]
+\inferrule*[right=Lamann]
 {
 \polymorphic \sigma_2 \sqsubseteq \sigma_4 \transto{f}}
 {\polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4 \\
@@ -777,14 +777,14 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 
 \[
-\inferrule*[right=ANN]
+\inferrule*[right=Ann]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_3 \transto{f}}
 {\polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 \transto {f}}
 \]
 
 \[
-\inferrule*[right=CASTUP]
+\inferrule*[right=Castup]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
 {\polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \transto {f}}
@@ -792,7 +792,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 
 \[
-\inferrule*[right=CASTDOWN]
+\inferrule*[right=Castdown]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
 }
@@ -801,7 +801,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 
 \[
-\inferrule*[right=LET]
+\inferrule*[right=Let]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
 }
