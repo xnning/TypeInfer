@@ -1,13 +1,32 @@
 \section{type check}
 
 \subsection{Syntax}
-\gram{
-      \otte\ottinterrule
-      \ottR\ottinterrule
-      \ottt\ottinterrule
-      %\ottG\ottinterrule
-  }
+
+Expressions and types have the same form. Compared to original type system which $\forall$ variables are of type $\star$, here are type annotatios in $\forall$ which can be other types. \\
+
+\gram{\otte\ottinterrule}
+
+Originally the definitions in the paper are\\
+
+$\rho = \tau\ |\ \sigma \to \sigma$
+
+$\tau = Int\ |\ \tau_1 \to \tau_2\ |\ a$
 \\[2.0mm]
+
+Here are some obversations:
+
+1. $\rho$ have arrow type ranges over $\sigma$.
+
+2. $\rho$ contains $\tau$.
+
+3. There will be no $\forall$ in $\tau$. The understanding of this is because monotype $\tau$ is what can be omitted in the lambda annotations and will be inferred in the type inference algorithm.\\
+
+To keep 1 and 2 true will be easy but it need to be careful to keep 3 true. Because the new type system will have more forms of types. For example an annotated expression $(\forall a. a \to a):\star$. It is not a $\sigma$ but it do contain $\sigma$. The solution is to select carefullly to keep $\tau$ away from $\forall$. \\
+
+\gram{\ottR\ottinterrule}
+
+\gram{ \ottt\ottinterrule}
+
 
 %\subsection{Type-preserving substitution}
 

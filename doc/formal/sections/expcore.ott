@@ -29,6 +29,7 @@ t {{ tex \tau }} :: 't_' ::=       {{ com Unifiable Type    }}
 %% Expressions
 R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
   | t                         ::  :: MonoType   {{ com UnifiableType }}
+  | Pi (x: S1 ). S2           ::  :: ExplicitPi {{ com Explicit Pi type }}
   | x                         :: M:: Var        {{ com Variable }}
   | star                      :: M:: Star       {{ com Type of Types }}
   | square                    :: M:: Square     {{ com Type of Star }}
@@ -42,7 +43,6 @@ R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
   | mu x : t . e              :: M:: Mu         {{ com Polymorphic Recursion }}
   | e1 [ x |-> e2 ]           :: M:: Sub        {{ com Substitution }}
   | ( e )                     :: M:: Parens     {{ com Parenthesized expression }}
-  | Pi (x: S1 ). S2           ::  :: ExplicitPi {{ com Explicit Pi type }}
   | let x = e1 in e2          ::  :: LetBinding {{ com Let binding }}
   | t1 -> t2                  :: M:: FuncType   {{ com Function type }}
   | lit                       :: M:: Literals   {{ com Literals }}
