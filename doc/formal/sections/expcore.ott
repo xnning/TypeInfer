@@ -73,6 +73,14 @@ R {{ tex \rho }} :: 'e_' ::=       {{ com Rho Type    }}
 e, S {{ tex \sigma }} :: 'S_'    ::= {{ com Poly Type}}
   | forall x : t . R        ::  :: Pi   {{ com Implicit Pi Type }} {{ tex \forall \overbar{x:\tau} . [[R]] }}
 
+E , tt {{ tex \tau }} :: 'E_' ::= {{com Target}}
+  | x                         ::  :: Var        {{ com Variable }}
+  | star                      ::  :: Star       {{ com Type of Types }}
+  | E1 E2                     ::  :: App        {{ com Application }}
+  | \ x: t . E                ::  :: LamAnn     {{ com Abstraction }}
+  | Pi (x: t1 ) . t2          ::  :: FunAnn     {{ com Dependent Product }}
+  | castup E                  ::  :: CastUp     {{ com Cast Up }}
+  | castdown E                ::  :: CastDown   {{ com Cast Down }}
 
 %% Literals
 lit :: 'lit_' ::=
