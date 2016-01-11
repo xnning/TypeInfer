@@ -41,6 +41,7 @@ To keep 1 and 2 true will be easy but it need to be careful to keep 3 true. Beca
 \newcommand{\castupe}{\ensuremath{\mathsf{cast}^{\uparrow}\ }}
 \newcommand{\castdowne}{\ensuremath{\mathsf{cast}^{\downarrow}\ }}
 
+This section is about $\beta-$reduction on types. They will be used in \castupe and \castdowne.
 \[
 \inferrule*[right=S-Beta]
 {  }
@@ -91,6 +92,8 @@ To keep 1 and 2 true will be easy but it need to be careful to keep 3 true. Beca
 
 \framebox{$ \judge e : \sigma$ }
 
+$\star$ is the type of all types including itself.
+
 \[
 \hl{$
 \inferrule*[right=Ax]
@@ -108,21 +111,31 @@ $}
 {\Gamma,x: \tau \vdash e : \sigma } {\judge (\lambda x.\, e) : (\Pi x: \tau. \sigma)}
 \]
 
+Annotation must have type $\star$.
+
 \[
 \inferrule*[right=LamAnn]
-{\Gamma,x: \sigma \vdash e : \sigma_2 } {\judge (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
+{ \hl{$\judge \sigma: \star$} \\
+\Gamma,x: \sigma \vdash e : \sigma_2 } {\judge (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
 \]
+
+Because $x$ may appear in $e_1$ so there will be a substitution in $e_2$.
 
 \[
 \inferrule*[right=App]
 {\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2\hl{$[\tpmapsto {\sigma_1} x {e_2}]$}}
 \]
 
+Annotation must have type $\star$.
+
 \[
 \inferrule*[right=Ann]
-{\judge e : \sigma }
+{\hl{$\judge \sigma: \star$}\\
+\judge e : \sigma }
 {\judge (e :: \sigma) : \sigma }
 \]
+
+Typing rules for cast is the application of operational semantic.
 
 \[
 \hl{$
@@ -138,10 +151,14 @@ $}
 $}
 \]
 
+Let will use substitution strategy becuase not only the type of $x$ but also what $x$ is will be important since it will be used in $e_2$.
+
 \[
 \inferrule*[right=Let]
 {\judge e_1 : \sigma_1 \\ \Gamma \vdash e_2\hl{$[\tpmapsto {\sigma_1} x {e_1}]$}: \sigma_2} {\judge ( let\ x = e_1\ in\ e_2 ) : \sigma_2 }
 \]
+
+Pi is of type $\star$.
 
 \[
 \hl{$
@@ -157,10 +174,12 @@ $}
 $}
 \]
 
+Because the variables in $\forall$ can have types other than $\star$, so we need to check the annotations and make sure it is valid.
+
 \[
 \inferrule*[right=Gen]
 {\judge e : \rho \\
-\alpha_i \notin free(\Gamma) \\
+\alpha_i \notin ftv(\Gamma) \\
 \hl{$\tau_i : \star$} \\
 \hl{$\alpha_i : \tau_i \vdash \sigma : \star$}}
 {\judge e : \forall(\alpha_i : \tau_i). \rho }
@@ -168,7 +187,7 @@ $}
 
 \[
 \inferrule*[right=Subs]
-{\judge e : \sigma' \\ \olpolymorphic{\sigma'} {\sigma}} {\judge e : \sigma }
+{\judge e : \sigma \\ \olpolymorphic{\sigma} {\sigma'}} {\judge e : \sigma' }
 \]
 
 \framebox{$ \olpolymorphic \sigma {\sigma'}$ }
@@ -176,11 +195,13 @@ $}
 \[
 \inferrule*[right=Skol]
 {
-\hl{$\overbar{a:\tau}$} \notin ftv(\sigma)\\
+\overbar{a} \notin ftv(\sigma)\\
 \olpolymorphic \sigma \rho \\
 }
 {\olpolymorphic \sigma {\forallvars{a:\tau}.\rho}}
 \]
+
+Substitution must be type-preserving.
 
 \[
 \inferrule*[right=Spec]
@@ -195,6 +216,20 @@ $}
 \olpolymorphic  {\sigma_2} {\rho_4}}
 { \olpolymorphic {\Pi x:\sigma_1. \sigma_2} {\Pi x:\sigma_3. \rho_4}}
 \]
+
+Instead of Mono, we will use $\alpha-$equal to compare two identical types.
+
+\[
+\hl{$
+\inferrule*[right=Alpha-Equal]
+{  \alpha-equal(\sigma_1, \sigma_2)  }
+{ \olpolymorphic {\sigma_1} {\sigma_2}}
+$}
+\]
+
+In application, the arguments are required to be identical and the lambda need to be polymorphic.
+
+Polymorphism on Lam is just the relationship on its body. In LamAnn the annotations are also required to be identical.
 
 \[
 \hl{$
@@ -227,6 +262,8 @@ $}
 $}
 \]
 
+The annotations need to be identical.
+
 \[
 \hl{$
 \inferrule*[right=Ann]
@@ -235,6 +272,8 @@ $}
 {\olpolymorphic {\sigma_1:\sigma_2} {\sigma_3:\sigma_2 }}
 $}
 \]
+
+In Cast, continue to compare the casted expressions.
 
 \[
 \hl{$
@@ -253,6 +292,8 @@ $}
  { \olpolymorphic {(\castdowne \sigma_1)} {(\castdowne \sigma_2)}}
 $}
 \]
+
+In Let, $e_1$ need to be identical and than compare the body.
 
 \[
 \hl{$
