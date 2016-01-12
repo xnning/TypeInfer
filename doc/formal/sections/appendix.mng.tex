@@ -891,3 +891,50 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 {\sigmal, \sigmar \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) \\
 \transto{ \lambda x:\sigmal. \castupe [\sigmar] (f\ (\castdowne x))}}
 \]
+
+\clearpage
+
+%\begin{landscape}
+
+\begin{figure*}
+
+\[
+\inferrule* [right=CastDown]
+    {
+        \inferrule* [right=CastUp]
+        {
+            \inferrule* [right=Deep-Skol]
+            { %pr(\forall a. a \to a) = \forall a. a \to a \\
+                \inferrule* [right=Spec]
+                {
+                    \inferrule*[right=alpha-equal]
+                    {  }
+                    {(\Pi a:\star. a \to a), (a \to a)  \polymorphicstar (a \to a) \sqsubseteq (a \to a) \\
+                     \transto{\lambda x:(a \to a). x}
+                    }
+                }
+                {(\Pi a:\star. \Pi b:\star. a \to b), ( a \to a)
+                 \polymorphicstar (\forall a. \forall b. a \to b) \sqsubseteq (a \to a) \\
+                 \transto{\lambda x:(\Pi a:\star. \Pi b:\star. a \to b).
+                    (\lambda x:(a \to a). x)\ (x\ a\ a) }
+                }
+            }
+            {(\Pi a:\star. \Pi b:\star. a \to b), (\Pi a:\star. a \to a)
+             \polymorphic (\forall a. \forall b. a \to b) \sqsubseteq (\forall a. a \to a) \\
+             \transto{\lambda x:(\Pi a:\star. \Pi b:\star. a \to b). f_1 (\lambda a:\star.
+                 (\lambda x:(\Pi a:\star. \Pi b:\star. a \to b).  (\lambda x:(a \to a). x)\ (x\ a\ a) ) \ x) }
+            }
+        }
+        {(\Pi a:\star. \Pi b:\star. a \to b), (\Pi a:\star. a \to a)
+          \polymorphicstar \castupe (\forall a. \forall b. a \to b) \sqsubseteq \castupe (\forall a. a \to a) \\
+         \transto{\lambda x:(\Pi a:\star. \Pi b:\star. a \to b). f_1 (\lambda a:\star.
+                 (\lambda x:(\Pi a:\star. \Pi b:\star. a \to b).  (\lambda x:(a \to a). x)\ (x\ a\ a) ) \ x) }
+        }
+    }
+    {\castdowne \castupe (\Pi a:\star. \Pi b:\star. a \to b), \castdowne \castupe (\Pi a:\star. a \to a) \polymorphicstar \castdowne \castupe (\forall a. \forall b. a \to b) \sqsubseteq \castdowne \castupe (\forall a. a \to a) \\
+        \transto{ \lambda x: \castdowne \castupe (\Pi a:\star. \Pi b:\star. a \to b). \castupe [\castdowne \castupe (\Pi a:\star. a \to a)]} \\
+        \transto{ ((\lambda x:(\Pi a:\star. \Pi b:\star. a \to b). f_1 (\lambda a:\star.  (\lambda x:(\Pi a:\star. \Pi b:\star. a \to b).  (\lambda x:(a \to a). x)\ (x\ a\ a) ) \ x) )\ (\castdowne x))}
+    }
+\]
+\end{figure*}
+%\end{landscape}
