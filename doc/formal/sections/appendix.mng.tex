@@ -664,7 +664,7 @@ $}
 \inferrule*[right=LamAnn-Check]
 {
 \checktype \sigma:\star \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\
+\translated{\sigma} \polymorphic \sigma_1 \sqsubseteq \sigma \transto{f} \\
 \Gamma,x: \sigma \polycheckno e : \sigma_2 \transto{E} \\
 \cyancolorbox{g = \lambda x:\translated{\sigma_1}. f}
 }
@@ -762,7 +762,7 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 
 \[
 \inferrule*[right=Inst-Check]
-{\polymorphic \sigma \sqsubseteq \rho \transto {f} \\
+{\translated{\rho}\polymorphic \sigma \sqsubseteq \rho \transto {f} \\
 \cyancolorbox{g = \lambda x:\translated{\sigma}. f}
 }
 {\instcheck \sigma \sqsubseteq \rho \transto {f}}
@@ -791,69 +791,68 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 {  } {pr(\tau)=\tau \transto {\lambda (x:\translated{\tau}). x}}
 \]
 
-\framebox{$\polymorphic \sigma_1 \sqsubseteq \sigma_2 \invariant{f}{|\sigma_1|\to|\sigma_2|}$}
+\framebox{$\sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \invariant{f}{|\sigma_1|\to|\sigma_2|}$}
 
 \[
 \inferrule*[right=Deep-skol]
 {pr(\sigma_2)=\forallvars{a:\tau}. \rho \transto{f_1}\\ a \notin ftv(\sigma_1) \\
-\Sigma \vdash \overbar{a:\tau} \\
-\Sigma, \overbar{a:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \transto{f_2}
+\sigma \polymorphicstar \sigma_1 \sqsubseteq \rho \transto{f_2}
 }
-{\Sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto{\lambda x:\translated{\sigma_1}. f_1\ (\lambda(\overbar{a:\translated{\tau}}). f_2\ x) }}
+{ \sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto{f_1\ (\lambda(\overbar{a:\translated{\tau}}). f_2) }}
 \]
 
-\framebox{$\polymorphicstar \sigma \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho|}$}
+\framebox{$\sigma \polymorphicstar \sigma_1 \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho|}$}
 
 \[
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma_1, \sigma_2)  }
-{  \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 \transto{x}}
+{  \sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 \transto{x}}
 \]
 
 \[
 \inferrule*[right=Spec]
 {\overbar{b: \tau} \\
-\polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2 \transto{f} \\
+\sigma \polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2 \transto{f} \\
 \cyancolorbox{ g = \lambda x:\translated{\rho_1[\overbar{\tpmapsto \tau a b}]}. f }
 }
-{\polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2 \\
+{\sigma \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2 \\
 \transto {g\ (x\ \translated{\overbar{b}}) }}
 \]
 
 \[
 \inferrule*[right=Fun]
-{\polymorphic  \sigma_3 \sqsubseteq \sigma_1 \transto{f_1} \\
+{\translated{\sigma_1}\polymorphic  \sigma_3 \sqsubseteq \sigma_1 \transto{f_1} \\
 \cyancolorbox{ g_1 = \lambda x:\translated{\sigma_3}. f_1 } \\
-\polymorphicstar  \sigma_2[x \mapsto g_1\ y] \sqsubseteq \rho_4 \transto{f_2} \\
+\translated{\rho_4}\polymorphicstar  \sigma_2[x \mapsto g_1\ y] \sqsubseteq \rho_4 \transto{f_2} \\
 \cyancolorbox{ g_2 = \lambda x:\translated{\sigma_2[x \mapsto g_1\ y]}. f_2 }
  }
-{ \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4 \\
+{\sigma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4 \\
 \transto {\lambda y:\translated{\sigma_3} . g_2\ (x\ (g_1\ y))}
 }
 \]
 
 \[
 \inferrule*[right=App]
-{
- \polymorphicstar \tau_1 \sqsubseteq \tau_2 \transto {f}\\
+{\sigma \longrightarrow \sigma' \\
+ \sigma' \polymorphicstar \tau_1 \sqsubseteq \tau_2 \transto {f}\\
 }
-{ \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \\
-\transto {\castupe \ f[x \mapsto \castdowne x]}}
+{\sigma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \\
+\transto {\castupe [\sigma]\ f[x \mapsto \castdowne x]}}
 \]
 
 \[
 \inferrule*[right=Lam]
 {
- \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
-{ \polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \transto {f}}
+\sigma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
+{ \sigma \polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \transto {f}}
 \]
 
 
 \[
 \inferrule*[right=Lamann]
 {
-\polymorphic \sigma_2 \sqsubseteq \sigma_4 \transto{f}}
-{\polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4 \\
+\sigma \polymorphic \sigma_2 \sqsubseteq \sigma_4 \transto{f}}
+{\sigma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4 \\
 \transto {f}}
 \]
 
@@ -861,32 +860,32 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \[
 \inferrule*[right=Ann]
 {
-\polymorphic  \sigma_1 \sqsubseteq \sigma_3 \transto{f}}
-{\polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 \transto {f}}
+\sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_3 \transto{f}}
+{\sigma \polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 \transto {f}}
 \]
 
 \[
 \inferrule*[right=Castup]
 {
-\polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
-{\polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \transto {f}}
+\sigma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}}
+{\sigma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \transto {f}}
 \]
 
 
 \[
 \inferrule*[right=Castdown]
-{
-\polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
+{ \sigma \longrightarrow \sigma' \\
+\sigma' \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
 }
-{\polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)
-\transto{ \castupe f[x \mapsto \castdowne x]}}
+{\sigma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)
+\transto{ \castupe [\sigma]\ f[x \mapsto \castdowne x]}}
 \]
 
 \[
 \inferrule*[right=Let]
-{
-\polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
+{ \sigma \longrightarrow \sigma' \\
+\sigma' \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \transto {f}
 }
-{\polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) \\
-\transto {\castupe \ f[x \mapsto \castdowne x]}}
+{\sigma \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) \\
+\transto {\castupe [\sigma]\ f[x \mapsto \castdowne x]}}
 \]
