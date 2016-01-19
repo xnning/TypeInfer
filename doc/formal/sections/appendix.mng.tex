@@ -41,7 +41,12 @@ To keep 1 and 2 true will be easy but it need to be careful to keep 3 true. Beca
 \newcommand{\castupe}{\ensuremath{\mathsf{cast}^{\uparrow}\ }}
 \newcommand{\castdowne}{\ensuremath{\mathsf{cast}^{\downarrow}\ }}
 
-This section is about $\beta-$reduction on types. They will be used in \castupe and \castdowne.
+In type systems which have the same syntax for types and terms and support type-level computation, ensuring the decidability of type checking requires type-level computation to terminate, which is usually dependent on the strong normalization of the calculus. An unfortunate consequence of coupling decidability of type checking and strong normaliation is adding (unrestricted) general recursion to such calculi is difficult.
+
+So here use an alternative to the conversion rule that make each type-level computation step explicit. Each beta reduction or expansion at the type level is introduced by type-safe cast construct. The $\castdowne$ operator allows a type conversion provided that the resulting type is a beta reduction of the original type of the term. For example, $e: (\lambda x:\star. x)\ Int$, because this beta reduction holds: $(\lambda x:\star. x)\ Int \longrightarrow Int$, so we have $(\castdowne e) : Int$. The $\castupe$ operator allows a type conversion provided that the reult type is a beta expansion of the original type of the term. We can have $(\castupe 3):(\lambda x:\star. x)\ Int$.
+
+The rest of this section gives beta reduction on types. They will be used in \castupe and \castdowne.
+
 \[
 \inferrule*[right=S-Beta]
 {  }
