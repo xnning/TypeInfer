@@ -570,10 +570,11 @@ $}
 
 \clearpage
 
+\onecolumn
 \subsection{Unification}
 
 \begin{algorithm}
-\caption{Unification}\label{euclid}
+\caption{Unification}
 \begin{algorithmic}[1]
 \algloopdefx{Let}[1]{\textbf{Let} #1 \textbf{In}}
 \algloop[In]{In}
@@ -581,16 +582,20 @@ $}
 \If {C = $\emptyset$}
     \Return []
 \Else
-    \Let {$\{S=T\} \cup C' = C$}
+    \Let {$\{S'=T'\} \cup C' = C$}
+    \Let {$S = pr\ S'$}
+    \Let {$T = pr\ T'$}
         \If{$\alpha$-equal S T}
             \State unify($C'$)
+        \ElsIf{$S = \forall a:\tau_1. S_2$ and $T = \forall a:\tau_2. T_2$}
+            \State unify($C' \{\tau_1 = \tau_2\}$)
         \ElsIf{$S =$ TVar $X$ $K$ and $X \notin FV(T)$ and $T\in \tau$}
             \State $C''$ = checktype $T$ $K$
             \State unify($[\tpmapsto K X T](C \cup C'')) \circ [\tpmapsto K X T]$
         \ElsIf{$T =$ TVar $X$ $K$ and $X \notin FV(S)$ and $S\in \tau$}
             \State $C''$ = checktype $S$ $K$
             \State unify($[\tpmapsto K X S](C \cup C'')) \circ [\tpmapsto K X S]$
-        \ElsIf{$S = S_1 \rightarrow S_2$ and $T = T_1 \rightarrow T_2$}
+        \ElsIf{$S = \Pi x:S_1. S_2$ and $T = \Pi x: T_1. T_2$}
             \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$)
         \ElsIf{$S = cast^\uparrow S_1$ and $T = cast^\uparrow T_1$}
             \State unify($C' \cup \{S_1=T_1\}$)
@@ -614,6 +619,7 @@ $}
 
 \clearpage
 
+\twocolumn
 \subsection{Translation}
 
 \newcommand{\transto}[1]{\hl{$\leadsto#1$}}
