@@ -156,7 +156,7 @@ $}
 $}
 \]
 
-Let will use substitution strategy because not only the type of $x$ but also what $x$ is will be important since it will be used in $e_2$.
+Let will use substitution strategy because not only the type of $x$ but also what $x$ is will be important since it will be used in $e_2$. For example check expression $let\ x = Int\ in\ (\lambda n:x.n + 2)$. Another alternative is to put what let defines in the environment (namely $x=e_1$, which is $x=Int$ in the example), but here we just make the rule simpler.
 
 \[
 \inferrule*[right=Let]
@@ -197,6 +197,8 @@ Because the variables in $\forall$ can have types other than $\star$, so we need
 
 \framebox{$ \olpolymorphic \sigma {\sigma'}$ }
 
+Some rules motivated by the subtyping rule from \href{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.52.5145&rep=rep1&type=pdf}{Subtyping Dependent Types. D Aspinall, A Compagnoni. }
+
 \[
 \inferrule*[right=Skol]
 {
@@ -222,7 +224,7 @@ Substitution must be type-preserving.
 { \olpolymorphic {\Pi x:\sigma_1. \sigma_2} {\Pi x:\sigma_3. \rho_4}}
 \]
 
-Instead of Mono, we will use $\alpha-$equal to compare two identical types.
+Because beta reduction is explicit, so types are identical based only on alpha equivalence.
 
 \[
 \hl{$
@@ -232,9 +234,7 @@ Instead of Mono, we will use $\alpha-$equal to compare two identical types.
 $}
 \]
 
-In application, the arguments are required to be identical and the lambda need to be polymorphic.
-
-Polymorphism on Lam is just the relationship on its body. In LamAnn the annotations are also required to be identical.
+In application, first the arguments are required to be identical, for example $Vect\ 2$ and $Vect\ 3$ does not have any polymorphism relation. And second lambda need to be polymorphic.
 
 \[
 \hl{$
@@ -247,6 +247,8 @@ Polymorphism on Lam is just the relationship on its body. In LamAnn the annotati
 $}
 \]
 
+Polymorphism on Lam is just the relationship on its body.
+
 \[
 \hl{$
 \inferrule*[right=Lam]
@@ -256,6 +258,7 @@ $}
 $}
 \]
 
+In LamAnn the annotations are required to be identical. Because annotation can give a more specific type to the argument. If the body somewhere relys on the type of the argument, it will lead to difference.
 
 \[
 \hl{$
@@ -267,7 +270,7 @@ $}
 $}
 \]
 
-The annotations need to be identical.
+The annotations need to be identical. Also because the annotation may give a more specific type and may lead to some differences.
 
 \[
 \hl{$
@@ -298,7 +301,7 @@ $}
 $}
 \]
 
-In Let, $e_1$ need to be identical and than compare the body.
+In Let, $e_1$ need to be identical and than compare the body. Let should have similar rule as App.
 
 \[
 \hl{$
