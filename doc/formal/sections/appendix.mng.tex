@@ -593,7 +593,7 @@ $}
         \If{$\alpha$-equal S T}
             \State unify($C'$)
         \ElsIf{$S = \forall a:\tau_1. S_2$ and $T = \forall a:\tau_2. T_2$}
-            \State unify($C' \{\tau_1 = \tau_2\}$)
+            \State unify($C' \cup \{\tau_1 = \tau_2, S_2 = T_2\}$)
         \ElsIf{$S =$ TVar $X$ $K$ and $X \notin FV(T)$ and $T\in \tau$}
             \State $C''$ = checktype $T$ $K$
             \State unify($[\tpmapsto K X T](C \cup C'')) \circ [\tpmapsto K X T]$
