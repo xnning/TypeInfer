@@ -8,7 +8,6 @@ import           System.Console.Haskeline
 import           Language.Java.Pretty
 import           Parser
 import           PrettyPrint
-import           Syntax (ClassTag(..))
 import           TypeCheck
 
 

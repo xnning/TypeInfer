@@ -8,16 +8,6 @@ import Unbound.Generics.LocallyNameless
 
 type TmName = Name Expr
 
--- | Classifier
-data ClassTag = Prog
-              | Logic
-  deriving (Eq, Show, Generic, Typeable)
-
--- | Positivity
-data PosTag = Pos
-            | Neg
-  deriving (Eq, Show)
-
 data Tele = Empty
           | Cons (Rebind (TmName,Embed Expr) Tele)
   deriving (Show, Generic, Typeable)
@@ -64,7 +54,6 @@ multExpr = PrimOp Mult
 data Kinds = Star
   deriving (Show, Generic, Typeable)
 
-instance Alpha ClassTag
 instance Alpha Expr
 instance Alpha Operation
 instance Alpha Kinds
@@ -73,7 +62,6 @@ instance Alpha Tele
 instance Subst Expr Operation
 instance Subst Expr Kinds
 instance Subst Expr Tele
-instance Subst Expr ClassTag
 
 instance Subst Expr Expr where
   subst tm a expr = go expr
