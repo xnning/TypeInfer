@@ -485,13 +485,13 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 {\polymorphic \sigma_1 \sqsubseteq \sigma_2}
 \]
 
-\framebox{$\sigma_1 \sqsubseteq \rho$}
+\framebox{$\polymorphicstar \sigma_1 \sqsubseteq \rho$}
 
 \[
 \hl{$
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma_1, \sigma_2)  }
-{ \Sigma \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 }
+{  \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 }
 $}
 \]
 
@@ -499,7 +499,7 @@ $}
 \inferrule*[right=Spec]
 {\hl{$\overbar{b: \tau}$} \\
 \polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2}
-{\Sigma \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
+{ \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
 \]
 
 \[
