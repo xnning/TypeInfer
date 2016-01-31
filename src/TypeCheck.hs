@@ -206,9 +206,6 @@ inferFun ty mode = do
            (_, sub2) <- extendCtx [(nm, multiSubst sub1 a)] $ checktype (multiSubst sub1 r) estar
            return (estar, sub2 `compose` sub1 `compose` sub)
 
-compose :: Sub -> Sub -> Sub
-compose s2 s1 = map (\(n, t) -> (n, multiSubst s2 t)) s1 ++ s2
-
 -----------------------------------------
 --  Unification
 -----------------------------------------
@@ -468,6 +465,9 @@ pr t = return ([], t)
 -----------------------------------------
 --  Helper
 -----------------------------------------
+
+compose :: Sub -> Sub -> Sub
+compose s2 s1 = map (\(n, t) -> (n, multiSubst s2 t)) s1 ++ s2
 
 -- given: Πx:t1. t2
 -- return (x, t1, t2, substitution)
