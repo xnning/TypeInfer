@@ -92,32 +92,32 @@ data Mode = Infer | Check Expr
     deriving (Show)
 
 infertype :: Expr -> TcMonad (Expr, Sub)
-infertype e = infer e Infer
+infertype e = bicheck e Infer
 
 checktype :: Expr -> Expr -> TcMonad (Expr, Sub)
-checktype e ty = infer e $ Check ty
+checktype e ty = bicheck e $ Check ty
 
-infer :: Expr -> Mode -> TcMonad (Expr, Sub)
+bicheck :: Expr -> Mode -> TcMonad (Expr, Sub)
 -- if Mode is (Check ty), ty is rho
-infer (Var x) mode = do
+bicheck (Var x) mode = do
   sigma <- lookupTy x
   instSigma sigma mode
 
-infer (Lam bnd) Infer = do
+bicheck (Lam bnd) Infer = do
   (x, body) <- unbind bnd
   tau <- genTVar estar
   (rho, sub) <- extendCtx [(x, tau)] $ infertype body
   let res = epiWithName [(x, multiSubst sub tau)] rho
   return (res, sub)
 
-infer (Lam bnd) (Check rho)  = do
+bicheck (Lam bnd) (Check rho)  = do
   (x, body) <- unbind bnd
   (sigma1, sigma2, sub1) <- unpiWithName rho x
   substEnv sub1 $ do
      (ans, sub2) <- extendCtx [(x, sigma1)] $ checktype body sigma2
      return (ans, sub2 `compose` sub1)
 
-infer (LamAnn bnd) Infer = do
+bicheck (LamAnn bnd) Infer = do
   ((x, Embed t), body) <- unbind bnd
   (_, sub1) <- checktype t estar
   let t' = multiSubst sub1 t
@@ -126,7 +126,7 @@ infer (LamAnn bnd) Infer = do
     let res = epiWithName [(x, multiSubst sub2 t')] body_type
     return (res, sub2 `compose` sub1)
 
-infer (LamAnn bnd) (Check ty) = do
+bicheck (LamAnn bnd) (Check ty) = do
   ((x, Embed t), body) <- unbind bnd
   (_, sub1) <- checktype t estar
   let sigma = multiSubst sub1 t
@@ -142,7 +142,7 @@ infer (LamAnn bnd) (Check ty) = do
           let sub = sub4 `compose` sub3 `compose` sub2 `compose` sub1
           return (multiSubst sub ty, sub)
 
-infer (App e1 e2) mode = do
+bicheck (App e1 e2) mode = do
   (rho1, sub1) <- infertype e1
   (nm1, sigma1, sigma2, sub2) <- unpi rho1
   substEnv (sub2 `compose` sub1) $ do
@@ -151,7 +151,7 @@ infer (App e1 e2) mode = do
     (res, sub4) <- instSigma app_type mode
     return (res, sub4 `compose` sub3 `compose` sub2 `compose` sub1)
 
-infer (Ann expr ty) mode = do
+bicheck (Ann expr ty) mode = do
   (_, sub1) <- checktype ty estar
   let ty' = multiSubst sub1 ty
   substEnv sub1 $ do
@@ -161,39 +161,39 @@ infer (Ann expr ty) mode = do
         (res, sub3) <- instSigma ty'' mode
         return (res, sub3 `compose` sub2 `compose` sub1)
 
-infer (Let bnd) mode = do
+bicheck (Let bnd) mode = do
   ((x, Embed e), body) <- unbind bnd
   (_, s1) <- infertype e
   substEnv s1 $ do
       let e2 = subst x e body
-      (rho, s2) <- infer e2 mode
+      (rho, s2) <- bicheck e2 mode
       return (rho, s2 `compose` s1)
 
-infer (Kind Star) mode = instSigma estar mode
-infer Nat         mode = instSigma estar mode
-infer (Lit{})     mode = instSigma Nat mode
-infer (PrimOp op m n) mode = do
+bicheck (Kind Star) mode = instSigma estar mode
+bicheck Nat         mode = instSigma estar mode
+bicheck (Lit{})     mode = instSigma Nat mode
+bicheck (PrimOp op m n) mode = do
   (_, sub1) <- checktype m Nat
   substEnv sub1 $ do
       (_, sub2) <- checktype n Nat
       substEnv sub2 $ do
           (_, sub3) <- instSigma Nat mode
           return (Nat, sub3 `compose` sub2 `compose` sub1)
-infer p@(Pi ty) mode     = inferFun p mode
-infer (Forall ty) mode = inferFun (Pi ty) mode
-infer (TVar _ t) mode   = instSigma t mode
-infer (Skolem _ t) mode = instSigma t mode
-infer (CastUp e) (Check rho) = do
+bicheck p@(Pi ty) mode     = inferFun p mode
+bicheck (Forall ty) mode = inferFun (Pi ty) mode
+bicheck (TVar _ t) mode   = instSigma t mode
+bicheck (Skolem _ t) mode = instSigma t mode
+bicheck (CastUp e) (Check rho) = do
     sigma <- oneStep rho
     checkSigma e sigma
-infer (CastDown e) mode = do
+bicheck (CastDown e) mode = do
     (rho1, sub1) <- infertype e
     substEnv sub1 $ do
         sigma <- oneStep rho1
         (res, sub2) <- instSigma sigma mode
         return (res, sub2 `compose` sub1)
 
-infer e mode = throwError $ T.concat ["Type checking ", showExpr e, " with mode ", T.pack $ show mode, " failed"]
+bicheck e mode = throwError $ T.concat ["Type checking ", showExpr e, " with mode ", T.pack $ show mode, " failed"]
 
 inferFun :: Expr -> Mode -> TcMonad (Expr, Sub)
 inferFun ty mode = do
