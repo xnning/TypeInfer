@@ -485,13 +485,13 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 {\polymorphic \sigma_1 \sqsubseteq \sigma_2}
 \]
 
-\framebox{$\polymorphicstar \sigma_1 \sqsubseteq \rho$}
+\framebox{$\polymorphicstar \sigma \sqsubseteq \rho$}
 
 \[
 \hl{$
 \inferrule*[right=Alpha-Equal]
-{  \alpha-equal(\sigma_1, \sigma_2)  }
-{  \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 }
+{  \alpha-equal(\sigma, \rho)  }
+{  \polymorphicstar \sigma \sqsubseteq \rho }
 $}
 \]
 
@@ -816,12 +816,12 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 { \sigmal, \sigmar\polymorphic \sigma_1 \sqsubseteq \sigma_2 \transto{\lambda x:\sigma_l. f_1\ (\lambda(\overbar{a:\translated{\tau}}). f_2\ x) }}
 \]
 
-\framebox{$\sigma \polymorphicstar \sigma_1 \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho|}$}
+\framebox{$\sigma \polymorphicstar \sigma \sqsubseteq \rho \invariant{f}{|\sigma| \to|\rho|}$}
 
 \[
 \inferrule*[right=Alpha-Equal]
-{  \alpha-equal(\sigma_1, \sigma_2)  }
-{  \sigmal, \sigmar \polymorphicstar \sigma_1 \sqsubseteq \sigma_2 \transto{\lambda x: \sigmal. x}}
+{  \alpha-equal(\sigma \sigma)  }
+{  \sigmal, \sigmar \polymorphicstar \sigma \sqsubseteq \rho \transto{\lambda x: \sigmal. x}}
 \]
 
 \[
