@@ -6,7 +6,6 @@ import           Control.Applicative
 import           Control.Monad.Except
 import           Control.Monad.Trans.Maybe
 import qualified Data.Text as T
-import           Lens.Micro
 import           Unbound.Generics.LocallyNameless
 
 import           PrettyPrint

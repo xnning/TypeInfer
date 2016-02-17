@@ -7,8 +7,8 @@ version:             0.1.0.0
 -- description:
 license:             GPL-3
 license-file:        LICENSE
-author:              Jeremy Bi
-maintainer:          bixuanxbi@gmail.com
+author:              Ningning
+maintainer:          xnningxie@gmail.com
 -- copyright:
 category:            Language
 build-type:          Simple
@@ -17,7 +17,8 @@ cabal-version:       >=1.10
 
 executable lambdapi
   main-is:             Main.hs
-  other-modules:       Parser
+  other-modules:       Tokens
+                       Parser
                        PrettyPrint
                        Syntax
                        TypeCheck
@@ -30,8 +31,6 @@ executable lambdapi
                      , mtl == 2.2.*
                      , parsec == 3.1.*
                      , text == 1.2.*
-                     , microlens-th == 0.2.1.*
-                     , microlens == 0.2.0.*
                      , language-java == 0.2.*
                      , transformers
                      , unbound-generics

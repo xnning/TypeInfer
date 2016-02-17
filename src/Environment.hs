@@ -25,8 +25,6 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans.Maybe
 import qualified Data.Text as T
-import           Lens.Micro
-import           Lens.Micro.TH
 import           Unbound.Generics.LocallyNameless
 
 import           Syntax
@@ -36,8 +34,6 @@ import           PrettyPrint
 type Env = [(TmName, Expr)]
 type Sub = [(TmName, Expr)]
 data Context = Ctx {_env :: Env}
-
-makeLenses ''Context
 
 type TcMonad = FreshMT (StateT Context (Except T.Text))
 
