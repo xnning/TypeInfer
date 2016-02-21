@@ -323,6 +323,8 @@ unifyForall ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) = do
 
 -- dsk
 subCheck :: Expr -> Expr -> TcMonad Sub
+-- Alpha-Equal
+subCheck sigma1 sigma2 | aeq sigma1 sigma2 = return []
 subCheck sigma1 sigma2 = do
     (skole, rho) <- pr sigma2
     let skole' = map (\(Skolem x _) -> x) skole
@@ -337,6 +339,8 @@ subCheck sigma1 sigma2 = do
 
 -- dsk*
 subCheckRho :: Expr -> Expr -> TcMonad Sub
+-- Alpha-Equal
+subCheckRho rho1 rho2 | aeq rho1 rho2 = return []
 -- SPEC
 subCheckRho sigma1@(Forall _) rho2 = do
     rho1 <- instantiate sigma1
