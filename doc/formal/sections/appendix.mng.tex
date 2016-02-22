@@ -637,8 +637,10 @@ $}
 \end{algorithmic}
 \end{algorithm}
 
+
 \begin{algorithm}
 \caption{dsk\_star}
+\begin{multicols}{2}
 \begin{algorithmic}[1]
 \algloopdefx{Let}[1]{\textbf{Let} #1 \textbf{In}}
 \Function{dsk\_star(S, T, U)}{}
@@ -647,38 +649,130 @@ $}
     \ElsIf{$S = \forall a:\tau_1. S_2$}
         \State $S' = instantiate\ S$
         \State dsk\_star($S', T, U$)
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =$ TVar $X_2$ of $K_2$}
+        \State $sub$ = dsk($K_1, K_2, U$)
+        $[\tpmapsto {K_2} S T \ of\ K_2] \circ sub$
     \ElsIf{$S = \Pi x:S_1. S_2$ and $T = \Pi x: T_1. T_2$}
         \State $sub$ = dsk($S_1, T_1, U$)
         \State dsk\_star($S_2[sub], T_2[sub], U \cup \{x\}) \circ sub $
-    \ElsIf{$S =$ TVar $X$ of $K_1$ and $T$ of $K_2$ and $FV(T) \cap U = \emptyset$ and $X \notin FV(T)$ and $T\in \tau$}
         \State $sub$ = dsk($K_2, K_1, U$)
         \State \Return $[\tpmapsto {K_1} X T \ of\ K_1] \circ sub$
-    \ElsIf{$T =$ TVar $X$ of $K_1$ and $S$ of $K_2$ and $FV(S) \cap U = \emptyset$ and $X \notin FV(S)$ and $S\in \tau$}
-        \State $sub$ = dsk($K_2, K_1, U$)
-        \State \Return $[\tpmapsto {K_1} X S \ of\ K_1] \circ sub$
+    %TODO: occur check
+    %TODO: type match
+    \ElsIf{$S = \Pi x:S_1. S_2$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} T {\Pi x:a. b} ]$
+        \State $sub2$ = dsk\_star($a, S_1, U$)
+        \State $sub3$ = dsk\_star($S_2, b, U$)
+        \State \Return $ [\tpmapsto {} T {\Pi x:a. b} ] \circ sub3 \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T = \Pi x:S_1. S_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} S {\Pi x:a. b} ]$
+        \State $sub2$ = dsk\_star($S_1, a, U$)
+        \State $sub3$ = dsk\_star($b, S_2, U$)
+        \State \Return $ [\tpmapsto {} S {\Pi x:a. b} ] \circ sub3 \circ sub2 \circ sub1$
     \ElsIf{$S = cast^\uparrow S_1$ and $T = cast^\uparrow T_1$}
         \State dsk($S_1, T_1, U$)
+    \ElsIf{$S = cast^\uparrow S_1$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} T {cast^\uparrow a} ]$
+        \State $sub2$ = dsk\_star($S_1, a, U$)
+        \State \Return $ [\tpmapsto {} T {\Pi x:a. b} ] \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T = cast^\uparrow S_2$ }
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} S {cast^\uparrow a} ]$
+        \State $sub2$ = dsk\_star($a, S_2, U$)
+        \State \Return $ [\tpmapsto {} T {\Pi x:a. b} ] \circ sub2 \circ sub1$
     \ElsIf{$S = cast^\downarrow S_1$ and $T = cast^\downarrow T_1$}
         \State dsk($S_1, T_1, U$)
+    \ElsIf{$S = cast^\downarrow S_1$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} T {cast^\downarrow a} ]$
+        \State $sub2$ = dsk\_star($S_1, a, U$)
+        \State \Return $ [\tpmapsto {} T {\Pi x:a. b} ] \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T = cast^\downarrow S_2$ }
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} S {cast^\downarrow a} ]$
+        \State $sub2$ = dsk\_star($a, S_2, U$)
+        \State \Return $ [\tpmapsto {} T {\Pi x:a. b} ] \circ sub2 \circ sub1$
     \ElsIf{$S =$ App $S_1$ $S_2$ and $T =$ App $T_1$ $T_2$}
         \State $sub$ = unify($S_2, T_2, U$)
         \State dsk\_star($S_1[sub], T_1[sub], U) \circ sub $
+    \ElsIf{$S =$ App $S_1$ $S_2$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} T {App a b} ]$
+        \State $sub2$ = unify($S_2, b, U$)
+        \State $sub3$ = dsk\_star($S_1, a, U$)
+        \State \Return $ [\tpmapsto {} T {App a b} ] \circ sub3 \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =$ App $T_1$ $T_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} S {App a b} ]$
+        \State $sub2$ = unify($T_2, b, U$)
+        \State $sub3$ = dsk\_star($a, S_1, U$)
+        \State \Return $ [\tpmapsto {} S {App a b} ] \circ sub3 \circ sub2 \circ sub1$
     \ElsIf{$S =$ Ann $S_1$ $S_2$ and $T =$ Ann $T_1$ $T_2$}
         \State $sub$ = unify($S_2, T_2, U$)
         \State dsk($S_1[sub], T_1[sub], U) \circ sub $
+    \ElsIf{$S =$ Ann $S_1$ $S_2$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} T {Ann a b} ]$
+        \State $sub2$ = unify($S_2, b, U$)
+        \State $sub3$ = dsk\_star($S_1, a, U$)
+        \State \Return $ [\tpmapsto {} T {Ann a b} ] \circ sub3 \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =$ Ann $T_1$ $T_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} S {Ann a b} ]$
+        \State $sub2$ = unify($T_2, b, U$)
+        \State $sub3$ = dsk\_star($a, S_1, U$)
+        \State \Return $ [\tpmapsto {} S {Ann a b} ] \circ sub3 \circ sub2 \circ sub1$
     \ElsIf{$S =\lambda x. S_1$  and $T =\lambda x. T_1$}
         \State dsk($S_1, T_1, U \cup \{x\}$)
+    \ElsIf{$S =\lambda x. S_1$  and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} T {\lambda x. a} ]$
+        \State $sub2$ = dsk\_star($S_1, a, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} T {\lambda x. a} ] \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =\lambda x. T_1$}
+        \State newTVar a
+        \State $sub1$ = $[\tpmapsto {} S {\lambda x. a} ]$
+        \State $sub2$ = dsk\_star($a, T_1, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} S {\lambda x. a} ] \circ sub2 \circ sub1$
     \ElsIf{$S =\lambda x:S_1. S_2$  and $T =\lambda x:T_1. T_2$}
         \State $sub$ = unify($S_1, T_1, U$)
         \State dsk($S_2[sub], T_2[sub], U \cup \{x\}) \circ sub $
+    \ElsIf{$S =\lambda x:S_1. S_2$  and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} T {\lambda x:a. b} ]$
+        \State $sub2$ = unify($S_1, a, U \cup \{x\}$)
+        \State $sub3$ = dsk\_star($S_2, b, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} T {\lambda x:a. b} ] \circ sub3 \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =\lambda x:T_1. T_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} S {\lambda x:a. b} ]$
+        \State $sub2$ = unify($T_1, a, U \cup \{x\}$)
+        \State $sub2$ = dsk\_star($b, T_2, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} S {\lambda x:a. b} ] \circ sub3 \circ sub2 \circ sub1$
     \ElsIf{$S =$ Let $x = S_1$ in $S_2$ and $T =$ Let $x = T_1$ in $T_2$ }
         \State $sub$ = unify($S_1, T_1, U$)
         \State dsk($S_2[sub], T_2[sub], U \cup \{x\}) \circ sub $
+    \ElsIf{$S =$ Let $x = S_1$ in $S_2$ and $T =$ TVar $X_2$ of $K_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} T {Let x = a in b} ]$
+        \State $sub2$ = unify($S_1, a, U \cup \{x\}$)
+        \State $sub3$ = dsk\_star($S_2, b, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} T {Let x = a in b} ] \circ sub3 \circ sub2 \circ sub1$
+    \ElsIf{$S =$ TVar $X_1$ of $K_1$ and $T =Let x = T_1 in T_2$}
+        \State newTVar a b
+        \State $sub1$ = $[\tpmapsto {} S {Let x = a in b} ]$
+        \State $sub2$ = unify($T_1, a, U \cup \{x\}$)
+        \State $sub2$ = dsk\_star($b, T_2, U \cup \{x\}$)
+        \State \Return $ [\tpmapsto {} S {Let x = a in b} ] \circ sub3 \circ sub2 \circ sub1$
     \Else
         \State fail
     \EndIf
 \EndFunction
 \end{algorithmic}
+\end{multicols}
 \end{algorithm}
 
 \clearpage
