@@ -312,7 +312,7 @@ In Let, $e_1$ need to be identical and than compare the body. Let should have si
 \newcommand{\polyinfercheck}{\vdash^{poly}_\delta}
 
 \newcommand{\polymorphic}{\vdash^{dsk}}
-\newcommand{\polymorphicstar}{\vdash^{dsk\star}}
+\newcommand{\polymorphicstar}{\vdash^{dsk}}
 
 \newcommand{\unify}{\vdash^{unify}}
 
@@ -456,22 +456,13 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \framebox{$ \Gamma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
 
 \[
-\inferrule*[right=Deep-skol]
-{\sigma_2=\forallvars{\alpha:\tau}. \rho \\
+\inferrule*[right=Skol]
+{
 \Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta}
-{\Gamma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
+{\Gamma \polymorphic \sigma_1 \sqsubseteq \forallvars{\alpha:\tau}. \rho \dashv \Theta}
 \]
 
-\framebox{$\Gamma \polymorphicstar \sigma \sqsubseteq \rho$}
-
-\iffalse
-\[
-\inferrule*[right=Alpha-Equal]
-{  \alpha-equal(\sigma, \rho)  }
-{  \polymorphicstar \sigma \sqsubseteq \rho }
-\]
-
-\fi
+%\framebox{$\Gamma \polymorphicstar \sigma \sqsubseteq \rho$}
 
 \[
 \inferrule*[right=Spec]
