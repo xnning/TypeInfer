@@ -314,273 +314,471 @@ In Let, $e_1$ need to be identical and than compare the body. Let should have si
 \newcommand{\polymorphic}{\vdash^{dsk}}
 \newcommand{\polymorphicstar}{\vdash^{dsk\star}}
 
+\newcommand{\unify}{\vdash^{unify}}
 
-$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widetilde{\alpha}:\sigma$
+
+$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}:\sigma$
 
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
 \inferrule*[right=AX]
-{} {\infercheck \star : \star}
+{\Gamma \instinfercheck \star \sqsubseteq \rho \dashv \Theta}
+{\infertype \star : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Var]
-{x:\sigma \in \Gamma \\ \instinfercheck \sigma \sqsubseteq \rho } {\infercheck x : \rho}
+{x:\sigma \in \Gamma \\ \Gamma \instinfercheck \sigma \sqsubseteq \rho \dashv \Theta }
+{\infercheck x : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Lam-Infer]
-{\Gamma,x: \tau \infertypeno e : \rho} {\infertype (\lambda x.\, e) : (\Pi x: \tau. \rho)}
+{\Gamma, \widehat{\alpha}:\star, \widehat{\beta}:\star, x: \widehat \alpha \checktypeno e : \widehat \beta \dashv \Theta, x:\widehat \alpha , \Delta}
+{\infertype (\lambda x.\, e) : (\Pi x: \alpha. \beta) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Lam-Check]
-{\Gamma,x: \sigma_1 \polycheckno e : \sigma_2 } {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+{\Gamma,x: \sigma_1 \polycheckno e : \sigma_2 \dashv \Theta, x: \sigma_1, \Delta}
+{\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=LamAnn-Infer]
 {
-\checktype \sigma:\star \\
-\Gamma,x: \sigma \infertypeno e : \rho } {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho)}
+\checktype \sigma:\star \dashv \Theta_1 \\
+\Theta_1, x: \sigma \infertypeno e : \rho \dashv \Theta, x:\sigma, \Delta }
+{\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho)\dashv \Theta}
 \]
 
 \[
 \inferrule*[right=LamAnn-Check]
 {
-\checktype \sigma:\star \\
-\polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheckno e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
+\checktype \sigma:\star \dashv \Theta_1 \\
+\Theta_1 \instcheck \sigma_1 \sqsubseteq \sigma \dashv \Theta_2 \\
+\Theta_2,x: \sigma \polycheckno e : \sigma_2 \dashv \Theta, x:\sigma, \Delta }
+{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App]
-{\infertype e_1 : (\Pi x:\sigma_1. \sigma_2) \\
-\polycheck e_2 : \sigma_1 \\
-\instinfercheck \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho}
-{\infercheck e_1\,e_2 : \rho}
+{\infertype e_1 : (\Pi x:\sigma_1. \sigma_2) \dashv \Theta_1 \\
+\Theta_1 \polycheckno e_2 : \sigma_1 \dashv \Theta_2 \\
+\Theta_2 \instinfercheck \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
+{\infercheck e_1\,e_2 : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Ann]
 {
-\checktype \sigma : \star \\
-\polycheck (e:\sigma) \\
-\instinfercheck \sigma : \rho }
-{\infercheck (e : \sigma) : \rho }
+\checktype \sigma : \star \dashv \Theta_1\\
+\Theta_1 \polycheckno (e:\sigma) \dashv \Theta_2\\
+\Theta_2 \instinfercheck \sigma : \rho \dashv \Theta}
+{\infercheck (e : \sigma) : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=CastUp-Check]
-{ \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\castupe e) : \rho}
+{[\Gamma]\rho \longrightarrow \sigma \\
+\polycheck e : \sigma \dashv \Theta}
+{\checktype (\castupe e) : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=CastDown]
-{\infertype e : \rho_1 \\ \rho_1 \longrightarrow \sigma \\ \instinfercheck \sigma \sqsubseteq \rho_2} {\infercheck (\castdowne e) : \rho_2}
+{\infertype e : \rho_1 \dashv \Theta_1 \\
+[\Theta_1]\rho_1 \longrightarrow \sigma \\
+\Theta_1 \instinfercheck \sigma \sqsubseteq \rho_2 \dashv \Theta}
+{\infercheck (\castdowne e) : \rho_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Let]
-{\polyinfer e_1 : \sigma \\
-\infercheck e_2[\tpmapsto {\sigma} x {e_1}]: \rho}
-{\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
+{\Gamma \infertypeno e_1 : \sigma \dashv \Theta_1 \\
+\infercheck e_2[\tpmapsto {\sigma} x {e_1}]: \rho \dashv \Theta}
+{\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=ImplicitPi]
-{\checktype \tau : \star \\ \Gamma, x:\tau \checktypeno \rho : \star} {\infercheck (\forall x : \tau. \rho) : \star}
+{\checktype \tau : \star \dashv \Theta_1 \\
+\Theta_1, x:\tau \checktypeno \rho_1 : \star \dashv \Theta_2 \\
+\Theta_2 \instinfercheck \star \sqsubseteq \rho
+}
+{\infercheck (\forall x : \tau. \rho_1) : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=ExplicitPi]
-{\checktype \sigma_1 : \star \\ \Gamma, x:\sigma_1 \checktypeno \sigma_2 : \star} {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star}
+{\checktype \sigma_1 : \star \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \checktypeno \sigma_2 : \star \dashv \Theta_2 \\
+\Theta_2 \instinfercheck \star \sqsubseteq \rho
+}
+{\infercheck (\Pi x : \sigma_1. \sigma_2) : \rho \dashv \Theta}
 \]
 
 \framebox{$ \Gamma \polyinfercheck e : \sigma$ }
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ \overbar{x:\tau}=ftv(\rho)-ftv(\Gamma) \\
-\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
+{\infertype e :\rho_1 \dashv \Theta\\
+\rho = [\Theta]\rho_1 \\
+\overbar{\widehat \alpha:\tau}=ftv(\Gamma) \cap (ftv(\rho)-ftv(\Gamma))
+}
+{\polyinfer e :(\forallvars{\alpha:\tau}. \rho[\overbar{\widehat \alpha} \mapsto \overbar{\alpha}]) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
 {
-pr(\sigma) = \forallvars{x:\tau}. \rho \\
-\overbar{x:\tau} \notin ftv(\Gamma) \\
-\checktype e :\rho
-} {\polycheck e : \sigma}
+[\Gamma]\sigma = \forallvars{\alpha:\tau}. \rho \\
+\Gamma, \overbar{\alpha:\tau} \checktypeno e :\rho \dashv \Theta
+}
+{\polycheck e : \sigma \dashv \Theta}
 \]
 
-\framebox{$ \instinfercheck \sigma \sqsubseteq \rho$ }
+\framebox{$ \Gamma \instinfercheck \sigma \sqsubseteq \rho$ }
 
 \[
 \inferrule*[right=Inst-Infer]
-{\overbar{\tau_\beta : \tau}}
-{\instinfer \forallvars{x:\tau}. \rho \sqsubseteq \rho[\overbar{\tpmapsto {\tau} x {\tau_\beta}}]}
+{[\Gamma] \sigma = \forallvars{\alpha:\tau}. \rho
+}
+{\Gamma \instinfer \sigma \sqsubseteq \rho[\overbar{\tpmapsto {\tau} \alpha {\widehat{\alpha}}}] \dashv \Gamma, \overbar{\widehat{\alpha}:\tau}}
 \]
 
 \[
 \inferrule*[right=Inst-Check]
-{\polymorphic \sigma \sqsubseteq \rho } {\instcheck \sigma \sqsubseteq \rho}
+{\Gamma, \blacktriangleright \polymorphic [\Gamma]\sigma \sqsubseteq [\Gamma]\rho \dashv \Theta, \blacktriangleright, \Delta  } { \Gamma \instcheck \sigma \sqsubseteq \rho \dashv \Theta}
 \]
 
-\framebox{$pr(\sigma)=\forallvars{x:\tau}.\rho$}
-
-\[
-\inferrule*[right=Pr-poly]
-{pr(\rho_1) = \forallvars{b:\tau_2}. \rho_2 \\ \overbar{a} \cap \overbar{b} = \emptyset} {pr(\forallvars{a:\tau_1}. \rho_1) = \forallvars{a:\tau_1. b:\tau_2}. \rho_2}
-\]
-
-\[
-\inferrule*[right=Pr-fun]
-{pr(\sigma_2) = \forallvars{a:\tau}. \rho_2 \\ \overbar{a} \cap ftv(\sigma_1) = \emptyset} {pr(\Pi x:\sigma_1. \sigma_2) = \forallvars{a:\tau}. \Pi x:\sigma_1. \rho_2}
-\]
-
-\[
-\inferrule*[right=Pr-other-case]
-{  } {pr(\tau)=\tau}
-\]
-
-\framebox{$\polymorphic \sigma_1 \sqsubseteq \sigma_2$}
+\framebox{$ \Gamma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
 
 \[
 \inferrule*[right=Deep-skol]
-{pr(\sigma_2)=\forallvars{a:\tau}. \rho \\ a \notin ftv(\sigma_1) \\
-\polymorphicstar \sigma_1 \sqsubseteq \rho }
-{\polymorphic \sigma_1 \sqsubseteq \sigma_2}
+{\sigma_2=\forallvars{\alpha:\tau}. \rho \\
+\Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta}
+{\Gamma \polymorphic \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
 \]
 
-\framebox{$\polymorphicstar \sigma \sqsubseteq \rho$}
+\framebox{$\Gamma \polymorphicstar \sigma \sqsubseteq \rho$}
 
+\iffalse
 \[
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma, \rho)  }
 {  \polymorphicstar \sigma \sqsubseteq \rho }
 \]
 
+\fi
+
 \[
 \inferrule*[right=Spec]
-{\overbar{b: \tau} \\
-\polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2}
-{ \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
+{\Gamma , \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau \alpha {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta}
+{\Gamma \polymorphicstar \forallvars{\alpha:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Fun]
-{\polymorphic  \sigma_3 \sqsubseteq \sigma_1 \\
-\polymorphicstar  \sigma_2 \sqsubseteq \rho_4}
-{ \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4}
+{\Gamma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \polymorphicstar [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\rho_4 \dashv \Theta}
+{ \Gamma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App]
 {
-\polymorphicstar \tau_1 \sqsubseteq \tau_2
+\Gamma \unify \sigma_1 \simeq \sigma_2 \dashv \Theta_1 \\
+\Theta_1 \polymorphicstar [\Theta_1]\tau_1 \sqsubseteq [\Theta_1]\tau_2 \dashv \Theta
 }
-{\polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \\
-}
+{\Gamma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Lam]
 {
-\polymorphic \sigma_1 \sqsubseteq \sigma_2 }
-{\polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 }
+\Gamma, x \polymorphic \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
+{\Gamma \polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
 \]
 
 
 \[
 \inferrule*[right=Lamann]
 {
-\polymorphic \sigma_2 \sqsubseteq \sigma_4 }
-{\polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4
+\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Gamma, x:\sigma_1 \polymorphic [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
+{\Gamma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
 }
 \]
 
 \[
 \inferrule*[right=Ann]
 {
- \polymorphic  \sigma_1 \sqsubseteq \sigma_3 }
-{\polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 }
+\Gamma \unify \sigma_2 \simeq \sigma_4 \dashv \Theta_1 \\
+\Theta_1 \polymorphic  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
+{\Gamma \polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_4 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Castup]
 {
-\polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
-{\polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) }
+\Gamma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
+{\Gamma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Castdown]
 {
- \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
-{ \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)}
+\Gamma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
+{\Gamma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Let]
 {
- \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
-{ \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) }
+\Gamma \unify \sigma_2 \simeq \sigma_4 \dashv \Theta_1 \\
+\Theta_1 \polymorphic  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
+{\Gamma \polymorphicstar  (let\ x = \sigma_1\ in\ \sigma_2) \sqsubseteq  (let\ x = \sigma_2\ in\ \sigma_4) }
 \]
 
+\[
+\inferrule*[right=Var]
+{ }
+{\Gamma[x] \polymorphicstar x \sqsubseteq x \dashv \Gamma[x] }
+\]
+
+\[
+\inferrule*[right=UVar]
+{ }
+{\Gamma[\alpha] \polymorphicstar \alpha \sqsubseteq \alpha \dashv \Gamma[\alpha] }
+\]
+
+\[
+\inferrule*[right=EVar]
+{ }
+{\Gamma[\widehat \alpha ] \polymorphicstar \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
+\]
+
+
+\framebox{$\Gamma[\alpha] \polymorphicstar \widehat \alpha \sqsubseteq \rho$}
+
+\[
+\inferrule*[right=EVar-Fun]
+{\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x: \widehat \alpha_1. \widehat \alpha_2]
+    \polymorphic  \sigma \sqsubseteq \widehat \alpha_1 \dashv \Theta_1 \\
+\Theta_1, x: \sigma \polymorphicstar \alpha_2 \sqsubseteq [\Theta_1] \rho \dashv \Theta, x:\sigma, \Delta}
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \Pi x:\sigma. \rho \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=EVar-App]
+{
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \widehat \alpha_1~\widehat \alpha_2]
+    \unify \alpha_2 \simeq \sigma_1 \dashv \Theta_1 \\
+\Theta_1 \polymorphicstar \alpha_1 \sqsubseteq [\Theta_1]\tau_1 \dashv \Theta
+}
+{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \tau_1\, \sigma_1 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=EVar-Lam]
+{
+\Gamma[\widehat \alpha_1, \widehat \alpha = \lambda x. \alpha_1], x \polymorphic \alpha_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
+\]
+
+
+\[
+\inferrule*[right=EVar-Lamann]
+{
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
+\unify \widehat \alpha_1 \simeq \sigma_1 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta, x:\sigma_1, \Delta }
+{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \lambda x:\sigma_1. \sigma_2 \dashv \Theta
+}
+\]
+
+\[
+\inferrule*[right=EVar-Ann]
+{
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \widehat \alpha_1:\widehat \alpha_2]
+\unify \widehat \alpha_2 \simeq \sigma_2 \dashv \Theta_1 \\
+\Theta_1 \polymorphic \widehat \alpha_1 \sqsubseteq [\Theta_1]\sigma_1 \dashv \Theta }
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \sigma_1:\sigma_2 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=EVar-Castup]
+{
+\Gamma[\widehat \alpha_1, \alpha = \castupe \alpha_1] \polymorphic  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castupe \sigma_1) \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=EVar-Castdown]
+{
+\Gamma[\widehat \alpha_1, \alpha = \castdowne \alpha_1] \polymorphic  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=EVar-Let]
+{
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = let~x=\widehat \alpha_1~in~\widehat \alpha_2]
+\unify \widehat \alpha_1 \simeq \sigma_1 \dashv \Theta_1 \\
+\Theta_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta }
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) }
+\]
+
+\[
+\inferrule*[right=EVar-UVar]
+{\Gamma_1 \vdash \tau}
+{\Gamma_1, \widehat \alpha, \Gamma_2 \polymorphicstar \widehat \alpha \sqsubseteq \tau \dashv \Gamma_1, \widehat \alpha=\tau, \Gamma_2 }
+\]
+
+\[
+\inferrule*[right=EVar-Var]
+{\Gamma_1 \vdash x}
+{\Gamma_1, \widehat \alpha, \Gamma_2 \polymorphicstar \widehat \alpha \sqsubseteq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
+\]
+
+\[
+\inferrule*[right=EVar-EVar]
+{ }
+{\Gamma[\widehat \alpha][\widehat \beta] \polymorphicstar \widehat \alpha \sqsubseteq \widehat \beta \dashv
+\Gamma[\alpha][\widehat \beta = \widehat \alpha] }
+\]
+
+\framebox{$\Gamma \unify \sigma_1 \simeq \sigma_2$}
+
+\[
+\inferrule*[right=Uni-ImplicitPi]
+{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
+{ \Gamma \unify \forall x:\sigma_1. \sigma_2 \simeq \forall x:\sigma_3. \sigma_4 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-ExplicitPi]
+{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
+{ \Gamma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \simeq \Pi x:\sigma_3. \sigma_4 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-App]
+{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta}
+{\Gamma \unify \sigma_1\, \sigma_2 \simeq \sigma_3\, \sigma_4 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-Lam]
+{
+\Gamma, x \unify \sigma_1 \simeq \sigma_2 \dashv \Theta, x, \Delta}
+{\Gamma \unify \lambda x. \sigma_1 \simeq \lambda x. \sigma_2 \dashv \Theta }
+\]
+
+
+\[
+\inferrule*[right=Uni-Lamann]
+{
+\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
+{\Gamma \unify \lambda x:\sigma_1. \sigma_2 \simeq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
+}
+\]
+
+\[
+\inferrule*[right=Uni-Ann]
+{
+\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta }
+{\Gamma \unify \sigma_1:\sigma_2 \simeq \sigma_3:\sigma_4 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-Castup]
+{
+\Gamma \unify  \sigma_1 \simeq \sigma_2 \dashv \Theta}
+{\Gamma \unify  (\castupe \sigma_1) \simeq  (\castupe \sigma_2) \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-Castdown]
+{
+\Gamma \unify  \sigma_1 \simeq \sigma_2 \dashv \Theta}
+{\Gamma \unify  (\castdowne \sigma_1) \simeq  (\castdowne \sigma_2) \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Uni-Let]
+{
+\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
+\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta }
+{\Gamma \unify  (let\ x = \sigma_1\ in\ \sigma_2) \simeq  (let\ x = \sigma_3\ in\ \sigma_4) }
+\]
+
+\[
+\inferrule*[right=Uni-Var]
+{ }
+{\Gamma[x] \unify x \simeq x \dashv \Gamma[x] }
+\]
+
+\[
+\inferrule*[right=Uni-UVar]
+{ }
+{\Gamma[\alpha] \unify \alpha \simeq \alpha \dashv \Gamma[\alpha] }
+\]
+
+\[
+\inferrule*[right=Uni-EVar]
+{ }
+{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
+\]
+
+\[
+\inferrule*[right=Uni-EVar-Var]
+{ \Gamma_1 \vdash x }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq x \dashv \Gamma[\widehat \alpha=x] }
+\]
+
+\[
+\inferrule*[right=Uni-EVar-UVar]
+{ \Gamma_1 \vdash \alpha }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq \alpha \dashv \Gamma[\widehat \alpha=\alpha] }
+\]
+
+\[
+\inferrule*[right=Uni-EVar-Tau]
+{ \widehat \alpha \notin ftv(\tau)} % occur check
+{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \tau \dashv \Gamma[\widehat \alpha=\tau] }
+\]
+
+
+\[
+\inferrule*[right=Uni-Var-EVar]
+{ \Gamma_1 \vdash x }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify x \simeq \widehat \alpha  \dashv \Gamma[\widehat \alpha=x] }
+\]
+
+\[
+\inferrule*[right=Uni-Var-EVar]
+{ \Gamma_1 \vdash \alpha }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \alpha \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha=\alpha] }
+\]
+
+\[
+\inferrule*[right=Uni-Tau-EVar]
+{ \widehat \alpha \notin ftv(\tau)} % occur check
+{\Gamma[\widehat \alpha ] \unify \tau \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha=\tau] }
+\]
+
+
+
 \clearpage
 
-\onecolumn
-\subsection{Unification}
-
-\begin{algorithm}
-\caption{Unification}
-\begin{algorithmic}[1]
-\algloopdefx{Let}[1]{\textbf{Let} #1 \textbf{In}}
-\Function{Unify(C, U)}{}
-\If {C = $\emptyset$}
-    \Return []
-\Else
-    \Let {$(\{S'=T'\} \cup C') = C$}
-    \Let {$S = pr\ S'$}
-    \Let {$T = pr\ T'$}
-        \If{$\alpha$-equal S T}
-            \State unify($C', U$)
-        \ElsIf{$S = \forall a:\tau_1. S_2$ and $T = \forall a:\tau_2. T_2$}
-            \State unify($C' \cup \{\tau_1 = \tau_2, S_2 = T_2\}$, $U \cup \{a\}$)
-        \ElsIf{$S =$ TVar $X$ of $K_1$ and $T$ of $K_2$ and $FV(T) \cap U = \emptyset$ and $X \notin FV(T)$ and $T\in \tau$}
-            \State $sub$ = dsk($K_2, K_1, U$)
-            \State unify($[\tpmapsto {K_1} X T \ of\ K_1 \circ sub](C \cup C''), U) \circ [\tpmapsto {K_1} X T \ of\ K_1] \circ sub$
-        \ElsIf{$T =$ TVar $X$ of $K_1$ and $S$ of $K_2$ and $FV(S) \cap U = \emptyset$ and $X \notin FV(S)$ and $S\in \tau$}
-            \State $sub$ = dsk($K_2, K_1, U$)
-            \State unify($[\tpmapsto {K_1} X S \ of\ K_1 \circ sub](C \cup C''), U) \circ [\tpmapsto {K_1} X S \ of\ K_1] \circ sub$
-        \ElsIf{$S = \Pi x:S_1. S_2$ and $T = \Pi x: T_1. T_2$}
-            \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$, $U \cup \{x\}$)
-        \ElsIf{$S = cast^\uparrow S_1$ and $T = cast^\uparrow T_1$}
-            \State unify($C' \cup \{S_1=T_1\}$, $U$)
-        \ElsIf{$S = cast^\downarrow S_1$ and $T = cast^\downarrow T_1$}
-            \State unify($C' \cup \{S_1=T_1\}$, $U$)
-        \ElsIf{$S =$ App $S_1$ $S_2$ and $T =$ App $T_1$ $T_2$}
-            \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$, $U$)
-        \ElsIf{$S =$ Ann $S_1$ $S_2$ and $T =$ Ann $T_1$ $T_2$}
-            \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$, $U$)
-        \ElsIf{$S =\lambda x. S_1$  and $T =\lambda x. T_1$}
-            \State unify($C' \cup \{S_1=T_1\}$, $U \cup \{x\}$)
-        \ElsIf{$S =\lambda x:S_1. S_2$  and $T =\lambda x:T_1. T_2$}
-            \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$, $U \cup \{x\}$)
-        \ElsIf{$S =$ Let $x = S_1$ in $S_2$ and $T =$ Let $x = T_1$ in $T_2$ }
-            \State unify($C' \cup \{S_1=T_1, S_2=T_2\}$, $U \cup \{x\}$)
-        \Else
-            \State fail
-        \EndIf
-\EndIf
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-\clearpage
-
-\twocolumn
 \subsection{Translation}
 
 \newcommand{\transto}[1]{\leadsto#1}
