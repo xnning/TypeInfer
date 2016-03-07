@@ -101,10 +101,8 @@ The rest of this section gives beta reduction on types. They will be used in \ca
 $\star$ is the type of all types including itself.
 
 \[
-\hl{$
 \inferrule*[right=Ax]
 {} {\judge \star : \star}
-$}
 \]
 
 \[
@@ -121,7 +119,7 @@ Annotation must have type $\star$.
 
 \[
 \inferrule*[right=LamAnn]
-{ \hl{$\judge \sigma: \star$} \\
+{ \judge \sigma: \star \\
 \Gamma,x: \sigma \vdash e : \sigma_2 } {\judge (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \sigma_2)}
 \]
 
@@ -129,14 +127,14 @@ Because $x$ may appear in $e_1$ so there will be a substitution in $e_2$.
 
 \[
 \inferrule*[right=App]
-{\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2\hl{$[\tpmapsto {\sigma_1} x {e_2}]$}}
+{\judge e_1 : (\Pi x:\sigma_1. \sigma_2) \\ \judge e_2 : \sigma_1} {\judge e_1\,e_2 : \sigma_2\[\tpmapsto {\sigma_1} x {e_2}]}
 \]
 
 Annotation must have type $\star$.
 
 \[
 \inferrule*[right=Ann]
-{\hl{$\judge \sigma: \star$}\\
+{\judge \sigma: \star\\
 \judge e : \sigma }
 {\judge (e :: \sigma) : \sigma }
 \]
@@ -144,40 +142,32 @@ Annotation must have type $\star$.
 Typing rules for cast is the application of operational semantic.
 
 \[
-\hl{$
 \inferrule*[right=CastUp]
 {\judge e : \rho \\ \judge \sigma : \star \\ \rho \longrightarrow \sigma} {\judge (\mathsf{cast}^\uparrow\ e) : \sigma}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=CastDown]
 {\judge e : \rho \\ \judge \sigma : \star \\ \rho \longrightarrow \sigma} {\judge (\mathsf{cast}_\downarrow\ e) : \sigma}
-$}
 \]
 
 Let will use substitution strategy because not only the type of $x$ but also what $x$ is will be important since it will be used in $e_2$. For example check expression $let\ x = Int\ in\ (\lambda n:x.n + 2)$. Another alternative is to put what let defines in the environment (namely $x=e_1$, which is $x=Int$ in the example), but here we just make the rule simpler.
 
 \[
 \inferrule*[right=Let]
-{\judge e_1 : \sigma_1 \\ \Gamma \vdash e_2\hl{$[\tpmapsto {\sigma_1} x {e_1}]$}: \sigma_2} {\judge ( let\ x = e_1\ in\ e_2 ) : \sigma_2 }
+{\judge e_1 : \sigma_1 \\ \Gamma \vdash e_2[\tpmapsto {\sigma_1} x {e_1}]: \sigma_2} {\judge ( let\ x = e_1\ in\ e_2 ) : \sigma_2 }
 \]
 
 Pi is of type $\star$.
 
 \[
-\hl{$
 \inferrule*[right=ImplicitPi]
 {\judge \overbar{\tau} : \star \\ \Gamma, \overbar{x:\tau} \vdash \rho : \star} {\judge (\forallvars{x : \tau}. \rho) : \star}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=ExplicitPi]
 {\judge \sigma_1 : \star \\ \Gamma, x:\sigma_1 \vdash \sigma_2 : \star} {\judge (\Pi x:\sigma_1. \sigma_2) : \star}
-$}
 \]
 
 Because the variables in $\forall$ can have types other than $\star$, so we need to check the annotations and make sure it is valid.
@@ -186,8 +176,8 @@ Because the variables in $\forall$ can have types other than $\star$, so we need
 \inferrule*[right=Gen]
 {\judge e : \rho \\
 \alpha_i \notin ftv(\Gamma) \\
-\hl{$\tau_i : \star$} \\
-\hl{$\alpha_i : \tau_i \vdash \sigma : \star$}}
+\tau_i : \star \\
+\alpha_i : \tau_i \vdash \sigma : \star}
 {\judge e : \forall(\alpha_i : \tau_i). \rho }
 \]
 
@@ -213,7 +203,7 @@ Substitution must be type-preserving.
 
 \[
 \inferrule*[right=Spec]
-{\hl{$\overbar{b: \tau}$} \\
+{\overbar{b: \tau} \\
 \olpolymorphic {\rho_1[\overbar{\tpmapsto \tau a b}]} {\rho_2}}
 {\olpolymorphic {\forallvars{a:\tau}.\rho_1} {\rho_2}}
 \]
@@ -228,89 +218,73 @@ Substitution must be type-preserving.
 Because beta reduction is explicit, so types are identical based only on alpha equivalence.
 
 \[
-\hl{$
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma_1, \sigma_2)  }
 { \olpolymorphic {\sigma_1} {\sigma_2}}
-$}
 \]
 
 In application, first the arguments are required to be identical, for example $Vect\ 2$ and $Vect\ 3$ does not have any polymorphism relation. And second lambda need to be polymorphic.
 
 \[
-\hl{$
 \inferrule*[right=App]
 {
 \olpolymorphic {\tau_1} {\tau_2}
 }
 {\olpolymorphic {\tau_1\, \sigma_1} {\tau_2\, \sigma_1} \\
 }
-$}
 \]
 
 Polymorphism on Lam is just the relationship on its body.
 
 \[
-\hl{$
 \inferrule*[right=Lam]
 {
 \olpolymorphic {\sigma_1} {\sigma_2}}
 {\olpolymorphic {\lambda x. \sigma_1} {\lambda x. \sigma_2 }}
-$}
 \]
 
 In LamAnn the annotations are required to be identical. Because annotation can give a more specific type to the argument. If the body somewhere relys on the type of the argument, it will lead to difference.
 
 \[
-\hl{$
 \inferrule*[right=Lamann]
 {
 \olpolymorphic {\sigma_2}{\sigma_4}}
 {\olpolymorphic {\lambda x:\sigma_1. \sigma_2} {\lambda x:\sigma_1. \sigma_4}
 }
-$}
 \]
 
 The annotations need to be identical. Also because the annotation may give a more specific type and may lead to some differences.
 
 \[
-\hl{$
 \inferrule*[right=Ann]
 {
 \olpolymorphic {\sigma_1} {\sigma_3 }}
 {\olpolymorphic {\sigma_1:\sigma_2} {\sigma_3:\sigma_2 }}
-$}
 \]
 
 In Cast, continue to compare the casted expressions.
 
 \[
-\hl{$
 \inferrule*[right=Castup]
 {
 \olpolymorphic {\sigma_1} {\sigma_2}}
 {\olpolymorphic {(\castupe \sigma_1)} {(\castupe \sigma_2) }}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Castdown]
 {
  \olpolymorphic {\sigma_1} {\sigma_2}}
  { \olpolymorphic {(\castdowne \sigma_1)} {(\castdowne \sigma_2)}}
-$}
 \]
 
 In Let, $e_1$ need to be identical and than compare the body. Let should have similar rule as App.
 
 \[
-\hl{$
 \inferrule*[right=Let]
 {
 \olpolymorphic {\sigma_1} {\sigma_2 }}
 {\olpolymorphic {(let\ x = e_1\ in\ \sigma_1)} {(let\ x = e_1\ in\ \sigma_2) }}
-$}
 \]
 
 
@@ -346,10 +320,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
 \[
-\hl{$
 \inferrule*[right=AX]
 {} {\infercheck \star : \star}
-$}
 \]
 
 \[
@@ -370,14 +342,14 @@ $}
 \[
 \inferrule*[right=LamAnn-Infer]
 {
-\hl{$\checktype \sigma:\star$} \\
+\checktype \sigma:\star \\
 \Gamma,x: \sigma \infertypeno e : \rho } {\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho)}
 \]
 
 \[
 \inferrule*[right=LamAnn-Check]
 {
-\hl{$\checktype \sigma:\star$} \\
+\checktype \sigma:\star \\
 \polymorphic \sigma_1 \sqsubseteq \sigma \\ \Gamma,x: \sigma \polycheckno e : \sigma_2 } {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2)}
 \]
 
@@ -385,67 +357,59 @@ $}
 \inferrule*[right=App]
 {\infertype e_1 : (\Pi x:\sigma_1. \sigma_2) \\
 \polycheck e_2 : \sigma_1 \\
-\instinfercheck \hl{$\sigma_2 [\tpmapsto {\sigma_1} x {e_2}]$} \sqsubseteq \rho}
+\instinfercheck \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho}
 {\infercheck e_1\,e_2 : \rho}
 \]
 
 \[
 \inferrule*[right=Ann]
 {
-\hl{$\checktype \sigma : \star$} \\
+\checktype \sigma : \star \\
 \polycheck (e:\sigma) \\
 \instinfercheck \sigma : \rho }
 {\infercheck (e : \sigma) : \rho }
 \]
 
 \[
-\hl{$
 \inferrule*[right=CastUp-Check]
 { \rho \longrightarrow \sigma \\ \polycheck e : \sigma } {\checktype (\castupe e) : \rho}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=CastDown]
 {\infertype e : \rho_1 \\ \rho_1 \longrightarrow \sigma \\ \instinfercheck \sigma \sqsubseteq \rho_2} {\infercheck (\castdowne e) : \rho_2}
-$}
 \]
 
 \[
 \inferrule*[right=Let]
 {\polyinfer e_1 : \sigma \\
-\hl{$\infercheck e_2[\tpmapsto {\sigma} x {e_1}]: \rho$}}
+\infercheck e_2[\tpmapsto {\sigma} x {e_1}]: \rho}
 {\infercheck ( let\ x = e_1\ in\ e_2 ) : \rho }
 \]
 
 \[
-\hl{$
 \inferrule*[right=ImplicitPi]
 {\checktype \tau : \star \\ \Gamma, x:\tau \checktypeno \rho : \star} {\infercheck (\forall x : \tau. \rho) : \star}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=ExplicitPi]
 {\checktype \sigma_1 : \star \\ \Gamma, x:\sigma_1 \checktypeno \sigma_2 : \star} {\infercheck (\Pi x : \sigma_1. \sigma_2) : \star}
-$}
 \]
 
 \framebox{$ \Gamma \polyinfercheck e : \sigma$ }
 
 \[
 \inferrule*[right=Gen-Infer]
-{\infertype e :\rho \\ \overbar{\hl{$x:\tau$}}=ftv(\rho)-ftv(\Gamma) \\
-\hl{$\checktype (\forallvars{x:\tau}. \rho):\star$} } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
+{\infertype e :\rho \\ \overbar{x:\tau}=ftv(\rho)-ftv(\Gamma) \\
+\checktype (\forallvars{x:\tau}. \rho):\star } {\polyinfer e :(\forallvars{x:\tau}. \rho)}
 \]
 
 \[
 \inferrule*[right=Gen-Check]
 {
-pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
-\overbar{\hl{$x:\tau$}} \notin ftv(\Gamma) \\
+pr(\sigma) = \forallvars{x:\tau}. \rho \\
+\overbar{x:\tau} \notin ftv(\Gamma) \\
 \checktype e :\rho
 } {\polycheck e : \sigma}
 \]
@@ -454,7 +418,7 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 
 \[
 \inferrule*[right=Inst-Infer]
-{\hl{$\overbar{\tau_\beta : \tau}$}}
+{\overbar{\tau_\beta : \tau}}
 {\instinfer \forallvars{x:\tau}. \rho \sqsubseteq \rho[\overbar{\tpmapsto {\tau} x {\tau_\beta}}]}
 \]
 
@@ -476,7 +440,7 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 \]
 
 \[
-\inferrule*[right=\hl{Pr-other-case}]
+\inferrule*[right=Pr-other-case]
 {  } {pr(\tau)=\tau}
 \]
 
@@ -492,16 +456,14 @@ pr(\sigma) = \forallvars{\hl{$x:\tau$}}. \rho \\
 \framebox{$\polymorphicstar \sigma \sqsubseteq \rho$}
 
 \[
-\hl{$
 \inferrule*[right=Alpha-Equal]
 {  \alpha-equal(\sigma, \rho)  }
 {  \polymorphicstar \sigma \sqsubseteq \rho }
-$}
 \]
 
 \[
 \inferrule*[right=Spec]
-{\hl{$\overbar{b: \tau}$} \\
+{\overbar{b: \tau} \\
 \polymorphicstar \rho_1[\overbar{\tpmapsto \tau a b}] \sqsubseteq \rho_2}
 { \polymorphicstar \forallvars{a:\tau}.\rho_1 \sqsubseteq \rho_2}
 \]
@@ -514,70 +476,56 @@ $}
 \]
 
 \[
-\hl{$
 \inferrule*[right=App]
 {
 \polymorphicstar \tau_1 \sqsubseteq \tau_2
 }
 {\polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_1 \\
 }
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Lam]
 {
 \polymorphic \sigma_1 \sqsubseteq \sigma_2 }
 {\polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 }
-$}
 \]
 
 
 \[
-\hl{$
 \inferrule*[right=Lamann]
 {
 \polymorphic \sigma_2 \sqsubseteq \sigma_4 }
 {\polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_1. \sigma_4
 }
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Ann]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_3 }
 {\polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_2 }
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Castup]
 {
 \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 {\polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) }
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Castdown]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 { \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2)}
-$}
 \]
 
 \[
-\hl{$
 \inferrule*[right=Let]
 {
  \polymorphic  \sigma_1 \sqsubseteq \sigma_2 }
 { \polymorphicstar  (let\ x = e_1\ in\ \sigma_1) \sqsubseteq  (let\ x = e_1\ in\ \sigma_2) }
-$}
 \]
 
 \clearpage
@@ -635,7 +583,7 @@ $}
 \twocolumn
 \subsection{Translation}
 
-\newcommand{\transto}[1]{\hl{$\leadsto#1$}}
+\newcommand{\transto}[1]{\leadsto#1}
 \newcommand{\translated}[1]{|#1|}
 \newcommand{\cyancolorbox}[1]{\colorbox{cyan!30}{$#1$}}
 %\newcommand{\invariant}[2]{\leadsto #1 :#2}
