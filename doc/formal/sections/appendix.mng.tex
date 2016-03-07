@@ -1,3 +1,12 @@
+\newcommand{\tpmapsto}[3]{#2\mapsto#3}
+\newcommand{\castupe}{\ensuremath{\mathsf{cast}^{\uparrow}\ }}
+\newcommand{\castdowne}{\ensuremath{\mathsf{cast}^{\downarrow}\ }}
+\newcommand{\judge}{\Gamma\vdash}
+\newcommand{\forallvars}[1]{\forall \overbar{#1}}
+\newcommand{\olpolymorphic}[2]{\vdash^{ol} #1 \sqsubseteq #2}
+
+
+\iffalse
 \section{type check}
 
 \subsection{Syntax}
@@ -30,16 +39,12 @@ To keep 1 and 2 true will be easy but it need to be careful to keep 3 true. Beca
 
 %\subsection{Type-preserving substitution}
 
-\newcommand{\tpmapsto}[3]{#2\mapsto#3}
 
 %A type-preserving substitution $\tpmapsto \sigma {e_1} {e_2}$ means substitute $e_2$ for $e_1$ where $e_1$ and $e_2$ are of same type $\sigma$.
 
 %Sometimes $\sigma$ will be omitted if $e_1$ and $e_2$ are obviously of the same type.
 
 \subsection{Operational Semantics: Call by name}
-
-\newcommand{\castupe}{\ensuremath{\mathsf{cast}^{\uparrow}\ }}
-\newcommand{\castdowne}{\ensuremath{\mathsf{cast}^{\downarrow}\ }}
 
 In type systems which have the same syntax for types and terms and support type-level computation, ensuring the decidability of type checking requires type-level computation to terminate, which is usually dependent on the strong normalization of the calculus. An unfortunate consequence of coupling decidability of type checking and strong normaliation is adding (unrestricted) general recursion to such calculi is difficult.
 
@@ -90,10 +95,6 @@ The rest of this section gives beta reduction on types. They will be used in \ca
 \]
 
 \subsection{Specification of Typing}
-
-\newcommand{\judge}{\Gamma\vdash}
-\newcommand{\forallvars}[1]{\forall \overbar{#1}}
-\newcommand{\olpolymorphic}[2]{\vdash^{ol} #1 \sqsubseteq #2}
 
 \framebox{$ \judge e : \sigma$ }
 
@@ -314,6 +315,8 @@ $}
 
 
 \clearpage
+
+\fi
 
 \subsection{syntax-directed Typing}
 
