@@ -317,7 +317,7 @@ In Let, $e_1$ need to be identical and than compare the body. Let should have si
 \newcommand{\unify}{\vdash^{unify}}
 
 
-$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}:\sigma$
+$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}:\sigma~|~\Gamma, \widehat{\alpha}:\sigma = \sigma_2~|$
 
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -540,12 +540,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \]
 
 \[
-\inferrule*[right=UVar]
-{ }
-{\Gamma[\alpha] \polymorphicstar \alpha \sqsubseteq \alpha \dashv \Gamma[\alpha] }
-\]
-
-\[
 \inferrule*[right=EVar]
 { }
 {\Gamma[\widehat \alpha ] \polymorphicstar \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
@@ -620,12 +614,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \unify \widehat \alpha_1 \simeq \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta }
 {\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) }
-\]
-
-\[
-\inferrule*[right=EVar-UVar]
-{\Gamma_1 \vdash \tau}
-{\Gamma_1, \widehat \alpha, \Gamma_2 \polymorphicstar \widehat \alpha \sqsubseteq \tau \dashv \Gamma_1, \widehat \alpha=\tau, \Gamma_2 }
 \]
 
 \[
@@ -718,12 +706,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \]
 
 \[
-\inferrule*[right=Uni-UVar]
-{ }
-{\Gamma[\alpha] \unify \alpha \simeq \alpha \dashv \Gamma[\alpha] }
-\]
-
-\[
 \inferrule*[right=Uni-EVar]
 { }
 {\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
@@ -733,12 +715,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \inferrule*[right=Uni-EVar-Var]
 { \Gamma_1 \vdash x }
 {\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq x \dashv \Gamma[\widehat \alpha=x] }
-\]
-
-\[
-\inferrule*[right=Uni-EVar-UVar]
-{ \Gamma_1 \vdash \alpha }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq \alpha \dashv \Gamma[\widehat \alpha=\alpha] }
 \]
 
 \[
@@ -752,12 +728,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, \alpha:\sigma~|~\Gamma, x~|~\Gamma, x
 \inferrule*[right=Uni-Var-EVar]
 { \Gamma_1 \vdash x }
 {\Gamma_1, \widehat \alpha, \Gamma_2  \unify x \simeq \widehat \alpha  \dashv \Gamma[\widehat \alpha=x] }
-\]
-
-\[
-\inferrule*[right=Uni-Var-EVar]
-{ \Gamma_1 \vdash \alpha }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \alpha \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha=\alpha] }
 \]
 
 \[
