@@ -714,26 +714,32 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=Uni-EVar-Var]
 { \Gamma_1 \vdash x }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq x \dashv \Gamma[\widehat \alpha=x] }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2}
 \]
 
 \[
 \inferrule*[right=Uni-EVar-Tau]
 { \widehat \alpha \notin ftv(\tau)} % occur check
-{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \tau \dashv \Gamma[\widehat \alpha=\tau] }
+{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \tau \dashv \Gamma[\widehat \alpha=\tau]}
 \]
-
 
 \[
 \inferrule*[right=Uni-Var-EVar]
 { \Gamma_1 \vdash x }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify x \simeq \widehat \alpha  \dashv \Gamma[\widehat \alpha=x] }
+{\Gamma_1, \widehat \alpha, \Gamma_2  \unify x \simeq \widehat \alpha  \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
 \]
 
 \[
 \inferrule*[right=Uni-Tau-EVar]
 { \widehat \alpha \notin ftv(\tau)} % occur check
 {\Gamma[\widehat \alpha ] \unify \tau \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha=\tau] }
+\]
+
+\[
+\inferrule*[right=Uni-EVar-EVar]
+{ }
+{\Gamma[\widehat \alpha][\widehat \beta] \unify \widehat \alpha \simeq \widehat \beta \dashv
+\Gamma[\alpha][\widehat \beta \simeq \widehat \alpha] }
 \]
 
 
