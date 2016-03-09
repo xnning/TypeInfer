@@ -453,100 +453,125 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\Gamma, \blacktriangleright \polymorphic [\Gamma]\sigma \sqsubseteq [\Gamma]\rho \dashv \Theta, \blacktriangleright, \Delta  } { \Gamma \instcheck \sigma \sqsubseteq \rho \dashv \Theta}
 \]
 
-\framebox{$ \Gamma \polymorphic \sigma_1 \sqsubseteq \sigma_2$}
+\newcommand{\dskunify}[0]{\vdash^{\chi}}
+\framebox{$ \Gamma \dskunify \sigma_1 \sqsubseteq \sigma_2$} $\chi = dsk~|~unify$
 
 \[
-\inferrule*[right=Skol]
+\inferrule*[right=ImplicitPi-dsk-L]
 {
 \Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta}
 {\Gamma \polymorphic \sigma_1 \sqsubseteq \forallvars{\alpha:\tau}. \rho \dashv \Theta}
 \]
 
-%\framebox{$\Gamma \polymorphicstar \sigma \sqsubseteq \rho$}
-
 \[
-\inferrule*[right=Spec]
+\inferrule*[right=ImplicitPi-dsk-R]
 {\Gamma , \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau \alpha {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta}
 {\Gamma \polymorphicstar \forallvars{\alpha:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
 \[
-\inferrule*[right=Fun]
-{\Gamma \polymorphic  \sigma_3 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \polymorphicstar [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\rho_4 \dashv \Theta}
-{ \Gamma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \rho_4 \dashv \Theta}
+\inferrule*[right=ImplicitPi-unify]
+{\Gamma \unify  \sigma_1 \sqsubseteq \sigma_3 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
+{ \Gamma \unify \forall x:\sigma_1. \sigma_2 \sqsubseteq \forall x:\sigma_3. \sigma_4 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=ExplicitPi]
+{\Gamma \dskunify  \sigma_3 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
+\Theta_1, x:\sigma_1 \dskunify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
+{ \Gamma \dskunify \Pi x:\sigma_1. \sigma_2 \sqsubseteq \Pi x:\sigma_3. \sigma_4 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App]
 {
-\Gamma \unify \sigma_1 \simeq \sigma_2 \dashv \Theta_1 \\
-\Theta_1 \polymorphicstar [\Theta_1]\tau_1 \sqsubseteq [\Theta_1]\tau_2 \dashv \Theta
+\Gamma \unify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta_1 \\
+\Theta_1 \dskunify [\Theta_1]\tau_1 \sqsubseteq [\Theta_1]\tau_2 \dashv \Theta
 }
-{\Gamma \polymorphicstar \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_2 \dashv \Theta}
+{\Gamma \dskunify \tau_1\, \sigma_1 \sqsubseteq \tau_2\, \sigma_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Lam]
 {
-\Gamma, x \polymorphic \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
-{\Gamma \polymorphicstar \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
+\Gamma, x \dskunify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
+{\Gamma \dskunify \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
 \]
 
 
 \[
 \inferrule*[right=Lamann]
 {
-\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Gamma, x:\sigma_1 \polymorphic [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
-{\Gamma \polymorphicstar \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
+\Gamma \unify \sigma_1 \sqsubseteq \sigma_3 \dashv \Theta_1 \\
+\Gamma, x:\sigma_1 \dskunify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
+{\Gamma \dskunify \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
 }
 \]
 
 \[
 \inferrule*[right=Ann]
 {
-\Gamma \unify \sigma_2 \simeq \sigma_4 \dashv \Theta_1 \\
-\Theta_1 \polymorphic  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
-{\Gamma \polymorphicstar \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_4 \dashv \Theta}
+\Gamma \unify \sigma_2 \sqsubseteq \sigma_4 \dashv \Theta_1 \\
+\Theta_1 \dskunify  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
+{\Gamma \dskunify \sigma_1:\sigma_2 \sqsubseteq \sigma_3:\sigma_4 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Castup]
 {
-\Gamma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
-{\Gamma \polymorphicstar  (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \dashv \Theta}
+\Gamma \dskunify  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
+{\Gamma \dskunify (\castupe \sigma_1) \sqsubseteq  (\castupe \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Castdown]
 {
-\Gamma \polymorphic  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
-{\Gamma \polymorphicstar  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
+\Gamma \dskunify  \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta}
+{\Gamma \dskunify  (\castdowne \sigma_1) \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Let]
 {
-\Gamma \unify \sigma_2 \simeq \sigma_4 \dashv \Theta_1 \\
-\Theta_1 \polymorphic  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
-{\Gamma \polymorphicstar  (let\ x = \sigma_1\ in\ \sigma_2) \sqsubseteq  (let\ x = \sigma_2\ in\ \sigma_4) }
+\Gamma \unify \sigma_2 \sqsubseteq \sigma_4 \dashv \Theta_1 \\
+\Theta_1 \dskunify  [\Theta_1]\sigma_1 \sqsubseteq [\Theta_1]\sigma_3 \dashv \Theta }
+{\Gamma \dskunify  (let\ x = \sigma_1\ in\ \sigma_2) \sqsubseteq  (let\ x = \sigma_2\ in\ \sigma_4) }
 \]
 
 \[
 \inferrule*[right=Var]
 { }
-{\Gamma[x] \polymorphicstar x \sqsubseteq x \dashv \Gamma[x] }
+{\Gamma[x] \dskunify x \sqsubseteq x \dashv \Gamma[x] }
 \]
 
 \[
 \inferrule*[right=EVar]
 { }
-{\Gamma[\widehat \alpha ] \polymorphicstar \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
+{\Gamma[\widehat \alpha ] \dskunify \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
 \]
 
 
-\framebox{$\Gamma[\alpha] \polymorphicstar \widehat \alpha \sqsubseteq \rho$}
+\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho$}
+
+\[
+\inferrule*[right=EVar-Tau-Uni]
+{ \widehat \alpha \notin ftv(\tau)} % occur check
+{\Gamma[\widehat \alpha ] \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma[\widehat \alpha=\tau]}
+\]
+
+\[
+\inferrule*[right=EVar-Var]
+{\Gamma_1 \vdash x}
+{\Gamma_1, \widehat \alpha, \Gamma_2 \dskunify \widehat \alpha \sqsubseteq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
+\]
+
+\[
+\inferrule*[right=EVar-EVar]
+{ }
+{\Gamma[\widehat \alpha][\widehat \beta] \dskunify \widehat \alpha \sqsubseteq \widehat \beta \dashv
+\Gamma[\alpha][\widehat \beta = \widehat \alpha] }
+\]
 
 \[
 \inferrule*[right=EVar-Fun]
@@ -560,7 +585,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-App]
 {
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \widehat \alpha_1~\widehat \alpha_2]
-    \unify \alpha_2 \simeq \sigma_1 \dashv \Theta_1 \\
+    \unify \alpha_2 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \polymorphicstar \alpha_1 \sqsubseteq [\Theta_1]\tau_1 \dashv \Theta
 }
 {\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \tau_1\, \sigma_1 \dashv \Theta}
@@ -578,7 +603,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-Lamann]
 {
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
-\unify \widehat \alpha_1 \simeq \sigma_1 \dashv \Theta_1 \\
+\unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1, x:\sigma_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta, x:\sigma_1, \Delta }
 {\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \lambda x:\sigma_1. \sigma_2 \dashv \Theta
 }
@@ -588,7 +613,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-Ann]
 {
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \widehat \alpha_1:\widehat \alpha_2]
-\unify \widehat \alpha_2 \simeq \sigma_2 \dashv \Theta_1 \\
+\unify \widehat \alpha_2 \sqsubseteq \sigma_2 \dashv \Theta_1 \\
 \Theta_1 \polymorphic \widehat \alpha_1 \sqsubseteq [\Theta_1]\sigma_1 \dashv \Theta }
 {\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \sigma_1:\sigma_2 \dashv \Theta}
 \]
@@ -611,140 +636,26 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-Let]
 {
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = let~x=\widehat \alpha_1~in~\widehat \alpha_2]
-\unify \widehat \alpha_1 \simeq \sigma_1 \dashv \Theta_1 \\
+\unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta }
 {\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) }
 \]
 
-\[
-\inferrule*[right=EVar-Var]
-{\Gamma_1 \vdash x}
-{\Gamma_1, \widehat \alpha, \Gamma_2 \polymorphicstar \widehat \alpha \sqsubseteq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
-\]
+\iffalse
 
-\[
-\inferrule*[right=EVar-EVar]
-{ }
-{\Gamma[\widehat \alpha][\widehat \beta] \polymorphicstar \widehat \alpha \sqsubseteq \widehat \beta \dashv
-\Gamma[\alpha][\widehat \beta = \widehat \alpha] }
-\]
-
-\framebox{$\Gamma \unify \sigma_1 \simeq \sigma_2$}
-
-\[
-\inferrule*[right=Uni-ImplicitPi]
-{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
-{ \Gamma \unify \forall x:\sigma_1. \sigma_2 \simeq \forall x:\sigma_3. \sigma_4 \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-ExplicitPi]
-{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta}
-{ \Gamma \polymorphicstar \Pi x:\sigma_1. \sigma_2 \simeq \Pi x:\sigma_3. \sigma_4 \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-App]
-{\Gamma \unify  \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta}
-{\Gamma \unify \sigma_1\, \sigma_2 \simeq \sigma_3\, \sigma_4 \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-Lam]
-{
-\Gamma, x \unify \sigma_1 \simeq \sigma_2 \dashv \Theta, x, \Delta}
-{\Gamma \unify \lambda x. \sigma_1 \simeq \lambda x. \sigma_2 \dashv \Theta }
-\]
-
-
-\[
-\inferrule*[right=Uni-Lamann]
-{
-\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
-{\Gamma \unify \lambda x:\sigma_1. \sigma_2 \simeq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
-}
-\]
-
-\[
-\inferrule*[right=Uni-Ann]
-{
-\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta }
-{\Gamma \unify \sigma_1:\sigma_2 \simeq \sigma_3:\sigma_4 \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-Castup]
-{
-\Gamma \unify  \sigma_1 \simeq \sigma_2 \dashv \Theta}
-{\Gamma \unify  (\castupe \sigma_1) \simeq  (\castupe \sigma_2) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-Castdown]
-{
-\Gamma \unify  \sigma_1 \simeq \sigma_2 \dashv \Theta}
-{\Gamma \unify  (\castdowne \sigma_1) \simeq  (\castdowne \sigma_2) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=Uni-Let]
-{
-\Gamma \unify \sigma_1 \simeq \sigma_3 \dashv \Theta_1 \\
-\Theta_1 \unify [\Theta_1]\sigma_2 \simeq [\Theta_1]\sigma_4 \dashv \Theta }
-{\Gamma \unify  (let\ x = \sigma_1\ in\ \sigma_2) \simeq  (let\ x = \sigma_3\ in\ \sigma_4) }
-\]
-
-\[
-\inferrule*[right=Uni-Var]
-{ }
-{\Gamma[x] \unify x \simeq x \dashv \Gamma[x] }
-\]
-
-\[
-\inferrule*[right=Uni-EVar]
-{ }
-{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha] }
-\]
-
-\[
-\inferrule*[right=Uni-EVar-Var]
-{ \Gamma_1 \vdash x }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify \widehat \alpha \simeq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2}
-\]
-
-\[
-\inferrule*[right=Uni-EVar-Tau]
-{ \widehat \alpha \notin ftv(\tau)} % occur check
-{\Gamma[\widehat \alpha ] \unify \widehat \alpha \simeq \tau \dashv \Gamma[\widehat \alpha=\tau]}
-\]
-
-\[
-\inferrule*[right=Uni-Var-EVar]
-{ \Gamma_1 \vdash x }
-{\Gamma_1, \widehat \alpha, \Gamma_2  \unify x \simeq \widehat \alpha  \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
-\]
+\framebox{$\Gamma[\alpha] \dskunify \rho \sqsubseteq \widehat \alpha$}
 
 \[
 \inferrule*[right=Uni-Tau-EVar]
 { \widehat \alpha \notin ftv(\tau)} % occur check
-{\Gamma[\widehat \alpha ] \unify \tau \simeq \widehat \alpha \dashv \Gamma[\widehat \alpha=\tau] }
+{\Gamma[\widehat \alpha ] \unify \tau \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha=\tau] }
+
 \]
 
-\[
-\inferrule*[right=Uni-EVar-EVar]
-{ }
-{\Gamma[\widehat \alpha][\widehat \beta] \unify \widehat \alpha \simeq \widehat \beta \dashv
-\Gamma[\alpha][\widehat \beta \simeq \widehat \alpha] }
-\]
-
-
+\fi
 
 \clearpage
+
 
 \subsection{Translation}
 
