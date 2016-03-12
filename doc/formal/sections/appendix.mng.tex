@@ -450,7 +450,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=Inst-Check]
-{\Gamma, \blacktriangleright \polymorphic [\Gamma]\sigma \sqsubseteq [\Gamma]\rho \dashv \Theta, \blacktriangleright, \Delta  } { \Gamma \instcheck \sigma \sqsubseteq \rho \dashv \Theta}
+{\Gamma \polymorphic [\Gamma]\sigma \sqsubseteq [\Gamma]\rho \dashv \Theta} { \Gamma \instcheck \sigma \sqsubseteq \rho \dashv \Theta}
 \]
 
 \newcommand{\dskunify}[0]{\vdash^{\chi}}
@@ -459,13 +459,13 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=ImplicitPi-dsk-L]
 {
-\Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta}
+\Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta, \overbar{\alpha:\tau}, \Delta}
 {\Gamma \polymorphic \sigma_1 \sqsubseteq \forallvars{\alpha:\tau}. \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=ImplicitPi-dsk-R]
-{\Gamma , \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau \alpha {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta}
+{\Gamma , \blacktriangleright, \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau \alpha {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright, \Delta}
 {\Gamma \polymorphicstar \forallvars{\alpha:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
