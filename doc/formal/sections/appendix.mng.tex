@@ -419,7 +419,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\infercheck (\Pi x : \sigma_1. \sigma_2) : \rho \dashv \Theta}
 \]
 
-\framebox{$ \Gamma \polyinfercheck e : \sigma$ }
+\framebox{$ \Gamma \polyinfercheck e : \sigma \dashv \Theta$ }
 
 \[
 \inferrule*[right=Gen-Infer]
@@ -439,7 +439,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\polycheck e : \sigma \dashv \Theta}
 \]
 
-\framebox{$ \Gamma \instinfercheck \sigma \sqsubseteq \rho$ }
+\framebox{$ \Gamma \instinfercheck \sigma \sqsubseteq \rho \dashv \Theta$ }
 
 \[
 \inferrule*[right=Inst-Infer]
@@ -454,7 +454,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 \newcommand{\dskunify}[0]{\vdash^{\chi}}
-\framebox{$ \Gamma \dskunify \sigma_1 \sqsubseteq \sigma_2$} $\chi = dsk~|~unify$
+\framebox{$ \Gamma \dskunify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta$} $\chi = dsk~|~unify$
 
 \[
 \inferrule*[right=ImplicitPi-dsk-L]
@@ -552,7 +552,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 
-\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho$}
+\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta$}
 
 \[
 \inferrule*[right=EVar-Tau-Uni]
