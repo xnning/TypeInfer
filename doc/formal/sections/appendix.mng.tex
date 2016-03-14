@@ -561,12 +561,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 \[
-\inferrule*[right=EVar-Var]
-{\Gamma_1 \vdash x}
-{\Gamma_1, \widehat \alpha, \Gamma_2 \dskunify \widehat \alpha \sqsubseteq x \dashv \Gamma_1, \widehat \alpha=x, \Gamma_2 }
-\]
-
-\[
 \inferrule*[right=EVar-EVar]
 { }
 {\Gamma[\widehat \alpha][\widehat \beta] \dskunify \widehat \alpha \sqsubseteq \widehat \beta \dashv
