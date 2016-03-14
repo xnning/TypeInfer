@@ -336,7 +336,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=Lam-Infer]
 {\Gamma, \widehat{\alpha}:\star, \widehat{\beta}:\star, x: \widehat \alpha \checktypeno e : \widehat \beta \dashv \Theta, x:\widehat \alpha , \Delta}
-{\infertype (\lambda x.\, e) : (\Pi x: \alpha. \beta) \dashv \Theta}
+{\infertype (\lambda x.\, e) : (\Pi x: \widehat \alpha. \beta) \dashv \Theta}
 \]
 
 \[
@@ -570,7 +570,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-EVar]
 { }
 {\Gamma[\widehat \alpha][\widehat \beta] \dskunify \widehat \alpha \sqsubseteq \widehat \beta \dashv
-\Gamma[\alpha][\widehat \beta = \widehat \alpha] }
+\Gamma[\widehat \alpha][\widehat \beta = \widehat \alpha] }
 \]
 
 \[
