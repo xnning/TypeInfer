@@ -427,7 +427,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \rho = [\Theta]\rho_1 \\
 \overbar{\widehat \alpha:\tau}=ftv(\Gamma) \cap (ftv(\rho)-ftv(\Gamma))
 }
-{\polyinfer e :(\forallvars{\alpha:\tau}. \rho[\overbar{\widehat \alpha} \mapsto \overbar{\alpha}]) \dashv \Theta}
+{\polyinfer e :(\forallvars{x:\tau}. \rho[\overbar{\widehat \alpha} \mapsto \overbar{x}]) \dashv \Theta}
 \]
 
 \[
@@ -443,9 +443,9 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=Inst-Infer]
-{[\Gamma] \sigma = \forallvars{\alpha:\tau}. \rho
+{[\Gamma] \sigma = \forallvars{x:\tau}. \rho
 }
-{\Gamma \instinfer \sigma \sqsubseteq \rho[\overbar{\tpmapsto {\tau} \alpha {\widehat{\alpha}}}] \dashv \Gamma, \overbar{\widehat{\alpha}:\tau}}
+{\Gamma \instinfer \sigma \sqsubseteq \rho[\overbar{\tpmapsto {\tau} x {\widehat{\alpha}}}] \dashv \Gamma, \overbar{\widehat{\alpha}:\tau}}
 \]
 
 \[
@@ -459,14 +459,14 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=ImplicitPi-dsk-L]
 {
-\Gamma, \overbar{\alpha:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta, \overbar{\alpha:\tau}, \Delta}
-{\Gamma \polymorphic \sigma_1 \sqsubseteq \forallvars{\alpha:\tau}. \rho \dashv \Theta}
+\Gamma, \overbar{x:\tau} \polymorphicstar \sigma_1 \sqsubseteq \rho \dashv \Theta, \overbar{x:\tau}, \Delta}
+{\Gamma \polymorphic \sigma_1 \sqsubseteq \forallvars{x:\tau}. \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=ImplicitPi-dsk-R]
-{\Gamma , \blacktriangleright, \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau \alpha {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright, \Delta}
-{\Gamma \polymorphicstar \forallvars{\alpha:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
+{\Gamma , \blacktriangleright, \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau x {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright, \Delta}
+{\Gamma \polymorphicstar \forallvars{x:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
 \[
@@ -729,7 +729,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \Theta_1 \polymorphic [\Theta_1]\sigma_e \sqsubseteq [\Theta_1]\tau_\alpha \dashv \Theta_2 \\
 \Theta_2 \unify [\Theta_2]\widehat \alpha_1 \sqsubseteq [\Theta_2]\sigma_1 \dashv \Theta_3 \\
 \Theta_3 \polymorphic \widehat [\Theta_3]\alpha_2 \sqsubseteq [\Theta_3]\sigma_2 \dashv \Theta }
-{\Gamma[\widehat \alpha:\tau_\alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2):\sigma_e }
+{\Gamma[\widehat \alpha:\tau_\alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2):\sigma_e \dashv \Theta}
 \]
 
 \clearpage
