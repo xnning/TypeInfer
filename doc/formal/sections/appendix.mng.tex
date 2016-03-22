@@ -5,6 +5,12 @@
 \newcommand{\forallvars}[1]{\forall \overbar{#1}}
 \newcommand{\olpolymorphic}[2]{\vdash^{ol} #1 \sqsubseteq #2}
 
+\gram{\otte\ottinterrule}
+
+\gram{\ottR\ottinterrule}
+
+\gram{\ottt\ottinterrule}
+
 
 \iffalse
 \section{type check}
@@ -292,7 +298,7 @@ In Let, $e_1$ need to be identical and than compare the body. Let should have si
 
 \fi
 
-\subsection{syntax-directed Typing}
+\subsection{algorithmic Typing}
 
 \newcommand{\checktype}{\Gamma\vdash_\Downarrow}
 \newcommand{\infertype}{\Gamma\vdash_\Uparrow}
@@ -735,6 +741,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \clearpage
 
 
+\iffalse
 \subsection{Translation}
 
 \newcommand{\transto}[1]{\leadsto#1}
@@ -1059,3 +1066,5 @@ pr(\sigma) = \forallvars{x:\tau}. \rho \transto{f} \\
 \]
 \end{figure*}
 %\end{landscape}
+
+\fi
