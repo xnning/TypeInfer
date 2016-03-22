@@ -425,7 +425,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=Gen-Infer]
 {\infertype e :\rho_1 \dashv \Theta\\
 \rho = [\Theta]\rho_1 \\
-\overbar{\widehat \alpha:\tau}=ftv(\Gamma) \cap (ftv(\rho)-ftv(\Gamma))
+\overbar{\widehat \alpha:\tau}=\Gamma \cap (ftv(\rho)-ftv(\Gamma))
 }
 {\polyinfer e :(\forallvars{x:\tau}. \rho[\overbar{\widehat \alpha} \mapsto \overbar{x}]) \dashv \Theta}
 \]
