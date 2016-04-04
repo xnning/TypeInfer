@@ -558,18 +558,18 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 
-\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta$}
+\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho:\sigma_\rho \dashv \Theta$}
 
 \[
 \inferrule*[right=EVar-Tau-Uni]
 { \widehat \alpha \notin ftv(\tau)} % occur check
-{\Gamma[\widehat \alpha ] \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma[\widehat \alpha=\tau]}
+{\Gamma[\widehat \alpha ] \unify \widehat \alpha \sqsubseteq \tau:{\sigma_\rho} \dashv \Gamma[\widehat \alpha=\tau]}
 \]
 
 \[
 \inferrule*[right=EVar-EVar]
 { }
-{\Gamma[\widehat \alpha][\widehat \beta\{:\tau_\beta\}] \dskunify \widehat \alpha \sqsubseteq \widehat \beta \dashv
+{\Gamma[\widehat \alpha][\widehat \beta\{:\tau_\beta\}] \dskunify \widehat \alpha \sqsubseteq \widehat \beta:{\sigma_\rho} \dashv
 \Gamma[\widehat \alpha][\widehat \beta\{:\tau_\beta\} = \widehat \alpha] }
 \]
 
@@ -578,7 +578,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x: \widehat \alpha_1. \widehat \alpha_2]
     \polymorphic  \sigma \sqsubseteq \widehat \alpha_1 \dashv \Theta_1 \\
 \Theta_1, x: \sigma \polymorphicstar \alpha_2 \sqsubseteq [\Theta_1] \rho \dashv \Theta, x:\sigma, \Delta}
-{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \Pi x:\sigma. \rho \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq (\Pi x:\sigma. \rho):{\sigma_\rho} \dashv \Theta}
 \]
 
 \[
@@ -588,14 +588,14 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
     \unify \alpha_2 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \polymorphicstar \alpha_1 \sqsubseteq [\Theta_1]\tau_1 \dashv \Theta
 }
-{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \tau_1\, \sigma_1 \dashv \Theta}
+{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq (\tau_1\, \sigma_1):{\sigma_\rho} \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=EVar-Lam]
 {
 \Gamma[\widehat \alpha_1, \widehat \alpha = \lambda x. \alpha_1], x \polymorphic \alpha_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
-{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq (\lambda x. \sigma_2):{\sigma_\rho} \dashv \Theta }
 \]
 
 
@@ -605,7 +605,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
 \unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1, x:\sigma_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta, x:\sigma_1, \Delta }
-{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq \lambda x:\sigma_1. \sigma_2 \dashv \Theta
+{\Gamma[\widehat \alpha]\polymorphicstar \widehat \alpha \sqsubseteq (\lambda x:\sigma_1. \sigma_2):{\sigma_\rho} \dashv \Theta
 }
 \]
 
@@ -615,21 +615,21 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \widehat \alpha_1:\widehat \alpha_2]
 \unify \widehat \alpha_2 \sqsubseteq \sigma_2 \dashv \Theta_1 \\
 \Theta_1 \polymorphic \widehat \alpha_1 \sqsubseteq [\Theta_1]\sigma_1 \dashv \Theta }
-{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq \sigma_1:\sigma_2 \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha \sqsubseteq (\sigma_1:\sigma_2):{\sigma_\rho} \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=EVar-Castup]
 {
 \Gamma[\widehat \alpha_1, \alpha = \castupe \alpha_1] \polymorphic  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
-{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castupe \sigma_1) \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castupe \sigma_1):{\sigma_\rho} \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=EVar-Castdown]
 {
 \Gamma[\widehat \alpha_1, \alpha = \castdowne \alpha_1] \polymorphic  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
-{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
+{\Gamma[\widehat \alpha] \polymorphicstar  \widehat \alpha \sqsubseteq  (\castdowne \sigma_2):{\sigma_\rho} \dashv \Theta}
 \]
 
 \[
@@ -638,7 +638,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = let~x=\widehat \alpha_1~in~\widehat \alpha_2]
 \unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \polymorphic \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta }
-{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) }
+{\Gamma[\widehat \alpha] \polymorphicstar \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2):{\sigma_\rho} \dashv \Theta }
 \]
 
 \framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta$}
