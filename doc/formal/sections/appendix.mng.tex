@@ -323,7 +323,7 @@ In Let, $e_1$ need to be identical and than compare the body. Let should have si
 \newcommand{\unify}{\vdash^{unify}}
 
 
-$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}~|~\Gamma, \widehat{\alpha}=\sigma~|~\Gamma, \widehat{\alpha}:\sigma~|~\Gamma, \widehat{\alpha}:\sigma = \sigma_2~|$
+$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}~|~\Gamma, \widehat{\alpha}=\sigma~|~\Gamma, \widehat{\alpha}:\sigma~|~\Gamma, \widehat{\alpha}:\sigma = \sigma_2~|~\Gamma, \blacktriangleright_{\widehat \alpha}$
 
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -471,7 +471,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=ImplicitPi-dsk-R]
-{\Gamma , \blacktriangleright, \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau x {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright, \Delta}
+{\Gamma , \blacktriangleright_{\widehat \alpha}, \overbar{\widehat \alpha : \tau} \polymorphicstar \rho_1[\overbar{\tpmapsto \tau x {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright_{\widehat \alpha}, \Delta}
 {\Gamma \polymorphicstar \forallvars{x:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
