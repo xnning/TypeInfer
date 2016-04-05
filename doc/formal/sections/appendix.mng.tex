@@ -376,6 +376,23 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 \[
+\inferrule*[right=App2]
+{\infertype e_1 : \widehat \alpha \dashv \Theta_1[\widehat \alpha] \\
+\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \polycheckno e_2 : \widehat \alpha_1 \dashv \Theta_2 \\
+\Theta_2 \instinfercheck \widehat \alpha_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
+{\infercheck e_1\,e_2 : \rho \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=App3]
+{\infertype e_1 : \widehat \alpha \dashv \Theta_1[\widehat \alpha:\tau_\alpha] \\
+\Theta_1[\widehat \alpha:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_2[\widehat \alpha:\tau_\alpha] \\
+\Theta_2[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \polycheckno e_2 : \widehat \alpha_1 \dashv \Theta_3 \\
+\Theta_3 \instinfercheck \widehat \alpha_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
+{\infercheck e_1\,e_2 : \rho \dashv \Theta}
+\]
+
+\[
 \inferrule*[right=Ann]
 {
 \checktype \sigma : \star \dashv \Theta_1\\
