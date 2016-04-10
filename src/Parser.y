@@ -49,38 +49,68 @@ import Tokens
 
 %%
 
-expr : '\\' id '.' expr                         { elam $2 $4 }
-     | pi teles '.' expr                        { epi $2 $4  }
-     | expr '->' expr                           { epiNoDenp $1 $3 }
-     | tele '->' expr                           { epi [$1] $3 }
-     | forall teles '.' expr                    { eforall $2 $4 }
-     -- if no type is given, * by default
+expr : forall tau_teles '.' rho                 { eforall $2 $4 }
+     | rho                                      { $1 }
+
+     -- sugar: * by default
      | forall id '.' expr                       { eforallStar $2 $4 }
 
-     -- surface language
-     | expr '+' expr                            { PrimOp Add $1 $3 }
-     | let id '=' expr in expr                  { elet $2 $4 $6 }
-     | aexp                                     { $1 }
+sigma : expr                                    { $1 }
 
-     | '\\' id ':' expr '.' expr                { elamann $2 $4 $6 }
+rho  : tau                                      { $1 }
+     | pi sigma_teles '.' sigma                 { epi $2 $4 }
+     | rho_app                                  { $1 }
      | castup expr                              { CastUp $2 }
      | castdown expr                            { CastDown $2 }
-     | expr ':' expr                            { Ann $1 $3 }
+     | let id '=' expr in expr                  { elet $2 $4 $6 }
+     | expr ':' sigma                           { Ann $1 $3 }
 
-aexp : aexp term                                { App $1 $2 }
-     | term                                     { $1 }
+     -- sugar
+     | sigma '->' sigma                         { epiNoDenp $1 $3 }
+     | sigma_tele '->' sigma                    { epi [$1] $3 }
 
-term : nat                                      { Nat }
-     | id                                       { evar $1 }
-     | digits                                   { Lit $1 }
+     -- surface language
+     | rho '+' rho                              { PrimOp Add $1 $3 }
+
+tau  : id                                       { evar $1 }
      | '*'                                      { Kind Star }
-     | '(' expr ')'                             { $2 }
+     | tau_app                                  { $1 }
+     | '\\' id '.' expr                         { elam $2 $4 }
+     | '\\' id ':' sigma '.' expr               { elamann $2 $4 $6 }
+     | castup tau                               { CastUp $2 }
+     | castdown tau                             { CastDown $2 }
+     | pi tau_teles '.' tau                     { epi $2 $4 }
+     | let id '=' tau in tau                    { elet $2 $4 $6 }
+     | tau ':' tau                              { Ann $1 $3 }
 
-teles :             { [] }
-      | tele teles  {$1:$2}
+     -- sugar
+     | tau '->' tau                             { epiNoDenp $1 $3 }
+     | tau_tele '->' tau                        { epi [$1] $3 }
 
-tele : '(' id ':' expr ')'         { ($2, $4) }
+     -- surface language
+     | nat                                      { Nat }
+     | digits                                   { Lit $1 }
+     | tau '+' tau                              { PrimOp Add $1 $3 }
 
+tau_app : tau_app tau_term                      { App $1 $2 }
+        | tau_term                              { $1 }
+
+tau_term : '(' tau ')'                           { $2 }
+
+rho_app : rho_app exp_term                      { App $1 $2 }
+        | exp_term                              { $1 }
+
+exp_term : '(' expr ')'                         { $2 }
+
+sigma_teles :                                   { [] }
+            | sigma_tele sigma_teles            { $1:$2 }
+
+sigma_tele : '(' id ':' sigma ')'               { ($2, $4) }
+
+tau_teles :                                     { [] }
+          | tau_tele tau_teles                  { $1:$2 }
+
+tau_tele : '(' id ':' tau ')'                   { ($2, $4) }
 
 {
 
