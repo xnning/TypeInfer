@@ -574,11 +574,11 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \]
 
 
-\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta$}
+\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \[
 \inferrule*[right=EVar-Tau-Uni]
-{ \widehat \alpha \notin ftv(\tau)} % occur check
+{ }
 {\Gamma[\widehat \alpha ] \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma[\widehat \alpha=\tau]}
 \]
 
@@ -657,7 +657,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\Gamma[\widehat \alpha] \dsk \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) \dashv \Theta }
 \]
 
-\framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta$}
+\framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \[
 \inferrule*[right=EVar-Typed]
