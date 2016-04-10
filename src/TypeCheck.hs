@@ -168,7 +168,7 @@ bicheck (Let bnd) mode = do
       (rho, s2) <- bicheck e2 mode
       return (rho, s2 `compose` s1)
 
-bicheck (Kind Star) mode = instSigma estar mode
+bicheck Star        mode = instSigma estar mode
 bicheck Nat         mode = instSigma estar mode
 bicheck (Lit{})     mode = instSigma Nat mode
 bicheck (PrimOp op m n) mode = do
@@ -277,7 +277,7 @@ unifiableType :: Expr -> TcMonad Bool
 unifiableType (TVar _ _ )   = return True
 unifiableType (Skolem _ _ ) = return True
 unifiableType (Var _)       = return True
-unifiableType (Kind Star)   = return True
+unifiableType Star          = return True
 unifiableType Nat           = return True
 unifiableType (App e1 e2)   = multiUnifiableType [e1,e2]
 unifiableType (Ann e1 e2)   = multiUnifiableType [e1, e2]

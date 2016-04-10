@@ -14,7 +14,7 @@ data Tele = Empty
 
 -- | Syntax of the core, with optimization of aggregate bindings
 data Expr = Var TmName
-          | Kind Kinds
+          | Star
           | App Expr Expr
           | Lam (Bind TmName Expr)
           | LamAnn (Bind (TmName, Embed Expr) Expr)
@@ -51,16 +51,11 @@ subExpr = PrimOp Sub
 multExpr :: Expr -> Expr -> Expr
 multExpr = PrimOp Mult
 
-data Kinds = Star
-  deriving (Show, Generic, Typeable)
-
 instance Alpha Expr
 instance Alpha Operation
-instance Alpha Kinds
 instance Alpha Tele
 
 instance Subst Expr Operation
-instance Subst Expr Kinds
 instance Subst Expr Tele
 
 instance Subst Expr Expr where
@@ -125,7 +120,7 @@ forallWithName :: [(TmName, Expr)] -> Expr -> Expr
 forallWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Forall (bind pi b)
 
 estar :: Expr
-estar = Kind Star
+estar = Star
 
 eapp :: Expr -> Expr -> Expr
 eapp = App
