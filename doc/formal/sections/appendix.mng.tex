@@ -341,7 +341,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=Lam-Infer]
 {\Gamma, \widehat{\alpha}:\star, \widehat{\beta}:\star, x: \widehat \alpha \checktypeno e : \widehat \beta \dashv \Theta, x:\widehat \alpha , \Delta}
-{\infertype (\lambda x.\, e) : (\Pi x: \widehat \alpha. \beta) \dashv \Theta}
+{\infertype (\lambda x.\, e) : (\Pi x: \widehat \alpha. \widehat \beta) \dashv \Theta}
 \]
 
 \[
@@ -526,7 +526,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=Lamann]
 {
 \Gamma \unify \sigma_1 \sqsubseteq \sigma_3 \dashv \Theta_1 \\
-\Gamma, x:\sigma_1 \dskunify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
+\Theta_1, x:\sigma_1 \dskunify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
 {\Gamma \dskunify \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
 }
 \]
@@ -618,7 +618,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=EVar-Lamann]
 {
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
 \unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
 \Theta_1, x:\sigma_1 \dsk \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta, x:\sigma_1, \Delta }
 {\Gamma[\widehat \alpha]\dsk \widehat \alpha \sqsubseteq (\lambda x:\sigma_1. \sigma_2) \dashv \Theta
