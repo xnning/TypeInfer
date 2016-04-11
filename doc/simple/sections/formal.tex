@@ -1,0 +1,123 @@
+% Setup spaces between column
+\setlength{\tabcolsep}{2pt}
+
+\section{Specification}
+
+\subsection{Syntax}
+\begin{tabular}{lrcl}
+Expressions & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
+&& \synor & $\erlam x e \mid \blam x \tau e$ \\
+&& \synor & $\bpi x {\tau_1} \tau_2$ \\
+&& \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
+&& \synor & $\ercastup e \mid \castdn e$ \\
+&& \synor & $e : \tau$ \\
+Contexts &
+$\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,\genA \mid \ctx,\genA=\tau$ \\
+\end{tabular}
+
+\subsection{Algorithmic Typing}
+\newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo}\rname{T-Ax}}
+\newcommand*{\TVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau \toctxo}\rname{T-Var}}
+\newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
+    \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx}\rname{T-Sub}}
+\newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \\
+    \ctxl_1 \bychk e:\tau \toctx}{\preinf (e:\tau):\tau \toctx}\rname{T-Ann}}
+\newcommand*{\TLamInf}{\inferrule{\prechk[,\genA,\genB,x:\genA]
+    e:\genB \toctx,x:\genA,\ctxr}{\preinf \erlam x e : \bpi x \genA
+    \genB \toctx}\rname{T-Lam$\Inf$}}
+\newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
+    e:\tau_2 \toctx,x:\tau_1,\ctxr}{\prechk \erlam x e : \bpi x {\tau_1}
+    \tau_2 \toctx}\rname{T-Lam$\Chk$}}
+\newcommand*{\TLamAnn}{\inferrule{\preinf[,x:\tau_1]
+    e:\tau_2 \toctx,x:\tau_1,\ctxr}{\preinf \blam x {\tau_1} e : \bpi x {\tau_1}
+    \tau_2 \toctx}\rname{T-LamAnn}}
+\newcommand*{\TAppPi}{\inferrule{
+    \preinf e_1 : \bpi x {\tau_1} \tau_2 \toctx_1 \\
+    \ctxl_1 \bychk e_2 : [\ctxl_1]\tau_1 \toctx \\
+}{\preinf e_1~e_2:\tau_2 \subst x
+    {e_2} \toctx}\rname{T-AppPi}}
+\newcommand*{\TAppVar}{\inferrule{
+    \preinf e_1 : \genA \toctx_1[\genA] \\
+    \ctxl_1[\genA_1,\genA_2,\genA=\bpi x {\genA_1} \genA_2] \bychk e_2 : \genA_1 \toctx \\
+}{\preinf e_1~e_2:\genA_2 \toctx}\rname{T-AppVar}}
+\newcommand*{\TPi}{\inferrule{\prechk \tau_1 : \star \toctx_1 \\
+\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx}{\preinf \bpi x {\tau_1} {\tau_2} :
+    \star \toctx}\rname{T-Pi}}
+\newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \\
+\preinf e_2 \subst x {e_1} : \tau_2 \toctx}{\preinf \kw{let} x=e_1
+\kw{in} e_2 : \tau_2 \toctx}\rname{T-Let}}
+\newcommand*{\TCastUp}{\inferrule{\prechk e : \tau_1 \toctx \\ [\ctx]\tau_2
+    \redto \tau_1}{\prechk \ercastup e : \tau_2 \toctx}\rname{T-CastUp}}
+\newcommand*{\TCastDn}{\inferrule{\preinf e : \tau_1 \toctx \\
+    [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
+    \toctx}\rname{T-CastDn}}
+
+\newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
+\newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
+\newcommand*{\UEVarEVar}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar}}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \genA \lt \tau \toctxo[\genA=\tau]}\rname{U-EVarTy}}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \tau \lt \genA \toctxo[\genA=\tau]}\rname{U-TyEVar}}
+\newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
+\newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
+    \ctxl_1 \byuni [\ctxl_1]\tau_1 \lt [\ctxl_1]\tau_1'
+    \toctx}{\preuni \tau_1~\tau_2 \lt \tau_1'~\tau_2'
+    \toctx}\rname{U-App}}
+\newcommand*{\ULam}{\inferrule{\preuni[,x] \tau \lt \tau'
+    \toctx,x,\ctxr}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
+\newcommand*{\ULamAnn}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
+    \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
+    \toctx,x:\tau_1,\ctxr}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
+    {\tau_1'} \tau_2' \toctx}\rname{U-LamAnn}}
+\newcommand*{\UPi}{\inferrule{\preuni \tau_1' \lt \tau_1 \toctx_1
+    \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
+    \toctx,x:\tau_1,\ctxr}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
+    {\tau_1'} \tau_2' \toctx}\rname{U-Pi}}
+\newcommand*{\ULet}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
+    \\ \ctxl_1 \byuni {[\ctxl_1]}\tau_2 \lt [\ctxl_1]\tau_2'
+    \toctx}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
+    {\tau_1'} \kw{in} \tau_2' \toctx}\rname{U-Let}}
+\newcommand*{\UCastUp}{\inferrule{\preuni \tau \lt \tau'
+    \toctx}{\preuni \ercastup \tau \lt \ercastup \tau' \toctx}\rname{U-CastUp}}
+\newcommand*{\UCastDn}{\inferrule{\preuni \tau \lt \tau'
+    \toctx}{\preuni \castdn \tau \lt \castdn \tau' \toctx}\rname{U-CastDn}}
+\newcommand*{\UAnn}{\inferrule{\preuni \tau \lt \tau' \toctx_1 \\
+    \ctxl_1 \byuni [\ctxl_1]e \lt [\ctxl_1]e'
+    \toctx}{\preuni e:\tau \lt e':\tau'
+    \toctx}\rname{U-Ann}}
+
+\headercapm{\preall e:\tau \toctx}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+\[\TAx \quad \TVar\]
+\[\TAppPi\]
+\[\TAppVar\]
+\[\TLamInf\]
+\[\TLamChk\]
+\[\TLamAnn\]
+\[\TPi\]
+\[\TLet\]
+\[\TCastUp\]
+\[\TCastDn\]
+\[\TAnn\]
+\[\TSub\]
+\\
+\headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
+\\
+\[\UVar\]
+\[\UEVarId\]
+\[\UEVarEVar\]
+\[\UEVarTy\]
+\[\UTyEVar\]
+\[\UStar\]
+\[\UApp\]
+\[\ULam\]
+\[\ULamAnn\]
+\[\UPi\]
+\[\ULet\]
+\[\UCastUp\]
+\[\UCastDn\]
+\[\UAnn\]
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% End:
