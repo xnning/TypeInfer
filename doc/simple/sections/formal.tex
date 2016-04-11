@@ -28,7 +28,8 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
 \newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
     e:\tau_2 \toctx,x:\tau_1,\ctxr}{\prechk \erlam x e : \bpi x {\tau_1}
     \tau_2 \toctx}\rname{T-Lam$\Chk$}}
-\newcommand*{\TLamAnn}{\inferrule{\preinf[,x:\tau_1]
+\newcommand*{\TLamAnn}{\inferrule{\prechk \tau_1 : \star \toctx_1 \\
+    \ctxl_1,x:\tau_1 \byinf
     e:\tau_2 \toctx,x:\tau_1,\ctxr}{\preinf \blam x {\tau_1} e : \bpi x {\tau_1}
     \tau_2 \toctx}\rname{T-LamAnn}}
 \newcommand*{\TAppPi}{\inferrule{
@@ -46,15 +47,16 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \\
 \preinf e_2 \subst x {e_1} : \tau_2 \toctx}{\preinf \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \toctx}\rname{T-Let}}
-\newcommand*{\TCastUp}{\inferrule{\prechk e : \tau_1 \toctx \\ [\ctx]\tau_2
-    \redto \tau_1}{\prechk \ercastup e : \tau_2 \toctx}\rname{T-CastUp}}
+\newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
+    \redto \tau_1 \\ \prechk e : \tau_1 \toctx}{\prechk \ercastup e : \tau_2 \toctx}\rname{T-CastUp}}
 \newcommand*{\TCastDn}{\inferrule{\preinf e : \tau_1 \toctx \\
     [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \toctx}\rname{T-CastDn}}
 
 \newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
-\newcommand*{\UEVarEVar}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar}}
+\newcommand*{\UEVarEVarA}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar1}}
+\newcommand*{\UEVarEVarB}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genB \lt \genA \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar2}}
 \newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \genA \lt \tau \toctxo[\genA=\tau]}\rname{U-EVarTy}}
 \newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \tau \lt \genA \toctxo[\genA=\tau]}\rname{U-TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
@@ -103,7 +105,8 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
 \\
 \[\UVar\]
 \[\UEVarId\]
-\[\UEVarEVar\]
+\[\UEVarEVarA\]
+\[\UEVarEVarB\]
 \[\UEVarTy\]
 \[\UTyEVar\]
 \[\UStar\]
@@ -116,6 +119,45 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
 \[\UCastDn\]
 \[\UAnn\]
 
+\subsection{Examples}
+
+Highlighted parts are unifications.
+\begin{itemize}
+\item Derivation of $(\erlam x x)~3$. Let $\ctx=\genA,\genB,x:\genA$.
+\[\small
+\inferrule{
+  \inferrule{
+    \inferrule{
+      \inferrule{x:\genA \in \ctx}{\ctx \byinf x:\genA
+        \dashv \ctx}\rname{T-Var} \\
+      \hl{\inferrule{ }{\ctx \byuni \genA \lt \genB \dashv \genA,\genB=\genA,x:\genA}\rname{U-EVarEVar}}
+    }{\genA,\genB,x:\genA \bychk x:\genB \dashv \genA,\genB=\genA,x:\genA}\rname{T-Sub}
+  }{\byinf \erlam x x:\genA \to \genB \dashv
+    \genA,\genB=\genA}\rname{T-Lam$\Inf$} \\ \quad \\\\
+  \inferrule{\genA,\genB=\genA \byinf 3:\Int \dashv
+    \genA,\genB=\genA \\ \hl{\genA,\genB=\genA \byuni \Int \lt \genA \dashv \genA=\Int,\genB=\genA}
+    }{\genA,\genB=\genA \bychk 3:\genA \dashv \genA=\Int,\genB=\genA}\rname{T-Sub} \\
+}{\byinf (\erlam x x)~3:\genB \dashv \genA=\Int,\genB=\genA}\rname{T-AppPi}
+\]
+\item Derivation of $\erlam x x + 1$, or $\erlam x (+)~x~1$. Let
+  $\ctx=\genA,\genB,x:\genA$ and $\ctxl=\genA=\Int,\genB,x:\genA$.
+\[\small
+\inferrule{
+  \inferrule{
+    \inferrule{
+      \inferrule{
+        \preinf (+):\Int \to \Int \to \Int \toctxo \\
+        \inferrule{\preinf x : \genA \toctxo \\\\ \hl{\preuni \genA \lt
+            \Int \dashv \genA=\Int,\genB,x:\genA}}{\prechk x : \Int \dashv \genA=\Int,\genB,x:\genA}\rname{T-Sub}
+      }{\preinf (+)~x:\Int \to \Int \dashv \ctxl}\rname{T-AppPi} \\
+      \ctxl \bychk 1 : \Int \dashv \ctxl
+    }{\preinf (+)~x~1:\Int \dashv \ctxl}\rname{T-AppPi} \\
+    \hl{\ctxl \byuni \Int \lt \genB \dashv \genA=\Int,\genB=\Int,x:\genA}
+    }{\genA,\genB,x:\genA \bychk (+)~x~1:\genB \dashv \genA=\Int,\genB=\Int,x:\genA}\rname{T-Sub} \\
+}{\byinf \erlam x (+)~x~1 : \genA \to \genB \dashv \genA=\Int,\genB=\Int}\rname{T-Lam$\Inf$}
+\]
+
+\end{itemize}
 
 %%% Local Variables:
 %%% mode: latex
