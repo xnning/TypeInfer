@@ -438,7 +438,7 @@ instSigma t (Check ty) = do
     return (multiSubst sub ty, sub)
 
 -----------------------------------------
---  Pr: floating foralls.
+--  Pr: extract forall.
 -----------------------------------------
 
 -- pr
@@ -457,13 +457,6 @@ pr (Forall bd) = do
                 rest' = substTele sub rest
                 body_type' = multiSubst sub body_type
             go rest' (acc ++ [x]) body_type'
--- PR-FUN
-pr (Pi bd) = do
-    (tele, body_type) <- unbind bd
-    (skole, rho) <- pr body_type
-    if null skole
-    then return ([], Pi bd)
-    else return (skole, Pi (bind tele rho))
 -- PR-OTHER-CASE
 pr t = return ([], t)
 
