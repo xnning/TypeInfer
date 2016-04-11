@@ -217,17 +217,16 @@ checkEq e1 e2 =
 
 -- unify
 unify :: Expr -> Expr -> [Expr] -> TcMonad Sub
-unify e1 e2 bad_vars = do
-    pr1@(skom1, body1) <- pr e1
-    pr2@(skom2, body2) <- pr e2
-    unless (length skom1 == length skom2) $ unifyError e1 e2
-    if null skom1
-    then go e1 e2
-    else unifyForall pr1 pr2 bad_vars
- where -- no forall in go
+unify e1 e2 bad_vars = go e1 e2
+ where
        go  e1           e2       | aeq e1 e2 = return []
        go (TVar n k)    t                    = unifyTVar n k t
        go  t           (TVar n k)            = unifyTVar n k t
+       go e1@(Forall bnd1) e2@(Forall bnd2)          = do
+          (nm1, a1, r1, _) <- unpi e1
+          (nm2, a2, r2, _) <- unpi e2
+          newnm <- genSkolemVar a1
+          multiUnify [(a1, a2, bad_vars), (subst nm1 newnm r1, subst nm2 newnm r2, newnm:bad_vars)]
        go e1@(Pi bnd1) e2@(Pi bnd2)          = do
           (nm1, a1, r1, _) <- unpi e1
           (nm2, a2, r2, _) <- unpi e2
@@ -303,20 +302,6 @@ multiUnifiableType (hd:tl) = do
 
 unifiableError :: (MonadError T.Text m) => Expr -> m a
 unifiableError e1 = throwError $ T.concat ["type ", showExpr e1, " is not unifiable"]
-
--- unify two forall
--- the type of Skolem should be same. then check body
-unifyForall :: ([Expr], Expr) -> ([Expr], Expr) -> [Expr] -> TcMonad Sub
-unifyForall ([], body1) ([], body2) bad_vars = unify body1 body2 bad_vars
-unifyForall ((Skolem nm1 t1):rest1, body1) ((Skolem nm2 t2):rest2, body2) bad_vars = do
-    sub1 <- unify t1 t2 bad_vars
-    let rest1' = map (multiSubst sub1) rest1
-        body1' = multiSubst sub1 body1
-    let sub2 = sub1 `compose` [(nm2, Skolem nm1 t1)]
-        rest2' = map (multiSubst sub2) rest2
-        body2' = multiSubst sub2 body2
-    sub3 <- unifyForall (rest1', body1') (rest2', body2') (Skolem nm1 t1 : bad_vars)
-    return $ sub3 `compose` sub1
 
 -----------------------------------------
 --  Polymorphic Relation
