@@ -273,13 +273,14 @@ unifyTVar n k t = do
       throwError $ T.concat ["occur check fails: ", showExpr (Var n), ", ", showExpr t']
    return $ [(n,t')] `compose` sub1
 
+-- tau test
 unifiableType :: Expr -> TcMonad Bool
 unifiableType (TVar _ _ )   = return True
 unifiableType (Skolem _ _ ) = return True
 unifiableType (Var _)       = return True
 unifiableType Star          = return True
 unifiableType Nat           = return True
-unifiableType (App e1 e2)   = multiUnifiableType [e1,e2]
+unifiableType (App e1 e2)   = multiUnifiableType [e1, e2]
 unifiableType (Ann e1 e2)   = multiUnifiableType [e1, e2]
 unifiableType (CastUp e)    = unifiableType e
 unifiableType (CastDown e)  = unifiableType e
