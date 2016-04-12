@@ -31,12 +31,13 @@ import           Syntax
 import qualified Data.Set as Set
 import           PrettyPrint
 
-type Env = [(TmName, Expr)]
+type TypeConstraint = Expr
+type Substitution = Expr
+type Env = [(TmName, (Maybe TypeConstraint, Maybe Substitution))]
 type Sub = [(TmName, Expr)]
 data Context = Ctx {_env :: Env}
 
 type TcMonad = FreshMT (StateT Context (Except T.Text))
-
 
 runTcMonad :: Context -> TcMonad a -> (Either T.Text a)
 runTcMonad env m = runExcept $ evalStateT (runFreshMT m) env
@@ -48,15 +49,24 @@ lookupTy :: (MonadState Context m, MonadError T.Text m) => TmName -> m Expr
 lookupTy v = do
   ctx <- gets _env
   case lookup v ctx of
-    Nothing  -> throwError $ T.concat ["Ty Not in scope: ", T.pack . show $ v]
-    Just res -> return res
+    Just (Just ty, _) -> return ty
+    _  -> throwError $ T.concat ["Ty Not in scope: ", T.pack . show $ v]
+
+lookupTyCstr :: (MonadState Context m, MonadError T.Text m) => TmName -> m (Maybe TypeConstraint)
+lookupTyCstr v = do
+  ctx <- gets _env
+  case lookup v ctx of
+    Just (ty, _) -> return ty
+    _  -> throwError $ T.concat ["Ty Not in scope: ", T.pack . show $ v]
+
 
 -- change env
 
-extendCtx :: (MonadState Context m) => Env -> m a -> m a
+extendCtx :: (MonadState Context m) => [(TmName, Expr)] -> m a -> m a
 extendCtx d act = do
+  let d' = map (\(tm, tt) -> (tm, (Just tt, Nothing))) d
   origin <- gets _env
-  withNewEnv (d ++ origin) act
+  withNewEnv (origin ++ d') act
 
 withNewEnv :: (MonadState Context m) => Env -> m a -> m a
 withNewEnv env act = do
@@ -67,21 +77,22 @@ withNewEnv env act = do
   return res
 
 substEnv ::  (MonadState Context m)  => Sub -> m a -> m a
-substEnv sub act = do
-  origin <- gets _env
-  let env = map (\(t,e) -> (t, multiSubst sub e)) origin
-  withNewEnv env act
+substEnv sub act = undefined {-do-}
+  {-origin <- gets _env-}
+  {-let env = map (\(t,e) -> (t, multiSubst sub e)) origin-}
+  {-withNewEnv env act-}
 
 -- subst
 
-multiSubst :: Sub -> Expr -> Expr
-multiSubst sub typ = (foldl (\ty (x, t) -> subst x t ty) typ sub)
+multiSubst :: sub -> expr -> expr
+multiSubst sub typ = undefined{- (foldl (\ty (x, t) -> subst x t ty) typ sub)-}
 
-substTele :: Sub -> Tele -> Tele
-substTele sub Empty = Empty
-substTele sub (Cons rb) = Cons $ rebind (x, Embed (multiSubst sub t)) (substTele sub b)
-  where
-    ((x, Embed t), b) = unrebind rb
+substTele :: sub -> tele -> tele
+substTele = undefined
+{-substtele sub empty = empty-}
+{-substtele sub (cons rb) = cons $ rebind (x, embed (multisubst sub t)) (substtele sub b)-}
+  {-where-}
+    {-((x, Embed t), b) = unrebind rb-}
 
 -- generate name
 genName :: (Fresh m) => m TmName
@@ -177,17 +188,17 @@ boundtele (Cons rb) = do
 
 
 ftvctx ::(MonadState Context m, MonadError T.Text m, Fresh m) =>  m Freevar
-ftvctx = do
-    ctx <- gets _env
-    foldM (\fv (_, t)-> do
-                t' <- ftv t
-                return $ fv `ftv_union` t')
-          []
-          ctx
+ftvctx = undefined {-do-}
+    {-ctx <- gets _env-}
+    {-foldM (\fv (_, t)-> do-}
+                {-t' <- ftv t-}
+                {-return $ fv `ftv_union` t')-}
+          {-[]-}
+          {-ctx-}
 
 ftv_diff :: Freevar -> Freevar -> Freevar
-ftv_diff s1 s2 = filter (\(nm, _) -> not $ nm `elem` lst) s1 where lst = map fst s2
+ftv_diff s1 s2 = undefined{- filter (\(nm, _) -> not $ nm `elem` lst) s1 where lst = map fst s2-}
 
 ftv_union :: Freevar -> Freevar -> Freevar
-ftv_union s1 s2 = foldr (\var@(nm, _) acc -> if nm `elem` lst then acc else acc ++ [var] ) s1 s2 where lst = map fst s1
+ftv_union s1 s2 = undefined{- foldr (\var@(nm, _) acc -> if nm `elem` lst then acc else acc ++ [var] ) s1 s2 where lst = map fst s1-}
 
