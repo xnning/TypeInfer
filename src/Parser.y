@@ -73,7 +73,7 @@ aexp : aexp term                                { App $1 $2 }
 term : nat                                      { Nat }
      | id                                       { evar $1 }
      | digits                                   { Lit $1 }
-     | '*'                                      { Kind Star }
+     | '*'                                      { Star }
      | '(' expr ')'                             { $2 }
 
 teles :             { [] }
