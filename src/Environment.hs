@@ -12,7 +12,6 @@ module Environment (
     generalization,
     substEnv,
     genName,
-    genSkolemVar,
     genTVar,
     substTele,
     ftvctx,
@@ -102,10 +101,6 @@ genTVar :: (Fresh m) => Expr -> m Expr
 genTVar t = do nm <- genName
                return $ TVar nm t
 
-genSkolemVar :: (Fresh m) => Expr -> m Expr
-genSkolemVar t = do nm <- genName
-                    return $ Skolem nm t
-
 -- instantiation used in var
 instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 instantiate ty = case ty of
@@ -134,9 +129,6 @@ type Freevar = [(TmName, Expr)]
 
 ftv :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
 ftv (Var    n  ) = return [(n, undefined)]
-ftv (Skolem n k) = do
-    f1 <- ftv k
-    return $ [(n, k)] `ftv_union` f1
 ftv (TVar   n k) = do
     f1 <- ftv k
     return $ [(n, k)] `ftv_union` f1

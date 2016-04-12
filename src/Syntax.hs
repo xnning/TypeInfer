@@ -33,7 +33,6 @@ data Expr = Var TmName
           | PrimOp Operation Expr Expr
 
           -- helper, not in syntax
-          | Skolem TmName Expr -- TmName : Expr
           | TVar   TmName Expr
   deriving (Show, Generic, Typeable)
 
@@ -65,8 +64,6 @@ instance Subst Expr Expr where
                      | otherwise = Var tm2
       go (TVar v ty) | tm == v = a
                      | otherwise = TVar v (go ty)
-      go (Skolem v ty) | tm == v = a
-                     | otherwise = Skolem v (go ty)
       go (App e1 e2) = App (go e1) (go e2)
       go (Lam bd)    = Lam (subst tm a bd)
       go (LamAnn bd) = LamAnn (subst tm a bd)

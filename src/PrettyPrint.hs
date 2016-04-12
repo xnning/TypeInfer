@@ -67,7 +67,6 @@ instance Pretty Expr where
     e1' <- ppr e1
     e2' <- ppr e2
     return (PP.parens $ e1' <+> text ":" <+> e2')
-  ppr (Skolem t n) = return . text . show $ t
   ppr (TVar t n) = return . text . show $ t
 
 instance Pretty Operation where

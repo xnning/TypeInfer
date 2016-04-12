@@ -181,7 +181,6 @@ bicheck (PrimOp op m n) mode = do
 bicheck p@(Pi ty) mode     = inferFun p mode
 bicheck (Forall ty) mode = inferFun (Pi ty) mode
 bicheck (TVar _ t) mode   = instSigma t mode
-bicheck (Skolem _ t) mode = instSigma t mode
 bicheck (CastUp e) (Check rho) = do
     sigma <- oneStep rho
     checkSigma e sigma
@@ -225,12 +224,12 @@ unify e1 e2 bad_vars = go e1 e2
        go e1@(Forall bnd1) e2@(Forall bnd2)          = do
           (nm1, a1, r1, _) <- unpi e1
           (nm2, a2, r2, _) <- unpi e2
-          newnm <- genSkolemVar a1
+          newnm <- genVar a1
           multiUnify [(a1, a2, bad_vars), (subst nm1 newnm r1, subst nm2 newnm r2, newnm:bad_vars)]
        go e1@(Pi bnd1) e2@(Pi bnd2)          = do
           (nm1, a1, r1, _) <- unpi e1
           (nm2, a2, r2, _) <- unpi e2
-          newnm <- genSkolemVar a1
+          newnm <- genVar a1
           multiUnify [(a1, a2, bad_vars), (subst nm1 newnm r1, subst nm2 newnm r2, newnm:bad_vars)]
        go (CastUp e)   (CastUp e2)           = unify e e2 bad_vars
        go (CastDown e) (CastDown e2)         = unify e e2 bad_vars
@@ -245,7 +244,7 @@ unify e1 e2 bad_vars = go e1 e2
        go (LamAnn bd1) (LamAnn bd2)          = do
           ((x1, Embed t1), body1) <- unbind bd1
           ((x2, Embed t2), body2) <- unbind bd2
-          newnm <- genSkolemVar t1
+          newnm <- genVar t1
           multiUnify [(t1, t2, bad_vars), (subst x1 newnm body1, subst x2 newnm body2, newnm:bad_vars)]
        go  e1           e2                   = unifyError e1 e2
 
@@ -275,7 +274,6 @@ unifyTVar n k t = do
 -- tau test
 unifiableType :: Expr -> TcMonad Bool
 unifiableType (TVar _ _ )   = return True
-unifiableType (Skolem _ _ ) = return True
 unifiableType (Var _)       = return True
 unifiableType Star          = return True
 unifiableType Nat           = return True
@@ -313,7 +311,7 @@ subCheck :: Expr -> Expr -> [Expr] -> TcMonad Sub
 subCheck sigma1 sigma2 _ | aeq sigma1 sigma2 = return []
 subCheck sigma1 sigma2 bad_vars = do
     (skole, rho) <- pr sigma2
-    let skole' = map (\(Skolem x _) -> x) skole
+    let skole' = map (\(Var x) -> x) skole
     sub <- subCheckRho sigma1 rho bad_vars
     t1 <- fmap (map fst) $ substEnv sub ftvctx
     t2 <- fmap (map fst) . ftv $ multiSubst sub sigma1
@@ -399,7 +397,7 @@ inferSigma expr = do
 checkSigma :: Expr -> Expr -> TcMonad (Expr, Sub)
 checkSigma expr sigma = do
     (skole, rho) <- pr sigma
-    let skole' = map (\(Skolem x _) -> x) skole
+    let skole' = map (\(Var x _) -> x) skole
     (res, sub) <- checktype expr rho
     t1 <- fmap (map fst) $ substEnv sub ftvctx
     t2 <- fmap (map fst) . ftv $ multiSubst sub sigma
@@ -437,7 +435,7 @@ pr (Forall bd) = do
             return (acc ++ acc', rho)
           go (Cons bnd) acc body_type = do
             let ((nm, Embed t), rest) = unrebind bnd
-            x <- genSkolemVar t
+            x <- genVar t
             let sub = [(nm, x)]
                 rest' = substTele sub rest
                 body_type' = multiSubst sub body_type
