@@ -663,7 +663,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=EVar-Typed]
 {
 \sigma_\rho = [\Gamma [\widehat \alpha:\tau_\alpha] ] get\_type(\rho)\\
-\Gamma[\widehat \alpha:\tau_\alpha] \dsk \sigma_\rho \sqsubseteq \tau_\alpha \dashv \Theta_1[\widehat \alpha:\tau_\alpha\{=\tau_1\}] \\
+\Gamma[\widehat \alpha:\tau_\alpha] \dsk \sigma_\rho \sqsubseteq [ \Gamma[\widehat \alpha:\tau_\alpha] ]\tau_\alpha \dashv \Theta_1[\widehat \alpha:\tau_\alpha\{=\tau_1\}] \\
 \Theta_2 = \Theta_1[\widehat \alpha\{=\tau_1\}] \\
 \Theta_2 \dskunify [\Theta_2]\widehat \alpha \sqsubseteq [\Theta_2]\rho \dashv \Theta
 }
