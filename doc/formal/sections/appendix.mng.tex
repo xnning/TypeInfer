@@ -578,8 +578,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=EVar-Tau-Uni]
-{ }
-{\Gamma[\widehat \alpha ] \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma[\widehat \alpha=\tau]}
+{ \Gamma_1 \vdash \tau}
+{\Gamma_1, \widehat \alpha, \Gamma_2 \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma_1, \widehat \alpha=\tau, \Gamma_2}
 \]
 
 \[
