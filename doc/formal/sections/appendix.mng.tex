@@ -426,7 +426,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=ImplicitPi]
 {\checktype \tau : \star \dashv \Theta_1 \\
-\Theta_1, x:\tau \checktypeno \rho_1 : \star \dashv \Theta_2 \\
+\Theta_1, x:\tau \checktypeno \rho_1 : \star \dashv \Theta_2, x:\tau, \Delta \\
 \Theta_2 \instinfercheck \star \sqsubseteq \rho
 }
 {\infercheck (\forall x : \tau. \rho_1) : \rho \dashv \Theta}
@@ -435,7 +435,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=ExplicitPi]
 {\checktype \sigma_1 : \star \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \checktypeno \sigma_2 : \star \dashv \Theta_2 \\
+\Theta_1, x:\sigma_1 \checktypeno \sigma_2 : \star \dashv \Theta_2, x:\sigma_1, \Delta \\
 \Theta_2 \instinfercheck \star \sqsubseteq \rho
 }
 {\infercheck (\Pi x : \sigma_1. \sigma_2) : \rho \dashv \Theta}
