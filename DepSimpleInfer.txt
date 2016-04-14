@@ -50,19 +50,76 @@ x:t \in T
 T |-  x => t  -| T
 
 ----------------------------------------------------
-T, x, Y |- x <= t  -| T [~x -> t], x : t, Y[~x -> t]
+T, x, Y |- x <= t  -| T [~x -> t], x : t, Y[~x -> t]          (is the scoping of ~x correct here?)
 
-x \in T
------------------- (Special rule, creates a "unification variable")
-T |- x => ~x  -| T
+-------------------------- (Special rule, creates a "unification variable")
+T, x, X |- x => ~x  -| T, x : ~x, X
 
 Need to flip modes?
 
-T |- e => t
----------- ???
-T |- e <= t
+T |- e => t1 -| X           X |- t1 <: t2 -| Y
+---------------------------------
+T |- e <= t2 -| Y
 
-More rules:
+========
+Substitution
+========
+
+--------
+T [x -> t]     (Rule form)
+--------
+
+. [x -> t] = .      (empty case)
+T, x [x -> t] = T, x: t
+T, y [x -> t] = T, y
+
+=======
+Unification
+=======
+
+-------------
+X |- t1 <: t2 -| Y   (Rule form)
+-------------
+
+
+T |- * <: * -| T
+
+T[x] |- x <: x -| T[x]
+
+T[x] |- ~x <: ~x -| T[x]
+
+T, x : ~x, X [y] |- ~x <: ~y -| T, x : ~x, X [~y -> ~x]
+
+T, x : ~x, X [y] |- ~y <: ~x -| T, x : ~x, X [~y -> ~x]
+
+~x not in FV(t)
+----------------------------------
+T, x : ~x, X |- ~x <: t -|  T, x : t, X [~x -> t]       (double-check scoping, can T contain ~x?)
+
+~x not in FV(t)
+----------------------------------
+T, x : ~x, X |- t <: ~x -|  T, x : t, X [~x -> t]       (double-check scoping, can T contain ~x?)
+
+T |- t2 <: t4 -| X                   X |- [X] t1 <: [X] t3 -| Y
+-----------------------------------------
+T |- t1 t2 <: t3 t4 -| Y
+
+T, x  |- t1 <: t2 -| X, x                 (need some notation; could be "X, x : t, Y" too) 
+--------------------
+T |- \x . t1 <: \x . t2 -| X
+
+T, x : t  |- t1 <: t2 -| X, x : t        (note that annotations for lambda's are always written by users and are free of unification variables)           
+----------------------
+T |- \x : t . t1 <: \x . t2 -| X
+
+T |- t3 <: t1 -| X        X, x : [X] t1 |- [X] t2 <: [X] t4 -| Y, x : t1'       (t1 may contain unification variables)
+-------------------------------------------------
+T |- pi (x : t1) . t2 <: pi (x : t3) . t4 -| Y
+
+
+
+
+More rules (probably not needed if we have unification):
 
 T |- e2 => t1 -| X      X |- e1 <= pi (x: t1) . t2 -| Y        
 -----------------------------------------
@@ -87,3 +144,13 @@ g, x |- g x <= Int -| g : ~x -> Int, x     ... |- x <= Int -| g : Int-> Int, x:I
 g, x |- g x + x => Int -| g : Int-> Int, x:Int
 ---------------------------------------
 |- \g \x . g x + x => (Int -> Int) -> Int -> Int -|
+
+
+
+g, x |- x => ~x -| g, x        g, x |- g <= ~x -> Int |- g : ~x -> Int, x           g : ~x -> Int, x |- 1 => Int -| ...       g : ~x -> Int, x |- g <= Int -> Int -|  ??
+------------------------------------------------------          ----------------------------------------------------------
+g, x |- g x <= Int  -|  g : ~x -> Int, x                                                            g : ~x -> Int, x |- g 1 <= Int
+----------------------------------------------------------------------------------
+g, x |- g x + g 1 => 
+-----------------
+|- \g \x. g x + g 1 => 
