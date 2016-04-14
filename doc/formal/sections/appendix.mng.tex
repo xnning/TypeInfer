@@ -82,7 +82,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=App]
 {\infertype e_1 : \rho_1 \dashv \Theta_1 \\
-\Theta_1 \infercheckno^{app} [\Theta_1]\rho_1\ e_2 :\rho \dashv \Theta
+\Theta_1 \infercheckno^{app} [\Theta_1]\rho_1\ \cdot e_2 :\rho \dashv \Theta
 }
 {\infercheck e_1\,e_2 : \rho \dashv \Theta}
 \]
@@ -92,24 +92,26 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {
 \polycheck e_2 : \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \instinfercheck \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
-{\infercheck^{app} (\Pi x:\sigma_1. \sigma_2)\,e_2 : \rho \dashv \Theta}
+{\infercheck^{app} (\Pi x:\sigma_1. \sigma_2) \cdot e_2 : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-tvar]
 {
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta_1 \\
+\Theta_1 \instinfercheck \widehat \alpha_2 \sqsubseteq \rho \dashv \Theta
 }
-{\Gamma[\widehat \alpha]\infercheckno^{app} \widehat \alpha \,e_2 : \widehat \alpha_2 \dashv \Theta}
+{\Gamma[\widehat \alpha]\infercheckno^{app} \widehat \alpha \cdot e_2 : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-tvar-cstr]
 {
 \Gamma[\widehat \alpha:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\widehat \alpha:\tau_\alpha] \\
-\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
+\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta_1 \\
+\Theta_1 \instinfercheck \widehat \alpha_2 \sqsubseteq \rho \dashv \Theta
 }
-{\Gamma[\widehat \alpha:\tau_\alpha]\infercheck^{app} \widehat \alpha \,e_2 : \widehat \alpha_2 \dashv \Theta}
+{\Gamma[\widehat \alpha:\tau_\alpha]\infercheck^{app} \widehat \alpha \cdot e_2 : \rho \dashv \Theta}
 \]
 
 \[
