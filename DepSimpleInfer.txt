@@ -21,17 +21,13 @@ T |- Int => * -| T
 
 T |- n => Int -| T
 
-T |- t1 <= * -| X        X, x : t1 |- t2 <= * -| Y, x : t1
+T |- t1 <= * -| X        X, x : t1 |- t2 <= * -| Y, x : t1'            (note: t1' may be more precise than t1?)
 -----------------------------------------
 T |- pi (x : t1) . t2 => * -| Y
 
 T |- e1 <= Int -| X      X |- e2 <= Int -| Y
 ---------------------------------
 T |- e1 + e2 => Int -| Y
-
-T, x : t1 |- e <= t2 -| X, x : t1      
------------------------------
-T |- \x . e <= pi (x : t1) . t2 -| X 
 
 T, x |- e => t2 -| X, x : t1
 -------------------------- (if we get X, x then ask user to annotate x) 
@@ -49,29 +45,27 @@ x:t \in T
 ------------------
 T |-  x => t  -| T
 
-----------------------------------------------------
-T, x, Y |- x <= t  -| T [~x -> t], x : t, Y[~x -> t]          (is the scoping of ~x correct here?)
-
 -------------------------- (Special rule, creates a "unification variable")
 T, x, X |- x => ~x  -| T, x : ~x, X
-
-Need to flip modes?
 
 T |- e => t1 -| X           X |- t1 <: t2 -| Y
 ---------------------------------
 T |- e <= t2 -| Y
 
-========
-Substitution
-========
+======
+Old rules (made redundant by the subsumption rule?)
+======
 
---------
-T [x -> t]     (Rule form)
---------
+----------------------------------------------------
+T, x, Y |- x <= t  -| T [~x -> t], x : t, Y[~x -> t]          (is the scoping of ~x correct here?)
 
-. [x -> t] = .      (empty case)
-T, x [x -> t] = T, x: t
-T, y [x -> t] = T, y
+T, x : t1 |- e <= t2 -| X, x : t1'                                             (note: t1' may be more precise than t1?)
+-----------------------------
+T |- \x . e <= pi (x : t1) . t2 -| X 
+
+T |- e2 => t1 -| X      X |- e1 <= pi (x: t1) . t2 -| Y        
+-----------------------------------------
+T |- e1 e2 <= t2 -| Y
 
 =======
 Unification
@@ -80,7 +74,6 @@ Unification
 -------------
 X |- t1 <: t2 -| Y   (Rule form)
 -------------
-
 
 T |- * <: * -| T
 
@@ -104,26 +97,17 @@ T |- t2 <: t4 -| X                   X |- [X] t1 <: [X] t3 -| Y
 -----------------------------------------
 T |- t1 t2 <: t3 t4 -| Y
 
-T, x  |- t1 <: t2 -| X, x                 (need some notation; could be "X, x : t, Y" too) 
---------------------
+T, x : ~x  |- t1 <: t2 -| X, x : t              
+------------------------
 T |- \x . t1 <: \x . t2 -| X
 
 T, x : t  |- t1 <: t2 -| X, x : t        (note that annotations for lambda's are always written by users and are free of unification variables)           
 ----------------------
 T |- \x : t . t1 <: \x . t2 -| X
 
-T |- t3 <: t1 -| X        X, x : [X] t1 |- [X] t2 <: [X] t4 -| Y, x : t1'       (t1 may contain unification variables)
+T |- t3 <: t1 -| X        X, x : [X] t1 |- [X] t2 <: [X] t4 -| Y, x : t1'       (t1 may contain unification variables and may be refined)
 -------------------------------------------------
 T |- pi (x : t1) . t2 <: pi (x : t3) . t4 -| Y
-
-
-
-
-More rules (probably not needed if we have unification):
-
-T |- e2 => t1 -| X      X |- e1 <= pi (x: t1) . t2 -| Y        
------------------------------------------
-T |- e1 e2 <= t2 -| Y
 
 
 Tests:
