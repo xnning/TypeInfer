@@ -40,14 +40,14 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=AX]
-{\Gamma \instinfercheck \star \sqsubseteq \rho \dashv \Theta}
-{\infercheck \star : \rho \dashv \Theta}
+{ }
+{\infertype \star : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Var]
-{x:\sigma \in \Gamma \\ \Gamma \instinfercheck \sigma \sqsubseteq \rho \dashv \Theta }
-{\infercheck x : \rho \dashv \Theta}
+{x:\sigma \in \Gamma \\ \Gamma \instinfer \sigma \sqsubseteq \rho \dashv \Theta }
+{\infertype x : \rho \dashv \Theta}
 \]
 
 \[
@@ -82,36 +82,34 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=App]
 {\infertype e_1 : \rho_1 \dashv \Theta_1 \\
-\Theta_1 \infercheckno^{app} [\Theta_1]\rho_1\ \cdot e_2 :\rho \dashv \Theta
+\Theta_1 \infertypeno^{app} [\Theta_1]\rho_1\ \cdot e_2 :\rho \dashv \Theta
 }
-{\infercheck e_1\,e_2 : \rho \dashv \Theta}
+{\infertype e_1\,e_2 : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-pi]
 {
 \polycheck e_2 : \sigma_1 \dashv \Theta_1 \\
-\Theta_1 \instinfercheck \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
-{\infercheck^{app} (\Pi x:\sigma_1. \sigma_2) \cdot e_2 : \rho \dashv \Theta}
+\Theta_1 \instinfer \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
+{\infertype^{app} (\Pi x:\sigma_1. \sigma_2) \cdot e_2 : \rho \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-tvar]
 {
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta_1 \\
-\Theta_1 \instinfercheck \widehat \alpha_2 \sqsubseteq \rho \dashv \Theta
+\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
 }
-{\Gamma[\widehat \alpha]\infercheckno^{app} \widehat \alpha \cdot e_2 : \rho \dashv \Theta}
+{\Gamma[\widehat \alpha]\infertype^{app} \widehat \alpha \cdot e_2 : \widehat \alpha_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-tvar-cstr]
 {
 \Gamma[\widehat \alpha:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\widehat \alpha:\tau_\alpha] \\
-\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta_1 \\
-\Theta_1 \instinfercheck \widehat \alpha_2 \sqsubseteq \rho \dashv \Theta
+\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
 }
-{\Gamma[\widehat \alpha:\tau_\alpha]\infercheck^{app} \widehat \alpha \cdot e_2 : \rho \dashv \Theta}
+{\Gamma[\widehat \alpha:\tau_\alpha]\infertype^{app} \widehat \alpha \cdot e_2 : \widehat \alpha_2 \dashv \Theta}
 \]
 
 \[
@@ -119,8 +117,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {
 \checktype \sigma : \star \dashv \Theta_1\\
 \Theta_1 \polycheckno (e:\sigma) \dashv \Theta_2\\
-\Theta_2 \instinfercheck \sigma : \rho \dashv \Theta}
-{\infercheck (e : \sigma) : \rho \dashv \Theta}
+\Theta_2 \instinfer \sigma : \rho \dashv \Theta}
+{\infertype (e : \sigma) : \rho \dashv \Theta}
 \]
 
 \[
@@ -134,8 +132,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=CastDown]
 {\infertype e : \rho_1 \dashv \Theta_1 \\
 [\Theta_1]\rho_1 \longrightarrow \sigma \\
-\Theta_1 \instinfercheck \sigma \sqsubseteq \rho_2 \dashv \Theta}
-{\infercheck (\castdowne e) : \rho_2 \dashv \Theta}
+\Theta_1 \instinfer \sigma \sqsubseteq \rho_2 \dashv \Theta}
+{\infertype (\castdowne e) : \rho_2 \dashv \Theta}
 \]
 
 \[
@@ -148,20 +146,27 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=ImplicitPi]
 {\checktype \tau : \star \dashv \Theta_1 \\
-\Theta_1, x:\tau \checktypeno \rho_1 : \star \dashv \Theta_2, x:\tau, \Delta \\
-\Theta_2 \instinfercheck \star \sqsubseteq \rho
+\Theta_1, x:\tau \checktypeno \rho_1 : \star \dashv \Theta, x:\tau, \Delta
 }
-{\infercheck (\forall x : \tau. \rho_1) : \rho \dashv \Theta}
+{\infertype (\forall x : \tau. \rho_1) : \star \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=ExplicitPi]
 {\checktype \sigma_1 : \star \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \checktypeno \sigma_2 : \star \dashv \Theta_2, x:\sigma_1, \Delta \\
-\Theta_2 \instinfercheck \star \sqsubseteq \rho
+\Theta_1, x:\sigma_1 \checktypeno \sigma_2 : \star \dashv \Theta, x:\sigma_1, \Delta
 }
-{\infercheck (\Pi x : \sigma_1. \sigma_2) : \rho \dashv \Theta}
+{\infertype (\Pi x : \sigma_1. \sigma_2) : \star \dashv \Theta}
 \]
+
+\[
+\inferrule*[right=Sub]
+{\infertype e : \rho_1 \dashv \Theta_1\\
+\Theta_1 \instcheck \rho_1 \sqsubseteq \rho \dashv \Theta
+}
+{\checktype e: \rho \dashv \Theta}
+\]
+
 
 \framebox{$ \Gamma \polyinfercheck e : \sigma \dashv \Theta$ }
 
