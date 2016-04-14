@@ -42,10 +42,10 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
     \ctxl_1[\genA_1,\genA_2,\genA=\bpi x {\genA_1} \genA_2] \bychk e_2 : \genA_1 \toctx \\
 }{\preinf e_1~e_2:\genA_2 \toctx}\rname{T-AppVar}}
 \newcommand*{\TPi}{\inferrule{\prechk \tau_1 : \star \toctx_1 \\
-\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx}{\preinf \bpi x {\tau_1} {\tau_2} :
+\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr}{\preinf \bpi x {\tau_1} {\tau_2} :
     \star \toctx}\rname{T-Pi}}
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \\
-\preinf e_2 \subst x {e_1} : \tau_2 \toctx}{\preinf \kw{let} x=e_1
+\preall e_2 \subst x {e_1} : \tau_2 \toctx}{\preall \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \toctx}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\ \prechk e : \tau_1 \toctx}{\prechk \ercastup e : \tau_2 \toctx}\rname{T-CastUp}}
@@ -66,10 +66,9 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
     \toctx}\rname{U-App}}
 \newcommand*{\ULam}{\inferrule{\preuni[,x] \tau \lt \tau'
     \toctx,x,\ctxr}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
-\newcommand*{\ULamAnn}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
-    \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
+\newcommand*{\ULamAnn}{\inferrule{\preuni[,x:\tau_1] \tau_2 \lt \tau_2'
     \toctx,x:\tau_1,\ctxr}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
-    {\tau_1'} \tau_2' \toctx}\rname{U-LamAnn}}
+    {\tau_1} \tau_2' \toctx}\rname{U-LamAnn}}
 \newcommand*{\UPi}{\inferrule{\preuni \tau_1' \lt \tau_1 \toctx_1
     \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
     \toctx,x:\tau_1,\ctxr}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
