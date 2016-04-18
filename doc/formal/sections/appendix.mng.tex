@@ -296,109 +296,110 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 {\Gamma[x\{:\sigma\}] \dskunify x \sqsubseteq x \dashv \Gamma[x\{:\sigma\}] }
 \]
 
+
+\newpage
+
+\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
+
+\newcommand{\co}[0]{\vdash^{co}}
+\newcommand{\contra}[0]{\vdash^{contra}}
+\newcommand{\cocontra}[0]{\vdash^{\phi}}
+\newcommand{\bemono}[0]{\leadsto}
+
 \[
 \inferrule*[right=EVar]
 { }
 {\Gamma[\widehat \alpha\{:\tau_\alpha\} ] \dskunify \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha\{:\tau_\alpha\}] }
 \]
 
-
-\newpage
-
-\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
-
 \[
-\inferrule*[right=EVar-Tau-Uni]
-{ \Gamma_1 \vdash \tau}
-{\Gamma_1, \widehat \alpha, \Gamma_2 \unify \widehat \alpha \sqsubseteq \tau \dashv \Gamma_1, \widehat \alpha=\tau, \Gamma_2}
-\]
-
-\[
-\inferrule*[right=EVar-EVar]
-{ }
-{\Gamma[\widehat \alpha][\widehat \beta\{:\tau_\beta\}] \dskunify \widehat \alpha \sqsubseteq \widehat \beta \dashv
-\Gamma[\widehat \alpha][\widehat \beta\{:\tau_\beta\} = \widehat \alpha] }
-\]
-
-\[
-\inferrule*[right=EVar-Fun]
-{\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x: \widehat \alpha_1. \widehat \alpha_2]
-    \dsk  \sigma \sqsubseteq \widehat \alpha_1 \dashv \Theta_1 \\
-\Theta_1, x: \sigma \dsk \alpha_2 \sqsubseteq [\Theta_1] \rho \dashv \Theta, x:\sigma, \Delta}
-{\Gamma[\widehat \alpha] \dsk \widehat \alpha \sqsubseteq (\Pi x:\sigma. \rho) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=EVar-App]
-{
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \widehat \alpha_1~\widehat \alpha_2]
-    \unify \alpha_2 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
-\Theta_1 \dsk \alpha_1 \sqsubseteq [\Theta_1]\tau_1 \dashv \Theta
+\inferrule*[right=EVar-Uni]
+{ \Gamma_1, \widehat \alpha, extract\_evar(\Gamma_2) \vdash \tau_1 \\
+\Gamma_1, \widehat \alpha, \Gamma_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\widehat \alpha]
 }
-{\Gamma[\widehat \alpha]\dsk \widehat \alpha \sqsubseteq (\tau_1\, \sigma_1) \dashv \Theta}
+{\Gamma_1, \widehat \alpha, \Gamma_2 \unify \widehat \alpha \sqsubseteq \tau_1 \dashv \Theta[\widehat \alpha=\tau]}
 \]
 
 \[
-\inferrule*[right=EVar-Lam]
-{
-\Gamma[\widehat \alpha_1, \widehat \alpha = \lambda x. \alpha_1], x \dsk \alpha_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
-{\Gamma[\widehat \alpha] \dsk \widehat \alpha \sqsubseteq (\lambda x. \sigma_2) \dashv \Theta }
+\inferrule*[right=EVar-Dsk]
+{\Gamma_1, \widehat \alpha, extract\_evar(\Gamma_2) \vdash \sigma \\
+\Gamma_1, \widehat \alpha, \Gamma_2 \co \sigma \bemono \tau \dashv \Theta[\widehat \alpha] }
+{ \Gamma_1, \widehat \alpha, \Gamma_2 \dsk \widehat \alpha \sqsubseteq \sigma \dashv \Theta[\widehat \alpha = \tau] }
 \]
 
-
-\[
-\inferrule*[right=EVar-Lamann]
-{
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \lambda x:\widehat \alpha_1. \widehat \alpha_2]
-\unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \dsk \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta, x:\sigma_1, \Delta }
-{\Gamma[\widehat \alpha]\dsk \widehat \alpha \sqsubseteq (\lambda x:\sigma_1. \sigma_2) \dashv \Theta
-}
-\]
-
-\[
-\inferrule*[right=EVar-Ann]
-{
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha_1 = \widehat \alpha_1:\widehat \alpha_2]
-\unify \widehat \alpha_2 \sqsubseteq \sigma_2 \dashv \Theta_1 \\
-\Theta_1 \dsk \widehat \alpha_1 \sqsubseteq [\Theta_1]\sigma_1 \dashv \Theta }
-{\Gamma[\widehat \alpha] \dsk \widehat \alpha \sqsubseteq (\sigma_1:\sigma_2) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=EVar-Castup]
-{
-\Gamma[\widehat \alpha_1, \alpha = \castupe \alpha_1] \dsk  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
-{\Gamma[\widehat \alpha] \dsk  \widehat \alpha \sqsubseteq  (\castupe \sigma_1) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=EVar-Castdown]
-{
-\Gamma[\widehat \alpha_1, \alpha = \castdowne \alpha_1] \dsk  \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta}
-{\Gamma[\widehat \alpha] \dsk  \widehat \alpha \sqsubseteq  (\castdowne \sigma_2) \dashv \Theta}
-\]
-
-\[
-\inferrule*[right=EVar-Let]
-{
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = let~x=\widehat \alpha_1~in~\widehat \alpha_2]
-\unify \widehat \alpha_1 \sqsubseteq \sigma_1 \dashv \Theta_1 \\
-\Theta_1 \dsk \widehat \alpha_2 \sqsubseteq [\Theta_1]\sigma_2 \dashv \Theta }
-{\Gamma[\widehat \alpha] \dsk \widehat \alpha  \sqsubseteq  (let\ x = \sigma_1\ in\ \sigma_2) \dashv \Theta }
-\]
+the difference between evar-uni and evar-dsk is that evar-uni requests the rhs is a mono type.
+\newline
 
 \framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \[
 \inferrule*[right=EVar-Typed]
 {
-\sigma_\rho = [\Gamma [\widehat \alpha:\tau_\alpha] ] get\_type(\rho)\\
-\Gamma[\widehat \alpha:\tau_\alpha] \dsk \sigma_\rho \sqsubseteq [ \Gamma[\widehat \alpha:\tau_\alpha] ]\tau_\alpha \dashv \Theta_1[\widehat \alpha:\tau_\alpha\{=\tau_1\}] \\
-\Theta_2 = \Theta_1[\widehat \alpha\{=\tau_1\}] \\
-\Theta_2 \dskunify [\Theta_2]\widehat \alpha \sqsubseteq [\Theta_2]\rho \dashv \Theta
+\sigma_\rho =  get\_type(\rho)\\
+\Gamma_{\widehat \alpha} \dsk[\Gamma_{\widehat \alpha}] \sigma_\rho \sqsubseteq [ \Gamma_{\widehat \alpha} ]\tau_\alpha \dashv \Theta_1[\widehat \alpha :\tau_1 \{=\tau_2\}]\\
+\Theta_1[\widehat \alpha\{=\tau_2\}] \dskunify [\Theta_1]\widehat \alpha \sqsubseteq [\Theta_1]\rho \dashv \Theta
 }
 {\Gamma[\widehat \alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta }
+\]
+
+this rule first confirm the type constraint is satisfied. Then throw the type constraint to continue the process.
+\newline
+
+
+\framebox{$\Gamma[\alpha] \cocontra \sigma \bemono \tau \dashv \Theta$} $\phi = co~|~contra$
+
+\[
+\inferrule*[right=Mono-Var]
+{ }
+{\Gamma \cocontra x \bemono x \dashv \Gamma}
+\]
+
+\[
+\inferrule*[right=Mono-EVar-left]
+{ }
+{\Gamma[\widehat \beta\{:\tau\}][\widehat \alpha] \cocontra \widehat \beta \bemono \widehat \beta \dashv \Gamma[\widehat \beta\{:\tau\}][\widehat \alpha]}
+\]
+
+\[
+\inferrule*[right=Mono-EVar-right]
+{ }
+{\Gamma[\widehat \alpha][\widehat \beta\{:\tau\}] \cocontra \widehat \beta \bemono \widehat \beta_1 \dashv \Gamma[\widehat \beta_1\{:\tau\}, \widehat \alpha][\widehat \beta = \widehat \beta_1]}
+\]
+
+\[
+\inferrule*[right=Mono-Star]
+{ }
+{\Gamma \cocontra \star \bemono \star \dashv \Gamma }
+\]
+
+\[
+\inferrule*[right=Mono-Pi-co]
+{\Gamma \contra \sigma_1 \bemono \tau_1 \dashv \Theta_1 \\
+\Theta_1 \co \sigma_2 \bemono \tau_2 \dashv \Theta_2
+}
+{\Gamma \co \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta_2}
+\]
+
+\[
+\inferrule*[right=Mono-Pi-contra]
+{
+\Gamma \co \sigma_1 \bemono \tau_1 \dashv \Theta_1 \\
+\Theta_1 \contra \sigma_2 \bemono \tau_2 \dashv \Theta}
+{\Gamma \contra \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Mono-Forall]
+{\Gamma[\widehat \alpha_1 : \tau,\widehat \alpha] \contra \sigma[ x \mapsto \widehat \alpha_1] \bemono \tau_2 \dashv \Theta}
+{\Gamma[\widehat \alpha] \contra \forall x : \tau. \sigma \bemono \tau_2 \dashv \Theta}
+\]
+
+\[
+\inferrule*[right=Mono-Other]
+{ \Gamma \cocontra \sigma_0 \bemono \tau_0 \dashv \Theta_1 \\
+\Theta_i \cocontra \sigma_i \bemono \tau_i \dashv \Theta_{i+1}
+}
+{ \Gamma \cocontra T~\overbar{\sigma}_n \bemono T~\overbar{\tau}_n \dashv \Theta_n}
 \]
 
 \clearpage
