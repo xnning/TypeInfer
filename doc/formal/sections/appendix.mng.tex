@@ -33,8 +33,12 @@
 \newcommand{\dsk}{\vdash^{dsk}}
 \newcommand{\unify}{\vdash^{unify}}
 
+\newcommand{\genvar}{\widehat}
+\newcommand{\genA}{\genvar{\alpha}}
+\newcommand{\genB}{\genvar{\beta}}
 
-$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \widehat{\alpha}~|~\Gamma, \widehat{\alpha}=\tau~|~\Gamma, \widehat{\alpha}:\tau~|~\Gamma, \widehat{\alpha}:\tau = \tau_2~|~\Gamma, \blacktriangleright_{\widehat \alpha}$
+
+$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA~|~\Gamma, \genA=\tau~|~\Gamma, \genA:\tau~|~\Gamma, \genA:\tau = \tau_2~|~\Gamma, \blacktriangleright_{\genA}$
 
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -52,8 +56,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=Lam-Infer]
-{\Gamma, \widehat{\alpha}:\star, \widehat{\beta}:\star, x: \widehat \alpha \checktypeno e : \widehat \beta \dashv \Theta, x:\widehat \alpha , \Delta}
-{\infertype (\lambda x.\, e) : (\Pi x: \widehat \alpha. \widehat \beta) \dashv \Theta}
+{\Gamma, \genA:\star, \genB:\star, x: \genA \checktypeno e : \genB \dashv \Theta, x:\genA , \Delta}
+{\infertype (\lambda x.\, e) : (\Pi x: \genA. \genB) \dashv \Theta}
 \]
 
 \[
@@ -98,18 +102,18 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=App-tvar]
 {
-\Gamma[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
+\Gamma[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
 }
-{\Gamma[\widehat \alpha]\infertype^{app} \widehat \alpha \cdot e_2 : \widehat \alpha_2 \dashv \Theta}
+{\Gamma[\genA]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=App-tvar-cstr]
 {
-\Gamma[\widehat \alpha:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\widehat \alpha:\tau_\alpha] \\
-\Theta_1[\widehat \alpha_1, \widehat \alpha_2, \widehat \alpha = \Pi x:\widehat \alpha_1. \widehat \alpha_2] \checktypeno e_2 : \widehat \alpha_1 \dashv \Theta
+\Gamma[\genA:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\genA:\tau_\alpha] \\
+\Theta_1[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
 }
-{\Gamma[\widehat \alpha:\tau_\alpha]\infertype^{app} \widehat \alpha \cdot e_2 : \widehat \alpha_2 \dashv \Theta}
+{\Gamma[\genA:\tau_\alpha]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
 \]
 
 \[
@@ -174,9 +178,9 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=Gen-Infer]
 {\infertype e :\rho_1 \dashv \Theta\\
 \rho = [\Theta]\rho_1 \\
-\overbar{\widehat \alpha:\tau}=\Gamma \cap (ftv(\rho)-ftv(\Gamma))
+\overbar{\genA:\tau}=\Gamma \cap (ftv(\rho)-ftv(\Gamma))
 }
-{\polyinfer e :(\forallvars{x:\tau}. \rho[\overbar{\widehat \alpha} \mapsto \overbar{x}]) \dashv \Theta}
+{\polyinfer e :(\forallvars{x:\tau}. \rho[\overbar{\genA} \mapsto \overbar{x}]) \dashv \Theta}
 \]
 
 \[
@@ -194,7 +198,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \inferrule*[right=Inst-Infer]
 {[\Gamma] \sigma = \forallvars{x:\tau}. \rho
 }
-{\Gamma \instinfer \sigma \sqsubseteq \rho[\overbar{\tpmapsto {\tau} x {\widehat{\alpha}}}] \dashv \Gamma, \overbar{\widehat{\alpha}:\tau}}
+{\Gamma \instinfer \sigma \sqsubseteq \rho[\overbar{\tpmapsto {\tau} x {\genA}}] \dashv \Gamma, \overbar{\genA:\tau}}
 \]
 
 \[
@@ -216,7 +220,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \[
 \inferrule*[right=ImplicitPi-dsk-R]
-{\Gamma , \blacktriangleright_{\widehat \alpha}, \overbar{\widehat \alpha : \tau} \dsk \rho_1[\overbar{\tpmapsto \tau x {\widehat \alpha}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright_{\widehat \alpha}, \Delta}
+{\Gamma , \blacktriangleright_{\genA}, \overbar{\genA : \tau} \dsk \rho_1[\overbar{\tpmapsto \tau x {\genA}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright_{\genA}, \Delta}
 {\Gamma \dsk \forallvars{x:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
 
@@ -299,7 +303,7 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 
 \newpage
 
-\framebox{$\Gamma[\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
+\framebox{$\Gamma[\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \newcommand{\co}[0]{\vdash^{co}}
 \newcommand{\contra}[0]{\vdash^{contra}}
@@ -309,37 +313,37 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \wideh
 \[
 \inferrule*[right=EVar]
 { }
-{\Gamma[\widehat \alpha\{:\tau_\alpha\} ] \dskunify \widehat \alpha \sqsubseteq \widehat \alpha \dashv \Gamma[\widehat \alpha\{:\tau_\alpha\}] }
+{\Gamma[\genA\{:\tau_\alpha\} ] \dskunify \genA \sqsubseteq \genA \dashv \Gamma[\genA\{:\tau_\alpha\}] }
 \]
 
 \[
 \inferrule*[right=EVar-Uni]
-{ \Gamma_1, \widehat \alpha, extract\_evar(\Gamma_2) \vdash \tau_1 \\
-\Gamma_1, \widehat \alpha, \Gamma_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\widehat \alpha]
+{ \Gamma_1, \genA, extract\_evar(\Gamma_2) \vdash \tau_1 \\
+\Gamma_1, \genA, \Gamma_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA]
 }
-{\Gamma_1, \widehat \alpha, \Gamma_2 \unify \widehat \alpha \sqsubseteq \tau_1 \dashv \Theta[\widehat \alpha=\tau]}
+{\Gamma_1, \genA, \Gamma_2 \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA=\tau]}
 \]
 
 \[
 \inferrule*[right=EVar-Dsk]
-{\Gamma_1, \widehat \alpha, extract\_evar(\Gamma_2) \vdash \sigma \\
-\Gamma_1, \widehat \alpha, \Gamma_2 \co \sigma \bemono \tau \dashv \Theta[\widehat \alpha] }
-{ \Gamma_1, \widehat \alpha, \Gamma_2 \dsk \widehat \alpha \sqsubseteq \sigma \dashv \Theta[\widehat \alpha = \tau] }
+{\Gamma_1, \genA, extract\_evar(\Gamma_2) \vdash \sigma \\
+\Gamma_1, \genA, \Gamma_2 \co \sigma \bemono \tau \dashv \Theta[\genA] }
+{ \Gamma_1, \genA, \Gamma_2 \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA = \tau] }
 \]
 
 the difference between evar-uni and evar-dsk is that evar-uni requests the rhs is a mono type.
 \newline
 
-\framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
+\framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \[
 \inferrule*[right=EVar-Typed]
 {
 \sigma_\rho =  get\_type(\rho)\\
-\Gamma_{\widehat \alpha} \dsk[\Gamma_{\widehat \alpha}] \sigma_\rho \sqsubseteq [ \Gamma_{\widehat \alpha} ]\tau_\alpha \dashv \Theta_1[\widehat \alpha :\tau_1 \{=\tau_2\}]\\
-\Theta_1[\widehat \alpha\{=\tau_2\}] \dskunify [\Theta_1]\widehat \alpha \sqsubseteq [\Theta_1]\rho \dashv \Theta
+\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_\rho \sqsubseteq [ \Gamma_{\genA} ]\tau_\alpha \dashv \Theta_1[\genA :\tau_1 \{=\tau_2\}]\\
+\Theta_1[\genA\{=\tau_2\}] \dskunify [\Theta_1]\genA \sqsubseteq [\Theta_1]\rho \dashv \Theta
 }
-{\Gamma[\widehat \alpha:\tau_\alpha] \dskunify \widehat \alpha \sqsubseteq \rho \dashv \Theta }
+{\Gamma[\genA:\tau_\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta }
 \]
 
 this rule first confirm the type constraint is satisfied. Then throw the type constraint to continue the process.
@@ -357,13 +361,13 @@ this rule first confirm the type constraint is satisfied. Then throw the type co
 \[
 \inferrule*[right=Mono-EVar-left]
 { }
-{\Gamma[\widehat \beta\{:\tau\}][\widehat \alpha] \cocontra \widehat \beta \bemono \widehat \beta \dashv \Gamma[\widehat \beta\{:\tau\}][\widehat \alpha]}
+{\Gamma[\genB\{:\tau\}][\genA] \cocontra \genB \bemono \genB \dashv \Gamma[\genB\{:\tau\}][\genA]}
 \]
 
 \[
 \inferrule*[right=Mono-EVar-right]
 { }
-{\Gamma[\widehat \alpha][\widehat \beta\{:\tau\}] \cocontra \widehat \beta \bemono \widehat \beta_1 \dashv \Gamma[\widehat \beta_1\{:\tau\}, \widehat \alpha][\widehat \beta = \widehat \beta_1]}
+{\Gamma[\genA][\genB\{:\tau\}] \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1\{:\tau\}, \genA][\genB = \genB_1]}
 \]
 
 \[
@@ -390,8 +394,8 @@ this rule first confirm the type constraint is satisfied. Then throw the type co
 
 \[
 \inferrule*[right=Mono-Forall]
-{\Gamma[\widehat \alpha_1 : \tau,\widehat \alpha] \contra \sigma[ x \mapsto \widehat \alpha_1] \bemono \tau_2 \dashv \Theta}
-{\Gamma[\widehat \alpha] \contra \forall x : \tau. \sigma \bemono \tau_2 \dashv \Theta}
+{\Gamma[\genA_1 : \tau,\genA] \contra \sigma[ x \mapsto \genA_1] \bemono \tau_2 \dashv \Theta}
+{\Gamma[\genA] \contra \forall x : \tau. \sigma \bemono \tau_2 \dashv \Theta}
 \]
 
 \[
