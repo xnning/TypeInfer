@@ -22,11 +22,14 @@ cabal.config
 *.aux
 *.log
 *.pdf
+*.fdb_latexmk
+*.fls
 doc/**/appendix.tex
 doc/**/expcore.ott.tex
 doc/**/otthelper.tex
 /src/Parser.hs
 /src/Tokens.hs
+doc/simple/auto
 
 *.swp
 

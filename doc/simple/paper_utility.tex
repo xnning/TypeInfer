@@ -1,0 +1,174 @@
+% Definition of language
+\usepackage{listings}
+\lstdefinestyle{fun}{
+  aboveskip=0.5\baselineskip,
+  belowskip=0.5\baselineskip,
+  keepspaces=true,
+  mathescape=true,
+  columns=fullflexible,
+  basicstyle=\fontfamily{cmr}\selectfont\small,
+  xleftmargin=10pt,
+  keywordstyle=\bfseries,
+  identifierstyle=\itshape,
+  emphstyle=\fontfamily{cmss}\selectfont,
+  commentstyle=\fontfamily{cmtt}\selectfont,
+  emph={},
+  keywords={where, let, in, case, of, data, newtype, ret, if, then,
+    else, defrec, def},
+  morecomment=[l]{--},
+  literate={
+    {->}{{$\to$}}1
+    {=>}{{$\To$}}1
+    {~}{{$\eq$}}1
+    {\\}{{$\lambda$}}1
+    {/}{{$\mu$}}1
+    {\\~}{{$\lambda_\eq$}}1
+    {|->}{{$\mapsto$}}1
+    {~>}{{$\leadsto$}}1
+    {*}{{$\star$}}1
+    {**}{{$\times$}}1
+    {++}{{+\kern-1.0ex+\kern1.1ex}}1
+    {<}{{$\langle$}}1
+    {>}{{$\rangle$}}1
+    {|=}{{$\vDash$}}1
+    {|-}{{$\vdash$}}1
+    {||-}{{$\Vdash$}}1
+    {G}{{$\Gamma$}}1
+    {G0}{{$\cdot$}}1
+    {|>}{{$\vartriangleright$}}1
+    {forall}{{$\forall$}}1
+    {'}{{$^\prime$}}1
+    {_1}{{$_1$}}1
+    {_2}{{$_2$}}1
+    {^2}{{$^2$}}1
+    {@}{{$\bullet$}}1
+    {@t}{{$\tau$}}1
+    {@s}{{$\sigma$}}1
+    {castu2}{{$\fun{cast}_\uparrow^2$}}1
+    {castd2}{{$\fun{cast}_\downarrow^2$}}1
+    {castuf}{{$\fun{cast}_\uparrow^{\fun{f}}$}}1
+    {castup}{{$\fun{cast}_\uparrow$}}1
+    {castdn}{{$\fun{cast}_\downarrow$}}1
+  }
+}
+\lstset{style=fun}
+\newcommand{\lst}[1]{\text{\lstinline$#1$}}
+
+% Table
+\usepackage{multirow}
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{Z}{>{\raggedleft\arraybackslash}X}
+
+% Infer rules
+\usepackage{mathpartir}
+\newcommand{\rname}[1]{{\,\text{\scriptsize \textsc{#1}}}}
+\newcommand{\rul}[1]{\textsc{#1}}
+
+% Extra symbols
+\usepackage{stmaryrd}
+
+% Macros for math typesetting
+
+%% Names
+% \newcommand{\name}{{\bf $\lambda_{\mu}^{\eq}$}\xspace}
+
+%% Symbols
+\newcommand{\syndef}{$::=$}
+\newcommand{\synor}{$\mid$}
+\newcommand{\syneq}{$\triangleq$}
+\newcommand{\header}[1]{\multicolumn{1}{l}{$\boxed{#1}$}}
+\newcommand{\headercap}[2]{\multicolumn{1}{l}{$\boxed{#1}$\quad{#2}}}
+\newcommand{\headercapm}[2]{\vspace{1pt}\raggedright \framebox{\mbox{$#1$}} \quad
+  #2}
+\newcommand{\headercapt}[2]{\framebox{\mbox{$#1$}} \quad #2}
+
+%% Arrows
+\newcommand{\To}{\Rightarrow}
+\newcommand{\Chk}{\Downarrow}
+\newcommand{\Inf}{\Uparrow}
+\newcommand{\redto}{\hookrightarrow}
+\newcommand{\redton}{\hookrightarrow^*}
+\newcommand{\eq}{\sim}
+\newcommand{\lt}{\sqsubseteq}
+\newcommand{\sugar}{\triangleq}
+\newcommand{\trto}[1]{\hl{\trTo #1}}
+\newcommand{\trtop}{\rightsquigarrow}
+
+%% Styles
+\newcommand{\kw}[1]{\operatorname{\mathbf{#1}}}
+\newcommand{\var}{\mathit}
+\newcommand{\fun}{\mathsf}
+
+%% Constructs
+\newcommand{\bind}[3]{#1 #2:#3.~}
+\newcommand{\blam}{\bind \lambda}
+\newcommand{\bmu}{\bind \mu}
+\newcommand{\barr}[2]{(#1:#2) \to}
+
+\newcommand{\bindv}[4][]{#2\,\overline{#3:#4}^{#1}.~}
+\newcommand{\blamv}[3][]{\bindv[#1] \lambda {#2} {#3}}
+\newcommand{\bmuv}[3][]{\bindv[#1] \mu {#2} {#3}}
+\newcommand{\barrv}[3][]{\overline{#2:#3}^{#1} \to}
+
+\newcommand{\eqlam}[2]{\lambda_{\eq}({#1} \eq {#2}).~}
+\newcommand{\eqty}[2]{({#1} \eq {#2})\Rightarrow}
+\newcommand{\eqapp}[2][]{\langle {#2} \rangle^{#1}}
+\newcommand{\eqlamv}[3][]{\lambda_{\eq}\overline{{#2} \eq {#3}}^{#1}.~}
+\newcommand{\eqtyv}[3][]{\overline{({#2} \eq {#3})}^{#1}\Rightarrow}
+
+\newcommand{\bpi}{\bind \Pi}
+\newcommand{\bpiv}[3][]{\bindv[#1] \Pi {#2} {#3}}
+
+\newcommand{\fold}{\fun{fold}}
+\newcommand{\unfold}{\fun{unfold}}
+
+\newcommand{\castupz}{\fun{cast}_\uparrow}
+\newcommand{\castup}[2][]{\fun{cast}_\uparrow^{#1}~[#2]~}
+\newcommand{\castdnz}{\fun{cast}_\downarrow}
+\newcommand{\castdn}[1][]{\fun{cast}_\downarrow^{#1}~}
+\newcommand{\castdnt}[2][]{\fun{cast}_\downarrow^{#1}~[#2]~}
+\newcommand{\subst}[2]{[#1 \mapsto #2]}
+\newcommand{\Subst}[2]{[#1 \Mapsto #2]}
+\newcommand{\substv}[3][]{\overline{[#2 \mapsto #3]}^{#1}}
+\newcommand{\cast}[2][]{\fun{cast}^{#1}~[#2]~}
+
+\newcommand{\triv}{\_}
+\newcommand{\trivtm}{\bullet}
+\newcommand{\er}[1]{|{#1}|}
+\newcommand{\erf}[1]{\|{#1}\|}
+\newcommand{\erlam}[1]{\lambda {#1}.~}
+\newcommand{\ermu}[1]{\mu {#1}.~}
+\newcommand{\ercastup}{\castupz~}
+\newcommand{\ereqlam}{\lambda_\eq.~}
+
+\newcommand{\genvar}{\widehat}
+\newcommand{\genA}{\genvar{\alpha}}
+\newcommand{\genB}{\genvar{\beta}}
+
+%% Context
+\newcommand{\ctx}{\Gamma}
+\newcommand{\ctxinit}{\varnothing}
+\newcommand{\ctxl}{\Theta}
+\newcommand{\ctxr}{\Delta}
+\newcommand{\byuni}{\vdash}
+\newcommand{\byinf}{\vdash_\Inf}
+\newcommand{\bychk}{\vdash_\Chk}
+\newcommand{\byall}{\vdash_\delta}
+\newcommand{\toctx}{\dashv \ctxl}
+\newcommand{\toctxo}{\dashv \ctx}
+\newcommand{\toctxr}{\dashv \ctxr}
+\newcommand{\preinf}[1][]{\ctx {#1} \byinf}
+\newcommand{\prechk}[1][]{\ctx {#1} \bychk}
+\newcommand{\preall}[1][]{\ctx {#1} \byall}
+\newcommand{\preuni}[1][]{\ctx {#1} \byuni}
+
+% Primitives
+\newcommand{\Int}{\var{Int}}
+\newcommand{\String}{\var{String}}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "paper"
+%%% End:
+
