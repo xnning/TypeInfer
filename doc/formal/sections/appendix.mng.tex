@@ -83,6 +83,8 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA~
 {\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \dashv \Theta}
 \]
 
+\newcommand{\app}[1]{\colorbox{Cyan}{#1}}
+
 \[
 \inferrule*[right=App]
 {\infertype e_1 : \rho_1 \dashv \Theta_1 \\
@@ -92,28 +94,34 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA~
 \]
 
 \[
+\app{$
 \inferrule*[right=App-pi]
 {
 \polycheck e_2 : \sigma_1 \dashv \Theta_1 \\
 \Theta_1 \instinfer \sigma_2 [\tpmapsto {\sigma_1} x {e_2}] \sqsubseteq \rho \dashv \Theta}
 {\infertype^{app} (\Pi x:\sigma_1. \sigma_2) \cdot e_2 : \rho \dashv \Theta}
+$}
 \]
 
 \[
+\app{$
 \inferrule*[right=App-tvar]
 {
 \Gamma[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
 }
 {\Gamma[\genA]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
+$}
 \]
 
 \[
+\app{$
 \inferrule*[right=App-tvar-cstr]
 {
 \Gamma[\genA:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\genA:\tau_\alpha] \\
 \Theta_1[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
 }
 {\Gamma[\genA:\tau_\alpha]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
+$}
 \]
 
 \[
