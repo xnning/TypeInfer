@@ -192,6 +192,10 @@ $}
 \newcommand{\dskunify}[0]{\vdash^{\chi}}
 \framebox{$ \Gamma \dskunify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta$} $\chi = dsk~|~unify$
 
+dsk is normal subtyping relationship in higher-rank.
+
+unify is used in cases like when we want to dsk two app $\tau_1 \sigma_1$ and $\tau_2 \sigma_2$, we request $\sigma_1$ and $\sigma_2$ are exactly the same.
+
 \[
 \inferrule*[right=ImplicitPi-dsk-R]
 {
