@@ -320,6 +320,18 @@ question: there will be no alpha in $\sigma_1$?
 \]
 
 \[
+\inferrule*[right=Mono-Star]
+{ }
+{\Gamma \cocontra \star \bemono \star \dashv \Gamma }
+\]
+
+\[
+\inferrule*[right=Mono-Lam]
+{ }
+{\Gamma \cocontra \lambda x.\ e \bemono \lambda x.\ e \dashv \Gamma }
+\]
+
+\[
 \inferrule*[right=Mono-EVar-left]
 { }
 {\Gamma[\genB:\tau_1][\genA:\tau] \cocontra \genB \bemono \genB \dashv \Gamma[\genB:\tau_1][\genA:\tau]}
@@ -329,12 +341,6 @@ question: there will be no alpha in $\sigma_1$?
 \inferrule*[right=Mono-EVar-right]
 { }
 {\Gamma[\genA:\tau][\genB:\tau_1] \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1:\tau_1, \genA:\tau][\genB :\tau_1= \genB_1]}
-\]
-
-\[
-\inferrule*[right=Mono-Star]
-{ }
-{\Gamma \cocontra \star \bemono \star \dashv \Gamma }
 \]
 
 \[
