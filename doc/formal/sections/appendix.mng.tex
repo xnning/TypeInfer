@@ -220,14 +220,14 @@ $}
 \framebox{$ \Gamma \dskunify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta$} $\chi = dsk~|~unify$
 
 \[
-\inferrule*[right=ImplicitPi-dsk-L]
+\inferrule*[right=ImplicitPi-dsk-R]
 {
 \Gamma, \overbar{x:\tau} \dsk \sigma_1 \sqsubseteq \rho \dashv \Theta, \overbar{x:\tau}, \Delta}
 {\Gamma \dsk \sigma_1 \sqsubseteq \forallvars{x:\tau}. \rho \dashv \Theta}
 \]
 
 \[
-\inferrule*[right=ImplicitPi-dsk-R]
+\inferrule*[right=ImplicitPi-dsk-L]
 {\Gamma , \blacktriangleright_{\genA}, \overbar{\genA : \tau} \dsk \rho_1[\overbar{\tpmapsto \tau x {\genA}}] \sqsubseteq \rho_2 \dashv \Theta, \blacktriangleright_{\genA}, \Delta}
 {\Gamma \dsk \forallvars{x:\tau}.\rho_1 \sqsubseteq \rho_2 \dashv \Theta}
 \]
