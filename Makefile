@@ -8,6 +8,7 @@ all:
 
 .PHONY : repl
 repl :
+	stack build
 	stack exec lambdapi
 
 .PHONY : doc
