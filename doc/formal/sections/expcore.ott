@@ -19,7 +19,7 @@ t {{ tex \tau }} :: 't_' ::=       {{ com Unifiable Type    }}
   | star                      ::  :: Star       {{ com Type of Types }}
   | t1 t2                     ::  :: App        {{ com Application }}
   | \ x . e                   ::  :: Lam        {{ com Abstraction }}
-  | \ x: sigma . e            ::  :: LamAnn     {{ com Abstraction with annotation }}
+  | \ x: sigma . e            :: M:: LamAnn     {{ com Abstraction with annotation }}
   | castup t                  ::  :: CastUp     {{ com Cast Up }}
   | castdown t                ::  :: CastDown   {{ com Cast Down }}
   | Pi (x: t1 ) . t2          ::  :: FunAnn     {{ com Explicit Pi type}}

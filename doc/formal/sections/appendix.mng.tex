@@ -66,23 +66,6 @@ $\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA:
 {\checktype (\lambda x.\, e) : (\Pi x: \sigma_1. \sigma_2) \dashv \Theta}
 \]
 
-\[
-\inferrule*[right=LamAnn-Infer]
-{
-\checktype \sigma:\star \dashv \Theta_1 \\
-\Theta_1, x: \sigma \infertypeno e : \rho \dashv \Theta, x:\sigma, \Delta }
-{\infertype (\lambda x:\sigma.\, e) : (\Pi x: \sigma. \rho)\dashv \Theta}
-\]
-
-\[
-\inferrule*[right=LamAnn-Check]
-{
-\checktype \sigma:\star \dashv \Theta_1 \\
-\Theta_1 \instcheck \sigma_1 \sqsubseteq \sigma \dashv \Theta_2 \\
-\Theta_2,x: \sigma \polycheckno e : \sigma_2 \dashv \Theta, x:\sigma, \Delta }
-{\checktype (\lambda x:\sigma.\, e) : (\Pi x: \sigma_1. \sigma_2) \dashv \Theta}
-\]
-
 \newcommand{\app}[1]{\colorbox{Cyan}{#1}}
 
 \[
@@ -250,16 +233,6 @@ $}
 {
 \Gamma, x \dskunify \sigma_1 \sqsubseteq \sigma_2 \dashv \Theta, x, \Delta}
 {\Gamma \dskunify \lambda x. \sigma_1 \sqsubseteq \lambda x. \sigma_2 \dashv \Theta }
-\]
-
-
-\[
-\inferrule*[right=Lamann]
-{
-\Gamma \unify \sigma_1 \sqsubseteq \sigma_3 \dashv \Theta_1 \\
-\Theta_1, x:\sigma_1 \dskunify [\Theta_1]\sigma_2 \sqsubseteq [\Theta_1]\sigma_4 \dashv \Theta, x:\sigma_1, \Delta }
-{\Gamma \dskunify \lambda x:\sigma_1. \sigma_2 \sqsubseteq \lambda x:\sigma_3. \sigma_4 \dashv \Theta
-}
 \]
 
 \[
