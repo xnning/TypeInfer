@@ -92,7 +92,7 @@
 \newcommand{\eq}{\sim}
 \newcommand{\lt}{\sqsubseteq}
 \newcommand{\sugar}{\triangleq}
-\newcommand{\trto}[1]{\hl{\trTo #1}}
+\newcommand{\trto}[1]{\hl{\rightsquigarrow #1}}
 \newcommand{\trtop}{\rightsquigarrow}
 
 %% Styles
@@ -148,20 +148,25 @@
 
 %% Context
 \newcommand{\ctx}{\Gamma}
+\newcommand{\tctx}{\Sigma}
 \newcommand{\ctxinit}{\varnothing}
 \newcommand{\ctxl}{\Theta}
 \newcommand{\ctxr}{\Delta}
 \newcommand{\byuni}{\vdash}
 \newcommand{\byinf}{\vdash_\Inf}
 \newcommand{\bychk}{\vdash_\Chk}
+\newcommand{\byapp}{\vdash_\bullet}
 \newcommand{\byall}{\vdash_\delta}
+\newcommand{\bytar}{\vdash}
 \newcommand{\toctx}{\dashv \ctxl}
 \newcommand{\toctxo}{\dashv \ctx}
 \newcommand{\toctxr}{\dashv \ctxr}
 \newcommand{\preinf}[1][]{\ctx {#1} \byinf}
 \newcommand{\prechk}[1][]{\ctx {#1} \bychk}
 \newcommand{\preall}[1][]{\ctx {#1} \byall}
+\newcommand{\preapp}[1][]{\ctx {#1} \byapp}
 \newcommand{\preuni}[1][]{\ctx {#1} \byuni}
+\newcommand{\pretar}[1][]{\tctx {#1} \bytar}
 
 % Primitives
 \newcommand{\Int}{\var{Int}}
@@ -169,6 +174,6 @@
 
 %%% Local Variables:
 %%% mode: latex
-%%% TeX-master: "paper"
+%%% TeX-master: "main"
 %%% End:
 
