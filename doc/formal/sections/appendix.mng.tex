@@ -38,7 +38,7 @@
 \newcommand{\genB}{\genvar{\beta}}
 
 
-$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA~|~\Gamma, \genA=\tau~|~\Gamma, \genA:\tau~|~\Gamma, \genA:\tau = \tau_2~|~\Gamma, \blacktriangleright_{\genA}$
+$\Gamma, \Theta, \Delta  = \cdot~|~\Gamma, x~|~\Gamma, x:\sigma~|~\Gamma, \genA:\tau~|~\Gamma, \genA:\tau = \tau_2~|~\Gamma, \blacktriangleright_{\genA}$
 
 \framebox{$ \infercheck e : \rho \dashv \Theta $ } infer $\Uparrow$ check $\Downarrow$ $\delta = \Uparrow \mid \Downarrow$
 
@@ -107,20 +107,10 @@ $}
 \app{$
 \inferrule*[right=App-tvar]
 {
-\Gamma[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
-}
-{\Gamma[\genA]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
-$}
-\]
-
-\[
-\app{$
-\inferrule*[right=App-tvar-cstr]
-{
 \Gamma[\genA:\tau_\alpha] \instcheck \tau_\alpha \sqsubseteq \star \dashv \Theta_1[\genA:\tau_\alpha] \\
-\Theta_1[\genA_1, \genA_2, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
+\Theta_1[\genA_1:\star, \genA_2:\star, \genA = \Pi x:\genA_1. \genA_2] \checktypeno e_2 : \genA_1 \dashv \Theta
 }
-{\Gamma[\genA:\tau_\alpha]\infertype^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
+{\Gamma[\genA:\tau_\alpha] \infertypeno^{app} \genA \cdot e_2 : \genA_2 \dashv \Theta}
 $}
 \]
 
@@ -311,7 +301,7 @@ $}
 
 \newpage
 
-\framebox{$\Gamma[\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
+\framebox{$\Gamma[\alpha:\tau] \dskunify \genA \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
 
 \newcommand{\co}[0]{\vdash^{co}}
 \newcommand{\contra}[0]{\vdash^{contra}}
@@ -321,44 +311,34 @@ $}
 \[
 \inferrule*[right=EVar]
 { }
-{\Gamma[\genA\{:\tau_\alpha\} ] \dskunify \genA \sqsubseteq \genA \dashv \Gamma[\genA\{:\tau_\alpha\}] }
+{\Gamma[\genA:\tau] \dskunify \genA \sqsubseteq \genA \dashv \Gamma[\genA:\tau] }
 \]
 
 \[
 \inferrule*[right=EVar-Uni]
-{ \Gamma_1, \genA, extract\_evar(\Gamma_2) \vdash \tau_1 \\
-\Gamma_1, \genA, \Gamma_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA]
+{
+\sigma =  get\_type(\tau_1)\\
+\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1, \genA :\tau, \Theta_2\\
+\Theta_1, \genA:\tau, extract\_evar(\Theta_2) \vdash \tau_1 \\
+\Theta_1, \genA:\tau, \Theta_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA:\tau]
 }
-{\Gamma_1, \genA, \Gamma_2 \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA=\tau]}
+{\Gamma_1, \genA:\tau, \Gamma_2 \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA:\tau=\tau_1]}
 \]
 
 \[
 \inferrule*[right=EVar-Dsk]
-{\Gamma_1, \genA, extract\_evar(\Gamma_2) \vdash \sigma \\
-\Gamma_1, \genA, \Gamma_2 \co \sigma \bemono \tau \dashv \Theta[\genA] }
-{ \Gamma_1, \genA, \Gamma_2 \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA = \tau] }
-\]
-
-the difference between evar-uni and evar-dsk is that evar-uni requests the rhs is a mono type.
-\newline
-
-\framebox{$\Gamma[\alpha:\tau_\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta, \alpha \notin ftv(\rho)$}
-
-\[
-\inferrule*[right=EVar-Typed]
 {
-\sigma_\rho =  get\_type(\rho)\\
-\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_\rho \sqsubseteq [ \Gamma_{\genA} ]\tau_\alpha \dashv \Theta_1[\genA :\tau_1 \{=\tau_2\}]\\
-\Theta_1[\genA\{=\tau_2\}] \dskunify [\Theta_1]\genA \sqsubseteq [\Theta_1]\rho \dashv \Theta
+\sigma_1 =  get\_type(\sigma)\\
+\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_1 \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1, \genA :\tau, \Theta_2\\
+\Theta_1, \genA:\tau, extract\_evar(\Theta_2) \vdash \sigma \\
+\Theta_1, \genA:\tau, \Theta_2 \co \sigma \bemono \tau_1 \dashv \Theta[\genA:\tau]
 }
-{\Gamma[\genA:\tau_\alpha] \dskunify \genA \sqsubseteq \rho \dashv \Theta }
+{ \Gamma_1, \genA:\tau, \Gamma_2 \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA:\tau = \tau_1] }
 \]
 
-this rule first confirm the type constraint is satisfied. Then throw the type constraint to continue the process.
-\newline
+question: there will be no alpha in $\sigma_1$?
 
-
-\framebox{$\Gamma[\alpha] \cocontra \sigma \bemono \tau \dashv \Theta$} $\phi = co~|~contra$
+\framebox{$\Gamma[\alpha:\tau] \cocontra \sigma \bemono \tau \dashv \Theta$} $\phi = co~|~contra$
 
 \[
 \inferrule*[right=Mono-Var]
@@ -369,13 +349,13 @@ this rule first confirm the type constraint is satisfied. Then throw the type co
 \[
 \inferrule*[right=Mono-EVar-left]
 { }
-{\Gamma[\genB\{:\tau\}][\genA] \cocontra \genB \bemono \genB \dashv \Gamma[\genB\{:\tau\}][\genA]}
+{\Gamma[\genB:\tau_1][\genA:\tau] \cocontra \genB \bemono \genB \dashv \Gamma[\genB:\tau_1][\genA:\tau]}
 \]
 
 \[
 \inferrule*[right=Mono-EVar-right]
 { }
-{\Gamma[\genA][\genB\{:\tau\}] \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1\{:\tau\}, \genA][\genB = \genB_1]}
+{\Gamma[\genA:\tau][\genB:\tau_1] \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1:\tau_1, \genA:\tau][\genB :\tau_1= \genB_1]}
 \]
 
 \[
