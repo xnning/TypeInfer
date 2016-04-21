@@ -295,86 +295,91 @@ unify is used in cases like when we want to dsk two app $\tau_1 \sigma_1$ and $\
 \inferrule*[right=EVar-Uni]
 {
 \sigma =  get\_type(\tau_1)\\
-\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1, \genA :\tau, \Theta_2\\
-\Theta_1, \genA:\tau, extract\_evar(\Theta_2) \vdash \tau_1 \\
-\Theta_1, \genA:\tau, \Theta_2 \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA:\tau]
+\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1\\
+\Theta_1; \emptyset \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA:\tau]
 }
-{\Gamma_1, \genA:\tau, \Gamma_2 \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA:\tau=\tau_1]}
+{\Gamma[\genA:\tau] \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA:\tau=\tau_1]}
 \]
 
 \[
 \inferrule*[right=EVar-Dsk]
 {
 \sigma_1 =  get\_type(\sigma)\\
-\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_1 \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1, \genA :\tau, \Theta_2\\
-\Theta_1, \genA:\tau, extract\_evar(\Theta_2) \vdash \sigma \\
-\Theta_1, \genA:\tau, \Theta_2 \co \sigma \bemono \tau_1 \dashv \Theta[\genA:\tau]
+\Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_1 \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1\\
+\Theta_1; \emptyset \co \sigma \bemono \tau_1 \dashv \Theta[\genA:\tau]
 }
-{ \Gamma_1, \genA:\tau, \Gamma_2 \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA:\tau = \tau_1] }
+{ \Gamma[\genA:\tau] \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA:\tau = \tau_1] }
 \]
 
 question: there will be no alpha in $\sigma_1$?
 
-\framebox{$\Gamma[\alpha:\tau] \cocontra \sigma \bemono \tau \dashv \Theta$} $\phi = co~|~contra$
+\framebox{$\Gamma[\alpha:\tau]; \Sigma \cocontra \sigma \bemono \tau \dashv \Theta$} $\phi = co~|~contra$
 
 \[
 \inferrule*[right=Mono-Var]
 { }
-{\Gamma \cocontra x \bemono x \dashv \Gamma}
+{\Gamma[x][\genA]; \Sigma \cocontra x \bemono x \dashv \Gamma[x][\genA]}
+\]
+
+\[
+\inferrule*[right=Mono-Var]
+{ }
+{\Gamma; \Sigma[x] \cocontra x \bemono x \dashv \Gamma}
 \]
 
 \[
 \inferrule*[right=Mono-Star]
 { }
-{\Gamma \cocontra \star \bemono \star \dashv \Gamma }
+{\Gamma; \Sigma \cocontra \star \bemono \star \dashv \Gamma }
 \]
 
 \[
 \inferrule*[right=Mono-Lam]
 { }
-{\Gamma \cocontra \lambda x.\ e \bemono \lambda x.\ e \dashv \Gamma }
+{\Gamma; \Sigma \cocontra \lambda x.\ e \bemono \lambda x.\ e \dashv \Gamma}
 \]
 
 \[
 \inferrule*[right=Mono-EVar-left]
 { }
-{\Gamma[\genB:\tau_1][\genA:\tau] \cocontra \genB \bemono \genB \dashv \Gamma[\genB:\tau_1][\genA:\tau]}
+{\Gamma[\genB:\tau_1][\genA:\tau]; \Sigma \cocontra \genB \bemono \genB \dashv \Gamma[\genB:\tau_1][\genA:\tau]}
 \]
 
 \[
 \inferrule*[right=Mono-EVar-right]
 { }
-{\Gamma[\genA:\tau][\genB:\tau_1] \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1:\tau_1, \genA:\tau][\genB :\tau_1= \genB_1]}
+{\Gamma[\genA:\tau][\genB:\tau_1]; \Sigma \cocontra \genB \bemono \genB_1 \dashv \Gamma[\genB_1:\tau_1, \genA:\tau][\genB :\tau_1= \genB_1]}
 \]
 
 \[
 \inferrule*[right=Mono-Pi-co]
-{\Gamma \contra \sigma_1 \bemono \tau_1 \dashv \Theta_1 \\
-\Theta_1 \co \sigma_2 \bemono \tau_2 \dashv \Theta_2
+{\Gamma; \Sigma \contra \sigma_1 \bemono \tau_1 \dashv \Theta_1\\
+\Theta_1; \Sigma, x \co \sigma_2 \bemono \tau_2 \dashv \Theta_2
 }
-{\Gamma \co \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta_2}
+{\Gamma; \Sigma \co \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta_2}
 \]
 
 \[
 \inferrule*[right=Mono-Pi-contra]
 {
-\Gamma \co \sigma_1 \bemono \tau_1 \dashv \Theta_1 \\
-\Theta_1 \contra \sigma_2 \bemono \tau_2 \dashv \Theta}
-{\Gamma \contra \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta}
+\Gamma; \Sigma \co \sigma_1 \bemono \tau_1 \dashv \Theta_1\\
+\Theta_1; \Sigma, x \contra \sigma_2 \bemono \tau_2 \dashv \Theta\_
+}
+{\Gamma; \Sigma \contra \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Mono-Forall]
-{\Gamma[\genA_1 : \tau,\genA] \contra \sigma[ x \mapsto \genA_1] \bemono \tau_2 \dashv \Theta}
-{\Gamma[\genA] \contra \forall x : \tau. \sigma \bemono \tau_2 \dashv \Theta}
+{\Gamma[\genA_1 : \tau,\genA]; \Sigma \contra \sigma[ x \mapsto \genA_1] \bemono \tau_2 \dashv \Theta}
+{\Gamma[\genA]; \Sigma \contra \forall x : \tau. \sigma \bemono \tau_2 \dashv \Theta}
 \]
 
 \[
 \inferrule*[right=Mono-Other]
-{ \Gamma \cocontra \sigma_0 \bemono \tau_0 \dashv \Theta_1 \\
-\Theta_i \cocontra \sigma_i \bemono \tau_i \dashv \Theta_{i+1}
+{ \Gamma; \Sigma \cocontra \sigma_0 \bemono \tau_0 \dashv \Theta_1\\
+\Theta_i; \Sigma \cocontra \sigma_i \bemono \tau_i \dashv \Theta_{i+1}
 }
-{ \Gamma \cocontra T~\overbar{\sigma}_n \bemono T~\overbar{\tau}_n \dashv \Theta_n}
+{ \Gamma,\Sigma  \cocontra T~\overbar{\sigma}_n \bemono T~\overbar{\tau}_n \dashv \Theta_n}
 \]
 
 \clearpage
