@@ -296,7 +296,7 @@ unify is used in cases like when we want to dsk two app $\tau_1 \sigma_1$ and $\
 {
 \sigma =  get\_type(\tau_1)\\
 \Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1\\
-\Theta_1; \emptyset \co \tau_1 \bemono \tau_2 \dashv \Theta[\genA:\tau]
+\Theta_1; \emptyset \co [\Theta_1] \tau_1 \bemono \tau_2 \dashv \Theta[\genA:\tau]
 }
 {\Gamma[\genA:\tau] \unify \genA \sqsubseteq \tau_1 \dashv \Theta[\genA:\tau=\tau_1]}
 \]
@@ -306,7 +306,7 @@ unify is used in cases like when we want to dsk two app $\tau_1 \sigma_1$ and $\
 {
 \sigma_1 =  get\_type(\sigma)\\
 \Gamma_{\genA} \dsk[\Gamma_{\genA}] \sigma_1 \sqsubseteq [ \Gamma_{\genA} ]\tau \dashv \Theta_1\\
-\Theta_1; \emptyset \co \sigma \bemono \tau_1 \dashv \Theta[\genA:\tau]
+\Theta_1; \emptyset \co [\Theta_1] \sigma \bemono \tau_1 \dashv \Theta[\genA:\tau]
 }
 { \Gamma[\genA:\tau] \dsk \genA \sqsubseteq \sigma \dashv \Theta[\genA:\tau = \tau_1] }
 \]
