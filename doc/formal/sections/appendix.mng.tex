@@ -354,7 +354,7 @@ question: there will be no alpha in $\sigma_1$?
 \[
 \inferrule*[right=Mono-Pi-co]
 {\Gamma; \Sigma \contra \sigma_1 \bemono \tau_1 \dashv \Theta_1\\
-\Theta_1; \Sigma, x \co \sigma_2 \bemono \tau_2 \dashv \Theta_2
+\Theta_1; \Sigma, x \co [\Theta_1]\sigma_2 \bemono \tau_2 \dashv \Theta_2
 }
 {\Gamma; \Sigma \co \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta_2}
 \]
@@ -363,7 +363,7 @@ question: there will be no alpha in $\sigma_1$?
 \inferrule*[right=Mono-Pi-contra]
 {
 \Gamma; \Sigma \co \sigma_1 \bemono \tau_1 \dashv \Theta_1\\
-\Theta_1; \Sigma, x \contra \sigma_2 \bemono \tau_2 \dashv \Theta\_
+\Theta_1; \Sigma, x \contra [\Theta_1]\sigma_2 \bemono \tau_2 \dashv \Theta\_
 }
 {\Gamma; \Sigma \contra \Pi x: \sigma_1. \sigma_2 \bemono \Pi x:\tau_1. \tau_2 \dashv \Theta}
 \]
@@ -377,7 +377,7 @@ question: there will be no alpha in $\sigma_1$?
 \[
 \inferrule*[right=Mono-Other]
 { \Gamma; \Sigma \cocontra \sigma_0 \bemono \tau_0 \dashv \Theta_1\\
-\Theta_i; \Sigma \cocontra \sigma_i \bemono \tau_i \dashv \Theta_{i+1}
+\Theta_i; \Sigma \cocontra [\Theta_i]\sigma_i \bemono \tau_i \dashv \Theta_{i+1}
 }
 { \Gamma,\Sigma  \cocontra T~\overbar{\sigma}_n \bemono T~\overbar{\tau}_n \dashv \Theta_n}
 \]
