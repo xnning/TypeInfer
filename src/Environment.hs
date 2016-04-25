@@ -67,14 +67,6 @@ data Context = Ctx {_env :: Env}
 
 type TcMonad = FreshMT (StateT Context (Except T.Text))
 
-type Sub = [(TmName, CheckedExpr)]
-
-instance Eq VarInfo where
-  VarInfo tm1 _ == VarInfo tm2 _ = tm1 == tm2
-  TVarInfo tm1 _ == TVarInfo tm2 _ = tm1 == tm2
-  Marker tm1 == Marker tm2 = tm1 == tm2
-  _ == _ = False
-
 -----------------------------------------
 --  Run Interface
 -----------------------------------------

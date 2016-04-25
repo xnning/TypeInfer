@@ -243,6 +243,7 @@ bicheck e rho@(Check ty) = do
   let rho1 =  getCheckedType checked_expr
   instSigma rho1 rho
   return $ changeCheckedType checked_expr ty
+-- Error
 bicheck e mode = throwError $ T.concat ["Type checking ", showExpr e, " with mode ", T.pack $ show mode, " failed"]
 
 -----------------------------------------
@@ -425,10 +426,10 @@ dsk_unify_error p e1 e2 = throwError $ T.concat ["procedure ", T.pack $ show p, 
 
 -- tau test
 unifiableType :: CheckedExpr -> TcMonad Bool
-unifiableType (CTVar _ _ )   = return True
+unifiableType (CTVar _ _ )     = return True
 unifiableType (CVar _ _)       = return True
-unifiableType CStar          = return True
-unifiableType CNat           = return True
+unifiableType CStar            = return True
+unifiableType CNat             = return True
 unifiableType (CLam bnd _)     = return True
 unifiableType (CLamAnn bnd _)  = return True
 unifiableType (CApp e1 e2 _)   = multiUnifiableType [e1, e2]
@@ -436,19 +437,14 @@ unifiableType (CAnn e1 e2 _)   = multiUnifiableType [e1, e2]
 unifiableType (CCastUp e _)    = unifiableType e
 unifiableType (CCastDown e _)  = unifiableType e
 unifiableType e@(CPi bd)      = do
-    (tele, body) <- unbind bd
-    let CCons bnd = tele
-        ((nm, Embed t), rest) = unrebind bnd
+    (CCons bnd, body) <- unbind bd
+    let ((nm, Embed t), rest) = unrebind bnd
     multiUnifiableType [t, mkpi rest body]
 unifiableType (CLet bnd _)     = unbind bnd >>= (\((_, Embed e), b) -> multiUnifiableType [e, b])
 unifiableType _             = return False
 
 multiUnifiableType :: [CheckedExpr] -> TcMonad Bool
-multiUnifiableType [] = return True
-multiUnifiableType (hd:tl) = do
-    r1 <- unifiableType hd
-    if r1 then multiUnifiableType tl
-    else return False
+multiUnifiableType lst = foldM (\x y -> (&& x) <$> unifiableType y) True lst
 
 -----------------------------------------
 --  sigma2tau
