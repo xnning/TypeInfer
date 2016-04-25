@@ -19,40 +19,44 @@ import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 
 -----------------------------------------
---  Operational Semantics
+--  Operational Semantics: Expr
 -----------------------------------------
 
 done :: MonadPlus m => m a
 done = mzero
 
 -- | Small step, call-by-name operational semantics
-step :: CheckedExpr -> MaybeT FreshM CheckedExpr
+step :: Expr -> MaybeT FreshM Expr
 -- S_BETA
-step (CApp (CLam bnd _) t2 _) = do
+step (App (Lam bnd) t2) = do
   (delta, b) <- unbind bnd
   return $ subst delta t2 b
+step (App (LamAnn bnd) t2) = do
+  ((delta, _), b) <- unbind bnd
+  return $ subst delta t2 b
 -- S_APP
-step (CApp t1 t2 ty) =
-      CApp <$> step t1 <*> pure t2 <*> pure ty
-  <|> CApp <$> pure t1 <*> step t2 <*> pure ty
+step (App t1 t2) =
+      App <$> step t1 <*> pure t2
+  <|> App <$> pure t1 <*> step t2
 -- S_CastDownUp
-step (CCastDown (CCastUp e _) _) = return e
+step (CastDown (CastUp e)) = return e
 -- S_CastDown
-step (CCastDown e ty) = CCastDown <$> step e <*> pure ty
+step (CastDown e) = CastDown <$> step e
 -- S-Let
-step (CLet bnd _) = do
+step (Let bnd) = do
   ((n, Embed e), b) <- unbind bnd
+  let n' = name2String n
   pure (subst n e b)
 -- S-Ann
-step (CAnn e t ty) = CAnn <$> step e <*> pure t <*> pure ty
+step (Ann e t)  =  (Ann <$> step e <*> pure t)
 -- prim operation
 -- eval op. eval n. eval m
-step (CPrimOp op (CLit n) (CLit m)) = do
+step (PrimOp op (Lit n) (Lit m)) = do
   let x = evalOp op
-  return (CLit (n `x` m))
-step (CPrimOp op e1 e2) =
-      CPrimOp <$> pure op <*> step e1 <*> pure e2
-  <|> CPrimOp <$> pure op <*> pure e1 <*> step e2
+  return (Lit (n `x` m))
+step (PrimOp op e1 e2) =
+      PrimOp <$> pure op <*> step e1 <*> pure e2
+  <|> PrimOp <$> pure op <*> pure e1 <*> step e2
 step _    = done
 
 evalOp :: Operation -> Int -> Int -> Int
@@ -68,15 +72,48 @@ tc f a = do
     Nothing -> return a
     Just a' -> tc f a'
 
-eval :: CheckedExpr -> CheckedExpr
+eval :: Expr -> Expr
 eval x = runFreshM (tc step x)
+
+-----------------------------------------
+--  Operational Semantics: CheckedExpr
+-----------------------------------------
+
+-- | Small step, call-by-name operational semantics
+cstep :: CheckedExpr -> MaybeT FreshM CheckedExpr
+-- S_BETA
+cstep (CApp (CLam bnd _) t2 _) = do
+  (delta, b) <- unbind bnd
+  return $ subst delta t2 b
+-- S_APP
+cstep (CApp t1 t2 ty) =
+      CApp <$> cstep t1 <*> pure t2 <*> pure ty
+  <|> CApp <$> pure t1 <*> cstep t2 <*> pure ty
+-- S_CastDownUp
+cstep (CCastDown (CCastUp e _) _) = return e
+-- S_CastDown
+cstep (CCastDown e ty) = CCastDown <$> cstep e <*> pure ty
+-- S-Let
+cstep (CLet bnd _) = do
+  ((n, Embed e), b) <- unbind bnd
+  pure (subst n e b)
+-- S-Ann
+cstep (CAnn e t ty) = CAnn <$> cstep e <*> pure t <*> pure ty
+-- prim operation
+-- eval op. eval n. eval m
+cstep (CPrimOp op (CLit n) (CLit m)) = do
+  let x = evalOp op
+  return (CLit (n `x` m))
+cstep (CPrimOp op e1 e2) =
+      CPrimOp <$> pure op <*> cstep e1 <*> pure e2
+  <|> CPrimOp <$> pure op <*> pure e1 <*> cstep e2
+cstep _    = done
 
 oneStep :: (MonadError T.Text m) => CheckedExpr -> m CheckedExpr
 oneStep e = do
-  case runFreshM . runMaybeT $ (step e) of
+  case runFreshM . runMaybeT $ (cstep e) of
     Nothing -> throwError $ T.concat ["Cannot reduce ", showCheckedExpr e]
     Just e' -> return e'
-
 
 -----------------------------------------
 --  Typing Rules: Bi-Directional
