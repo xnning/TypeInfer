@@ -11,7 +11,7 @@ module Environment (
 
     , lookupVarTy
     , ctxAddCstrVar
-    , ctxGenAddCstrTVar
+    , ctxGenAddTVar
 
     , existsVar
     , existsTVar
@@ -58,7 +58,7 @@ import           Data.Maybe (fromJust, listToMaybe)
 type TypeConstraint = CheckedExpr
 type Substitution = CheckedExpr
 data VarInfo =   VarInfo CTmName (Maybe TypeConstraint)
-               | TVarInfo CTmName (Maybe TypeConstraint, Maybe Substitution)
+               | TVarInfo CTmName (TypeConstraint, Maybe Substitution)
                | Marker CTmName
                deriving (Show)
 type Env = [VarInfo]
@@ -116,7 +116,7 @@ getTVarInfo tm = do
 infoGetType :: VarInfo -> Maybe TypeConstraint
 infoGetType (VarInfo _ ty) = ty
 
-tinfoGetType :: VarInfo -> Maybe TypeConstraint
+tinfoGetType :: VarInfo -> TypeConstraint
 tinfoGetType (TVarInfo _ (ty, sub)) = ty
 
 tinfoGetSubst :: VarInfo -> Maybe Substitution
@@ -125,7 +125,7 @@ tinfoGetSubst (TVarInfo _ (_, sub)) = sub
 makeVarInfo :: CTmName -> Maybe TypeConstraint -> VarInfo
 makeVarInfo = VarInfo
 
-makeTVarInfo :: CTmName -> Maybe TypeConstraint -> Maybe Substitution -> VarInfo
+makeTVarInfo :: CTmName -> TypeConstraint -> Maybe Substitution -> VarInfo
 makeTVarInfo tm ty ts = TVarInfo tm (ty, ts)
 
 -----------------------------------------
@@ -176,7 +176,7 @@ lookupVarTy v = do
     Just ty -> return ty
     Nothing -> throwError $ T.concat ["var has no type: ", T.pack . show $ v]
 
-lookupTyCstr :: (MonadState Context m, MonadError T.Text m) => CTmName -> m (Maybe TypeConstraint)
+lookupTyCstr :: (MonadState Context m, MonadError T.Text m) => CTmName -> m TypeConstraint
 lookupTyCstr v = do
   info <- getTVarInfo v
   return (tinfoGetType info)
@@ -225,23 +225,18 @@ _ctxAddVar tm ty = do
 ctxAddCstrVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
 ctxAddCstrVar tm ty = _ctxAddVar tm (Just ty)
 
-ctxAddTVar :: (MonadState Context m) => CTmName -> Maybe TypeConstraint -> m ()
+ctxAddTVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
 ctxAddTVar tm ty = do
   let info = makeTVarInfo tm ty Nothing
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
 
-_ctxGenAddTVar :: (MonadState Context m, Fresh m) =>  Maybe TypeConstraint -> m CTmName
-_ctxGenAddTVar ty = do
+ctxGenAddTVar :: (MonadState Context m, Fresh m) => TypeConstraint -> m CheckedExpr
+ctxGenAddTVar ty = do
   nm <- genCName
   let info = makeTVarInfo nm ty Nothing
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
-  return nm
-
-ctxGenAddCstrTVar :: (MonadState Context m, Fresh m) => TypeConstraint -> m CheckedExpr
-ctxGenAddCstrTVar ty = do
-  nm <- _ctxGenAddTVar (Just ty)
   return (CTVar nm ty)
 
 addMarker :: (MonadState Context m, Fresh m) => m VarInfo
@@ -281,7 +276,7 @@ genTVarBefore tm ty = do
   let idx = fromJust $ findIndex (findTVarInfo tm) env
       (before, after) = splitAt idx env
   nm <- genCName
-  let tvar = makeTVarInfo nm (Just ty) Nothing
+  let tvar = makeTVarInfo nm ty Nothing
   put $ Ctx {_env = before ++ [tvar] ++ after}
   return (CTVar nm ty)
 
@@ -331,7 +326,7 @@ instantiate ty = case ty of
      work CEmpty body     = instantiate body
      work (CCons rb) body = do
          let ((x, Embed t), b) = unrebind rb
-         tvar <- ctxGenAddCstrTVar t
+         tvar <- ctxGenAddTVar t
          work (subst x tvar b)
               (subst x tvar body)
 

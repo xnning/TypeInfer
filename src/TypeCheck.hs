@@ -149,8 +149,8 @@ bicheck (Lam bnd) Infer = do
   x'@(Var nm) <- genVar
   let body' = subst x x' body
 
-  alpha <- ctxGenAddCstrTVar CStar
-  beta <- ctxGenAddCstrTVar CStar
+  alpha <- ctxGenAddTVar CStar
+  beta <- ctxGenAddTVar CStar
   let cnm = tmname2c nm
   ctxAddCstrVar cnm alpha
 
