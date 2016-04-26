@@ -94,7 +94,7 @@ instance Pretty CTele where
       ((x, Embed t), b') = unrebind bnd
 
 instance Pretty CheckedExpr where
-  ppr (CVar x _) = return $ text "var" <+> text (show x)
+  ppr (CVar x _) = return . text .show $ x
   ppr (CTVar x _) = return . text . show $ x
   ppr (CApp e es _) = PP.parens <$> ((<+>) <$> ppr e <*> (ppr es))
   ppr (CLam bnd _) = unbind bnd >>= \(delta, b) -> do
