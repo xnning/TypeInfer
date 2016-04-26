@@ -57,7 +57,7 @@ import           Data.Maybe (fromJust, listToMaybe)
 
 type TypeConstraint = CheckedExpr
 type Substitution = CheckedExpr
-data VarInfo =   VarInfo CTmName (Maybe TypeConstraint)
+data VarInfo =   VarInfo CTmName TypeConstraint
                | TVarInfo CTmName (TypeConstraint, Maybe Substitution)
                | Marker CTmName
                deriving (Show)
@@ -105,7 +105,7 @@ getTVarInfo tm = do
     Just vi -> return vi
     Nothing -> throwError $ T.concat ["tvar not in scope: ", T.pack . show $ tm]
 
-infoGetType :: VarInfo -> Maybe TypeConstraint
+infoGetType :: VarInfo -> TypeConstraint
 infoGetType (VarInfo _ ty) = ty
 
 tinfoGetType :: VarInfo -> TypeConstraint
@@ -114,7 +114,7 @@ tinfoGetType (TVarInfo _ (ty, sub)) = ty
 tinfoGetSubst :: VarInfo -> Maybe Substitution
 tinfoGetSubst (TVarInfo _ (_, sub)) = sub
 
-makeVarInfo :: CTmName -> Maybe TypeConstraint -> VarInfo
+makeVarInfo :: CTmName -> TypeConstraint -> VarInfo
 makeVarInfo = VarInfo
 
 makeTVarInfo :: CTmName -> TypeConstraint -> Maybe Substitution -> VarInfo
@@ -162,11 +162,7 @@ tvarExistsBefore :: (MonadState Context m, MonadError T.Text m) => CTmName -> CT
 tvarExistsBefore v1 v2 = existsBefore (tvar_fun v1) (tvar_fun v2) v1 v2
 
 lookupVarTy :: (MonadState Context m, MonadError T.Text m) => CTmName -> m TypeConstraint
-lookupVarTy v = do
-  info <- getVarInfo v
-  case (infoGetType info) of
-    Just ty -> return ty
-    Nothing -> throwError $ T.concat ["var has no type: ", T.pack . show $ v]
+lookupVarTy v = infoGetType <$> getVarInfo v
 
 lookupTyCstr :: (MonadState Context m, MonadError T.Text m) => CTmName -> m TypeConstraint
 lookupTyCstr v = do
@@ -208,14 +204,11 @@ applyEnv e = do
 -----------------------------------------
 
 -- change env
-_ctxAddVar :: (MonadState Context m) => CTmName -> Maybe TypeConstraint -> m ()
-_ctxAddVar tm ty = do
+ctxAddCstrVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
+ctxAddCstrVar tm ty = do
   let info = makeVarInfo tm ty
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
-
-ctxAddCstrVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
-ctxAddCstrVar tm ty = _ctxAddVar tm (Just ty)
 
 ctxAddTVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
 ctxAddTVar tm ty = do
@@ -403,7 +396,7 @@ ftvtele (CCons rb) = do
    return $ t' `ftv_union` b'
 
 ftvinfo :: (MonadState Context m, MonadError T.Text m, Fresh m) => VarInfo -> m Freevar
-ftvinfo (VarInfo _ (Just ty)) = (applyEnv ty) >>= ftv
+ftvinfo (VarInfo _ ty) = (applyEnv ty) >>= ftv
 ftvinfo _ = return []
 
 ftvctx ::(MonadState Context m, MonadError T.Text m, Fresh m) =>  m Freevar
