@@ -62,7 +62,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \preall e_2 \subst x {e_1} : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \toctx \trto {t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
-    \redto \tau_1 \\ 
+    \redto \tau_1 \\
     \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star
     \toctx_1 \trto {t_1}}
   {\prechk \ercastup e : \tau_2 \toctx
@@ -75,8 +75,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
 \newcommand*{\UEVarEVarA}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar1}}
 \newcommand*{\UEVarEVarB}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genB \lt \genA \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar2}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \genA \lt \tau \toctxo[\genA=\tau]}\rname{U-EVarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau)}{\preuni[{[\genA]}] \tau \lt \genA \toctxo[\genA=\tau]}\rname{U-TyEVar}}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \genA \lt \tau \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-EvarTy}}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \tau \lt \genA \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
 \newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]\tau_1 \lt [\ctxl_1]\tau_1'
