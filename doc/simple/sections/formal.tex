@@ -12,10 +12,12 @@ Expressions & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
 && \synor & $\ercastup e \mid \castdn e$ \\
 && \synor & $e : \tau$ \\
 Contexts &
-$\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,\genA \mid \ctx,\genA=\tau$ \\
+$\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2 \mid \ctx,\genA \mid \ctx,\genA=\tau$ \\
+
 Target Expr. & $t$ & \syndef & $x \mid \genA \mid \star \mid t_1~t_2$ \\
 && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
-&& \synor & $\castup {t_1} t_2 \mid \castdn t$ \\
+&& \synor & $\castup {t_1} t_2 \mid \castdn t$\\
+&& \synor & $\kw{let} x=t_1 \kw{in} x=t_2$ \\
 Target Ctx. &
 $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \end{tabular}
@@ -59,8 +61,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
     \star \toctx \trto {\bpi x {t_1} t_2}}\rname{T-Pi}}
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
-\preall e_2 \subst x {e_1} : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : \tau_2 \toctx \trto {t_2}}\rname{T-Let}}
+\ctx, x:\tau_1 = e_1 \byall e_2 : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
+\kw{in} e_2 : \tau_2 \toctx \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
     \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star
