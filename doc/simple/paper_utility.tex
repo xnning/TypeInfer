@@ -87,6 +87,8 @@
 \newcommand{\To}{\Rightarrow}
 \newcommand{\Chk}{\Downarrow}
 \newcommand{\Inf}{\Uparrow}
+\newcommand{\Inst}{{inst}}
+\newcommand{\Gen}{{gen}}
 \newcommand{\redto}{\hookrightarrow}
 \newcommand{\redton}{\hookrightarrow^*}
 \newcommand{\eq}{\sim}
@@ -158,6 +160,8 @@
 \newcommand{\byapp}{\vdash_\bullet}
 \newcommand{\byall}{\vdash_\delta}
 \newcommand{\bytar}{\vdash}
+\newcommand{\byinst}{\vdash_\Inst}
+\newcommand{\bygen}{\vdash_\Gen}
 \newcommand{\toctx}{\dashv \ctxl}
 \newcommand{\toctxo}{\dashv \ctx}
 \newcommand{\toctxr}{\dashv \ctxr}
@@ -167,11 +171,14 @@
 \newcommand{\preapp}[1][]{\ctx {#1} \byapp}
 \newcommand{\preuni}[1][]{\ctx {#1} \byuni}
 \newcommand{\pretar}[1][]{\tctx {#1} \bytar}
+\newcommand{\preinst}[1][]{\ctx {#1} \byinst}
+\newcommand{\pregen}[1][]{\ctx {#1} \bygen}
 
 % Primitives
 \newcommand{\Int}{\var{Int}}
 \newcommand{\String}{\var{String}}
 
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "main"

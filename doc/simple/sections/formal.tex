@@ -5,6 +5,8 @@
 
 \subsection{Syntax}
 \begin{tabular}{lrcl}
+Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
+
 Expressions & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
 && \synor & $\erlam x e \mid \blam x \tau e$ \\
 && \synor & $\bpi x {\tau_1} \tau_2$ \\
@@ -12,7 +14,8 @@ Expressions & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
 && \synor & $\ercastup e \mid \castdn e$ \\
 && \synor & $e : \tau$ \\
 Contexts &
-$\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2 \mid \ctx,\genA \mid \ctx,\genA=\tau$ \\
+$\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2$ \\
+&& \synor & $\ctx,\genA \mid \ctx,\genA=\tau$ \\
 
 Target Expr. & $t$ & \syndef & $x \mid \genA \mid \star \mid t_1~t_2$ \\
 && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
@@ -26,6 +29,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo \trto \star}\rname{T-Ax}}
 \newcommand*{\TVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau \toctxo
   \trto x}\rname{T-Var}}
+\newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2 \toctx}{\preinf x:\tau_2 \toctx
+  \trto x}\rname{T-LetVar}}
 \newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \trto{t} \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
     \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx \trto{t}}\rname{T-Sub}}
 \newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \trto{t} \\
@@ -61,7 +66,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
     \star \toctx \trto {\bpi x {t_1} t_2}}\rname{T-Pi}}
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
-\ctx, x:\tau_1 = e_1 \byall e_2 : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
+\pregen {\tau_1} \lt \sigma \\
+\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \toctx \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
@@ -125,8 +131,13 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\EPi}{\inferrule{\pretar }{\pretar \bpi x {t_1} t_2 :
     \star \trto {\bpi x {\tau_1} \tau_2}}\rname{E-Pi}}
 
+\newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctx, \overbar{\genA}} \rname{Inst}}
+
+\newcommand*{\Generalization}{\inferrule{\overbar{\genA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+
 \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
 \[\TAx \quad \TVar\]
+\[\TLetVar\]
 % \[\TAppPi\]
 % \[\TAppVar\]
 \[\TApp\]
@@ -144,6 +155,13 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \[\APi\]
 \[\AEVar\]
 \\
+
+\headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation}
+\[\Instantiation\]
+
+\headercapm{\pregen \tau \lt \sigma}{Generalization}
+\[\Generalization\]
+
 \headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
 \[\UVar\]
 \[\UEVarId\]
