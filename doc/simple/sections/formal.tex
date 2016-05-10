@@ -113,7 +113,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
     \toctx}\rname{U-Ann}}
 
 \newcommand*{\APi}{\inferrule{\prechk e:\tau_1 \toctx \trto t}{\preapp (\bpi x
-    {\tau_1} \tau_2)~e : \tau_2 \toctx \trto t}\rname{A-Pi}}
+    {\tau_1} \tau_2)~e : \tau_2[x \mapsto e] \toctx \trto t}\rname{A-Pi}}
 \newcommand*{\AEVar}{\inferrule{\prechk[{[\genA_2,\genA_1,\genA=\bpi x
     {\genA_1} \genA_2]}] e : \genA_1 \toctx \trto t}{\preapp[{[\genA]}]
   \genA~e : \genA_2 \toctx \trto t}\rname{A-EVar}}
