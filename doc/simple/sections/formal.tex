@@ -133,7 +133,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 
 \newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctx, \overbar{\genA}} \rname{Inst}}
 
-\newcommand*{\Generalization}{\inferrule{\overbar{\genA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+\newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FV(\tau_2) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
 
 \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
 \[\TAx \quad \TVar\]
