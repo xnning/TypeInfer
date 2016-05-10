@@ -19,3 +19,4 @@ doc/simple/auto
 
 *.swp
 
+/src/src_bk/*
