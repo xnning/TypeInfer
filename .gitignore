@@ -1,23 +1,11 @@
-dist
-cabal-dev
 *.o
 *.hi
 *.chi
 *.chs.h
-.virthualenv
-.hsenv
-.cabal-sandbox/
-cabal.sandbox.config
-cabal.config
-.hdevtools.sock
-/src/Parser.info
-/demo.org
 .stack-work/
 
 *.DS_Store
-.texpadtmp/
 *.ptb
-
 *.out
 *.aux
 *.log
@@ -27,10 +15,7 @@ cabal.config
 doc/**/appendix.tex
 doc/**/expcore.ott.tex
 doc/**/otthelper.tex
-/src/Parser.hs
-/src/Tokens.hs
 doc/simple/auto
 
 *.swp
 
-*.pdf
