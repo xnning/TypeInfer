@@ -67,7 +67,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
     \star \toctx \trto {\bpi x {t_1} t_2}}\rname{T-Pi}}
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
 \pregen {\tau_1} \lt \sigma \\
-\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx \trto {t_2}}{\preall \kw{let} x=e_1
+\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr \trto {t_2}}{\preall \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \toctx \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
