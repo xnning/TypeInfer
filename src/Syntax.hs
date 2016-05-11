@@ -32,6 +32,8 @@ data Expr = Var TmName
           | Lit Int
           | PrimOp Operation Expr Expr
 
+          | TVar TmName
+
   deriving (Show, Generic, Typeable)
 
 data Operation = Mult
@@ -57,6 +59,7 @@ instance Subst Expr Tele
 
 instance Subst Expr Expr where
   isvar (Var tm) = Just (SubstName tm)
+  isvar (TVar tm) = Just (SubstName tm)
   isvar _        = Nothing
 
 -- Examples
@@ -74,18 +77,6 @@ polyidty = epi [("x", estar)] (epi [("y", evar "x")] (evar "y"))
 
 evar :: String -> Expr
 evar = Var . string2Name
-
-cevar :: String -> CheckedExpr -> CheckedExpr
-cevar nm = CVar (string2Name nm)
-
-tmname2c :: TmName -> CTmName
-tmname2c = string2Name . show
-
-ctvar :: String -> CheckedExpr -> CheckedExpr
-ctvar e = CTVar (string2Name e)
-
-evar2c :: TmName -> CheckedExpr -> CheckedExpr
-evar2c nm = cevar (show nm)
 
 elam :: String -> Expr -> Expr
 elam t b = Lam (bind (string2Name t) b)
@@ -111,9 +102,6 @@ eforallStar t b = eforall [(t, estar)] b
 forallWithName :: [(TmName, Expr)] -> Expr -> Expr
 forallWithName t b = let pi =  foldr (\(n, t) acc -> Cons (rebind (n, Embed t) acc)) Empty t in  Forall (bind pi b)
 
-cforallWithName :: [(CTmName, CheckedExpr)] -> CheckedExpr -> CheckedExpr
-cforallWithName t b = let pi =  foldr (\(n, t) acc -> CCons (rebind (n, Embed t) acc)) CEmpty t in  CForall (bind pi b)
-
 estar :: Expr
 estar = Star
 
@@ -127,104 +115,12 @@ mkTele :: [(String, Expr)] -> Tele
 mkTele []          = Empty
 mkTele ((x,e) : t) = Cons (rebind (string2Name x, Embed e) (mkTele t))
 
------------------------------------------
---  Expr
------------------------------------------
-
-type CTmName = Name CheckedExpr
-data CTele = CEmpty
-           | CCons (Rebind (CTmName,Embed CheckedExpr) CTele)
-  deriving (Show, Generic, Typeable)
-
-type CType = CheckedExpr
-data CheckedExpr = CVar CTmName CType
-          | CStar
-          | CApp CheckedExpr CheckedExpr CType
-          | CLam (Bind CTmName CheckedExpr) CType
-          | CLamAnn (Bind (CTmName, Embed CheckedExpr) CheckedExpr) CType
-          | CCastUp CheckedExpr CType
-          | CCastDown CheckedExpr CType
-          | CAnn CheckedExpr CheckedExpr CType
-          | CLet (Bind (CTmName, Embed CheckedExpr) CheckedExpr) CType
-
-          -- rho sigma
-          | CPi (Bind CTele CheckedExpr)
-          | CForall (Bind CTele CheckedExpr)
-
-          -- natural
-          | CNat
-          | CLit Int
-          | CPrimOp Operation CheckedExpr CheckedExpr
-
-          -- helper, not in syntax
-          | CTVar CTmName CType
-  deriving (Show, Generic, Typeable)
-
-instance Alpha CheckedExpr
-instance Alpha CTele
-
-instance Subst CheckedExpr Operation
-instance Subst CheckedExpr CTele
-instance Subst CheckedExpr CheckedExpr where
-  isvar (CVar tm _) = Just (SubstName tm)
-  isvar (CTVar tm _) = Just (SubstName tm)
-  isvar _           = Nothing
-
-mkCTele :: [(String, CheckedExpr)] -> CTele
-mkCTele []           = CEmpty
-mkCTele ((x,e) : t)  = CCons (rebind (string2Name x, Embed e) (mkCTele t))
-
-cepiWithName :: [(CTmName, CheckedExpr)] -> CheckedExpr -> CheckedExpr
-cepiWithName t b = let pi =  foldr (\(n, t) acc -> CCons (rebind (n, Embed t) acc)) CEmpty t in  CPi (bind pi b)
-
-expr_mkpi :: Tele -> Expr -> Expr
-expr_mkpi tele body =
-    case tele of Empty -> body
-                 _     -> Pi (bind tele body)
-
-mkpi :: CTele -> CheckedExpr -> CheckedExpr
-mkpi tele body =
-    case tele of CEmpty -> body
-                 _     -> CPi (bind tele body)
-
-expr_mkforall :: Tele -> Expr -> Expr
-expr_mkforall tele body =
+mkforall :: Tele -> Expr -> Expr
+mkforall tele body =
     case tele of Empty -> body
                  _     -> Forall (bind tele body)
 
-mkforall :: CTele -> CheckedExpr -> CheckedExpr
-mkforall tele body =
-    case tele of CEmpty -> body
-                 _     -> CForall (bind tele body)
-
-getCheckedType :: CheckedExpr -> CheckedExpr
-getCheckedType e = case e of
-  CVar _ t      -> t
-  CTVar _ t     -> t
-  CStar         -> CStar
-  CApp _ _ t    -> t
-  CLam _ t      -> t
-  CLamAnn _ t   -> t
-  CCastDown _ t -> t
-  CCastUp _ t   -> t
-  CAnn _ _ t    -> t
-  CLet _ t      -> t
-  CPi _         -> CStar
-  CForall _     -> CStar
-  CNat          -> CStar
-  CLit _        -> CNat
-  CPrimOp _ _ _ -> CNat
-
-changeCheckedType :: CheckedExpr -> CheckedExpr -> CheckedExpr
-changeCheckedType e t = case e of
-  CVar x _      -> CVar x t
-  CTVar x _     -> CTVar x t
-  CApp x1 x2 _  -> CApp x1 x2 t
-  CLam x1 _     -> CLam x1 t
-  CLamAnn x _   -> CLamAnn x t
-  CCastDown x _ -> CCastDown x t
-  CCastUp x _   -> CCastUp x t
-  CAnn x1 x2 _  -> CAnn x1 x2 t
-  CLet x _      -> CLet x t
-  _ -> e
-
+mkpi :: Tele -> Expr -> Expr
+mkpi tele body =
+    case tele of Empty -> body
+                 _     -> Pi (bind tele body)

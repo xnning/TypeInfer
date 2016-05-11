@@ -10,12 +10,13 @@ module Environment (
     , skolemInstantiate
 
     , lookupVarTy
+    , ctxAddVar
     , ctxAddCstrVar
+    , ctxAddLetVar
     , ctxGenAddTVar
 
     , existsVar
     , existsTVar
-    , varExistsBefore
     , tvarExistsBefore
 
     , genVar
@@ -31,9 +32,9 @@ module Environment (
 
     , applyEnv
     , printEnv
-    , withEnv
 
     , occur_check
+    , wellDefinedBeforeTVar
     ) where
 
 import           Control.Applicative
@@ -55,11 +56,11 @@ import           Data.Maybe (fromJust, listToMaybe)
 --  Data Constructor
 -----------------------------------------
 
-type TypeConstraint = CheckedExpr
-type Substitution = CheckedExpr
-data VarInfo =   VarInfo CTmName TypeConstraint
-               | TVarInfo CTmName (TypeConstraint, Maybe Substitution)
-               | Marker CTmName
+type TypeConstraint = Expr
+type Substitution = Expr
+data VarInfo =   VarInfo TmName (Maybe TypeConstraint, Maybe Substitution)
+               | TVarInfo TmName (Maybe Substitution)
+               | Marker TmName
                deriving (Show)
 type Env = [VarInfo]
 
@@ -89,7 +90,7 @@ printEnv = do
   env <- gets _env
   return $ showEnv env
 
-getVarInfo :: (MonadState Context m, MonadError T.Text m) => CTmName -> m VarInfo
+getVarInfo :: (MonadState Context m, MonadError T.Text m) => TmName -> m VarInfo
 getVarInfo tm = do
   env <- gets _env
   let vm = listToMaybe [x | x@(VarInfo tm2 _) <- env, tm2 == tm]
@@ -97,7 +98,7 @@ getVarInfo tm = do
     Just vi -> return vi
     Nothing -> throwError $ T.concat ["var not in scope: ", T.pack . show $ tm, ". current context:", T.pack . showEnv $ env]
 
-getTVarInfo :: (MonadState Context m, MonadError T.Text m) => CTmName -> m VarInfo
+getTVarInfo :: (MonadState Context m, MonadError T.Text m) => TmName -> m VarInfo
 getTVarInfo tm = do
   env <- gets _env
   let vm = listToMaybe [x | x@(TVarInfo tm2 _) <- env, tm2 == tm]
@@ -105,96 +106,66 @@ getTVarInfo tm = do
     Just vi -> return vi
     Nothing -> throwError $ T.concat ["tvar not in scope: ", T.pack . show $ tm]
 
-infoGetType :: VarInfo -> TypeConstraint
-infoGetType (VarInfo _ ty) = ty
-
-tinfoGetType :: VarInfo -> TypeConstraint
-tinfoGetType (TVarInfo _ (ty, sub)) = ty
+infoGetType :: VarInfo -> Maybe TypeConstraint
+infoGetType (VarInfo _ (ty, _)) = ty
 
 tinfoGetSubst :: VarInfo -> Maybe Substitution
-tinfoGetSubst (TVarInfo _ (_, sub)) = sub
+tinfoGetSubst (TVarInfo _ sub) = sub
 
-makeVarInfo :: CTmName -> TypeConstraint -> VarInfo
-makeVarInfo = VarInfo
+makeVarInfo :: TmName -> Maybe TypeConstraint -> Maybe Substitution -> VarInfo
+makeVarInfo tm ty ts = VarInfo tm (ty, ts)
 
-makeTVarInfo :: CTmName -> TypeConstraint -> Maybe Substitution -> VarInfo
-makeTVarInfo tm ty ts = TVarInfo tm (ty, ts)
+makeTVarInfo :: TmName -> Maybe Substitution -> VarInfo
+makeTVarInfo tm ts = TVarInfo tm ts
 
 -----------------------------------------
 --  Utility on Fetching Information
 -----------------------------------------
 
-existsVar :: (MonadState Context m, MonadError T.Text m) => CTmName -> m ()
+existsVar :: (MonadState Context m, MonadError T.Text m) => TmName -> m ()
 existsVar tm = getVarInfo tm >>= (\_ -> return ())
 
-existsTVar :: (MonadState Context m, MonadError T.Text m) => CTmName -> m ()
+existsTVar :: (MonadState Context m, MonadError T.Text m) => TmName -> m ()
 existsTVar tm = getTVarInfo tm >>= (\_ -> return ())
 
-findVarInfo :: CTmName -> VarInfo -> Bool
-findVarInfo tm e =
-  case e of VarInfo tm2 _ -> tm == tm2
-            _             -> False
-
-findTVarInfo :: CTmName -> VarInfo -> Bool
+findTVarInfo :: TmName -> VarInfo -> Bool
 findTVarInfo tm e =
   case e of TVarInfo tm2 _ -> tm == tm2
-            _             -> False
+            _              -> False
 
-existsBefore :: (MonadState Context m, MonadError T.Text m) =>
-    (CTmName -> m (), VarInfo -> Bool) -> (CTmName -> m (), VarInfo -> Bool)
-    -> CTmName -> CTmName -> m Bool
-existsBefore (exist1, index1) (exist2, index2) tm1 tm2= do
-  exist1 tm1
-  exist2 tm2
+tvarExistsBefore :: (MonadState Context m, MonadError T.Text m) => TmName -> TmName -> m Bool
+tvarExistsBefore v1 v2 = do
+  existsTVar v1
+  existsTVar v2
 
   env <- gets _env
-  let i1 = fromJust $ findIndex index1 env
-  let i2 = fromJust $ findIndex index2 env
+  let i1 = fromJust $ findIndex (findTVarInfo v1) env
+  let i2 = fromJust $ findIndex (findTVarInfo v2) env
   return (i1 < i2)
 
-var_fun v = (existsVar, findVarInfo v)
-tvar_fun v = (existsTVar, findTVarInfo v)
+lookupVarTy :: (MonadState Context m, MonadError T.Text m) => TmName -> m TypeConstraint
+lookupVarTy v = do
+  tyc <- (infoGetType <$> getVarInfo v)
+  case tyc of
+       Just ty -> return ty
+       _ -> throwError $ T.concat ["var ", T.pack . show $ v, " has no type in env"]
 
-varExistsBefore :: (MonadState Context m, MonadError T.Text m) => CTmName -> CTmName -> m Bool
-varExistsBefore v1 v2 = existsBefore (var_fun v1) (tvar_fun v2) v1 v2
-
-tvarExistsBefore :: (MonadState Context m, MonadError T.Text m) => CTmName -> CTmName -> m Bool
-tvarExistsBefore v1 v2 = existsBefore (tvar_fun v1) (tvar_fun v2) v1 v2
-
-lookupVarTy :: (MonadState Context m, MonadError T.Text m) => CTmName -> m TypeConstraint
-lookupVarTy v = infoGetType <$> getVarInfo v
-
-lookupTyCstr :: (MonadState Context m, MonadError T.Text m) => CTmName -> m TypeConstraint
-lookupTyCstr v = do
-  info <- getTVarInfo v
-  return (tinfoGetType info)
-
-lookupTySubst :: (MonadState Context m, MonadError T.Text m) => CTmName -> m (Maybe Substitution)
+lookupTySubst :: (MonadState Context m, MonadError T.Text m) => TmName -> m (Maybe Substitution)
 lookupTySubst v = do
   info <- getTVarInfo v
   return (tinfoGetSubst info)
 
 -----------------------------------------
---  With Environment
------------------------------------------
-
-withEnv :: (MonadState Context m) => m a -> m a
-withEnv block = do
-  env <- gets _env
-  res <- block
-  put $ Ctx {_env = env}
-  return res
-
------------------------------------------
 --  Apply Environment
 -----------------------------------------
 
-applyVarInfo ::VarInfo -> CheckedExpr -> CheckedExpr
+applyVarInfo ::VarInfo -> Expr -> Expr
 applyVarInfo v e = case v of
-                      (TVarInfo nm (_, Just sub)) -> subst nm sub e
+                      (TVarInfo nm (Just sub)) -> subst nm sub e
+                      (VarInfo nm (_, Just sub)) -> subst nm sub e
                       _ -> e
 
-applyEnv :: (MonadState Context m) => CheckedExpr -> m CheckedExpr
+applyEnv :: (MonadState Context m) => Expr -> m Expr
 applyEnv e = do
     env <- gets _env
     return $ foldr applyVarInfo e env
@@ -203,26 +174,37 @@ applyEnv e = do
 --  Change Environment: addition
 -----------------------------------------
 
--- change env
-ctxAddCstrVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
+ctxAddVar :: (MonadState Context m) => TmName -> m ()
+ctxAddVar tm = do
+  let info = makeVarInfo tm Nothing Nothing
+  origin <- gets _env
+  put $ Ctx {_env = origin ++ [info]}
+
+ctxAddCstrVar :: (MonadState Context m) => TmName -> TypeConstraint -> m ()
 ctxAddCstrVar tm ty = do
-  let info = makeVarInfo tm ty
+  let info = makeVarInfo tm (Just ty) Nothing
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
 
-ctxAddTVar :: (MonadState Context m) => CTmName -> TypeConstraint -> m ()
-ctxAddTVar tm ty = do
-  let info = makeTVarInfo tm ty Nothing
+ctxAddLetVar :: (MonadState Context m) => TmName -> TypeConstraint -> Substitution -> m ()
+ctxAddLetVar tm ty ts = do
+  let info = makeVarInfo tm (Just ty) (Just ts)
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
 
-ctxGenAddTVar :: (MonadState Context m, Fresh m) => TypeConstraint -> m CheckedExpr
-ctxGenAddTVar ty = do
+ctxAddTVar :: (MonadState Context m) => TmName -> m ()
+ctxAddTVar tm = do
+  let info = makeTVarInfo tm Nothing
+  origin <- gets _env
+  put $ Ctx {_env = origin ++ [info]}
+
+ctxGenAddTVar :: (MonadState Context m, Fresh m) => m Expr
+ctxGenAddTVar = do
   nm <- genCName
-  let info = makeTVarInfo nm ty Nothing
+  let info = makeTVarInfo nm Nothing
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
-  return (CTVar nm ty)
+  return (TVar nm)
 
 addMarker :: (MonadState Context m, Fresh m) => m VarInfo
 addMarker = do
@@ -235,7 +217,7 @@ addMarker = do
 --  Change Environment: deletion
 -----------------------------------------
 
-throwAfterVar :: (MonadState Context m) => CTmName -> m ()
+throwAfterVar :: (MonadState Context m) => TmName -> m ()
 throwAfterVar nm = do
   env <- gets _env
   let filter_fun d = case d of VarInfo nm2 _ -> nm /= nm2
@@ -255,29 +237,29 @@ deleteAfterMarker (Marker nm) = do
 --  Change Environment: insertion
 -----------------------------------------
 
-genTVarBefore :: (MonadState Context m, Fresh m) => CTmName -> TypeConstraint -> m CheckedExpr
-genTVarBefore tm ty = do
+genTVarBefore :: (MonadState Context m, Fresh m) => TmName -> m Expr
+genTVarBefore tm = do
   env <- gets _env
   let idx = fromJust $ findIndex (findTVarInfo tm) env
       (before, after) = splitAt idx env
   nm <- genCName
-  let tvar = makeTVarInfo nm ty Nothing
+  let tvar = makeTVarInfo nm Nothing
   put $ Ctx {_env = before ++ [tvar] ++ after}
-  return (CTVar nm ty)
+  return (TVar nm)
 
-addSubsitution :: (MonadState Context m, Fresh m) => CTmName -> Substitution -> m ()
+addSubsitution :: (MonadState Context m, Fresh m) => TmName -> Substitution -> m ()
 addSubsitution tm sub = do
   env <- gets _env
   let idx = fromJust $ findIndex (findTVarInfo tm) env
-      (before, (TVarInfo _ (ty, Nothing)) :after) = splitAt idx env
-  let tvar' = makeTVarInfo tm ty (Just sub)
+      (before, (TVarInfo _ Nothing) :after) = splitAt idx env
+  let tvar' = makeTVarInfo tm (Just sub)
   put $ Ctx {_env = before ++ [tvar'] ++ after}
 
-monoInstantiate :: (MonadState Context m, Fresh m) => CTmName -> CheckedExpr -> m CheckedExpr
-monoInstantiate tm (CForall bd) = do
-    ((CCons bnd), body_type) <- unbind bd
+monoInstantiate :: (MonadState Context m, Fresh m) => TmName -> Expr -> m Expr
+monoInstantiate tm (Forall bd) = do
+    ((Cons bnd), body_type) <- unbind bd
     let ((nm, Embed t), rest) = unrebind bnd
-    alpha <- genTVarBefore tm t
+    alpha <- genTVarBefore tm
     return $ subst nm alpha (mkforall rest body_type)
 
 -----------------------------------------
@@ -287,116 +269,115 @@ monoInstantiate tm (CForall bd) = do
 genName :: (Fresh m) => m TmName
 genName = fresh (string2Name "a")
 
-genCName :: (Fresh m) => m CTmName
+genCName :: (Fresh m) => m TmName
 genCName = fresh (string2Name "a")
 
 genVar :: (Fresh m) => m Expr
 genVar = Var <$> genName
 
-genTVar :: (Fresh m) => TypeConstraint -> m CheckedExpr
-genTVar ty = do nm <- genCName
-                return (CTVar nm ty)
+genTVar :: (Fresh m) => m Expr
+genTVar = do nm <- genCName
+             return (TVar nm)
 
 -----------------------------------------
 --  instantiation
 -----------------------------------------
 
 -- instantiation used in var
-instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => CheckedExpr -> m CheckedExpr
+instantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 instantiate ty = case ty of
-     CForall bnd -> do (bind, b) <- unbind bnd
-                       work bind b
-     _           -> return ty
+     Forall bnd -> do (bind, b) <- unbind bnd
+                      work bind b
+     _          -> return ty
   where
-     work CEmpty body     = instantiate body
-     work (CCons rb) body = do
+     work Empty body     = instantiate body
+     work (Cons rb) body = do
          let ((x, Embed t), b) = unrebind rb
-         tvar <- ctxGenAddTVar t
+         tvar <- ctxGenAddTVar
          work (subst x tvar b)
               (subst x tvar body)
 
 -- instantiation used in var
-skolemInstantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => CheckedExpr -> m CheckedExpr
+skolemInstantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 skolemInstantiate ty = case ty of
-     CForall bnd -> do (bind, b) <- unbind bnd
-                       work bind b
+     Forall bnd -> do (bind, b) <- unbind bnd
+                      work bind b
      _           -> return ty
   where
-     work CEmpty body     = skolemInstantiate body
-     work (CCons rb) body = do
+     work Empty body     = skolemInstantiate body
+     work (Cons rb) body = do
          let ((x, Embed t), b) = unrebind rb
          cm <- genCName
          ctxAddCstrVar cm t
-         work (subst x (CVar cm t)  b)
-              (subst x (CVar cm t) body)
+         work (subst x (Var cm)  b)
+              (subst x (Var cm) body)
 
 -----------------------------------------
 --  generalization
 -----------------------------------------
 
 -- generalization used in let
-generalization :: (MonadState Context m, MonadError T.Text m, Fresh m) => CheckedExpr -> m CheckedExpr
+generalization :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
 generalization ty = do
   free <- ftv ty
   free_ctx <- ftvctx
   let freewithty =  free `ftv_diff` free_ctx
   return $ if null freewithty then ty
-           else cforallWithName freewithty ty
+           else forallWithName (zip freewithty (repeat estar)) ty
 
 -----------------------------------------
 --  Free Variables
 -----------------------------------------
 
 -- free variables
-type Freevar = [(CTmName, CheckedExpr)]
+type Freevar = [TmName]
 
-occur_check :: (MonadState Context m, MonadError T.Text m, Fresh m) => CTmName -> CheckedExpr -> m ()
+occur_check :: (MonadState Context m, MonadError T.Text m, Fresh m) => TmName -> Expr -> m ()
 occur_check tm e = do
-    fvs <- ftv e
-    let names = map fst fvs
+    names <- ftv e
     unless (notElem tm names) $
-      throwError $ T.concat ["occur check fails: tvar ", T.pack . show $ tm, " in type ", showCheckedExpr e]
+      throwError $ T.concat ["occur check fails: tvar ", T.pack . show $ tm, " in type ", showExpr e]
 
-ftv :: (MonadState Context m, MonadError T.Text m, Fresh m) => CheckedExpr -> m Freevar
-ftv (CTVar     n t) = return [(n, t)]
-ftv (CApp  t1 t2 _) = ftv_do_union t1 t2
-ftv (CLam    bnd _) = do (x, body) <- unbind bnd
-                         ftv body
-ftv (CLamAnn bnd _) = do ((x, Embed ty), body) <- unbind bnd
-                         ftv_do_union ty body
-ftv (CCastUp   e _) = ftv e
-ftv (CCastDown e _) = ftv e
-ftv (CAnn   e  t _) = ftv_do_union e  t
-ftv (CLet    bnd _) = do ((x, Embed e), body) <- unbind bnd
-                         ftv_do_union body e
-ftv (CPi     bnd  ) = ftv_fun bnd
-ftv (CForall bnd  ) = ftv_fun bnd
-ftv (CPrimOp _ e1 e2) = ftv_do_union e1 e2
+ftv :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Freevar
+ftv (TVar     n ) = return [n]
+ftv (App  t1 t2 ) = ftv_do_union t1 t2
+ftv (Lam    bnd ) = do (x, body) <- unbind bnd
+                       ftv body
+ftv (LamAnn bnd ) = do ((x, Embed ty), body) <- unbind bnd
+                       ftv_do_union ty body
+ftv (CastUp   e ) = ftv e
+ftv (CastDown e ) = ftv e
+ftv (Ann   e  t ) = ftv_do_union e  t
+ftv (Let    bnd ) = do ((x, Embed e), body) <- unbind bnd
+                       ftv_do_union body e
+ftv (Pi     bnd ) = ftv_fun bnd
+ftv (Forall bnd ) = ftv_fun bnd
+ftv (PrimOp _ e1 e2) = ftv_do_union e1 e2
 ftv           _       = return []
 
-ftv_do_union :: (MonadState Context m, MonadError T.Text m, Fresh m) => CheckedExpr -> CheckedExpr -> m Freevar
+ftv_do_union :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> Expr -> m Freevar
 ftv_do_union e1 e2 = do
     e1' <- ftv e1
     e2' <- ftv e2
     return $ e1' `ftv_union` e2'
 
-ftv_fun :: (MonadState Context m, MonadError T.Text m, Fresh m) => Bind CTele CheckedExpr -> m Freevar
+ftv_fun :: (MonadState Context m, MonadError T.Text m, Fresh m) => Bind Tele Expr -> m Freevar
 ftv_fun bnd = do
      (bind, b) <- unbind bnd
      bind'     <- ftvtele bind
      b'        <- ftv b
      return    $ bind' `ftv_union` b'
 
-ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => CTele -> m Freevar
-ftvtele CEmpty = return []
-ftvtele (CCons rb) = do
+ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m Freevar
+ftvtele Empty = return []
+ftvtele (Cons rb) = do
    let ((x, Embed t), b) = unrebind rb
    t' <- ftv t
    b' <- ftvtele b
    return $ t' `ftv_union` b'
 
 ftvinfo :: (MonadState Context m, MonadError T.Text m, Fresh m) => VarInfo -> m Freevar
-ftvinfo (VarInfo _ ty) = (applyEnv ty) >>= ftv
+ftvinfo (VarInfo _ (Just ty, _)) = (applyEnv ty) >>= ftv
 ftvinfo _ = return []
 
 ftvctx ::(MonadState Context m, MonadError T.Text m, Fresh m) =>  m Freevar
@@ -409,8 +390,56 @@ ftvctx =  do
           ctx
 
 ftv_diff :: Freevar -> Freevar -> Freevar
-ftv_diff s1 s2 = filter (\(nm, _) -> not $ nm `elem` lst) s1 where lst = map fst s2
+ftv_diff s1 s2 = filter (\nm -> not $ nm `elem` s2) s1
 
 ftv_union :: Freevar -> Freevar -> Freevar
-ftv_union s1 s2 = foldr (\var@(nm, _) acc -> if nm `elem` lst then acc else acc ++ [var] ) s1 s2 where lst = map fst s1
+ftv_union s1 s2 = foldr (\nm acc -> if nm `elem` s2 then acc else acc ++ [nm] ) s1 s2
 
+-----------------------------------------
+--  Well defined
+-----------------------------------------
+
+wellDefined :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m ()
+wellDefined (Var nm) = existsVar nm
+wellDefined (TVar nm) = existsTVar nm
+wellDefined Star = return ()
+wellDefined (App e1 e2) = wellDefined e1 >> wellDefined e2
+wellDefined (Lam bnd) = do
+  (x, body) <- unbind bnd
+  ctxAddVar x
+  wellDefined body
+  throwAfterVar x
+wellDefined (CastUp x) = wellDefined x
+wellDefined (CastDown x) = wellDefined x
+wellDefined (Ann e1 e2) = wellDefined e1 >> wellDefined e2
+wellDefined Nat = return ()
+wellDefined (Lit _) = return ()
+wellDefined (PrimOp _ e1 e2) = wellDefined e2 >> wellDefined e2
+wellDefined p@(Pi bnd) = do
+  (x, tau1, tau2) <- unpi p
+  wellDefined tau1
+  ctxAddCstrVar x tau1
+  wellDefined tau2
+  throwAfterVar x
+wellDefined (Let bnd) = do
+  ((n, Embed e), b) <- unbind bnd
+  wellDefined e
+  ctxAddVar n
+  wellDefined b
+  throwAfterVar n
+
+wellDefinedBeforeTVar :: (MonadState Context m, MonadError T.Text m, Fresh m) => TmName -> Expr -> m ()
+wellDefinedBeforeTVar tm e = do
+  env <- gets _env
+  let idx = fromJust $ findIndex (findTVarInfo tm) env
+      (before, after) = splitAt idx env
+  put $ Ctx {_env = before}
+  wellDefined e
+  put $ Ctx {_env = env}
+
+unpi :: (Fresh m) => Expr -> m (TmName, Expr, Expr)
+unpi (Pi bnd) = do
+  (Cons tele, b) <- unbind bnd
+  let ((x, Embed tau1), rest) = unrebind tele
+      tau2 = mkpi rest b
+  return (x, tau1, tau2)

@@ -56,7 +56,7 @@ main = runInputT defaultSettings loop
           \xs -> do
             case typecheck xs of
               Left err  -> outputStrLn . T.unpack $ err
-              Right typ -> outputStrLn ("\n--- Typing result ---\n\n" ++ (T.unpack . showCheckedExpr $ typ) ++ "\n")
+              Right typ -> outputStrLn ("\n--- Typing result ---\n\n" ++ (T.unpack . showExpr $ typ) ++ "\n")
             loop
 
       where
