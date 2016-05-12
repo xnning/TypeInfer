@@ -145,7 +145,7 @@ bicheck (LamAnn bnd) Infer = do
   tau2 <- infertype (subst x x' e)
   throwAfterVar nm
 
-  return tau2
+  return (epiWithName [(nm, tau1)] tau2)
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1
