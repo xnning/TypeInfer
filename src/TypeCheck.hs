@@ -122,7 +122,7 @@ bicheck (Lam bnd) Infer = do
 
   return (epiWithName [(nm, alpha)] beta)
 -- Lam Check
-bicheck (Lam bnd) (Check p@(Pi bd))  = do
+bicheck (Lam bnd) (Check p@(Pi bd)) = do
   (x, lam_body) <- unbind bnd
   (pix, tau1, tau2) <- unpi p
 
@@ -135,6 +135,17 @@ bicheck (Lam bnd) (Check p@(Pi bd))  = do
   throwAfterVar nm
 
   return (epiWithName [(nm, tau1)] tau2')
+-- LamAnn
+bicheck (LamAnn bnd) Infer = do
+  ((x, Embed tau1), e) <- unbind bnd
+  checktype tau1 estar
+
+  x'@(Var nm) <- genVar
+  ctxAddCstrVar nm tau1
+  tau2 <- infertype (subst x x' e)
+  throwAfterVar nm
+
+  return tau2
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1
@@ -253,6 +264,18 @@ unify s1@(Lam bnd1) s2@(Lam bnd2) = do
     unify body1 body2'
 
     throwAfterVar x1
+-- LAM ANN
+unify s1@(LamAnn bnd1) s2@(LamAnn bnd2) = do
+  ((x1, Embed tau1), e1) <- unbind bnd1
+  ((x2, Embed tau2), e2) <- unbind bnd2
+  unify tau1 tau2
+
+  ctxAddCstrVar x1 tau1
+  applied_e1 <- applyEnv e1
+  applied_e2 <- applyEnv $ subst x2 (Var x1) e2
+  unify applied_e1 applied_e2
+
+  throwAfterVar x1
 -- ANN
 unify (Ann e1 tau1) (Ann e2 tau2) = do
     unify tau1 tau2
