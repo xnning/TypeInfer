@@ -7,7 +7,6 @@ module Environment (
 
     , generalization
     , instantiate
-    , skolemInstantiate
 
     , lookupVarTy
     , ctxAddVar
@@ -20,7 +19,7 @@ module Environment (
     , tvarExistsBefore
 
     , genVar
-    , genCName
+    , genName
 
     , throwAfterVar
     , addMarker
@@ -28,7 +27,6 @@ module Environment (
 
     , genTVarBefore
     , addSubsitution
-    , monoInstantiate
 
     , applyEnv
     , printEnv
@@ -123,10 +121,10 @@ makeTVarInfo tm ts = TVarInfo tm ts
 -----------------------------------------
 
 existsVar :: (MonadState Context m, MonadError T.Text m) => TmName -> m ()
-existsVar tm = getVarInfo tm >>= (\_ -> return ())
+existsVar tm = void $ getVarInfo tm
 
 existsTVar :: (MonadState Context m, MonadError T.Text m) => TmName -> m ()
-existsTVar tm = getTVarInfo tm >>= (\_ -> return ())
+existsTVar tm = void $ getTVarInfo tm
 
 findTVarInfo :: TmName -> VarInfo -> Bool
 findTVarInfo tm e =
@@ -147,8 +145,8 @@ lookupVarTy :: (MonadState Context m, MonadError T.Text m) => TmName -> m TypeCo
 lookupVarTy v = do
   tyc <- (infoGetType <$> getVarInfo v)
   case tyc of
-       Just ty -> return ty
-       _ -> throwError $ T.concat ["var ", T.pack . show $ v, " has no type in env"]
+     Just ty -> return ty
+     _ -> throwError $ T.concat ["var ", T.pack . show $ v, " has no type in env"]
 
 lookupTySubst :: (MonadState Context m, MonadError T.Text m) => TmName -> m (Maybe Substitution)
 lookupTySubst v = do
@@ -174,43 +172,33 @@ applyEnv e = do
 --  Change Environment: addition
 -----------------------------------------
 
-ctxAddVar :: (MonadState Context m) => TmName -> m ()
-ctxAddVar tm = do
-  let info = makeVarInfo tm Nothing Nothing
+ctxAdd :: (MonadState Context m) => VarInfo -> m ()
+ctxAdd info = do
   origin <- gets _env
   put $ Ctx {_env = origin ++ [info]}
+
+ctxAddVar :: (MonadState Context m) => TmName -> m ()
+ctxAddVar tm = ctxAdd $ makeVarInfo tm Nothing Nothing
 
 ctxAddCstrVar :: (MonadState Context m) => TmName -> TypeConstraint -> m ()
-ctxAddCstrVar tm ty = do
-  let info = makeVarInfo tm (Just ty) Nothing
-  origin <- gets _env
-  put $ Ctx {_env = origin ++ [info]}
+ctxAddCstrVar tm ty = ctxAdd $ makeVarInfo tm (Just ty) Nothing
 
 ctxAddLetVar :: (MonadState Context m) => TmName -> TypeConstraint -> Substitution -> m ()
-ctxAddLetVar tm ty ts = do
-  let info = makeVarInfo tm (Just ty) (Just ts)
-  origin <- gets _env
-  put $ Ctx {_env = origin ++ [info]}
+ctxAddLetVar tm ty ts = ctxAdd $ makeVarInfo tm (Just ty) (Just ts)
 
 ctxAddTVar :: (MonadState Context m) => TmName -> m ()
-ctxAddTVar tm = do
-  let info = makeTVarInfo tm Nothing
-  origin <- gets _env
-  put $ Ctx {_env = origin ++ [info]}
+ctxAddTVar tm = ctxAdd $ makeTVarInfo tm Nothing
 
 ctxGenAddTVar :: (MonadState Context m, Fresh m) => m Expr
 ctxGenAddTVar = do
-  nm <- genCName
-  let info = makeTVarInfo nm Nothing
-  origin <- gets _env
-  put $ Ctx {_env = origin ++ [info]}
+  nm <- genName
+  ctxAdd $ makeTVarInfo nm Nothing
   return (TVar nm)
 
 addMarker :: (MonadState Context m, Fresh m) => m VarInfo
 addMarker = do
-  marker <- Marker <$> genCName
-  env <- gets _env
-  put $ Ctx {_env = env ++ [marker]}
+  marker <- Marker <$> genName
+  ctxAdd marker
   return marker
 
 -----------------------------------------
@@ -242,7 +230,7 @@ genTVarBefore tm = do
   env <- gets _env
   let idx = fromJust $ findIndex (findTVarInfo tm) env
       (before, after) = splitAt idx env
-  nm <- genCName
+  nm <- genName
   let tvar = makeTVarInfo nm Nothing
   put $ Ctx {_env = before ++ [tvar] ++ after}
   return (TVar nm)
@@ -255,13 +243,6 @@ addSubsitution tm sub = do
   let tvar' = makeTVarInfo tm (Just sub)
   put $ Ctx {_env = before ++ [tvar'] ++ after}
 
-monoInstantiate :: (MonadState Context m, Fresh m) => TmName -> Expr -> m Expr
-monoInstantiate tm (Forall bd) = do
-    ((Cons bnd), body_type) <- unbind bd
-    let ((nm, Embed t), rest) = unrebind bnd
-    alpha <- genTVarBefore tm
-    return $ subst nm alpha (mkforall rest body_type)
-
 -----------------------------------------
 --  Generate Names
 -----------------------------------------
@@ -269,14 +250,11 @@ monoInstantiate tm (Forall bd) = do
 genName :: (Fresh m) => m TmName
 genName = fresh (string2Name "a")
 
-genCName :: (Fresh m) => m TmName
-genCName = fresh (string2Name "a")
-
 genVar :: (Fresh m) => m Expr
 genVar = Var <$> genName
 
 genTVar :: (Fresh m) => m Expr
-genTVar = do nm <- genCName
+genTVar = do nm <- genName
              return (TVar nm)
 
 -----------------------------------------
@@ -296,21 +274,6 @@ instantiate ty = case ty of
          tvar <- ctxGenAddTVar
          work (subst x tvar b)
               (subst x tvar body)
-
--- instantiation used in var
-skolemInstantiate :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m Expr
-skolemInstantiate ty = case ty of
-     Forall bnd -> do (bind, b) <- unbind bnd
-                      work bind b
-     _           -> return ty
-  where
-     work Empty body     = skolemInstantiate body
-     work (Cons rb) body = do
-         let ((x, Embed t), b) = unrebind rb
-         cm <- genCName
-         ctxAddCstrVar cm t
-         work (subst x (Var cm)  b)
-              (subst x (Var cm) body)
 
 -----------------------------------------
 --  generalization
@@ -356,25 +319,18 @@ ftv (PrimOp _ e1 e2) = ftv_do_union e1 e2
 ftv           _       = return []
 
 ftv_do_union :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> Expr -> m Freevar
-ftv_do_union e1 e2 = do
-    e1' <- ftv e1
-    e2' <- ftv e2
-    return $ e1' `ftv_union` e2'
+ftv_do_union e1 e2 = pure ftv_union <*> ftv e1 <*> ftv e2
 
 ftv_fun :: (MonadState Context m, MonadError T.Text m, Fresh m) => Bind Tele Expr -> m Freevar
 ftv_fun bnd = do
      (bind, b) <- unbind bnd
-     bind'     <- ftvtele bind
-     b'        <- ftv b
-     return    $ bind' `ftv_union` b'
+     pure ftv_union <*> ftvtele bind <*> ftv b
 
 ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m Freevar
 ftvtele Empty = return []
 ftvtele (Cons rb) = do
    let ((x, Embed t), b) = unrebind rb
-   t' <- ftv t
-   b' <- ftvtele b
-   return $ t' `ftv_union` b'
+   pure ftv_union <*> ftv t <*> ftvtele b
 
 ftvinfo :: (MonadState Context m, MonadError T.Text m, Fresh m) => VarInfo -> m Freevar
 ftvinfo (VarInfo _ (Just ty, _)) = (applyEnv ty) >>= ftv

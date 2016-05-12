@@ -87,8 +87,8 @@ oneStep e = do
 
 typecheck :: Expr -> (Either T.Text Expr)
 typecheck e = runTcMonad initialEnv $ do
-   (infertype e) >>= applyEnv >>= generalization
-   {-typ <- getCheckedType <$> (infertype e)-}
+   infertype e >>= applyEnv >>= generalization
+   {-typ <- infertype e-}
    {-applied <- applyEnv  typ-}
    {-genelized <- generalization applied-}
    {-env <- printEnv-}
@@ -209,7 +209,7 @@ app_typing (TVar nm) e = do
   alpha1 <- genTVarBefore nm
   alpha2 <- genTVarBefore nm
 
-  cnm <- genCName
+  cnm <- genName
   addSubsitution nm (epiWithName [(cnm, alpha1)] alpha2)
   checktype e alpha1
 
@@ -309,9 +309,7 @@ unify sigma1 sigma2 = throwError $ T.concat ["unify failed\nexpr1: ", showExpr s
 -------------------------------------------
 
 generalize :: Expr -> TcMonad Expr
-generalize tau = do
-  tau2 <- applyEnv tau
-  generalization tau2
+generalize tau = applyEnv tau >>= generalization
 
 -------------------------------------------
 --  Instantiation
