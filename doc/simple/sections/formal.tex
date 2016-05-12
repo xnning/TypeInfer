@@ -92,9 +92,10 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
     \toctx}\rname{U-App}}
 \newcommand*{\ULam}{\inferrule{\preuni[,x] \tau \lt \tau'
     \toctx,x,\ctxr}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
-\newcommand*{\ULamAnn}{\inferrule{\preuni[,x:\tau_1] \tau_2 \lt \tau_2'
+\newcommand*{\ULamAnn}{\inferrule{\preuni \tau_1 \lt \tau_3 \toctx_1 \\
+    \ctxl_1, x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_4
     \toctx,x:\tau_1,\ctxr}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
-    {\tau_1} \tau_2' \toctx}\rname{U-LamAnn}}
+    {\tau_3} \tau_4 \toctx}\rname{U-LamAnn}}
 \newcommand*{\UPi}{\inferrule{\preuni \tau_1' \lt \tau_1 \toctx_1
     \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
     \toctx,x:\tau_1,\ctxr}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
