@@ -83,8 +83,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
 \newcommand*{\UEVarEVarA}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar1}}
 \newcommand*{\UEVarEVarB}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genB \lt \genA \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar2}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \genA \lt \tau \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-EvarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \tau \lt \genA \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-TyEVar}}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx[\genA], \emptyset \bycg \tau \cgto \tau' \toctx[\genA]}{\ctx[\genA] \byuni \genA \lt \tau \toctx[\genA=\tau']}\rname{U-EvarTy}}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx[\genA], \emptyset \bycg \tau \cgto \tau' \toctx[\genA]}{\ctx[\genA] \byuni \tau \lt \genA \toctx[\genA=\tau']}\rname{TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
 \newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]\tau_1 \lt [\ctxl_1]\tau_1'
@@ -136,6 +136,16 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 
 \newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FV(\tau_2) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
 
+\newcommand*{\CVarA}{\inferrule{ }{\ctx[x][\genA], \varset \bycg x \cgto x \toctxo[x][\genA]}\rname{C-Var1}}
+\newcommand*{\CVarB}{\inferrule{ }{\ctx, \varset[x] \bycg x \cgto x \toctxo}\rname{C-Var2}}
+\newcommand*{\CStar}{\inferrule{ }{\ctx, \varset \bycg \star \cgto \star \toctxo}\rname{C-Star}}
+\newcommand*{\CEVarA}{\inferrule{ }{\ctx[\genB][\genA], \varset \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{C-EVar1}}
+\newcommand*{\CEVarB}{\inferrule{ }{\ctx[\genA][\genB], \varset \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{C-EVar2}}
+\newcommand*{\CPi}{\inferrule{\ctx, \varset \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 , x:\varset \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx}{\ctx, \varset \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{C-Pi}}
+\newcommand*{\CLam}{\inferrule{\ctx, x: \varset \bycg \tau_1 \cgto \tau_2 \toctx}{\ctx, \varset \bycg \erlam x {\tau_1} \cgto \erlam x {\tau_2} \toctx}\rname{C-Lam}}
+\newcommand*{\CLamAnn}{\inferrule{\ctx, \varset \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1, x:\varset \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }{\ctx, \varset \bycg \blam x {\tau_1} {\tau_2} \cgto \blam x {\tau_3} {\tau_4} \toctx}\rname{C-LamAnn}}
+\newcommand*{\COthers}{\inferrule{\ctx, \varset \bycg \tau_0 \cgto \tau_0' \toctx_1 \\ \ctxl_i, \varset \bycg [\ctxl_i]\tau_i \cgto \tau_i' \toctx_{i+1}}{\ctx, \varset \bycg T\ \overbar{\tau_n} \cgto T\ \overbar{\tau_n'}}\rname{C-Other}}
+
 \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
 \[\TAx \quad \TVar\]
 \[\TLetVar\]
@@ -179,6 +189,18 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \[\UCastUp\]
 \[\UCastDn\]
 \[\UAnn\]
+
+\headercapm{\ctx[\genA], \varset \bycg \tau_1 \cgto \tau_2 \toctx}{Unify TVar and Expression}
+
+\[\CVarA\]
+\[\CVarB\]
+\[\CStar\]
+\[\CEVarA\]
+\[\CEVarB\]
+\[\CPi\]
+\[\CLam\]
+\[\CLamAnn\]
+\[\COthers\]
 
 % \subsection{Target Typing}
 % \headercapm{\pretar t_1 : t_2 \trto e}{Target Typing}
