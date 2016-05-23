@@ -114,11 +114,10 @@ bicheck (Lam bnd) Infer = do
   let body' = subst x x' body
 
   alpha <- ctxGenAddTVar
-  beta <- ctxGenAddTVar
   ctxAddCstrVar nm alpha
+  beta <- ctxGenAddTVar
 
   checktype body' beta
-  throwAfterVar nm
 
   return (epiWithName [(nm, alpha)] beta)
 -- Lam Check
@@ -142,10 +141,10 @@ bicheck (LamAnn bnd) Infer = do
 
   x'@(Var nm) <- genVar
   ctxAddCstrVar nm tau1
-  tau2 <- infertype (subst x x' e)
-  throwAfterVar nm
+  beta <- ctxGenAddTVar
+  checktype (subst x x' e) beta
 
-  return (epiWithName [(nm, tau1)] tau2)
+  return (epiWithName [(nm, tau1)] beta)
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1

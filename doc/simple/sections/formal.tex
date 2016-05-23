@@ -36,8 +36,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \trto{t} \\
     \ctxl_1 \bychk e:\tau \toctx \trto t}{\preinf (e:\tau):\tau \toctx
   \trto t}\rname{T-Ann}}
-\newcommand*{\TLamInf}{\inferrule{\prechk[,\genA,\genB,x:\genA]
-    e:\genB \toctx,x:\genA,\ctxr \trto t}{\preinf \erlam x e : \bpi x \genA
+\newcommand*{\TLamInf}{\inferrule{\prechk[,\genA,x:\genA,\genB]
+    e:\genB \toctx \trto t}{\preinf \erlam x e : \bpi x \genA
     \genB \toctx \trto {\blam x \genA t}}\rname{T-Lam$\Inf$}}
 \newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
     e:\tau_2 \toctx,x:\tau_1,\ctxr \trto {t_2} \\ \prechk {\bpi x {t_1}
@@ -45,9 +45,9 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
     \tau_2 \toctx \trto {\blam x {t_1} t_2}}\rname{T-Lam$\Chk$}}
 \newcommand*{\TLamAnn}{\inferrule{\prechk \tau_1 : \star \toctx_1
     \trto {t_1} \\
-    \ctxl_1,x:\tau_1 \byinf
-    e:\tau_2 \toctx,x:\tau_1,\ctxr \trto {t_2}}{\preinf \blam x {\tau_1} e : \bpi x {\tau_1}
-    \tau_2 \toctx \trto {\blam x {t_1} t_2}}\rname{T-LamAnn}}
+    \ctxl_1,x:\tau_1, \genB \bychk
+    e:\genB \toctx \trto {t_2}}{\preinf \blam x {\tau_1} e : \bpi x {\tau_1}
+    \genB \toctx \trto {\blam x {t_1} t_2}}\rname{T-LamAnn}}
 \newcommand*{\TApp}{\inferrule{
     \preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
     \ctxl_1 \byapp [\ctxl_1]\tau_1~e_2 : \tau_2 \toctx \trto {t_2} \\
