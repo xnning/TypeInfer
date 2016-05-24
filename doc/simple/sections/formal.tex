@@ -144,6 +144,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\CPi}{\inferrule{\ctx, \varset \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 , x:\varset \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx}{\ctx, \varset \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{C-Pi}}
 \newcommand*{\CLam}{\inferrule{\ctx, x: \varset \bycg \tau_1 \cgto \tau_2 \toctx}{\ctx, \varset \bycg \erlam x {\tau_1} \cgto \erlam x {\tau_2} \toctx}\rname{C-Lam}}
 \newcommand*{\CLamAnn}{\inferrule{\ctx, \varset \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1, x:\varset \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }{\ctx, \varset \bycg \blam x {\tau_1} {\tau_2} \cgto \blam x {\tau_3} {\tau_4} \toctx}\rname{C-LamAnn}}
+\newcommand*{\CLet}{\inferrule{\ctx, \varset \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1, x:\varset \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }{\ctx, \varset \bycg \kw{let} x = \tau_1 \kw{in} \tau_2 \cgto \kw{let} x = \tau_3 \kw{in} \tau_4 \toctx}\rname{C-Let}}
 \newcommand*{\COthers}{\inferrule{\ctx, \varset \bycg \tau_0 \cgto \tau_0' \toctx_1 \\ \ctxl_i, \varset \bycg [\ctxl_i]\tau_i \cgto \tau_i' \toctx_{i+1}}{\ctx, \varset \bycg T\ \overbar{\tau_n} \cgto T\ \overbar{\tau_n'}}\rname{C-Other}}
 
 \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
@@ -201,6 +202,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \[\CLam\]
 \[\CLamAnn\]
 \[\COthers\]
+\[\CLet\]
 
 % \subsection{Target Typing}
 % \headercapm{\pretar t_1 : t_2 \trto e}{Target Typing}
