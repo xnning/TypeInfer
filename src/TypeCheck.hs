@@ -117,9 +117,10 @@ bicheck (Lam bnd) Infer = do
   ctxAddCstrVar nm alpha
 
   tau2 <- infertype body'
-  throwAfterVar nm
+  applied_res <- applyEnv (epiWithName [(nm, alpha)] tau2)
 
-  return (epiWithName [(nm, alpha)] tau2)
+  throwAfterVar nm
+  return applied_res
 -- Lam Check
 bicheck (Lam bnd) (Check p@(Pi bd)) = do
   (x, lam_body) <- unbind bnd
@@ -143,7 +144,10 @@ bicheck (LamAnn bnd) Infer = do
   ctxAddCstrVar nm tau1
   tau2 <- infertype (subst x x' e)
 
-  return (epiWithName [(nm, tau1)] tau2)
+  applied_res <- applyEnv (epiWithName [(nm, tau1)] tau2)
+  throwAfterVar nm
+
+  return applied_res
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1
