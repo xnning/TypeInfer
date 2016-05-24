@@ -349,7 +349,7 @@ ftv_diff :: Freevar -> Freevar -> Freevar
 ftv_diff s1 s2 = filter (\nm -> not $ nm `elem` s2) s1
 
 ftv_union :: Freevar -> Freevar -> Freevar
-ftv_union s1 s2 = foldr (\nm acc -> if nm `elem` s2 then acc else acc ++ [nm] ) s1 s2
+ftv_union s1 s2 = foldr (\nm acc -> if nm `elem` s1 then acc else acc ++ [nm] ) s1 s2
 
 -----------------------------------------
 --  Well defined
