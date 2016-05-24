@@ -94,7 +94,7 @@ getVarInfo tm = do
   let vm = listToMaybe [x | x@(VarInfo tm2 _) <- env, tm2 == tm]
   case vm of
     Just vi -> return vi
-    Nothing -> throwError $ T.concat ["var not in scope: ", T.pack . show $ tm, ". current context:", T.pack . showEnv $ env]
+    Nothing -> throwError $ T.concat ["var not in scope: ", T.pack . show $ tm, ".\ncurrent context:\n", T.pack . showEnv $ env]
 
 getTVarInfo :: (MonadState Context m, MonadError T.Text m) => TmName -> m VarInfo
 getTVarInfo tm = do
@@ -102,7 +102,7 @@ getTVarInfo tm = do
   let vm = listToMaybe [x | x@(TVarInfo tm2 _) <- env, tm2 == tm]
   case vm of
     Just vi -> return vi
-    Nothing -> throwError $ T.concat ["tvar not in scope: ", T.pack . show $ tm]
+    Nothing -> throwError $ T.concat ["tvar not in scope: ", T.pack . show $ tm, ".\ncurrent context:\n", T.pack . showEnv $ env]
 
 infoGetType :: VarInfo -> Maybe TypeConstraint
 infoGetType (VarInfo _ (ty, _)) = ty
