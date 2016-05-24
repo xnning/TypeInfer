@@ -22,6 +22,7 @@ module Environment (
     , genName
 
     , throwAfterVar
+    , getUnsolvedAndThrowAfter
     , addMarker
     , deleteAfterMarker
 
@@ -29,6 +30,7 @@ module Environment (
     , addSubsitution
 
     , applyEnv
+    , applyEnvAfter
     , printEnv
 
     , occur_check
@@ -131,6 +133,11 @@ findTVarInfo tm e =
   case e of TVarInfo tm2 _ -> tm == tm2
             _              -> False
 
+findVarInfo :: TmName -> VarInfo -> Bool
+findVarInfo tm e =
+  case e of VarInfo tm2 _ -> tm == tm2
+            _             -> False
+
 tvarExistsBefore :: (MonadState Context m, MonadError T.Text m) => TmName -> TmName -> m Bool
 tvarExistsBefore v1 v2 = do
   existsTVar v1
@@ -167,6 +174,13 @@ applyEnv :: (MonadState Context m) => Expr -> m Expr
 applyEnv e = do
     env <- gets _env
     return $ foldr applyVarInfo e env
+
+applyEnvAfter :: (MonadState Context m) => TmName -> Expr -> m Expr
+applyEnvAfter vm e = do
+  env <- gets _env
+  let idx = fromJust $ findIndex (findVarInfo vm) env
+      (before, after) = splitAt idx env
+  return $ foldr applyVarInfo e after
 
 -----------------------------------------
 --  Change Environment: addition
@@ -212,6 +226,21 @@ throwAfterVar nm = do
                                _             -> True
       new_env = takeWhile filter_fun env
   put $ Ctx {_env = new_env}
+
+getUnsolvedTVar :: Env -> Env
+getUnsolvedTVar [] = []
+getUnsolvedTVar (x:l) =
+  case x of
+     TVarInfo tm Nothing -> x : getUnsolvedTVar l
+     _ -> getUnsolvedTVar l
+
+getUnsolvedAndThrowAfter :: (MonadState Context m) => TmName -> m ()
+getUnsolvedAndThrowAfter vm = do
+  env <- gets _env
+  let idx = fromJust $ findIndex (findVarInfo vm) env
+      (before, after) = splitAt idx env
+      unsolved = getUnsolvedTVar after
+  put $ Ctx {_env = before ++ unsolved}
 
 deleteAfterMarker :: (MonadState Context m) => VarInfo -> m ()
 deleteAfterMarker (Marker nm) = do

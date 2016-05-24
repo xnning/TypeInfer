@@ -37,8 +37,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
     \ctxl_1 \bychk e:\tau \toctx \trto t}{\preinf (e:\tau):\tau \toctx
   \trto t}\rname{T-Ann}}
 \newcommand*{\TLamInf}{\inferrule{\preinf[,\genA,x:\genA]
-    e:\tau_2 \toctx, x:\genA, \ctxr \trto t}{\preinf \erlam x e : [\ctxl,\ctxr](\bpi x \genA
-    \tau_2) \toctx \trto {\blam x \genA t}}\rname{T-Lam$\Inf$}}
+    e:\tau_2 \toctx, x:\genA, \ctxr \trto t}{\preinf \erlam x e : (\bpi x \genA
+    [\ctxr]\tau_2) \toctx, \kw{Unsolved}(\ctxr) \trto {\blam x \genA t}}\rname{T-Lam$\Inf$}}
 \newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
     e:\tau_2 \toctx,x:\tau_1,\ctxr \trto {t_2} \\ \prechk {\bpi x {t_1}
     \tau_2 : \star \toctx_1 \trto {\bpi x {t_1} t_3}}}{\prechk \erlam x e : \bpi x {\tau_1}
@@ -46,8 +46,8 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\TLamAnn}{\inferrule{\prechk \tau_1 : \star \toctx_1
     \trto {t_1} \\
     \ctxl_1,x:\tau_1 \byinf
-    e:\tau_2 \toctx, x:\tau_1, \ctxr \trto {t_2}}{\preinf \blam x {\tau_1} e : [\ctxl,\ctxr](\bpi x {\tau_1}
-    \tau_2) \toctx \trto {\blam x {t_1} t_2}}\rname{T-LamAnn}}
+    e:\tau_2 \toctx, x:\tau_1, \ctxr \trto {t_2}}{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    [\ctxr]\tau_2) \toctx, \kw{Unsolved}(\ctxr) \trto {\blam x {t_1} t_2}}\rname{T-LamAnn}}
 \newcommand*{\TApp}{\inferrule{
     \preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
     \ctxl_1 \byapp [\ctxl_1]\tau_1~e_2 : \tau_2 \toctx \trto {t_2} \\
@@ -68,7 +68,7 @@ $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
 \pregen {\tau_1} \lt \sigma \\
 \ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : \tau_2 \toctx \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
+\kw{in} e_2 : [\ctxr]\tau_2 \toctx, \kw{Unsolved}(\ctxr)\trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
     \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star

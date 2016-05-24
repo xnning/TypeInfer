@@ -117,10 +117,10 @@ bicheck (Lam bnd) Infer = do
   ctxAddCstrVar nm alpha
 
   tau2 <- infertype body'
-  applied_res <- applyEnv (epiWithName [(nm, alpha)] tau2)
+  applied_tau2 <- applyEnvAfter nm tau2
 
-  throwAfterVar nm
-  return applied_res
+  getUnsolvedAndThrowAfter nm
+  return (epiWithName [(nm, alpha)] applied_tau2)
 -- Lam Check
 bicheck (Lam bnd) (Check p@(Pi bd)) = do
   (x, lam_body) <- unbind bnd
@@ -143,11 +143,11 @@ bicheck (LamAnn bnd) Infer = do
   x'@(Var nm) <- genVar
   ctxAddCstrVar nm tau1
   tau2 <- infertype (subst x x' e)
+  applied_tau2 <- applyEnvAfter nm tau2
 
-  applied_res <- applyEnv (epiWithName [(nm, tau1)] tau2)
-  throwAfterVar nm
+  getUnsolvedAndThrowAfter nm
 
-  return applied_res
+  return (epiWithName [(nm, tau1)] applied_tau2)
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1
@@ -167,9 +167,10 @@ bicheck (Let bnd) mode = do
   ctxAddLetVar nm sigma e1
 
   tau2 <- bicheck (subst x x' e2) mode
-  throwAfterVar nm
+  applied_tau2 <- applyEnvAfter nm tau2
 
-  return tau2
+  getUnsolvedAndThrowAfter nm
+  return applied_tau2
 -- ECPLICIT-PI
 bicheck p@(Pi bnd) Infer = do
   (x, tau1, tau2) <- unpi p
@@ -328,7 +329,9 @@ unify ev@(TVar tm1) tau1 = do
 -- EVar-right
 unify tau1 ev@(TVar tm1) = unify ev tau1
 -- Other-Error
-unify sigma1 sigma2 = throwError $ T.concat ["unify failed\nexpr1: ", showExpr sigma1, "\nexpr2: ", showExpr sigma2]
+unify sigma1 sigma2 = do
+  env <- printEnv
+  throwError $ T.concat ["unify failed\nexpr1: ", showExpr sigma1, "\nexpr2: ", showExpr sigma2, "\nenv:", T.pack env]
 
 -------------------------------------------
 --  Generalization
