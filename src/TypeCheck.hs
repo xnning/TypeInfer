@@ -115,11 +115,11 @@ bicheck (Lam bnd) Infer = do
 
   alpha <- ctxGenAddTVar
   ctxAddCstrVar nm alpha
-  beta <- ctxGenAddTVar
 
-  checktype body' beta
+  tau2 <- infertype body'
+  throwAfterVar nm
 
-  return (epiWithName [(nm, alpha)] beta)
+  return (epiWithName [(nm, alpha)] tau2)
 -- Lam Check
 bicheck (Lam bnd) (Check p@(Pi bd)) = do
   (x, lam_body) <- unbind bnd
@@ -141,10 +141,9 @@ bicheck (LamAnn bnd) Infer = do
 
   x'@(Var nm) <- genVar
   ctxAddCstrVar nm tau1
-  beta <- ctxGenAddTVar
-  checktype (subst x x' e) beta
+  tau2 <- infertype (subst x x' e)
 
-  return (epiWithName [(nm, tau1)] beta)
+  return (epiWithName [(nm, tau1)] tau2)
 -- App
 bicheck (App e1 e2) Infer = do
   tau1 <- infertype e1
@@ -319,8 +318,9 @@ unify alpha@(TVar tm1) beta@(TVar tm2) = do
 unify ev@(TVar tm1) tau1 = do
   occur_check tm1 tau1
 
-  wellDefinedBeforeTVar tm1 tau1
-  addSubsitution tm1 tau1
+  tau2 <- change_to ev [] tau1
+
+  addSubsitution tm1 tau2
 -- EVar-right
 unify tau1 ev@(TVar tm1) = unify ev tau1
 -- Other-Error
