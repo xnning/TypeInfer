@@ -318,9 +318,9 @@ unify alpha@(TVar tm1) beta@(TVar tm2) = do
 unify ev@(TVar tm1) tau1 = do
   occur_check tm1 tau1
 
-  tau2 <- change_to ev [] tau1
+  wellDefinedBeforeTVar tm1 tau1
 
-  addSubsitution tm1 tau2
+  addSubsitution tm1 tau1
 -- EVar-right
 unify tau1 ev@(TVar tm1) = unify ev tau1
 -- Other-Error

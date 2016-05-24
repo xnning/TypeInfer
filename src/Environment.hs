@@ -32,7 +32,7 @@ module Environment (
     , printEnv
 
     , occur_check
-    , change_to
+    , wellDefinedBeforeTVar
     ) where
 
 import           Control.Applicative
@@ -131,11 +131,6 @@ findTVarInfo tm e =
   case e of TVarInfo tm2 _ -> tm == tm2
             _              -> False
 
-findVarInfo :: TmName -> VarInfo -> Bool
-findVarInfo tm e =
-  case e of VarInfo tm2 _ -> tm == tm2
-            _             -> False
-
 tvarExistsBefore :: (MonadState Context m, MonadError T.Text m) => TmName -> TmName -> m Bool
 tvarExistsBefore v1 v2 = do
   existsTVar v1
@@ -144,16 +139,6 @@ tvarExistsBefore v1 v2 = do
   env <- gets _env
   let i1 = fromJust $ findIndex (findTVarInfo v1) env
   let i2 = fromJust $ findIndex (findTVarInfo v2) env
-  return (i1 < i2)
-
-varExistsBefore :: (MonadState Context m, MonadError T.Text m) => TmName -> TmName -> m Bool
-varExistsBefore v1 v2 = do
-  existsVar v1
-  existsTVar v2
-
-  env <- gets _env
-  let i1 = fromJust $ findIndex (findVarInfo v1) env
-  let i2 = fromJust $ findIndex (findVarInfo v2) env
   return (i1 < i2)
 
 lookupVarTy :: (MonadState Context m, MonadError T.Text m) => TmName -> m TypeConstraint
@@ -367,87 +352,46 @@ ftv_union :: Freevar -> Freevar -> Freevar
 ftv_union s1 s2 = foldr (\nm acc -> if nm `elem` s1 then acc else acc ++ [nm] ) s1 s2
 
 -----------------------------------------
---  Change
+--  Well defined
 -----------------------------------------
 
-change_to :: (Fresh m, MonadState Context m, MonadError T.Text m) => Expr -> [TmName] -> Expr -> m Expr
-change_to tvar@(TVar alpha) varset e = go varset e
-  where
-        -- C-Var
-        go varset (Var x) = do
-          exists_before <- varExistsBefore x alpha
-          if exists_before || x `elem` varset then return (Var x)
-          else throwError $ T.concat ["var ", showExpr e, " is out of scope of tvar ", showExpr tvar]
-        -- C-Star
-        go _ Star = return Star
-        -- C-EVar
-        go _ (TVar beta) = do
-          exists_before <- tvarExistsBefore beta alpha
-          -- C-EVar1
-          if exists_before then return (TVar beta)
-          -- C-EVar2
-          else do
-            alpha1 <- genTVarBefore alpha
-            addSubsitution beta alpha1
-            return alpha1
-        -- C-Pi
-        go varset pi@(Pi bnd) = do
-          (x, tau1, tau2) <- unpi pi
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go (x:varset) applied_tau2
-          return $ epiWithName [(x, tau3)] tau4
-        -- C-Lam
-        go varset (Lam bnd) = do
-          (x, tau1) <- unbind bnd
-          tau2 <- go (x:varset) tau1
-          return (Lam (bind x tau2))
-        -- C-LamAnn
-        go varset (LamAnn bnd) = do
-          ((x, Embed tau1), tau2) <- unbind bnd
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go (x:varset) applied_tau2
-          return (LamAnn (bind (x, embed tau3) tau4))
-        -- C-App
-        go varset (App tau1 tau2) = do
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go varset applied_tau2
-          return $ App tau3 tau4
-        -- C-Let
-        go varset (Let bnd) = do
-          ((x, Embed tau1), tau2) <- unbind bnd
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go (x:varset) applied_tau2
-          return $ Let (bind (x, embed tau3) tau4)
-        -- C-Castup
-        go varset (CastUp tau1) = do
-          tau2 <- go varset tau1
-          return $ CastUp tau2
-        -- C-Castdown
-        go varset (CastDown tau1) = do
-          tau2 <- go varset tau1
-          return $ CastDown tau2
-        -- C-Ann
-        go varset (Ann tau1 tau2) = do
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go varset applied_tau2
-          return $ Ann tau3 tau4
-        -- C-Nat
-        go _ Nat = return Nat
-        go _ Lit{} = return Lit{}
-        go varset (PrimOp op tau1 tau2) = do
-          tau3 <- go varset tau1
-          applied_tau2 <- applyEnv tau2
-          tau4 <- go varset applied_tau2
-          return $ PrimOp op tau3 tau4
+wellDefined :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m ()
+wellDefined (Var nm) = existsVar nm
+wellDefined (TVar nm) = existsTVar nm
+wellDefined Star = return ()
+wellDefined (App e1 e2) = wellDefined e1 >> wellDefined e2
+wellDefined (Lam bnd) = do
+  (x, body) <- unbind bnd
+  ctxAddVar x
+  wellDefined body
+  throwAfterVar x
+wellDefined (CastUp x) = wellDefined x
+wellDefined (CastDown x) = wellDefined x
+wellDefined (Ann e1 e2) = wellDefined e1 >> wellDefined e2
+wellDefined Nat = return ()
+wellDefined (Lit _) = return ()
+wellDefined (PrimOp _ e1 e2) = wellDefined e2 >> wellDefined e2
+wellDefined p@(Pi bnd) = do
+  (x, tau1, tau2) <- unpi p
+  wellDefined tau1
+  ctxAddCstrVar x tau1
+  wellDefined tau2
+  throwAfterVar x
+wellDefined (Let bnd) = do
+  ((n, Embed e), b) <- unbind bnd
+  wellDefined e
+  ctxAddVar n
+  wellDefined b
+  throwAfterVar n
 
------------------------------------------
---  Utility
------------------------------------------
+wellDefinedBeforeTVar :: (MonadState Context m, MonadError T.Text m, Fresh m) => TmName -> Expr -> m ()
+wellDefinedBeforeTVar tm e = do
+  env <- gets _env
+  let idx = fromJust $ findIndex (findTVarInfo tm) env
+      (before, after) = splitAt idx env
+  put $ Ctx {_env = before}
+  wellDefined e
+  put $ Ctx {_env = env}
 
 unpi :: (Fresh m) => Expr -> m (TmName, Expr, Expr)
 unpi (Pi bnd) = do
