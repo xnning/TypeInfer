@@ -3,6 +3,10 @@
 
 \section{Specification}
 
+% ------------------------------------------------------------------------
+% SYNTAX
+% ------------------------------------------------------------------------
+
 \subsection{Syntax}
 \begin{tabular}{lrcl}
 Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
@@ -40,6 +44,11 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \end{itemize}}
 
 \subsection{Algorithmic Typing}
+
+% ------------------------------------------------------------------------
+% TYPING RULES
+% ------------------------------------------------------------------------
+
 \newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo \trto \star}\rname{T-Ax}}
 \newcommand*{\TVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau \toctxo
   \trto x}\rname{T-Var}}
@@ -93,6 +102,10 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
     [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \toctx \trto {\castdn t}}\rname{T-CastDn}}
 
+% ------------------------------------------------------------------------
+% UNIFICATION RULES
+% ------------------------------------------------------------------------
+
 \newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
 \newcommand*{\UEVarEVarA}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar1}}
@@ -127,11 +140,19 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
     \toctx}{\preuni e:\tau \lt e':\tau'
     \toctx}\rname{U-Ann}}
 
+% ------------------------------------------------------------------------
+% APPLICATION RULES
+% ------------------------------------------------------------------------
+
 \newcommand*{\APi}{\inferrule{\prechk e:\tau_1 \toctx \trto t}{\preapp (\bpi x
     {\tau_1} \tau_2)~e : \tau_2[x \mapsto e] \toctx \trto t}\rname{A-Pi}}
 \newcommand*{\AEVar}{\inferrule{\prechk[{[\genA_2,\genA_1,\genA=\bpi x
     {\genA_1} \genA_2]}] e : \genA_1 \toctx \trto t}{\preapp[{[\genA]}]
   \genA~e : \genA_2 \toctx \trto t}\rname{A-EVar}}
+
+% ------------------------------------------------------------------------
+% TARGET TYPING RULES
+% ------------------------------------------------------------------------
 
 \newcommand*{\EAx}{\inferrule{ }{\pretar \star:\star \trto \star}\rname{E-Ax}}
 \newcommand*{\EVar}{\inferrule{x:t \in \tctx}{\pretar x:t \trto
@@ -146,9 +167,17 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\EPi}{\inferrule{\pretar }{\pretar \bpi x {t_1} t_2 :
     \star \trto {\bpi x {\tau_1} \tau_2}}\rname{E-Pi}}
 
+% ------------------------------------------------------------------------
+% POLYMORPHISM
+% ------------------------------------------------------------------------
+
 \newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctx, \overbar{\genA}} \rname{Inst}}
 
 \newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FV(\tau_2) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+
+% ------------------------------------------------------------------------
+% EXPLAINATION
+% ------------------------------------------------------------------------
 
 \newcommand*{\OLamInf}{\inferrule{\prechk[,\genA,\genB,x:\genA]
     e:\genB \toctx, x:\genA, \ctxr}{\preinf \erlam x e : (\bpi x \genA
@@ -194,6 +223,10 @@ Program $\kw{let} f = nat \kw{in} \blam x f {x + 3}$ is a valid program only if 
 \item Rule A-EVar only resolve non-dependent function type for $\genA$, which means there is no $x$ in $\genA_2$.
 \end{itemize}
 }}
+
+% ------------------------------------------------------------------------
+% REAL PRINT
+% ------------------------------------------------------------------------
 
 \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
 \[\TAx \quad \TVar\]
@@ -250,6 +283,10 @@ Program $\kw{let} f = nat \kw{in} \blam x f {x + 3}$ is a valid program only if 
 % \[\ELam\]
 % \[\EPi\]
 % \\
+
+% ------------------------------------------------------------------------
+% EXAMPLES
+% ------------------------------------------------------------------------
 
 \subsection{Examples}
 
