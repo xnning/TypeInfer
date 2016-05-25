@@ -115,8 +115,8 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
     \toctx,x:\tau_1,\ctxr}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
     {\tau_1'} \tau_2' \toctx}\rname{U-Pi}}
 \newcommand*{\ULet}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
-    \\ \ctxl_1 \byuni {[\ctxl_1]}\tau_2 \lt [\ctxl_1]\tau_2'
-    \toctx}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
+    \\ \ctxl_1, x \byuni {[\ctxl_1]}\tau_2 \lt [\ctxl_1]\tau_2'
+    \toctx, x, \ctxr}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
     {\tau_1'} \kw{in} \tau_2' \toctx}\rname{U-Let}}
 \newcommand*{\UCastUp}{\inferrule{\preuni \tau \lt \tau'
     \toctx}{\preuni \ercastup \tau \lt \ercastup \tau' \toctx}\rname{U-CastUp}}
