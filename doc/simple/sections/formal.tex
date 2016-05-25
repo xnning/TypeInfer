@@ -108,10 +108,10 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 
 \newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
-\newcommand*{\UEVarEVarA}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar1}}
-\newcommand*{\UEVarEVarB}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genB \lt \genA \toctxo[\genA][\genB=\genA]}\rname{U-EVarEVar2}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \genA \lt \tau \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-EvarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau) \\ \ctx_1 \vdash \tau }{\ctx_1, \genA, \ctx_2 \byuni \tau \lt \genA \dashv \ctx_1, \genA=\tau, \ctx_2}\rname{U-TyEVar}}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \vdash \tau_2}
+{\ctx[\genA] \byuni \genA \lt \tau_1 \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-EvarTy}}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \vdash \tau_2}
+{\ctx[\genA] \byuni \tau_1 \lt \genA \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
 \newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]\tau_1 \lt [\ctxl_1]\tau_1'
@@ -176,6 +176,16 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FV(\tau_2) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
 
 % ------------------------------------------------------------------------
+% UNIFY TVAR
+% ------------------------------------------------------------------------
+
+\newcommand*{\IVar}{\inferrule{ }{\ctx \bycg x \cgto x \toctxo}\rname{I-Var}}
+\newcommand*{\IStar}{\inferrule{ }{\ctx \bycg \star \cgto \star \toctxo}\rname{I-Star}}
+\newcommand*{\IEVarA}{\inferrule{ }{\ctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar1}}
+\newcommand*{\IEVarB}{\inferrule{ }{\ctx[\genA][\genB] \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{I-EVar2}}
+\newcommand*{\IOthers}{\inferrule{\ctx \bycg \tau_0 \cgto \tau_0' \toctx_1 \\ \ctxl_i \bycg [\ctxl_i]\tau_i \cgto \tau_i' \toctx_{i+1}}{\ctx \bycg T\ \overbar{\tau_n} \cgto T\ \overbar{\tau_n'}}\rname{I-Other}}
+
+% ------------------------------------------------------------------------
 % EXPLAINATION
 % ------------------------------------------------------------------------
 
@@ -224,6 +234,41 @@ Program $\kw{let} f = nat \kw{in} \blam x f {x + 3}$ is a valid program only if 
 \end{itemize}
 }}
 
+\newcommand*{\ExUPi}{\explain{Notes about UPi:\\
+\begin{itemize}
+\item The order of $x$ in the context determines the unification $\genA_2 \byuni \bpi x \star \genA_2 \lt \bpi x \star x$ will fail. Same goes for other unification rules involving adding $x$ in context.
+\end{itemize}
+}}
+
+\newcommand*{\OInstRArr}{\inferrule{\preuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
+    \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\preuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstRArr}}
+
+\newcommand*{\ExUTyEVar}{\explain{Notes about UEVarTy and UTyEVar:\\
+\begin{itemize}
+\item What will happen when $\ctx \byuni \genA \lt \bpi x {\tau_1} {\tau_2}$?\\
+original rule:\newline
+\OInstRArr\\
+  \begin{itemize}
+  \item Normal function: $\ctx \byuni \genA \lt \bpi x \star \star$.\\
+      Original rule is fine and results in $\genA = \bpi x \star \star$.
+  \item Dependent function: $\ctx, \genA, \ctxr \byuni \genA \lt \bpi x \star x$.\\
+      Here we want $x$ be able to appear in $\genA_2$.\\
+      But we cannot add $x$ directly before $\genA_2$ because it makes all the type variables in $\ctxr$ be able to refer to $x$.\\
+      One thought is we know $\bpi x \star x$ is well typed under $\ctx$ so can be assigned to $\genA$ directly. How about we only check type wellness? It cannot work.
+  \item Dependent function involving type variables: $\ctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x.$\\
+      Here $\bpi x \genB x$ is not well typed in $\ctx$.\\
+      But it do have a solution context: $\ctx, \genA_1, \genA = \bpi  x {\genA_1} x, \genB = \genA_1, \ctxr$
+  \item So we cannot destruct $\genA$ into $\genA_1 \to \genA_2$. And we cannot only rely on type wellness.\\
+      One solution is we traverse the whole type on the right hand side and turn it to a type that can be directly assigned to $\genA$.\\
+      This is what the I-rules do.\\
+      Then we could do the well type check safely.
+  \end{itemize}
+\item This rule includes the cases EVar-EVar-Left, EVar-Evar-Right, EVar-Ty, Ty-EVar, EVar-Pi, Pi-EVar.
+\end{itemize}
+}}
+
+\newcommand*{\ExIRules}{\explain{}}
+
 % ------------------------------------------------------------------------
 % REAL PRINT
 % ------------------------------------------------------------------------
@@ -261,19 +306,27 @@ Program $\kw{let} f = nat \kw{in} \blam x f {x + 3}$ is a valid program only if 
 \headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
 \[\UVar\]
 \[\UEVarId\]
-\[\UEVarEVarA\]
-\[\UEVarEVarB\]
 \[\UEVarTy\]
 \[\UTyEVar\]
+\ExUTyEVar
 \[\UStar\]
 \[\UApp\]
 \[\ULam\]
 \[\ULamAnn\]
 \[\UPi\]
+\ExUPi
 \[\ULet\]
 \[\UCastUp\]
 \[\UCastDn\]
 \[\UAnn\]
+
+\headercapm{\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{$\ctx \byuni \genA \lt \tau_1$ results to $\genA = \tau_2$}
+
+\[\IVar\]
+\[\IStar\]
+\[\IEVarA\]
+\[\IEVarB\]
+\[\IOthers\]
 
 % \subsection{Target Typing}
 % \headercapm{\pretar t_1 : t_2 \trto e}{Target Typing}
