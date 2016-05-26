@@ -167,6 +167,7 @@ bicheck (Let bnd) mode = do
   ctxAddLetVar nm sigma e1
 
   tau2 <- bicheck (subst x x' e2) mode
+  -- applyEnvAfter actually includes nm itself
   applied_tau2 <- applyEnvAfter nm tau2
 
   getUnsolvedAndThrowAfter nm
