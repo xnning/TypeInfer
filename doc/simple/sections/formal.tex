@@ -259,15 +259,23 @@ original rule:\newline
       Here $\bpi x \genB x$ is not well typed in $\ctx$.\\
       But it do have a solution context: $\ctx, \genA_1, \genA = \bpi  x {\genA_1} x, \genB = \genA_1, \ctxr$
   \item So we cannot destruct $\genA$ into $\genA_1 \to \genA_2$. And we cannot only rely on type wellness.\\
-      One solution is we traverse the whole type on the right hand side and turn it to a type that can be directly assigned to $\genA$.\\
+      One solution is we traverse the whole type on the right hand side and turn it to a type that is not bothered by the order of type variables.\\
       This is what the I-rules do.\\
       Then we could do the well type check safely.
   \end{itemize}
-\item This rule includes the cases EVar-EVar-Left, EVar-Evar-Right, EVar-Ty, Ty-EVar, EVar-Pi, Pi-EVar.
+\item This rule already includes the cases EVar-EVar-Left, EVar-Evar-Right, EVar-Ty, Ty-EVar, EVar-Pi, Pi-EVar.
 \end{itemize}
 }}
 
-\newcommand*{\ExIRules}{\explain{}}
+\newcommand*{\ExIRules}{\explain{Notes about I-Rules:\\
+\begin{itemize}
+\item The only interesting cases are I-EVar1 and I-EVar2.\\
+I-EVar1 is when $\genB$ appears before $\genA$, so it is safe to remain it.\\
+But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\genA_1$  before $\genA$ and make $\genB=\genA_1$. And return $\genA_1$ as result.
+\item Other cases are just structural.
+\item An interpretation of I-Evar2 rule is that it is the combination of original InstRArr and InstRReach rules in Figure 10, which create new type variable and make $\genB$ refer to it. Here it is adapted to fit dependent type.
+\end{itemize}
+}}
 
 % ------------------------------------------------------------------------
 % REAL PRINT
@@ -327,6 +335,7 @@ original rule:\newline
 \[\IEVarA\]
 \[\IEVarB\]
 \[\IOthers\]
+\ExIRules
 
 % \subsection{Target Typing}
 % \headercapm{\pretar t_1 : t_2 \trto e}{Target Typing}
