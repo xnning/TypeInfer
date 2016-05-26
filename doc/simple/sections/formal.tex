@@ -108,9 +108,9 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 
 \newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \vdash \tau_2}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
 {\ctx[\genA] \byuni \genA \lt \tau_1 \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-EvarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \vdash \tau_2}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
 {\ctx[\genA] \byuni \tau_1 \lt \genA \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
 \newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
@@ -350,45 +350,48 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
 % EXAMPLES
 % ------------------------------------------------------------------------
 
+\newpage
+
+\begin{figure}
+
 \subsection{Examples}
 
-Highlighted parts are unifications.
 \begin{itemize}
-\item Derivation of $(\erlam x x)~3$. Let $\ctx=\genA,\genB,x:\genA$.
+\item Derivation of $(\erlam x x)~3$.
 \[\small
-\inferrule{
-  \inferrule{
-    \inferrule{
-      \inferrule{x:\genA \in \ctx}{\ctx \byinf x:\genA
-        \dashv \ctx}\rname{T-Var} \\
-      \hl{\inferrule{ }{\ctx \byuni \genA \lt \genB \dashv \genA,\genB=\genA,x:\genA}\rname{U-EVarEVar}}
-    }{\genA,\genB,x:\genA \bychk x:\genB \dashv \genA,\genB=\genA,x:\genA}\rname{T-Sub}
-  }{\byinf \erlam x x:\genA \to \genB \dashv
-    \genA,\genB=\genA}\rname{T-Lam$\Inf$} \\ \quad \\\\
-  \inferrule{\genA,\genB=\genA \byinf 3:\Int \dashv
-    \genA,\genB=\genA \\ \hl{\genA,\genB=\genA \byuni \Int \lt \genA \dashv \genA=\Int,\genB=\genA}
-    }{\genA,\genB=\genA \bychk 3:\genA \dashv \genA=\Int,\genB=\genA}\rname{T-Sub} \\
-}{\byinf (\erlam x x)~3:\genB \dashv \genA=\Int,\genB=\genA}\rname{T-AppPi}
+\inferrule{{\inferrule{\inferrule{x:\genA \in \genA, x:\genA}
+                                {\genA, x:\genA \byinf x:\genA \dashv \genA, x:\genA}\rname{T-Var}}
+                     {\byinf \erlam x x : \bpi x \genA \genA \dashv \genA}\rname{T-Lam$\Inf$}} \quad
+            \inferrule{\inferrule{\genA \byinf 3: \Int \quad
+                                  \inferrule{\genA \notin FV(\Int) \\ \genA \bycg \Int \cgto \Int \\ \emptyset \bywt \Int}
+                                            {\genA \byuni \Int \lt \genA \dashv \genA = \Int}\rname{U-TyEVar}}
+                                 {\genA \bychk 3: \genA \dashv \genA = \Int}\rname{T-Sub}}
+                      {\genA \byapp \bpi x \genA \genA ~ 3 :\genA \dashv \genA = \Int }\rname{A-Pi}}
+          {\byinf (\erlam x x)~3:\genA \dashv \genA = \Int}\rname{T-App}
 \]
-\item Derivation of $\erlam x x + 1$, or $\erlam x (+)~x~1$. Let
-  $\ctx=\genA,\genB,x:\genA$ and $\ctxl=\genA=\Int,\genB,x:\genA$.
+\item Derivation of $\kw{let} f = \Int \kw{in} \blam x f {x+3}$.\\
+Let $\ctx$ be $f:\star = \Int, x:f$\\
+Arrow type is used to dispaly non dependent function type.
 \[\small
-\inferrule{
-  \inferrule{
-    \inferrule{
-      \inferrule{
-        \preinf (+):\Int \to \Int \to \Int \toctxo \\
-        \inferrule{\preinf x : \genA \toctxo \\\\ \hl{\preuni \genA \lt
-            \Int \dashv \genA=\Int,\genB,x:\genA}}{\prechk x : \Int \dashv \genA=\Int,\genB,x:\genA}\rname{T-Sub}
-      }{\preinf (+)~x:\Int \to \Int \dashv \ctxl}\rname{T-AppPi} \\
-      \ctxl \bychk 1 : \Int \dashv \ctxl
-    }{\preinf (+)~x~1:\Int \dashv \ctxl}\rname{T-AppPi} \\
-    \hl{\ctxl \byuni \Int \lt \genB \dashv \genA=\Int,\genB=\Int,x:\genA}
-    }{\genA,\genB,x:\genA \bychk (+)~x~1:\genB \dashv \genA=\Int,\genB=\Int,x:\genA}\rname{T-Sub} \\
-}{\byinf \erlam x (+)~x~1 : \genA \to \genB \dashv \genA=\Int,\genB=\Int}\rname{T-Lam$\Inf$}
+\inferrule{\byinf \Int:\star \quad
+           \bygen \star \lt \star \quad
+           \inferrule{\inferrule{\inferrule{\ctx \byinf + : \ldots \quad
+                                            \inferrule{\inferrule{\ctx \byinf x:f \quad
+                                                                  [\ctx]f = \Int \quad
+                                                                  \ctx \byuni \Int \lt \Int }
+                                                                 {\ctx \bychk x:\Int \dashv \ctx}\rname{T-Sub}}
+                                           {\ctx \byapp \Int \to \Int \to \Int ~ x: \Int \to \Int \dashv \ctx}\rname{A-Pi}}
+                                           {\ctx \byinf x + : \Int \to \Int \dashv \ctx}\rname{T-App} \quad
+                                 \inferrule{\ldots}
+                                           {\ctx \byapp \Int \to \Int ~ 3 }\rname{A-Pi}}
+                                {\ctx \byinf x + 3 :\Int \dashv \ctx}\rname{T-App}}
+                     {f:\star = \Int \byinf \blam x f {x+3} : f \to \Int \vdash f:\star = \Int}\rname{T-LamAnn}
+           }
+          {\kw{let} f = \Int \kw{in} \blam x f {x+3} : [f:\star=\Int] (f \to \Int) \vdash \emptyset }\rname{T-Let}
 \]
-
 \end{itemize}
+
+\end{figure}
 
 %%% Local Variables:
 %%% mode: latex
