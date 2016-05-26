@@ -348,18 +348,18 @@ ftv (PrimOp _ e1 e2) = ftv_do_union e1 e2
 ftv           _       = return []
 
 ftv_do_union :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> Expr -> m Freevar
-ftv_do_union e1 e2 = pure ftv_union <*> ftv e1 <*> ftv e2
+ftv_do_union e1 e2 = ftv_union <$> ftv e1 <*> ftv e2
 
 ftv_fun :: (MonadState Context m, MonadError T.Text m, Fresh m) => Bind Tele Expr -> m Freevar
 ftv_fun bnd = do
      (bind, b) <- unbind bnd
-     pure ftv_union <*> ftvtele bind <*> ftv b
+     ftv_union <$> ftvtele bind <*> ftv b
 
 ftvtele ::  (MonadState Context m, MonadError T.Text m, Fresh m) => Tele -> m Freevar
 ftvtele Empty = return []
 ftvtele (Cons rb) = do
    let ((x, Embed t), b) = unrebind rb
-   pure ftv_union <*> ftv t <*> ftvtele b
+   ftv_union <$> ftv t <*> ftvtele b
 
 ftvinfo :: (MonadState Context m, MonadError T.Text m, Fresh m) => VarInfo -> m Freevar
 ftvinfo (VarInfo _ (Just ty, _)) = (applyEnv ty) >>= ftv
@@ -421,6 +421,10 @@ wellDefinedBeforeTVar tm e = do
   put $ Ctx {_env = before}
   wellDefined e
   put $ Ctx {_env = env}
+
+-----------------------------------------
+--  Utility
+-----------------------------------------
 
 unpi :: (Fresh m) => Expr -> m (TmName, Expr, Expr)
 unpi (Pi bnd) = do

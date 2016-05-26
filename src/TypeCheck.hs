@@ -233,7 +233,7 @@ app_typing ty e2 =
   throwError $ T.concat ["expr of type ", showExpr ty, "\ncan not be applied to ", showExpr e2]
 
 -----------------------------------------
---  Polymorphic Relation & Unification
+--  Unification
 -----------------------------------------
 
 unify :: Expr -> Expr -> TcMonad ()
