@@ -34,6 +34,7 @@ module Environment (
     , printEnv
 
     , occur_check
+    , traverseI
     , wellDefinedBeforeTVar
     ) where
 
@@ -383,6 +384,44 @@ ftv_union s1 s2 = foldr (\nm acc -> if nm `elem` s1 then acc else acc ++ [nm] ) 
 -----------------------------------------
 --  Well defined
 -----------------------------------------
+
+traverseI :: (MonadState Context m, MonadError T.Text m, Fresh m) => TmName -> Expr -> m Expr
+traverseI alpha expr = go expr
+  where -- I-Var
+        go x@(Var _) = return x
+        -- I-Star
+        go Star = return Star
+        go (TVar beta) = do
+           beta_first <- beta `tvarExistsBefore` alpha
+           -- I-EVar1
+           if beta_first then return (TVar beta)
+           -- I-EVar2
+           else do
+             alpha1 <- genTVarBefore alpha
+             addSubsitution beta alpha1
+             return alpha1
+        -- I-Others
+        go (App e1 e2) = App <$> go e2 <*> (applyEnv e2 >>= go)
+        go (Lam bnd) = unbind bnd >>= \(x, body) -> (\body' -> Lam (bind x body')) <$> go body
+        go (LamAnn bnd) = do
+          ((x, Embed t), body) <- unbind bnd
+          let makelamann =  \t' body' -> LamAnn (bind (x, embed t') body')
+          makelamann <$> go t <*> go body
+        go (CastUp e1) = CastUp <$> go e1
+        go (CastDown e1) = CastDown <$> go e1
+        go (Ann e1 e2) = Ann <$> go e1 <*> go e2
+        go (Let bnd) = do
+          ((x, Embed t), body) <- unbind bnd
+          let makelet = \t' body' -> Let (bind (x, embed t') body')
+          makelet <$> go t <*> go body
+        go p@(Pi bnd) = do
+          (x, t1, t2) <- unpi p
+          let makepi = \t1' t2' -> epiWithName [(x, t1')] t2'
+          makepi <$> go t1 <*> go t2
+        go Nat = return Nat
+        go x@Lit{} = return x
+        go (PrimOp op e1 e2) = PrimOp op <$> go e1 <*> go e2
+
 
 wellDefined :: (MonadState Context m, MonadError T.Text m, Fresh m) => Expr -> m ()
 wellDefined (Var nm) = existsVar nm
