@@ -21,10 +21,10 @@ Contexts &
 $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2$ \\
 && \synor & $\ctx,\genA \mid \ctx,\genA=\tau$ \\
 
-Target Expr. & $t$ & \syndef & $x \mid \genA \mid \star \mid t_1~t_2$ \\
+Target Expr. & $t, s$ & \syndef & $x \mid \star \mid t_1~t_2$ \\
 && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
 && \synor & $\castup {t_1} t_2 \mid \castdn t$\\
-&& \synor & $\kw{let} x=t_1 \kw{in} x=t_2$ \\
+&& \synor & $\kw{let} x=t_1 \kw{in} t_2$ \\
 Target Ctx. &
 $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \end{tabular}
@@ -56,7 +56,7 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
   \trto x}\rname{T-LetVar}}
 \newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \trto{t} \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
     \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx \trto{t}}\rname{T-Sub}}
-\newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \trto{t} \\
+\newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \\
     \ctxl_1 \bychk e:\tau \toctx \trto t}{\preinf (e:\tau):\tau \toctx
   \trto t}\rname{T-Ann}}
 \newcommand*{\TLamInf}{\inferrule{\preinf[,\genA,x:\genA]
@@ -91,7 +91,7 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
 \pregen {\tau_1} \lt \sigma \\
 \ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, \kw{Unsolved}(\ctxr)\trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
+\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, \kw{Unsolved}(\ctxr) \\ \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
     \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star
@@ -155,17 +155,20 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 % ------------------------------------------------------------------------
 
 \newcommand*{\EAx}{\inferrule{ }{\pretar \star:\star \trto \star}\rname{E-Ax}}
-\newcommand*{\EVar}{\inferrule{x:t \in \tctx}{\pretar x:t \trto
+\newcommand*{\EVar}{\inferrule{x:s \in \tctx}{\pretar x:s \trto
     x}\rname{E-Var}}
-\newcommand*{\EApp}{\inferrule{\pretar t_1:\bpi x {t_3} {t_4} \trto {e_1} \\ \pretar
-    t_2:t_3 \trto {e_2}}{\pretar t_1~t_2:t_4 \subst
+\newcommand*{\EApp}{\inferrule{\pretar t_1:\bpi x {s_1} {s_2} \trto {e_1} \\ \pretar
+    t_2:s_1 \trto {e_2}}{\pretar t_1~t_2:s_2 \subst
   x {t_2} \trto {e_1~e_2}}\rname{E-App}}
-\newcommand*{\ELam}{\inferrule{\pretar t_1:\star \trto {\tau_1} \\ \pretar[,x:t_1] t_2:t_3 \trto {e}
+\newcommand*{\ELam}{\inferrule{\pretar t_1:\star \trto {\tau_1} \\ \pretar[,x:t_1] t_2:s_1 \trto {e}
     }{\pretar \blam
-    x {t_1} t_2 : \bpi x {t_1} {t_3} \trto {\blam x {\tau_1}
+    x {t_1} t_2 : \bpi x {t_1} {s_1} \trto {\blam x {\tau_1}
       e}}\rname{E-Lam}}
-\newcommand*{\EPi}{\inferrule{\pretar }{\pretar \bpi x {t_1} t_2 :
+\newcommand*{\EPi}{\inferrule{\pretar t_1:\star \\ \pretar t_2:\star }{\pretar \bpi x {t_1} t_2 :
     \star \trto {\bpi x {\tau_1} \tau_2}}\rname{E-Pi}}
+\newcommand*{\ECastUp}{\inferrule{\pretar t_1 : \star \\ \pretar t_2: s_1 \\ t_1 \redto s_1 }{\pretar \castup {t_1} {t_2} :t_1}\rname{E-CastUp}}
+\newcommand*{\ECastDown}{\inferrule{\pretar t_1 : s_1 \\ s_1 \redto s_2 }{\pretar \castdn t_1 :s_2}\rname{E-CastDown}}
+\newcommand*{\ELet}{\inferrule{\pretar x : s_1 \\ \pretar t_2[x \mapsto t_1] : s_2}{\pretar \kw{let} x = t_1 \kw{in} t_2:s_2}\rname{E-Let}}
 
 % ------------------------------------------------------------------------
 % POLYMORPHISM
@@ -392,6 +395,18 @@ Arrow type is used to dispaly non dependent function type.
 \end{itemize}
 
 \end{figure}
+
+\newpage
+
+\subsection{Target Declarative Typing}
+
+\[\EAx \quad \EVar\]
+\[\EApp\]
+\[\ELam\]
+\[\EPi\]
+\[\ECastUp\]
+\[\ECastDown\]
+\[\ELet\]
 
 %%% Local Variables:
 %%% mode: latex
