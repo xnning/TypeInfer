@@ -25,6 +25,7 @@ Target Expr. & $t, s$ & \syndef & $x \mid \star \mid t_1~t_2$ \\
 && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
 && \synor & $\castup {t_1} t_2 \mid \castdn t$\\
 && \synor & $\kw{let} x=t_1 \kw{in} t_2$ \\
+&& \synor & $\unit \mid \Unit$ \\
 Target Ctx. &
 $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
 \end{tabular}
@@ -169,6 +170,8 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\ECastUp}{\inferrule{\pretar t_1 : \star \\ \pretar t_2: s_1 \\ t_1 \redto s_1 }{\pretar \castup {t_1} {t_2} :t_1}\rname{E-CastUp}}
 \newcommand*{\ECastDown}{\inferrule{\pretar t_1 : s_1 \\ s_1 \redto s_2 }{\pretar \castdn t_1 :s_2}\rname{E-CastDown}}
 \newcommand*{\ELet}{\inferrule{\pretar x : s_1 \\ \pretar t_2[x \mapsto t_1] : s_2}{\pretar \kw{let} x = t_1 \kw{in} t_2:s_2}\rname{E-Let}}
+\newcommand*{\EUnit}{\inferrule{ }{\pretar \unit: \Unit}\rname{E-$\unit$}}
+\newcommand*{\EUnitTy}{\inferrule{ }{\pretar \Unit : \star}\rname{E-$\Unit$}}
 
 % ------------------------------------------------------------------------
 % POLYMORPHISM
@@ -401,6 +404,7 @@ Arrow type is used to dispaly non dependent function type.
 \subsection{Target Declarative Typing}
 
 \[\EAx \quad \EVar\]
+\[\EUnit \quad \EUnitTy\]
 \[\EApp\]
 \[\ELam\]
 \[\EPi\]
