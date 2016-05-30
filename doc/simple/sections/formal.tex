@@ -200,6 +200,13 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\WFCastDown}{\inferrule{\ctx \bywt e}{\ctx \bywt \castdn e}\rname{WF-CastDown}}
 \newcommand*{\WFAnn}{\inferrule{\ctx \bywt \tau \\ \ctx \bywt e}{\ctx \bywt e:\tau}\rname{WF-Ann}}
 
+\newcommand*{\WCEmpty}{\inferrule{ }{\emptyset \wc}\rname{WC-Empty}}
+\newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
+\newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
+\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau_1 \\ \ctx \bywt \tau_2}{\ctx, x:\tau_1 = \tau_2}\rname{WC-LetVar}}
+\newcommand*{\WCEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx)}{\ctx, \genA \wc}\rname{WC-EVar}}
+\newcommand*{\WCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+
 % ------------------------------------------------------------------------
 % EXPLAINATION
 % ------------------------------------------------------------------------
@@ -376,6 +383,14 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
 \[\WFLamAnn \quad \WFPi\]
 \[\WFLet \quad \WFCastUp\]
 \[\WFCastDown \quad \WFAnn\]
+
+\headercapm{\ctx\wc}{Context $\ctx$ is well formed}
+
+\[\WCEmpty \quad \WCVar\]
+\[\WCTypedVar\]
+\[\WCLetVar\]
+\[\WCEVar\]
+\[\WCSolvedEVar\]
 
 % ------------------------------------------------------------------------
 % EXAMPLES
