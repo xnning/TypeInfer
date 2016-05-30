@@ -24,7 +24,6 @@ $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,
 Target Expr. & $t, s$ & \syndef & $x \mid \star \mid t_1~t_2$ \\
 && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
 && \synor & $\castup {t_1} t_2 \mid \castdn t$\\
-&& \synor & $\kw{let} x=t_1 \kw{in} t_2$ \\
 && \synor & $\unit \mid \Unit$ \\
 Target Ctx. &
 $\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
@@ -92,7 +91,7 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
 \pregen {\tau_1} \lt \sigma \\
 \ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, \kw{Unsolved}(\ctxr) \\ \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{T-Let}}
+\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, \kw{Unsolved}(\ctxr) \\ \trto {t_2[x \mapsto t_1]}}\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
     \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star
@@ -155,21 +154,18 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 % TARGET TYPING RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\EAx}{\inferrule{ }{\pretar \star:\star \trto \star}\rname{E-Ax}}
-\newcommand*{\EVar}{\inferrule{x:s \in \tctx}{\pretar x:s \trto
-    x}\rname{E-Var}}
-\newcommand*{\EApp}{\inferrule{\pretar t_1:\bpi x {s_1} {s_2} \trto {e_1} \\ \pretar
-    t_2:s_1 \trto {e_2}}{\pretar t_1~t_2:s_2 \subst
-  x {t_2} \trto {e_1~e_2}}\rname{E-App}}
-\newcommand*{\ELam}{\inferrule{\pretar t_1:\star \trto {\tau_1} \\ \pretar[,x:t_1] t_2:s_1 \trto {e}
+\newcommand*{\EAx}{\inferrule{ }{\pretar \star:\star }\rname{E-Ax}}
+\newcommand*{\EVar}{\inferrule{x:s \in \tctx}{\pretar x:s}\rname{E-Var}}
+\newcommand*{\EApp}{\inferrule{\pretar t_1:\bpi x {s_1} {s_2} \\ \pretar
+    t_2:s_1}{\pretar t_1~t_2:s_2 \subst
+  x {t_2}}\rname{E-App}}
+\newcommand*{\ELam}{\inferrule{\pretar t_1:\star \\ \pretar[,x:t_1] t_2:s_1
     }{\pretar \blam
-    x {t_1} t_2 : \bpi x {t_1} {s_1} \trto {\blam x {\tau_1}
-      e}}\rname{E-Lam}}
+    x {t_1} t_2 : \bpi x {t_1} {s_1}}\rname{E-Lam}}
 \newcommand*{\EPi}{\inferrule{\pretar t_1:\star \\ \pretar t_2:\star }{\pretar \bpi x {t_1} t_2 :
-    \star \trto {\bpi x {\tau_1} \tau_2}}\rname{E-Pi}}
+    \star}\rname{E-Pi}}
 \newcommand*{\ECastUp}{\inferrule{\pretar t_1 : \star \\ \pretar t_2: s_1 \\ t_1 \redto s_1 }{\pretar \castup {t_1} {t_2} :t_1}\rname{E-CastUp}}
 \newcommand*{\ECastDown}{\inferrule{\pretar t_1 : s_1 \\ s_1 \redto s_2 }{\pretar \castdn t_1 :s_2}\rname{E-CastDown}}
-\newcommand*{\ELet}{\inferrule{\pretar x : s_1 \\ \pretar t_2[x \mapsto t_1] : s_2}{\pretar \kw{let} x = t_1 \kw{in} t_2:s_2}\rname{E-Let}}
 \newcommand*{\EUnit}{\inferrule{ }{\pretar \unit: \Unit}\rname{E-$\unit$}}
 \newcommand*{\EUnitTy}{\inferrule{ }{\pretar \Unit : \star}\rname{E-$\Unit$}}
 
@@ -410,7 +406,6 @@ Arrow type is used to dispaly non dependent function type.
 \[\EPi\]
 \[\ECastUp\]
 \[\ECastDown\]
-\[\ELet\]
 
 %%% Local Variables:
 %%% mode: latex
