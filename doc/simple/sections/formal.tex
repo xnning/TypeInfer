@@ -185,6 +185,22 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\IOthers}{\inferrule{\ctx \bycg \tau_0 \cgto \tau_0' \toctx_1 \\ \ctxl_i \bycg [\ctxl_i]\tau_i \cgto \tau_i' \toctx_{i+1}}{\ctx \bycg T\ \overbar{\tau_n} \cgto T\ \overbar{\tau_n'}}\rname{I-Other}}
 
 % ------------------------------------------------------------------------
+% WELL FORM
+% ------------------------------------------------------------------------
+
+\newcommand*{\WFVar}{\inferrule{x \in \ctx}{\ctx \bywt x}\rname{WF-Var}}
+\newcommand*{\WFEVar}{\inferrule{\genA \in \ctx}{\ctx \bywt \genA}\rname{WF-EVar}}
+\newcommand*{\WFStar}{\inferrule{  }{\ctx \bywt \star}\rname{WF-Ax}}
+\newcommand*{\WFApp}{\inferrule{\ctx \bywt e_1 \\ \ctx \bywt e_2}{\ctx \bywt e_1 ~ e_2}\rname{WF-App}}
+\newcommand*{\WFLam}{\inferrule{\ctx, x \bywt e}{\ctx \bywt \erlam x e}\rname{WF-Lam}}
+\newcommand*{\WFLamAnn}{\inferrule{\ctx \bywt \tau \\ \ctx, x \bywt e}{\ctx \bywt \blam x \tau e}\rname{WF-LamAnn}}
+\newcommand*{\WFPi}{\inferrule{\ctx \bywt \tau_1 \\ \ctx, x \bywt \tau_2}{\ctx \bywt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
+\newcommand*{\WFLet}{\inferrule{\ctx \bywt e_1 \\ \ctx, x \bywt e_2}{\ctx \bywt \kw{let} x = e_1 \kw{in} e_2}\rname{WF-Let}}
+\newcommand*{\WFCastUp}{\inferrule{\ctx \bywt e}{\ctx \bywt \ercastup e}\rname{WF-CastUp}}
+\newcommand*{\WFCastDown}{\inferrule{\ctx \bywt e}{\ctx \bywt \castdn e}\rname{WF-CastDown}}
+\newcommand*{\WFAnn}{\inferrule{\ctx \bywt \tau \\ \ctx \bywt e}{\ctx \bywt e:\tau}\rname{WF-Ann}}
+
+% ------------------------------------------------------------------------
 % EXPLAINATION
 % ------------------------------------------------------------------------
 
@@ -346,10 +362,26 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
 % \\
 
 % ------------------------------------------------------------------------
-% EXAMPLES
+% OTHER FORMALIZATION
 % ------------------------------------------------------------------------
 
 \newpage
+
+\subsection{Other formalization}
+
+\headercapm{\ctx \bywt e}{Well Form of $e$ under context $\ctx$}
+
+\[\WFVar \quad \WFEVar \quad \WFStar\]
+\[\WFApp \quad \WFLam\]
+\[\WFLamAnn \quad \WFPi\]
+\[\WFLet \quad \WFCastUp\]
+\[\WFCastDown \quad \WFAnn\]
+
+% ------------------------------------------------------------------------
+% EXAMPLES
+% ------------------------------------------------------------------------
+
+\clearpage
 
 \begin{figure}
 
