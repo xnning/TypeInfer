@@ -200,7 +200,7 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\WFCastDown}{\inferrule{\ctx \bywt e}{\ctx \bywt \castdn e}\rname{WF-CastDown}}
 \newcommand*{\WFAnn}{\inferrule{\ctx \bywt \tau \\ \ctx \bywt e}{\ctx \bywt e:\tau}\rname{WF-Ann}}
 
-\newcommand*{\WCEmpty}{\inferrule{ }{\emptyset \wc}\rname{WC-Empty}}
+\newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
 \newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
 \newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau_1 \\ \ctx \bywt \tau_2}{\ctx, x:\tau_1 = \tau_2}\rname{WC-LetVar}}
@@ -359,15 +359,6 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
 \[\IOthers\]
 \ExIRules
 
-% \subsection{Target Typing}
-% \headercapm{\pretar t_1 : t_2 \trto e}{Target Typing}
-% \[\EAx \quad
-% \EVar\]
-% \[\EApp\]
-% \[\ELam\]
-% \[\EPi\]
-% \\
-
 % ------------------------------------------------------------------------
 % OTHER FORMALIZATION
 % ------------------------------------------------------------------------
@@ -395,7 +386,7 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
 \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
 
 \begin{tabular}{r c l l}
-    $[\emptyset]e$   & = & $e$       \\
+    $[\ctxinit]e$   & = & $e$       \\
     $[\ctx,x]e$      & = & $[\ctx]e$ \\
     $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
     $[\ctx,x:\tau_1 = \tau_2]e$ & = & $[\ctx](e[x\mapsto \tau_2])$ \\
@@ -420,7 +411,7 @@ But in I-EVar2, because $\genB$ cannot be refered to directly, so we create $\ge
                                 {\genA, x:\genA \byinf x:\genA \dashv \genA, x:\genA}\rname{T-Var}}
                      {\byinf \erlam x x : \bpi x \genA \genA \dashv \genA}\rname{T-Lam$\Inf$}} \quad
             \inferrule{\inferrule{\genA \byinf 3: \Int \quad
-                                  \inferrule{\genA \notin FV(\Int) \\ \genA \bycg \Int \cgto \Int \\ \emptyset \bywt \Int}
+                                  \inferrule{\genA \notin FV(\Int) \\ \genA \bycg \Int \cgto \Int \\ \ctxinit \bywt \Int}
                                             {\genA \byuni \Int \lt \genA \dashv \genA = \Int}\rname{U-TyEVar}}
                                  {\genA \bychk 3: \genA \dashv \genA = \Int}\rname{T-Sub}}
                       {\genA \byapp \bpi x \genA \genA ~ 3 :\genA \dashv \genA = \Int }\rname{A-Pi}}
@@ -444,7 +435,7 @@ Arrow type is used to dispaly non dependent function type.
                                 {\ctx \byinf x + 3 :\Int \dashv \ctx}\rname{T-App}}
                      {f:\star = \Int \byinf \blam x f {x+3} : f \to \Int \vdash f:\star = \Int}\rname{T-LamAnn}
            }
-          {\kw{let} f = \Int \kw{in} \blam x f {x+3} : [f:\star=\Int] (f \to \Int) \vdash \emptyset }\rname{T-Let}
+          {\kw{let} f = \Int \kw{in} \blam x f {x+3} : [f:\star=\Int] (f \to \Int) \vdash \ctxinit }\rname{T-Let}
 \]
 \end{itemize}
 
