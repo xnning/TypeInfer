@@ -23,8 +23,6 @@ module Environment (
 
     , throwAfterVar
     , getUnsolvedAndThrowAfter
-    , addMarker
-    , deleteAfterMarker
 
     , genTVarBefore
     , addSubsitution
@@ -61,7 +59,6 @@ type TypeConstraint = Expr
 type Substitution = Expr
 data VarInfo =   VarInfo TmName (Maybe TypeConstraint, Maybe Substitution)
                | TVarInfo TmName (Maybe Substitution)
-               | Marker TmName
                deriving (Show)
 type Env = [VarInfo]
 
@@ -210,12 +207,6 @@ ctxGenAddTVar = do
   ctxAdd $ makeTVarInfo nm Nothing
   return (TVar nm)
 
-addMarker :: (MonadState Context m, Fresh m) => m VarInfo
-addMarker = do
-  marker <- Marker <$> genName
-  ctxAdd marker
-  return marker
-
 -----------------------------------------
 --  Change Environment: deletion
 -----------------------------------------
@@ -242,14 +233,6 @@ getUnsolvedAndThrowAfter vm = do
       (before, after) = splitAt idx env
       unsolved = getUnsolvedTVar after
   put $ Ctx {_env = before ++ unsolved}
-
-deleteAfterMarker :: (MonadState Context m) => VarInfo -> m ()
-deleteAfterMarker (Marker nm) = do
-  env <- gets _env
-  let filter_fun d = case d of Marker nm2 -> nm /= nm2
-                               _          -> True
-      new_env = takeWhile filter_fun env
-  put $ Ctx {_env = new_env}
 
 -----------------------------------------
 --  Change Environment: insertion
