@@ -161,7 +161,7 @@ $\blam x {((\erlam a a)~nat)} {(\castdn x):nat}$
 \newcommand*{\ELam}{\inferrule{\pretar t_1:\star \\ \pretar[,x:t_1] t_2:s_1
     }{\pretar \blam
     x {t_1} t_2 : \bpi x {t_1} {s_1}}\rname{E-Lam}}
-\newcommand*{\EPi}{\inferrule{\pretar t_1:\star \\ \pretar t_2:\star }{\pretar \bpi x {t_1} t_2 :
+\newcommand*{\EPi}{\inferrule{\pretar t_1:\star \\ \pretar[,x:t_1] t_2:\star }{\pretar \bpi x {t_1} t_2 :
     \star}\rname{E-Pi}}
 \newcommand*{\ECastUp}{\inferrule{\pretar t_1 : \star \\ \pretar t_2: s_1 \\ t_1 \redto s_1 }{\pretar \castup {t_1} {t_2} :t_1}\rname{E-CastUp}}
 \newcommand*{\ECastDown}{\inferrule{\pretar t_1 : s_1 \\ s_1 \redto s_2 }{\pretar \castdn t_1 :s_2}\rname{E-CastDown}}
