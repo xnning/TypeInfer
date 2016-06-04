@@ -1,0 +1,151 @@
+\section{Algorithmic Typing}
+
+\subsection{Context}
+
+\begin{figure}[t]
+    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
+
+    \begin{mathpar}
+    \begin{tabular}{r c l l}
+        $[\ctxinit]e$   & = & $e$       \\
+        $[\ctx,x]e$      & = & $[\ctx]e$ \\
+        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
+        $[\ctx,x:\tau_1 = \tau_2]e$ & = & $[\ctx](e[x\mapsto \tau_2])$ \\
+        $[\ctx, \genA]e$ & = & $[\ctx]e$ \\
+        $[\ctx, \genA=\tau]e$ & = & $[\ctx](e[\genA \mapsto \tau])$
+    \end{tabular}
+    \end{mathpar}
+    \caption{Applying a context}
+    \label{fig:applyctx}
+\end{figure}
+
+\paragraph{Contexts as substitutions.} Context could be viewed as a substitution for two forms:  the existential variables in solved form $\genA = \tau$, and the let binding $x:\tau_1=\tau_2$. Figure \ref{fig:applyctx} gives the definition of applying context on types.
+
+\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$.
+
+Multiple holes also require the order. For example, $\ctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
+
+Hole notation is also used for replace and modification. After an unification, $\ctx[\genA]$ could become $\ctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
+
+\subsection{Typing Rules}
+
+Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. The judgement $\preall e:\tau \toctx \trto t$ is interpreted as, under context $\ctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
+
+\begin{figure*}[h]
+    \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \[\TAx \quad \TVar\quad \TLetVar\]
+    \[\TPi \quad \TAnn\]
+    \[\TLamInf \quad \TLamChk\]
+    \[\TLamAnn \quad \TApp\]
+    \[\TLet\]
+    \[\TCastUp \quad \TCastDn\]
+    \[\TSub\]
+    \\
+    \headercapm{\preapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
+    \[\APi \quad \AEVar\]
+    \\
+    \headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation}
+    \\
+    \headercapm{\pregen \tau \lt \sigma}{Generalization}
+    \[\Instantiation \quad \Generalization\]
+    \caption{Typing rules}
+    \label{fig:typingrules}
+\end{figure*}
+
+\begin{figure*}[h]
+\headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
+    \[\UVar \quad \UEVarId \quad \UStar\]
+    \[\UApp \quad \ULet\]
+    \[\ULam \quad \ULamAnn\]
+    \[\UCastUp \quad \UCastDn\]
+    \[\UPi \quad \UAnn\]
+    \[\UEVarTy\]
+    \[\UTyEVar\]
+\headercapm{\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Resolve existential variables in $\tau_1$}
+    \[\IVar \quad \IStar\]
+    \[\IEVarA\]
+    \[\IEVarB\]
+    \[\IOthers\]
+    \caption{Unification rules}
+    \label{fig:unifyrules}
+\end{figure*}
+
+\rul{T-AX} is our impredicative axiom. \rul{T-Var} fetches type information from context for normal variable. These two rules have no change to the context.
+
+\rul{T-LetVar} is the case of let binding, where we use \rul{Inst} to instantiate the type. As \rul{Inst} shows, instantiating a polymorphism type will add the new existential variables at the end of current context.
+
+\rul{T-Pi} checks the argument type is of type $\star$, then add the information of $x$ to the context for checking the result type. It will throw away the context after $x$ because all those variables are out of scope.
+
+\rul{T-Ann} checks the expression with its annotation.
+
+\rul{T-Lam$\Inf$} shows one difference between our system and Dunfield's system which is due to dependent types. Consider the rule for lambda in Dunfield's system:
+
+\begin{mathpar}
+\OLamInf
+\end{mathpar}
+
+Here $\genB$ is generated before $x$ and is used to check the body. It works well when there is no dependency of $\genB$ on $x$. But in dependently typed function, consider expression \lst{\\x:*. \\y:x. y} of type $\bpi x \star {\bpi y x x}$. In the outer lambda, the $\genB$ (which is solved as $\bpi y x x$) will refer to $x$. So the order in the precondition should be $\genA, x:\genA, \genB$. Then the existance of $\genB$ is actually making no difference from tranditional typing rule for lambda, namely infer the type of body under $\genA, x:\genA$. We choose to use the latter one.
+
+But then we cannot throw the context after $x$, since the result type may have reference to the existential variables in the context after $x$. For example, infering type of expression $\erlam x {\erlam y y}$ will give $\bpi x {\genA_1} {\bpi y {\genA_2} {\genA_2}}$. If we throw away the context after $x$, we will lose the information about $\genA_2$.
+
+The result type has two forms of references to the existential variables after $x$, that is, it can refer to a solved one, or it can refer to an unsolved one. For solved one, we can substitute the context to the result type. And for unsolved one, we need to preserve its existance. So one possible solution is to substitute the context to the result type and preserve the unsolved type variables, as rule \rul{T-Lam$\Inf$} shows. The form definition of UV (stands for unsolved existential variables) shows as follows:
+
+\begin{mathpar}
+    \begin{tabular}{r c l l}
+        $UV(\ctxinit)$    & = & $\cdot$       \\
+        $UV(\ctx, \genA)$ & = & $UV(\ctx), \genA$ \\
+        $UV(\ctx, \_)$     & = & $UV(\ctx)$
+    \end{tabular}
+\end{mathpar}
+
+We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctxr]\tau_2)$, where FV stands for free existential variables.
+
+\rul{T-Lam$\Chk$} continues to check the body with $x$ whose type is assigned as provided type. \rul{T-LamAnn} checks the annotation with $\star$, and continues to check the body. It uses the same method to deal with context as \rul{T-Lam$\Inf$}.
+
+\rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. In \rul{A-Pi}, the type of $e_1$ is a Pi type, so it checks $e_2$ with the argument type provided. Due to dependency, $e$ will be substituted in the result type. In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. It first destructs $\genA$ into a Pi type, and checks $e_2$ with the new generated existential variable. One notice is that \rul{A-EVar} actually could only resolve non-dependent function type for $\genA$, which means there is no dependency of $x$ in $\genA_2$. For example, expression $\erlam f {(f~nat~1) + (f~\star~nat)}$ will be rejected, because it requests to infer $f$ as a dependently typed function with type $\bpi x \star {\bpi y x} nat$.
+
+\rul{T-Let} first infers the type of the binding, then use \rul{Gen} to do Damas-Milner way of polymorphism to the type. And when type check the body, it will add the let binding in the context. The result type will be substituted by the context after $x$ and the binding itself. Which means, \lst{let a = int in \\x:a. x} is a well typed expression with type $\bpi x {int} {int}$ instead of $\bpi x a a $.  Let has check mode because it needs to deliver the check type information. For example expression $(\kw{let} y = 3 \kw{in} \erlam f {(f~nat~1) + (f~\star~nat))}: (\bpi f {(\bpi x \star {\bpi y x nat})} nat)$.
+
+\rul{T-CastUp} shows $\ercastup$ can only be checked because there are unlimited possibility of $\tau_2$. \rul{T-CastDn} does one-step reduction on original type. Notice context needs to be applied before the reduction.
+
+\rul{Sub} states that if a expression without a check mode rule is checked with a type, the expression will be infered first and two types will be unified.
+
+At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating all the variables bound by forall to new existential variables. \rul{Gen} substitutes the context before generalization, and extract the free variables to make a polymorphic type. We could delete $\overbar{\genA}$ from context because they are of no use.
+
+\subsection{Unification}
+
+Figure \ref{fig:unifyrules} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\preuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\ctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$.
+
+The first three rules are just identity.
+
+The remaining rules except the last two, are structurally defined. They unify each component of the constructor, with context applied before next unification. For rules involving bound variables, $x$ will be added into the context for following unification, and the output context after $x$ will be threw away. Notice the order of $x$ in the context determines the unification $\genA_2 \byuni \bpi x \star \genA_2 \lt \bpi x \star x$ will fail.
+
+The interesting cases come from the rule \rul{U-EVarTy} and \rul{U-TyEVar}. They behave the same no matter the existential variable appears in which side. So take \rul{U-EVarTy} as example. In Dunfield's system, we have rule:
+
+\begin{mathpar}
+\OInstRArr
+\end{mathpar}
+
+Consider what will happen when $\ctx \byuni \genA \lt \bpi x {\tau_1} {\tau_2}$:
+
+\begin{itemize}
+    \item Rhs is a normal function: $\ctx \byuni \genA \lt \bpi x \star \star$.\\
+          Original works well and results in $\genA = \bpi x \star \star$.
+    \item Rhs is a dependently typed function: $\ctx, \genA, \ctxr \byuni \genA \lt \bpi x \star x$.\\
+          Here we are requesting $\genA_2$ in \rul{InstRArr} could refer to  $x$. This means we need to add $x$ at least before $\genA_2$ to make $\genA_2$ well typed. But we cannot do it directly because it makes all the type variables in $\ctxr$ be able to refer to $x$.
+          One solution is to skip the procedure of the generation of $\genA_2$. We know that $\bpi x \star x$ is well typed under $\ctx$ so it can be assigned to $\genA$ directly. So what we need to do is to check $\ctx \bywt \bpi x \star x$.
+    \item Dependently typed function involving existential variable: $\ctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x.$\\
+          Here $\bpi x \genB x$ is not well typed in $\ctx$. But this unification do have a solution context: $\ctx, \genA_1, \genA = \bpi  x {\genA_1} x, \genB = \genA_1, \ctxr$. This means, well type solution works not well in existential variable case. They need extra treatment. One solution is we traverse the whole type on the right hand side and turn it to a type that is not bothered by the order of existential variables. This is what the I-rules do.
+\end{itemize}
+
+In summary, we cannot destruct $\genA$ because of dependency, we can use well type to skip the generation of $\genA_2$, with the help of I-rules which will resolve the existential variables.
+
+The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used in unification. The judgement $\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx$ is interpreted as, under context $\ctx$, try to find all the existential variables $\overbar \genB$ in $\tau_1$ that appears after $\genA$ in context, then generate new existential variables $\overbar {\genA_1}$ before $\genA$ and make $\overbar \genB = \overbar {\genA_1}$. These rules will turn $\tau_1$ into $tau_2$ where all the existential variables could be refered directly by $genA$.
+
+\rul{I-Var} and \rul{I-Star} is just identity.
+
+\rul{I-EVar1} is when $\genB$ appears before $\genA$, then $\genA$ could refer it directly so it is safe to remain it.
+
+In \rul{I-EVar2}, because $\genB$ cannot be refered to directly, so we create $\genA_1$ before $\genA$ and make $\genB=\genA_1$ and return $\genA_1$ as result. One interpretation of I-Evar2 rule is that it is the combination of original \rul{InstRArr} and \rul{InstRReach} rules in Dunfield's system, which create new type variable and make $\genB$ refer to it. This rule could also be used in Dunfield's system, with extra treatment of polymorphism types.
+
+Other cases are structurally defined, so they are represented by the single \rul{I-Others}.
