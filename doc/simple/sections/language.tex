@@ -38,7 +38,17 @@ Figure \ref{fig:syntax} shows the syntax of the system.
 
 \paragraph{Expression.} Expressions $e$ are variables x, existential type variables $\genA$, a single sort $\star$ to represent the type of types, functions without annotations $\erlam x e$ and with annotations $\blam x \tau e$, application $e_1~e_2$, Pi type $\bpi x {\tau_1} {\tau_2}$, let expression $\kw{let} x = e_1 \kw{in} e_2$, cast up and cast down, and expression with annotation $e:\tau$.
 
-In $\lambda C$, there are two distinct sorts $\star$ and $\square$ representing the type of types and sorts respectively, and an axiom $\star:\square$ specifying the relationship between these two. Here we further merge types and kinds together by including only a single sort $\star$ with an impredicative axiom $\star:\star$,
+In $\lambda C$, there are two distinct sorts $\star$ and $\square$
+representing the type of types and sorts respectively, and an axiom
+$\star:\square$ specifying the relationship between these two. Here we
+further merge types and kinds together by including only a single sort
+$\star$ with an impredicative axiom $\star:\star$. This choice loses 
+strong normalization and logical consistency, which is ok for our 
+own purposes: we intend to use the calculus for programming, not
+theorem proving. However, keeping the stratification between the two 
+sorts should be possible too.
+
+
 
 Figure \ref{fig:operational} shows the call-by-name operational semantic, defined by one-step reduction. \rul{S-Beta1} and \rul{S-Beta2} are for beta reduction and \rul{S-CastDownUp} is for cast canceling. \rul{S-App}, \rul{S-CastDown} and \rul{S-Ann} are inductive cases. \rul{S-Let} show the operational semantic for let is defined by substitution.
 
