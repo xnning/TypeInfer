@@ -79,7 +79,7 @@ Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. T
 \rul{T-Ann} checks the expression with its annotation.
 
 \paragraph{Typing Dependent Functions}
-\rul{T-Lam$\Inf$} shows one difference between our system and Dunfield's system which is due to dependent types. Consider the rule for lambda in Dunfield's system:
+\rul{T-Lam$\Inf$} shows one difference between our system and Dunfield and Krishnaswami's system which is due to dependent types. Consider the rule for lambda in Dunfield and Krishnaswami's system:
 
 \begin{mathpar}
 \OLamInf
@@ -121,7 +121,7 @@ The first three rules are just identity.
 
 The remaining rules except the last two, are structurally defined. They unify each component of the constructor, with context applied before next unification. For rules involving bound variables, $x$ will be added into the context for following unification, and the output context after $x$ will be threw away. Notice the order of $x$ in the context determines the unification $\genA_2 \byuni \bpi x \star \genA_2 \lt \bpi x \star x$ will fail.
 
-The interesting cases come from the rule \rul{U-EVarTy} and \rul{U-TyEVar}. They behave the same no matter the existential variable appears in which side. So take \rul{U-EVarTy} as example. In Dunfield's system, we have rule:
+The interesting cases come from the rule \rul{U-EVarTy} and \rul{U-TyEVar}. They behave the same no matter the existential variable appears in which side. So take \rul{U-EVarTy} as example. In Dunfield and Krishnaswami's system, we have rule:
 
 \begin{mathpar}
 \OInstRArr
@@ -147,6 +147,6 @@ The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used
 
 \rul{I-EVar1} is when $\genB$ appears before $\genA$, then $\genA$ could refer it directly so it is safe to remain it.
 
-In \rul{I-EVar2}, because $\genB$ cannot be refered to directly, so we create $\genA_1$ before $\genA$ and make $\genB=\genA_1$ and return $\genA_1$ as result. One interpretation of I-Evar2 rule is that it is the combination of original \rul{InstRArr} and \rul{InstRReach} rules in Dunfield's system, which create new type variable and make $\genB$ refer to it. This rule could also be used in Dunfield's system, with extra treatment of polymorphism types.
+In \rul{I-EVar2}, because $\genB$ cannot be refered to directly, so we create $\genA_1$ before $\genA$ and make $\genB=\genA_1$ and return $\genA_1$ as result. One interpretation of I-Evar2 rule is that it is the combination of original \rul{InstRArr} and \rul{InstRReach} rules in Dunfield and Krishnaswami's system, which create new type variable and make $\genB$ refer to it. This rule could also be used in Dunfield and Krishnaswami's system, with extra treatment of polymorphism types.
 
 Other cases are structurally defined, so they are represented by the single \rul{I-Others}.
