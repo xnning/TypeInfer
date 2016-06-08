@@ -19,7 +19,7 @@
     \label{fig:applyctx}
 \end{figure}
 
-\paragraph{Contexts as substitutions.} Context could be viewed as a substitution for two forms:  the existential variables in solved form $\genA = \tau$, and the let binding $x:\tau_1=\tau_2$. Figure \ref{fig:applyctx} gives the definition of applying context on types.
+\paragraph{Contexts as substitutions.} Contexts can be viewed as a substitution for two forms:  the existential variables in solved form $\genA = \tau$; and the let binding $x:\tau_1=\tau_2$. Figure \ref{fig:applyctx} gives the definition of applying context on types.
 
 \paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$.
 
@@ -70,7 +70,7 @@ Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. T
     \label{fig:unifyrules}
 \end{figure*}
 
-\rul{T-AX} is our impredicative axiom. \rul{T-Var} fetches type information from context for normal variable. These two rules have no change to the context.
+\rul{T-AX} is our impredicative axiom. \rul{T-Var} fetches type information from context for variables. These two rules have no change to the context.
 
 \rul{T-LetVar} is the case of let binding, where we use \rul{Inst} to instantiate the type. As \rul{Inst} shows, instantiating a polymorphism type will add the new existential variables at the end of current context.
 
@@ -85,11 +85,11 @@ Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. T
 \OLamInf
 \end{mathpar}
 
-Here $\genB$ is generated before $x$ and is used to check the body. It works well when there is no dependency of $\genB$ on $x$. But in dependently typed function, consider expression \lst{\\x:*. \\y:x. y} of type $\bpi x \star {\bpi y x x}$. In the outer lambda, the $\genB$ (which is solved as $\bpi y x x$) will refer to $x$. So the order in the precondition should be $\genA, x:\genA, \genB$. Then the existance of $\genB$ is actually making no difference from tranditional typing rule for lambda, namely infer the type of body under $\genA, x:\genA$. We choose to use the latter one.
+Here $\genB$ is generated before $x$ and is used to check the body. It works well when there is no dependency of $\genB$ on $x$. But in dependently typed function, consider expression \lst{\\x:*. \\y:x. y} of type $\bpi x \star {\bpi y x x}$. In the outer lambda, the $\genB$ (which is solved as $\bpi y x x$) will refer to $x$. So the order in the precondition should be $\genA, x:\genA, \genB$. Then the existance of $\genB$ is actually making no difference from the traditional typing rule for lambda, namely infer the type of body under $\genA, x:\genA$. We choose to use the latter one.
 
-But then we cannot throw the context after $x$, since the result type may have reference to the existential variables in the context after $x$. For example, infering type of expression $\erlam x {\erlam y y}$ will give $\bpi x {\genA_1} {\bpi y {\genA_2} {\genA_2}}$. If we throw away the context after $x$, we will lose the information about $\genA_2$.
+\emph{But then we cannot throw the context after $x$, since the result type may have references to the existential variables in the context after $x$}. For example, infering type of expression $\erlam x {\erlam y y}$ will give $\bpi x {\genA_1} {\bpi y {\genA_2} {\genA_2}}$. If we throw away the context after $x$, we will lose the information about $\genA_2$.
 
-The result type has two forms of references to the existential variables after $x$, that is, it can refer to a solved one, or it can refer to an unsolved one. For solved one, we can substitute the context to the result type. And for unsolved one, we need to preserve its existance. So one possible solution is to substitute the context to the result type and preserve the unsolved type variables, as rule \rul{T-Lam$\Inf$} shows. The form definition of UV (stands for unsolved existential variables) shows as follows:
+The result type has two forms of references to the existential variables after $x$, that is, it can refer to a solved one, or it can refer to an unsolved one. For solved variables, we can substitute the context to the result type. And for unsolved variables, we need to preserve them. So one possible solution is to substitute the context to the result type and preserve the unsolved type variables, as rule \rul{T-Lam$\Inf$} shows. The form definition of UV (stands for unsolved existential variables) shows as follows:
 
 \begin{mathpar}
     \begin{tabular}{r c l l}
@@ -105,7 +105,7 @@ We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctx
 
 \rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. In \rul{A-Pi}, the type of $e_1$ is a Pi type, so it checks $e_2$ with the argument type provided. Due to dependency, $e$ will be substituted in the result type. In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. It first destructs $\genA$ into a Pi type, and checks $e_2$ with the new generated existential variable. One notice is that \rul{A-EVar} actually could only resolve non-dependent function type for $\genA$, which means there is no dependency of $x$ in $\genA_2$. For example, expression $\erlam f {(f~nat~1) + (f~\star~nat)}$ will be rejected, because it requests to infer $f$ as a dependently typed function with type $\bpi x \star {\bpi y x} nat$.
 
-\rul{T-Let} first infers the type of the binding, then use \rul{Gen} to do Damas-Milner way of polymorphism to the type. And when type check the body, it will add the let binding in the context. The result type will be substituted by the context after $x$ and the binding itself. Which means, \lst{let a = int in \\x:a. x} is a well typed expression with type $\bpi x {int} {int}$ instead of $\bpi x a a $.  Let has check mode because it needs to deliver the check type information. For example expression $(\kw{let} y = 3 \kw{in} \erlam f {(f~nat~1) + (f~\star~nat))}: (\bpi f {(\bpi x \star {\bpi y x nat})} nat)$.
+\rul{T-Let} first infers the type of the binding, then use \rul{Gen} to do Damas-Milner style polymorphism. When type checking the body, the let binding is added to the context. The result type will be substituted by the context after $x$ and the binding itself. Which means, \lst{let a = int in \\x:a. x} is a well typed expression with type $\bpi x {int} {int}$ instead of $\bpi x a a $.  Let has check mode because it needs to deliver the check type information. For example expression $(\kw{let} y = 3 \kw{in} \erlam f {(f~nat~1) + (f~\star~nat))}: (\bpi f {(\bpi x \star {\bpi y x nat})} nat)$.
 
 \rul{T-CastUp} shows $\ercastup$ can only be checked because there are unlimited possibility of $\tau_2$. \rul{T-CastDn} does one-step reduction on original type. Notice context needs to be applied before the reduction.
 
