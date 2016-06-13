@@ -4,7 +4,7 @@
     \begin{tabular}{lrcl}
         Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
 
-        Expr & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
+        Expr & $e,\tau$ & \syndef & $x \mid \varA \mid \star \mid e_1~e_2$ \\
         && \synor & $\erlam x e \mid \blam x \tau e \mid \bpi x {\tau_1} \tau_2$ \\
         && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
         && \synor & $\ercastup e \mid \castdn e$ \\
@@ -31,9 +31,9 @@
     \label{fig:declapplyctx}
 \end{figure}
 
-We present the declarative system in figure \ref{fig:declsyntax}. Compared to the algorithmic version, the main difference is the disappear of existential variable in the context. The existential variables still exist in the type level since they are needed for polymorphism. The corresponding definition of applying a context is defined in figure \ref{fig:declapplyctx}. Now the substitution case is only let binding.
+We present the declarative system in figure \ref{fig:declsyntax}. Compared to the algorithmic version, the main difference is the disappear of existential variable. There is another form of type variable $\varA$ exists in the type level since they are needed for polymorphism. The corresponding definition of applying a context is defined in figure \ref{fig:declapplyctx}. Now the substitution case is only let binding.
 
-The typing rule for declarative system are shown in figure \ref{fig:decltyping}. The judgement $\preall e:\sigma \trto t$ now is without output context and there is no information about existential variables passing around contexts. Except this, most rules stay the same. \rul{D-EVar} is a special rule for declarative system, which states that every existential variables are of type $\star$. \rul{D-Lam$\Inf$} gives the argument $x$ type $\tau_1$ and continues to infer the body. But before that, the rule checks $\tau_1$ is of type $\star$. \rul{D-App} handles the application in one rule and does not need special rules. \rul{D-Sub} has no unification procedure, and just requires two types are equal. \rul{D-Conv} works for let binding, so if two types are alpha equal under context application, these two types could be replaced for each other.
+The typing rule for declarative system are shown in figure \ref{fig:decltyping}. The judgement $\preall e:\sigma \trto t$ now is without output context and there is no information about existential variables passing around contexts. Except this, most rules stay the same. \rul{D-EVar} is a special rule for declarative system, which states that every type variables are of type $\star$. \rul{D-Lam$\Inf$} gives the argument $x$ type $\tau_1$ and continues to infer the body. But before that, the rule checks $\tau_1$ is of type $\star$. \rul{D-App} handles the application in one rule and does not need special rules. \rul{D-Sub} has no unification procedure, and just requires two types are equal. \rul{D-Conv} works for let binding, so if two types are alpha equal under context application, these two types could be replaced for each other.
 
 \begin{figure*}[h]
     \headercapm{\preall e:\sigma \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}

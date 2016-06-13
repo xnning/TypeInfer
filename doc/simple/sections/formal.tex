@@ -82,7 +82,7 @@
 \newcommand*{\DAx}{\inferrule{ }{\preinf \star:\star \trto \star}\rname{D-Ax}}
 \newcommand*{\DVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau
   \trto x}\rname{D-Var}}
-\newcommand*{\DEVar}{\inferrule{ }{\preinf \genA:\star}\rname{D-EVar}}
+\newcommand*{\DEVar}{\inferrule{ }{\preinf \varA:\star}\rname{D-EVar}}
 \newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2}{\preinf x:\tau_2
   \trto x}\rname{D-LetVar}}
 \newcommand*{\DSub}{\inferrule{\preinf e : \tau \trto{t}}
@@ -124,9 +124,9 @@
     \trto {\castdn t}}\rname{D-CastDn}}
 \newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \\ [\ctx]\tau_1 = [\ctx]\tau_2}{\preinf e_1 : \tau_2}\rname{D-Conv}}
 
-\newcommand*{\DInstantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}]} \rname{D-Inst}}
+\newcommand*{\DInstantiation}{\inferrule{\prechk \overbar{\tau} : \star \\ \sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\tau}]} \rname{D-Inst}}
 
-\newcommand*{\DGeneralization}{\inferrule{\overbar{\genA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{D-Gen}}
+\newcommand*{\DGeneralization}{\inferrule{\overbar{\varA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\varA} \mapsto \overbar{x}]} \rname{D-Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFICATION RULES
