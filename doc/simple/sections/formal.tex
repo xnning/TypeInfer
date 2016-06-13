@@ -77,6 +77,57 @@
     [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \toctx \trto {\castdn t}}\rname{T-CastDn}}
 
+% DECLARATIVE
+
+\newcommand*{\DAx}{\inferrule{ }{\preinf \star:\star \trto \star}\rname{D-Ax}}
+\newcommand*{\DVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau
+  \trto x}\rname{D-Var}}
+\newcommand*{\DEVar}{\inferrule{ }{\preinf \genA:\star}\rname{D-EVar}}
+\newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2}{\preinf x:\tau_2
+  \trto x}\rname{D-LetVar}}
+\newcommand*{\DSub}{\inferrule{\preinf e : \tau \trto{t}}
+  {\prechk e:\tau  \trto{t}}\rname{D-Sub}}
+\newcommand*{\DAnn}{\inferrule{\prechk \tau:\star \\
+    \ctx \bychk e:\tau  \trto t}{\preinf (e:\tau):\tau
+  \trto t}\rname{D-Ann}}
+\newcommand*{\DLamInf}{\inferrule{ \prechk \tau_1 : \star \\ \preinf[,x:\tau_1]
+    e:\tau_2 \trto t}{\preinf \erlam x e : (\bpi x {\tau_1} {\tau_2})
+    \trto {\blam x \genA t}}\rname{D-Lam$\Inf$}}
+\newcommand*{\DLamChk}{\inferrule{\prechk[,x:\tau_1]
+    e:\tau_2 \trto {t_2} \\
+    \opt{\prechk {\tau_1 : \star  \trto {t_1}}}
+    }{\prechk \erlam x e : (\bpi x {\tau_1} \tau_2)  \trto {\blam x {t_1} t_2}}\rname{D-Lam$\Chk$}}
+\newcommand*{\DLamAnn}{\inferrule{\prechk \tau_1 : \star
+    \trto {t_1} \\
+    \ctx,x:\tau_1 \byinf
+    e:\tau_2\trto {t_2}}{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn}}
+\newcommand*{\DApp}{\inferrule{
+    \preinf e_1 : \bpi  x {\tau_1} {\tau_2} \trto {t_1} \\
+    \prechk e_2 : \tau_1
+}{\preinf e_1~e_2:\tau_2 \subst x {e_2}  \trto {t_1~t_2}}\rname{D-App}}
+\newcommand*{\DPi}{\inferrule{\prechk \tau_1 : \star \trto {t_1} \\
+\ctx,x:\tau_1 \bychk \tau_2 : \star \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
+    \star \trto {\bpi x {t_1} t_2}}\rname{D-Pi}}
+\newcommand*{\DLet}{\inferrule{\preinf e_1 : \tau_1 \trto {t_1} \\
+\pregen {\tau_1} \lt \sigma \\
+\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \trto {t_2}}{\preall \kw{let} x=e_1
+\kw{in} e_2 : \tau_2 \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{D-Let}}
+\newcommand*{\DCastUp}{\inferrule{\tau_2 \redto \tau_1 \\
+    \prechk e : \tau_1 \trto {t_2} \\
+    \opt{\prechk \tau_1 : \star \trto {t_1}}
+    }
+  {\prechk \ercastup e : \tau_2
+    \trto {\castup {t_1} t_2}}\rname{D-CastUp}}
+\newcommand*{\DCastDn}{\inferrule{\preinf e : \tau_1\trto t \\
+    \tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
+    \trto {\castdn t}}\rname{D-CastDn}}
+\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \\ [\ctx]\tau_1 = [\ctx]\tau_2}{\preinf e_1 : \tau_2}\rname{D-Conv}}
+
+\newcommand*{\DInstantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}]} \rname{D-Inst}}
+
+\newcommand*{\DGeneralization}{\inferrule{\overbar{\genA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{D-Gen}}
+
 % ------------------------------------------------------------------------
 % UNIFICATION RULES
 % ------------------------------------------------------------------------

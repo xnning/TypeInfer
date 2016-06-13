@@ -1,0 +1,51 @@
+\section{Declarative System}
+
+\begin{figure}[h]
+    \begin{tabular}{lrcl}
+        Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
+
+        Expr & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
+        && \synor & $\erlam x e \mid \blam x \tau e \mid \bpi x {\tau_1} \tau_2$ \\
+        && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
+        && \synor & $\ercastup e \mid \castdn e$ \\
+        && \synor & $e : \tau$ \\
+        Contexts &
+        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit$ \\
+        && \synor & $\ctx,x:\tau \mid \ctx,x:\tau=e$ \\
+    \end{tabular}
+    \caption{Declarative syntax.}
+    \label{fig:declsyntax}
+\end{figure}
+
+\begin{figure}[t]
+    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
+
+    \begin{mathpar}
+    \begin{tabular}{r c l l}
+        $[\ctxinit]e$   & = & $e$       \\
+        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
+        $[\ctx,x:\tau_1 = \tau_2]e$ & = & $[\ctx](e[x\mapsto \tau_2])$ \\
+    \end{tabular}
+    \end{mathpar}
+    \caption{Applying a context}
+    \label{fig:declapplyctx}
+\end{figure}
+
+We present the declarative system in figure \ref{fig:declsyntax}. Compared to the algorithmic version, the main difference is the disappear of existential variable in the context. The existential variables still exist in the type level since they are needed for polymorphism. The corresponding definition of applying a context is defined in figure \ref{fig:declapplyctx}. Now the substitution case is only let binding.
+
+The typing rule for declarative system are shown in figure \ref{fig:decltyping}. The judgement $\preall e:\sigma \trto t$ now is without output context and there is no information about existential variables passing around contexts. Except this, most rules stay the same. \rul{D-EVar} is a special rule for declarative system, which states that every existential variables are of type $\star$. \rul{D-Lam$\Inf$} gives the argument $x$ type $\tau_1$ and continues to infer the body. But before that, the rule checks $\tau_1$ is of type $\star$. \rul{D-App} handles the application in one rule and does not need special rules. \rul{D-Sub} has no unification procedure, and just requires two types are equal. \rul{D-Conv} works for let binding, so if two types are alpha equal under context application, these two types could be replaced for each other.
+
+\begin{figure*}[h]
+    \headercapm{\preall e:\sigma \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \[\DAx \quad \DVar \quad \DEVar \quad \DLetVar \]
+    \[\DAnn \quad \DLamInf \quad \DLamChk\]
+    \[\DLamAnn \quad \DApp\]
+    \[\DLet \quad \DPi\]
+    \[\DCastUp \quad \DCastDn\]
+    \[\DSub \quad \DConv\]
+    \\
+    \headercapm{\preinst \sigma \lt \tau}{Instantiation} \quad \headercapm{\pregen \tau \lt \sigma}{Generalization}
+    \[\DInstantiation \quad \DGeneralization\]
+    \caption{Declarative typing rules}
+    \label{fig:decltyping}
+\end{figure*}
