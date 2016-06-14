@@ -9,33 +9,32 @@
 % TYPING RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo \trto \star}\rname{T-Ax}}
+\newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo}\rname{T-Ax}}
 \newcommand*{\TVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau \toctxo
-  \trto x}\rname{T-Var}}
+  }\rname{T-Var}}
 \newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2 \toctx}{\preinf x:\tau_2 \toctx
-  \trto x}\rname{T-LetVar}}
-\newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \trto{t} \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
-    \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx \trto{t}}\rname{T-Sub}}
+  }\rname{T-LetVar}}
+\newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
+    \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx }\rname{T-Sub}}
 \newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \\
-    \ctxl_1 \bychk e:\tau \toctx \trto t}{\preinf (e:\tau):\tau \toctx
-  \trto t}\rname{T-Ann}}
+    \ctxl_1 \bychk e:\tau \toctx }{\preinf (e:\tau):\tau \toctx
+  }\rname{T-Ann}}
 \newcommand*{\TLamInf}{\inferrule{\preinf[,\genA,x:\genA]
-    e:\tau_2 \toctx, x:\genA, \ctxr \trto t}{\preinf \erlam x e : (\bpi x \genA
-    [\ctxr]\tau_2) \toctx, UV(\ctxr) \trto {\blam x \genA t}}\rname{T-Lam$\Inf$}}
+    e:\tau_2 \toctx, x:\genA, \ctxr }{\preinf \erlam x e : (\bpi x \genA
+    [\ctxr]\tau_2) \toctx, UV(\ctxr) }\rname{T-Lam$\Inf$}}
 \newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
-    e:\tau_2 \toctx,x:\tau_1,\ctxr \trto {t_2} \\
-    %\prechk {\bpi x {t_1} \tau_2 : \star \toctx_1 \trto {\bpi x {t_1} t_3}}
+    e:\tau_2 \toctx,x:\tau_1,\ctxr \\
+    \opt{\prechk {\tau_1 : \star \toctx_1 }}
     }{\prechk \erlam x e : \bpi x {\tau_1}
-    \tau_2 \toctx \trto {\blam x {t_1} t_2}}\rname{T-Lam$\Chk$}}
-\newcommand*{\TLamAnn}{\inferrule{\prechk \tau_1 : \star \toctx_1
-    \trto {t_1} \\
+    \tau_2 \toctx }\rname{T-Lam$\Chk$}}
+\newcommand*{\TLamAnn}{\inferrule{\prechk \tau_1 : \star \toctx_1\\
     \ctxl_1,x:\tau_1 \byinf
-    e:\tau_2 \toctx, x:\tau_1, \ctxr \trto {t_2}}{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
-    [\ctxr]\tau_2) \toctx, UV(\ctxr) \trto {\blam x {t_1} t_2}}\rname{T-LamAnn}}
+    e:\tau_2 \toctx, x:\tau_1, \ctxr }{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    [\ctxr]\tau_2) \toctx, UV(\ctxr) }\rname{T-LamAnn}}
 \newcommand*{\TApp}{\inferrule{
-    \preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
-    \ctxl_1 \byapp [\ctxl_1]\tau_1~e_2 : \tau_2 \toctx \trto {t_2} \\
-}{\preinf e_1~e_2:\tau_2 \toctx \trto {t_1~t_2}}\rname{T-App}}
+    \preinf e_1 : \tau_1 \toctx_1 \\
+    \ctxl_1 \byapp [\ctxl_1]\tau_1~e_2 : \tau_2 \toctx \\
+}{\preinf e_1~e_2:\tau_2 \toctx}\rname{T-App}}
 \newcommand*{\TAppPi}{\inferrule{
     \preinf e_1 : \bpi x {\tau_1} \tau_2 \toctx_1 \\
     \ctxl_1 \bychk e_2 : [\ctxl_1]\tau_1 \toctx \\
@@ -45,22 +44,23 @@
     \preinf e_1 : \genA \toctx_1[\genA] \\
     \ctxl_1[\genA_1,\genA_2,\genA=\bpi x {\genA_1} \genA_2] \bychk e_2 : \genA_1 \toctx \\
 }{\preinf e_1~e_2:\genA_2 \toctx}\rname{T-AppVar}}
-\newcommand*{\TPi}{\inferrule{\prechk \tau_1 : \star \toctx_1 \trto {t_1} \\
-\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
-    \star \toctx \trto {\bpi x {t_1} t_2}}\rname{T-Pi}}
-\newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1 \trto {t_1} \\
+\newcommand*{\TPi}{\inferrule{\prechk \tau_1 : \star \toctx_1 \\
+\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr}{\preinf \bpi x {\tau_1} {\tau_2} :
+    \star \toctx }\rname{T-Pi}}
+\newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1  \\
 \pregen {\tau_1} \lt \sigma \\
-\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, UV(\ctxr) \\ \trto {t_2[x \mapsto t_1]}}\rname{T-Let}}
+\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr }{\preall \kw{let} x=e_1
+\kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, UV(\ctxr) }\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
-    \prechk e : \tau_1 \toctx \trto {t_2} \\ \prechk \tau_1 : \star
-    \toctx_1 \trto {t_1}}
+    \prechk e : \tau_1 \toctx \\
+    \opt{\prechk \tau_1 : \star \toctx_1}
+    }
   {\prechk \ercastup e : \tau_2 \toctx
-    \trto {\castup {t_1} t_2}}\rname{T-CastUp}}
-\newcommand*{\TCastDn}{\inferrule{\preinf e : \tau_1 \toctx \trto t \\
+    }\rname{T-CastUp}}
+\newcommand*{\TCastDn}{\inferrule{\preinf e : \tau_1 \toctx \\
     [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
-    \toctx \trto {\castdn t}}\rname{T-CastDn}}
+    \toctx }\rname{T-CastDn}}
 
 % DECLARATIVE
 
