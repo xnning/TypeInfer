@@ -1,0 +1,44 @@
+\section{Translation}
+
+In this chapter, we use type-directed translation to translate the calculus into fully typed dependent type calculus with cast construct.
+
+\subsection{Target System Overview}
+
+\begin{figure}[h]
+    \begin{tabular}{lrcl}
+        Target Expr. & $t, s$ & \syndef & $x \mid \star \mid t_1~t_2$ \\
+        && \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
+        && \synor & $\castup {t_1} t_2 \mid \castdn t$ \\
+        && \synor & $\kw{let} x = t_1 \kw{in} t_2$ \\
+        Target Ctx. &
+        $\tctx$ & \syndef & $\ctxinit \mid x : t \mid \ctx, x:t_1 = t_2$
+    \end{tabular}
+    \caption{Target Language.}
+    \label{fig:target}
+\end{figure}
+
+Figure \ref{fig:target} show the syntax of target language. The main difference is the target language is fully annotated, as shown in lambda abstraction and cast up construct.
+
+Target context includes variable with type contraint, and variable for let binding.
+
+\subsection{Target Declarative Typing}
+
+
+\begin{figure}[h]
+\headercapm{\pretar s_1 : t_1}{Expression $s_1$ has type $t_1$ under $\tctx$}
+    \[\EAx \quad \EVar\]
+    \[\EApp\]
+    \[\ELam\]
+    \[\EPi\]
+    \[\ECastUp\]
+    \[\ECastDown\]
+    \[\ELet\]
+    \[\EConv\]
+    \caption{Target declarative typing rules.}
+    \label{fig:targettyping}
+\end{figure}
+
+The declarative typing rules is shown in Figure \ref{fig:targettyping}.
+
+\rul {E-AX} is for star case. \rul {E-Var} fetches information from context. \rul {E-App} first infers the type of the abstraction, and wants the argument type to match the parameter type, at last substitutes the argument in the result type. \rul {E-Lam} has an annotation with star type, and adds the type of \lst{x} to get the body type, which returns a Pi type at last. \rul {E-Pi} has the argument of star type, and adds \lst x to the context to has the result of star type. \rul {E-CastUp} has annotation with type star, and the type of the expression can be reduced to the annotated type. \rul {E-CastDown} reduces the type of the expression. \rul {E-Let} first gets the type of the let binding, and adds the let binding to the context to get the result type. \rul {E-Conv} is the conversion rule for let binding.
+

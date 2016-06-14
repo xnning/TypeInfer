@@ -1,24 +1,9 @@
 % Setup spaces between column
 \setlength{\tabcolsep}{2pt}
 
-% ------------------------------------------------------------------------
-% SYNTAX
-% ------------------------------------------------------------------------
-
-%\subsection{Syntax}
-%\begin{tabular}{lrcl}
 %Complete Contexts &
 %$\cctx$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2$ \\
 %&& \synor & $\ctx,\genA=\tau$ \\
-
-%Target Expr. & $t, s$ & \syndef & $x \mid \star \mid t_1~t_2$ \\
-%&& \synor & $\blam x {t_1} t_2 \mid \bpi x {t_1} t_2$ \\
-%&& \synor & $\castup {t_1} t_2 \mid \castdn t$\\
-%Target Ctx. &
-%$\tctx$ & \syndef & $\ctxinit \mid x : t$ \\
-%\end{tabular}
-
-%\subsection{Algorithmic Typing}
 
 % ------------------------------------------------------------------------
 % TYPING RULES
@@ -192,7 +177,8 @@
     \star}\rname{E-Pi}}
 \newcommand*{\ECastUp}{\inferrule{\pretar t_1 : \star \\ \pretar t_2: s_1 \\ t_1 \redto s_1 }{\pretar \castup {t_1} {t_2} :t_1}\rname{E-CastUp}}
 \newcommand*{\ECastDown}{\inferrule{\pretar t_1 : s_1 \\ s_1 \redto s_2 }{\pretar \castdn t_1 :s_2}\rname{E-CastDown}}
-
+\newcommand*{\ELet}{\inferrule{\pretar t_1 : s_1 \\ \pretar[,x:s_1=t_1] t_2:s_2}{\pretar \kw{let} x = t_1 \kw{in} t_2: s_2}\rname{E-Let}}
+\newcommand*{\EConv}{\inferrule{\pretar t_1 : s_1 \\ [\tctx]s_1 = [\tctx]s_2}{\pretar t_1 : s_2}\rname{E-Conv}}
 
 % ------------------------------------------------------------------------
 % POLYMORPHISM
@@ -276,10 +262,6 @@
 % OTHER FORMALIZATION
 % ------------------------------------------------------------------------
 
-%\newpage
-
-%\subsection{Other formalization}
-
 %\headercapm{\ctx \exto \ctxr}{Context Extension}
 
 %\[\CEEmtpy \quad \CEVar\]
@@ -345,17 +327,6 @@
 %\end{itemize}
 
 %\end{figure}
-
-%\newpage
-
-%\subsection{Target Declarative Typing}
-
-%\[\EAx \quad \EVar\]
-%\[\EApp\]
-%\[\ELam\]
-%\[\EPi\]
-%\[\ECastUp\]
-%\[\ECastDown\]
 
 %%% Local Variables:
 %%% mode: latex
