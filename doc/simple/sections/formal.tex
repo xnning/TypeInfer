@@ -67,17 +67,16 @@
 \newcommand*{\DAx}{\inferrule{ }{\preinf \star:\star \trto \star}\rname{D-Ax}}
 \newcommand*{\DVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau
   \trto x}\rname{D-Var}}
-\newcommand*{\DEVar}{\inferrule{ }{\preinf \varA:\star}\rname{D-EVar}}
-\newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2}{\preinf x:\tau_2
-  \trto x}\rname{D-LetVar}}
+\newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2 \trto f}{\preinf x:\tau_2
+  \trto {f~x}}\rname{D-LetVar}}
 \newcommand*{\DSub}{\inferrule{\preinf e : \tau \trto{t}}
   {\prechk e:\tau  \trto{t}}\rname{D-Sub}}
 \newcommand*{\DAnn}{\inferrule{\prechk \tau:\star \\
     \ctx \bychk e:\tau  \trto t}{\preinf (e:\tau):\tau
   \trto t}\rname{D-Ann}}
-\newcommand*{\DLamInf}{\inferrule{ \prechk \tau_1 : \star \\ \preinf[,x:\tau_1]
-    e:\tau_2 \trto t}{\preinf \erlam x e : (\bpi x {\tau_1} {\tau_2})
-    \trto {\blam x \genA t}}\rname{D-Lam$\Inf$}}
+\newcommand*{\DLamInf}{\inferrule{ \prechk \tau_1 : \star \trto {t_1} \\ \preinf[,x:\tau_1]
+    e:\tau_2 \trto {t_2}}{\preinf \erlam x e : (\bpi x {\tau_1} {\tau_2})
+    \trto {\blam x {t_1} {t_2}}}\rname{D-Lam$\Inf$}}
 \newcommand*{\DLamChk}{\inferrule{\prechk[,x:\tau_1]
     e:\tau_2 \trto {t_2} \\
     \opt{\prechk {\tau_1 : \star  \trto {t_1}}}
@@ -89,15 +88,14 @@
     \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn}}
 \newcommand*{\DApp}{\inferrule{
     \preinf e_1 : \bpi  x {\tau_1} {\tau_2} \trto {t_1} \\
-    \prechk e_2 : \tau_1
+    \prechk e_2 : \tau_1 \trto {t_2}
 }{\preinf e_1~e_2:\tau_2 \subst x {e_2}  \trto {t_1~t_2}}\rname{D-App}}
 \newcommand*{\DPi}{\inferrule{\prechk \tau_1 : \star \trto {t_1} \\
 \ctx,x:\tau_1 \bychk \tau_2 : \star \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
     \star \trto {\bpi x {t_1} t_2}}\rname{D-Pi}}
-\newcommand*{\DLet}{\inferrule{\preinf e_1 : \tau_1 \trto {t_1} \\
-\pregen {\tau_1} \lt \sigma \\
+\newcommand*{\DLet}{\inferrule{\pregen e_1 : \sigma \trto {t_1} \\
 \ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \trto {t_2}}{\preall \kw{let} x=e_1
-\kw{in} e_2 : \tau_2 \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{D-Let}}
+\kw{in} e_2 : \tau_2 \subst x {e_1} \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{D-Let}}
 \newcommand*{\DCastUp}{\inferrule{\tau_2 \redto \tau_1 \\
     \prechk e : \tau_1 \trto {t_2} \\
     \opt{\prechk \tau_1 : \star \trto {t_1}}
@@ -107,11 +105,20 @@
 \newcommand*{\DCastDn}{\inferrule{\preinf e : \tau_1\trto t \\
     \tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \trto {\castdn t}}\rname{D-CastDn}}
-\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \\ [\ctx]\tau_1 = [\ctx]\tau_2}{\preinf e_1 : \tau_2}\rname{D-Conv}}
+\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
+    {\preinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
 
-\newcommand*{\DInstantiation}{\inferrule{\prechk \overbar{\tau} : \star \\ \sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\tau}]} \rname{D-Inst}}
+\newcommand*{\DInstantiation}{\inferrule{\prechk \overbar{\tau} : \star \trto {\overbar t} \\
+\sigma = \forall{\overbar{x:\star}}. \tau_1 \\
+\opt{\prechk \sigma : \star \trto{t_1}}
+}
+{\preinst \sigma \lt \tau_1[\overbar{x} \mapsto \overbar{\tau}] \trto {\blam x {t_1} x ~ \overbar{t}}
+} \rname{D-Inst}}
 
-\newcommand*{\DGeneralization}{\inferrule{\overbar{\varA} = FV(\tau) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\varA} \mapsto \overbar{x}]} \rname{D-Gen}}
+\newcommand*{\DGeneralization}{\inferrule{ \preinf[, \overbar{x:\star}] e : \tau \trto {t_1}
+\\  \overbar x \notin FV(e)}
+{\pregen e : \forall \overbar{x:\star}. \tau
+\trto {(\blam {x_1} \star {\blam {x_2} \star {... \blam {x_n} \star {t_1}}})}} \rname{D-Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFICATION RULES
@@ -220,6 +227,15 @@
 \newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau_1 \\ \ctx \bywt \tau_2}{\ctx, x:\tau_1 = \tau_2}\rname{WC-LetVar}}
 \newcommand*{\WCEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx)}{\ctx, \genA \wc}\rname{WC-EVar}}
 \newcommand*{\WCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+
+% ------------------------------------------------------------------------
+% TRANSLATION CONTEXT
+% ------------------------------------------------------------------------
+
+\newcommand*{\TCEmpty}{\inferrule{ } {\ctxinit \trtop \ctxinit}\rname{TC-Empty}}
+\newcommand*{\TCTypedVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \tau : \star \trtop t} {\ctx, x:\tau \trtop \tctx, x:t}\rname{TC-TypedVar}}
+\newcommand*{\TCLetVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \tau_1 : \star \trtop t_1 \\ \pregen e_1 : \sigma \trtop t_2
+} {\ctx, x:\tau_1 = \tau_2 \trtop \tctx, x:t_1 = t_2}\rname{TC-LetVar}}
 
 % ------------------------------------------------------------------------
 % CONTEXT EXTENSION

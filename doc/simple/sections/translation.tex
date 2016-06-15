@@ -42,3 +42,40 @@ The declarative typing rules is shown in Figure \ref{fig:targettyping}.
 
 \rul {E-AX} is for star case. \rul {E-Var} fetches information from context. \rul {E-App} first infers the type of the abstraction, and wants the argument type to match the parameter type, at last substitutes the argument in the result type. \rul {E-Lam} has an annotation with star type, and adds the type of \lst{x} to get the body type, which returns a Pi type at last. \rul {E-Pi} has the argument of star type, and adds \lst x to the context to has the result of star type. \rul {E-CastUp} has annotation with type star, and the type of the expression can be reduced to the annotated type. \rul {E-CastDown} reduces the type of the expression. \rul {E-Let} first gets the type of the let binding, and adds the let binding to the context to get the result type. \rul {E-Conv} is the conversion rule for let binding.
 
+\subsection{Type-Directed Translation}
+
+\renewcommand{\trto}[1]{\hl{\rightsquigarrow #1}}
+\renewcommand{\opt}[1]{\hl{#1}}
+
+\begin{figure*}[h]
+    \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \[\DAx \quad \DVar \quad \DLetVar \]
+    \[\DLamInf \quad \DLamChk\]
+    \[\DLamAnn \quad \DApp\]
+    \[\DLet \quad \DPi\]
+    \[\DCastUp \quad \DCastDn\]
+    \[\DAnn \quad \DSub \quad \DConv\]
+    \\
+    \headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation} \quad \headercapm{\pregen e : \sigma}{Generalization}
+    \[\DInstantiation\]
+    \\
+    \[\DGeneralization\]
+    \\
+    \caption{Translation}
+    \label{fig:translation}
+\end{figure*}
+
+\begin{figure}[h]
+\headercapm{\ctx \trtop \tctx}
+  \[\TCEmpty\]
+  \[\TCTypedVar\]
+  \[\TCLetVar\]
+  \caption{Translation of context}
+  \label{fig:translatecontext}
+\end{figure}
+
+We specify the translation in the type rules of Figure \ref {fig:typingrules}, which results to Figure \ref {fig:translation}.
+
+The translation of context is defined in Figure \ref {fig:translatecontext}.
+
+
