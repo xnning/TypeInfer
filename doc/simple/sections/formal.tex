@@ -105,8 +105,11 @@
 \newcommand*{\DCastDn}{\inferrule{\preinf e : \tau_1\trto t \\
     \tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \trto {\castdn t}}\rname{D-CastDn}}
-\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
-    {\preinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
+\newcommand*{\DConv}{\inferrule{\preall e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
+    {\preall e_1 : \tau_2 \trto t}\rname{D-Conv}}
+
+\newcommand*{\DPoly}{\inferrule{\prechk[x:\star] \sigma : \star \trto {t}}
+{\preinf \forall x:\star. \sigma : \star \trto {\bpi x \star t}}\rname{D-Poly}}
 
 \newcommand*{\DInstantiation}{\inferrule{\prechk \overbar{\tau} : \star \trto {\overbar t} \\
 \sigma = \forall{\overbar{x:\star}}. \tau_1 \\
@@ -209,22 +212,23 @@
 % WELL FORM
 % ------------------------------------------------------------------------
 
-\newcommand*{\WFVar}{\inferrule{x \in \ctx}{\ctx \bywt x}\rname{WF-Var}}
-\newcommand*{\WFEVar}{\inferrule{\genA \in \ctx}{\ctx \bywt \genA}\rname{WF-EVar}}
-\newcommand*{\WFStar}{\inferrule{  }{\ctx \bywt \star}\rname{WF-Ax}}
-\newcommand*{\WFApp}{\inferrule{\ctx \bywt e_1 \\ \ctx \bywt e_2}{\ctx \bywt e_1 ~ e_2}\rname{WF-App}}
-\newcommand*{\WFLam}{\inferrule{\ctx, x \bywt e}{\ctx \bywt \erlam x e}\rname{WF-Lam}}
-\newcommand*{\WFLamAnn}{\inferrule{\ctx \bywt \tau \\ \ctx, x \bywt e}{\ctx \bywt \blam x \tau e}\rname{WF-LamAnn}}
-\newcommand*{\WFPi}{\inferrule{\ctx \bywt \tau_1 \\ \ctx, x \bywt \tau_2}{\ctx \bywt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
-\newcommand*{\WFLet}{\inferrule{\ctx \bywt e_1 \\ \ctx, x \bywt e_2}{\ctx \bywt \kw{let} x = e_1 \kw{in} e_2}\rname{WF-Let}}
-\newcommand*{\WFCastUp}{\inferrule{\ctx \bywt e}{\ctx \bywt \ercastup e}\rname{WF-CastUp}}
-\newcommand*{\WFCastDown}{\inferrule{\ctx \bywt e}{\ctx \bywt \castdn e}\rname{WF-CastDown}}
-\newcommand*{\WFAnn}{\inferrule{\ctx \bywt \tau \\ \ctx \bywt e}{\ctx \bywt e:\tau}\rname{WF-Ann}}
+\newcommand*{\WFVar}{\inferrule{x \in \ctx}{\prewt x}\rname{WF-Var}}
+\newcommand*{\WFEVar}{\inferrule{\genA \in \ctx}{\prewt \genA}\rname{WF-EVar}}
+\newcommand*{\WFStar}{\inferrule{  }{\prewt \star}\rname{WF-Ax}}
+\newcommand*{\WFApp}{\inferrule{\prewt e_1 \\ \prewt e_2}{\prewt e_1 ~ e_2}\rname{WF-App}}
+\newcommand*{\WFLam}{\inferrule{\prewt[x] e}{\prewt \erlam x e}\rname{WF-Lam}}
+\newcommand*{\WFLamAnn}{\inferrule{\prewt \tau \\ \prewt[x] e}{ \prewt \blam x \tau e}\rname{WF-LamAnn}}
+\newcommand*{\WFPi}{\inferrule{ \prewt \tau_1 \\ \prewt[x] \tau_2}{ \prewt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
+\newcommand*{\WFLet}{\inferrule{ \prewt e_1 \\ , \prewt[x] e_2}{ \prewt \kw{let} x = e_1 \kw{in} e_2}\rname{WF-Let}}
+\newcommand*{\WFCastUp}{\inferrule{ \prewt e}{ \prewt \ercastup e}\rname{WF-CastUp}}
+\newcommand*{\WFCastDown}{\inferrule{ \prewt e}{ \prewt \castdn e}\rname{WF-CastDown}}
+\newcommand*{\WFAnn}{\inferrule{ \prewt \tau \\  \prewt e}{ \prewt e:\tau}\rname{WF-Ann}}
+\newcommand*{\WFPoly}{\inferrule{ \prewt[x] \sigma}{ \prewt \forall x: \star. \sigma}\rname{WF-Poly}}
 
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
 \newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau_1 \\ \ctx \bywt \tau_2}{\ctx, x:\tau_1 = \tau_2}\rname{WC-LetVar}}
+\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \sigma \\ \ctx \bywt \tau}{\ctx, x:\sigma = \tau}\rname{WC-LetVar}}
 \newcommand*{\WCEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx)}{\ctx, \genA \wc}\rname{WC-EVar}}
 \newcommand*{\WCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
 
@@ -234,8 +238,8 @@
 
 \newcommand*{\TCEmpty}{\inferrule{ } {\ctxinit \trtop \ctxinit}\rname{TC-Empty}}
 \newcommand*{\TCTypedVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \tau : \star \trtop t} {\ctx, x:\tau \trtop \tctx, x:t}\rname{TC-TypedVar}}
-\newcommand*{\TCLetVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \tau_1 : \star \trtop t_1 \\ \pregen e_1 : \sigma \trtop t_2
-} {\ctx, x:\tau_1 = \tau_2 \trtop \tctx, x:t_1 = t_2}\rname{TC-LetVar}}
+\newcommand*{\TCLetVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \sigma : \star \trtop t_1 \\ \pregen \tau : \sigma \trtop t_2
+} {\ctx, x:\sigma = \tau \trtop \tctx, x:t_1 = t_2}\rname{TC-LetVar}}
 
 % ------------------------------------------------------------------------
 % CONTEXT EXTENSION
