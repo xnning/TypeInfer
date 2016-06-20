@@ -272,7 +272,7 @@
 
 \newcommand*{\SBetaA}{\inferrule{ }{(\blam x \tau {e_1}) e_2 \redto e_1 \subst x {e_2} }\rname{S-Beta1}}
 \newcommand*{\SBetaB}{\inferrule{ }{(\erlam x {e_1}) e_2 \redto e_1 \subst x {e_2}}\rname{S-Beta2}}
-\newcommand*{\SApp}{\inferrule{ e_1 \redto e_2 }{e_1~e_2 \redto e_1'~e_2}\rname{S-App}}
+\newcommand*{\SApp}{\inferrule{ e_1 \redto e_1' }{e_1~e_2 \redto e_1'~e_2}\rname{S-App}}
 \newcommand*{\SCastDownUp}{\inferrule{  }{\castdn (\ercastup e) \redto e}\rname{S-CastDownUp}}
 \newcommand*{\SCastDown}{\inferrule{e \redto e'}{\castdn e \redto \castdn e'}\rname{S-CastDown}}
 \newcommand*{\SLet}{\inferrule{ }{\kw{let} x = e_1 \kw{in} e_2 \redto e_2 \subst x {e_1}}\rname{S-Let}}
