@@ -216,14 +216,14 @@
 \newcommand*{\WFEVar}{\inferrule{\genA \in \ctx}{\prewt \genA}\rname{WF-EVar}}
 \newcommand*{\WFStar}{\inferrule{  }{\prewt \star}\rname{WF-Ax}}
 \newcommand*{\WFApp}{\inferrule{\prewt e_1 \\ \prewt e_2}{\prewt e_1 ~ e_2}\rname{WF-App}}
-\newcommand*{\WFLam}{\inferrule{\prewt[x] e}{\prewt \erlam x e}\rname{WF-Lam}}
-\newcommand*{\WFLamAnn}{\inferrule{\prewt \tau \\ \prewt[x] e}{ \prewt \blam x \tau e}\rname{WF-LamAnn}}
-\newcommand*{\WFPi}{\inferrule{ \prewt \tau_1 \\ \prewt[x] \tau_2}{ \prewt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
-\newcommand*{\WFLet}{\inferrule{ \prewt e_1 \\ , \prewt[x] e_2}{ \prewt \kw{let} x = e_1 \kw{in} e_2}\rname{WF-Let}}
+\newcommand*{\WFLam}{\inferrule{\prewt[,x] e}{\prewt \erlam x e}\rname{WF-Lam}}
+\newcommand*{\WFLamAnn}{\inferrule{\prewt \tau \\ \prewt[,x] e}{ \prewt \blam x \tau e}\rname{WF-LamAnn}}
+\newcommand*{\WFPi}{\inferrule{ \prewt \tau_1 \\ \prewt[,x] \tau_2}{ \prewt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
+\newcommand*{\WFLet}{\inferrule{ \prewt e_1 \\ \prewt[,x] e_2}{ \prewt \kw{let} x = e_1 \kw{in} e_2}\rname{WF-Let}}
 \newcommand*{\WFCastUp}{\inferrule{ \prewt e}{ \prewt \ercastup e}\rname{WF-CastUp}}
 \newcommand*{\WFCastDown}{\inferrule{ \prewt e}{ \prewt \castdn e}\rname{WF-CastDown}}
 \newcommand*{\WFAnn}{\inferrule{ \prewt \tau \\  \prewt e}{ \prewt e:\tau}\rname{WF-Ann}}
-\newcommand*{\WFPoly}{\inferrule{ \prewt[x] \sigma}{ \prewt \forall x: \star. \sigma}\rname{WF-Poly}}
+\newcommand*{\WFPoly}{\inferrule{ \prewt[,x] \sigma}{ \prewt \forall x: \star. \sigma}\rname{WF-Poly}}
 
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
