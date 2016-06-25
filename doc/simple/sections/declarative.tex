@@ -1,50 +1,7 @@
 \section{Declarative System}
 
-\begin{figure}[h]
-    \begin{tabular}{lrcl}
-        Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
-
-        Expr & $e,\tau$ & \syndef & $x \mid \star \mid e_1~e_2$ \\
-        && \synor & $\erlam x e \mid \blam x \tau e \mid \bpi x {\tau_1} \tau_2$ \\
-        && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
-        && \synor & $\ercastup e \mid \castdn e$ \\
-        && \synor & $e : \tau$ \\
-        Contexts &
-        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x:\tau \mid \ctx,x:\sigma=e$ \\
-    \end{tabular}
-    \caption{Declarative syntax.}
-    \label{fig:declsyntax}
-\end{figure}
-
-\begin{figure}[h]
-    \headercapm{\ctx\wc}{Context $\ctx$ is well formed}
-
-    \[\WCEmpty \quad \WCTypedVar\]
-    \[\WCLetVar\]
-    \caption{Well formedness}
-    \label{fig:declwellform}
-\end{figure}
-
-\begin{figure}[t]
-    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
-
-    \begin{mathpar}
-    \begin{tabular}{r c l l}
-        $[\ctxinit]e$   & = & $e$       \\
-        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
-        $[\ctx,x:\sigma = \tau]e$ & = & $[\ctx](e[x\mapsto \tau])$ \\
-    \end{tabular}
-    \end{mathpar}
-    \caption{Applying a context}
-    \label{fig:declapplyctx}
-\end{figure}
-
-We present the declarative system in Figure \ref{fig:declsyntax}. Compared to the algorithmic version, the main difference is the disappear of existential variable. The corresponding definition of well formness of context and applying a context are defined respectively in Figure \ref{fig:declwellform} and \ref{fig:declapplyctx}. Now the substitution case is only let binding.
-
-The typing rule for declarative system are shown in figure \ref{fig:decltyping}. The judgement $\preall e:\sigma \trto t$ now is without output context and there is no information about existential variables passing around contexts. Except this, most rules stay the same. \rul{D-Lam$\Inf$} gives the argument $x$ type $\tau_1$ and continues to infer the body. But before that, the rule checks $\tau_1$ is of type $\star$. \rul{D-App} handles the application in one rule and does not need special rules. \rul{D-Sub} has no unification procedure, and just requires two types are equal. \rul{D-Conv} works for let binding, so if two types are alpha equal under context application, these two types could be replaced for each other. \rul{D-Gen} uses a different style of generalization. Because type variables are not needed in this style and it makes translation easier.
-
 \begin{figure*}[h]
-    \headercapm{\preall e:\sigma \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \headercapm{\preall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\DAx \quad \DVar \quad \DLetVar \]
     \[\DAnn \quad \DLamInf \quad \DLamChk\]
     \[\DLamAnn \quad \DApp\]
@@ -57,3 +14,44 @@ The typing rule for declarative system are shown in figure \ref{fig:decltyping}.
     \caption{Declarative typing rules}
     \label{fig:decltyping}
 \end{figure*}
+
+\begin{figure}[t]
+    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
+
+    \begin{mathpar}
+    \begin{tabular}{r c l l}
+        $[\ctxinit]e$   & = & $e$       \\
+        $[\ctx,x]e$ & = & $[\ctx]e$ \\
+        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
+        $[\ctx,x:\sigma = \tau]e$ & = & $[\ctx](e[x\mapsto \tau])$ \\
+    \end{tabular}
+    \end{mathpar}
+    \caption{Applying a context}
+    \label{fig:declapplyctx}
+\end{figure}
+
+The typing rule for declarative system are shown in figure \ref{fig:decltyping}.
+
+\paragraph{Bidirectional typing.} The judgement $\preall e:\sigma \trto t$ is interpreted as, under context $\ctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.
+
+\rul{D-Ax} is our impredicative axiom. \rul{D-Var} fetches type information from context for variables. \rul{D-LetVar} is the case for let binding, where we use \rul{D-Inst} to instantiate the type.
+
+\rul{D-Ann} checks the expression with the provided type. \rul{D-Lam$\Inf$} gives $x$ a arbitrary type $\tau$ with ensuring $\tau$ is of type $\star$. \rul{D-Lam$\Chk$} continues to check the body with $x$ whose type is assigned as provided type. \rul{D-App} first infers the type of the function, and checks the argument satisfying parameter type, and substitutes the argument in the result type.
+
+\rul{D-Let} generalizes the type of $e_1$ and store the type and the binding with $x$ in the context. The binding will be substituted in the result type. Which means, \lst{let a = int in \\x:a. x} is a well typed expression with type $\bpi x {int} {int}$ instead of $\bpi x a a $. Let has check mode because it needs to deliver the check type information. For example expression $(\kw{let} y = 3 \kw{in} \erlam f {(f~nat~1) + (f~\star~nat))}: (\bpi f {(\bpi x \star {\bpi y x nat})} nat)$.
+
+\rul{D-Pi} checks the types in the pi type are all $\star$.
+
+\rul{D-CastUp} shows $\ercastup$ can only be checked because there are unlimited possibility of $\tau_2$. \rul{D-CastDn} does one-step reduction on original type.
+
+\rul{D-Sub} states that if the type of a expression could be infered, then it could be checked.
+
+\paragraph{Contextual equivalence.} Instead of normal delta-rule($\delta$-reduction) used to deal with let binding, here we use contextual equivalence as shown in \rul{D-Conv}.
+
+Using context as a substitution is defined in Figure \ref{fig:declapplyctx}, where let binding is the only form that will be applied. But as we will see soon, this notation extends smoothly in the algorithmic system. If two types are alpha-equal under context substitution of $\ctx$, we regard these two types contextual equivalence under $\ctx$.
+
+Having these notations, we could see in the precondition of \rul{D-Conv}, the type of $e$ could be replaced with another type only if these two types are contextual equivalence under current context.
+
+\paragraph{Polymorphism.} \rul{D-Inst} and \rul{D-Gen} are specialized forms of the ones in Implicit Calculus of Constructions (ICC), as types are just stars. One advantage of using this form of generalization instead of Hindley-Milner way is this rule helps get rid of type variables.
+
+\rul{D-Inst} turns a polymorphic type into a monotype by instantiating all the variables bound by forall to expressions with type star. \rul{Gen} adds variables in context to infer the type, and extract them as forall in the result type.

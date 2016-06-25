@@ -48,8 +48,8 @@
 \ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr}{\preinf \bpi x {\tau_1} {\tau_2} :
     \star \toctx }\rname{T-Pi}}
 \newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1  \\
-\pregen {\tau_1} \lt \sigma \\
-\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr }{\preall \kw{let} x=e_1
+\ctxl_1 \bygen {\tau_1} \lt \sigma \\
+\ctxl_1, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr }{\preall \kw{let} x=e_1
 \kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, UV(\ctxr) }\rname{T-Let}}
 \newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
     \redto \tau_1 \\
@@ -105,8 +105,8 @@
 \newcommand*{\DCastDn}{\inferrule{\preinf e : \tau_1\trto t \\
     \tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
     \trto {\castdn t}}\rname{D-CastDn}}
-\newcommand*{\DConv}{\inferrule{\preall e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
-    {\preall e_1 : \tau_2 \trto t}\rname{D-Conv}}
+\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
+    {\preinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
 
 \newcommand*{\DPoly}{\inferrule{\prechk[x:\star] \sigma : \star \trto {t}}
 {\preinf \forall x:\star. \sigma : \star \trto {\bpi x \star t}}\rname{D-Poly}}

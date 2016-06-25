@@ -1,6 +1,47 @@
 \section{Algorithmic Typing}
 
-\subsection{Context}
+\subsection{Language}
+
+\begin{figure}[h]
+    \begin{tabular}{lrcl}
+        Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
+
+        Expr & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
+        && \synor & $\erlam x e \mid \blam x \tau e \mid \bpi x {\tau_1} \tau_2$ \\
+        && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
+        && \synor & $\ercastup e \mid \castdn e$ \\
+        && \synor & $e : \tau$ \\
+        Contexts &
+        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit$ \\
+        && \synor & $\ctx,x \mid \ctx,x:\tau \mid \ctx,x:\sigma=e$ \\
+        && \synor & $\ctx,\genA \mid \ctx,\genA=\tau$ \\
+        Complete Ctx &
+        $\cctx$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau$ \\
+        && \synor & $\ctx,x:\tau=\tau_2$ \\
+        && \synor & $\ctx,\genA=\tau$ \\
+    \end{tabular}
+    \caption{syntax.}
+    \label{fig:syntax}
+\end{figure}
+
+Figure \ref{fig:syntax} gives the syntax of type and expression, and the definition of context for algorithmic system. The main difference is the existential variable $\genA$, which is quite like unification variables that are waited to be solved. But as context is ordered, unlike unification variables, existential variables also have scopes.
+
+There are two forms of existential variables in context: unsolved form $\genA$ and solved form $\genA=\tau$. Once an existential vairable is solved, its solution will never be changed. The change of corresponding well formedness for existential variables and context are given in Figure \ref{fig:existwellform}.
+
+Now we could extend the definition of context subsitution as shown in Figure \ref{fig:applyctx}. Intuitively, Existential variables in solved form could be substituted by its solution.
+
+\begin{figure}[h]
+    \headercapm{\ctx \bywt \sigma}{Well Form of $\sigma$ under context $\ctx$}
+
+    \[\WFEVar\]
+
+    \headercapm{\ctx\wc}{Context $\ctx$ is well formed}
+
+    \[\WCEVar\]
+    \[\WCSolvedEVar\]
+    \caption{Well formedness with existential variables.}
+    \label{fig:existwellform}
+\end{figure}
 
 \begin{figure}[t]
     \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
@@ -15,13 +56,11 @@
         $[\ctx, \genA=\tau]e$ & = & $[\ctx](e[\genA \mapsto \tau])$
     \end{tabular}
     \end{mathpar}
-    \caption{Applying a context}
+    \caption{Applying a context with existential variables.}
     \label{fig:applyctx}
 \end{figure}
 
-\paragraph{Contexts as substitutions.} Contexts can be viewed as a substitution for two forms:  the existential variables in solved form $\genA = \tau$; and the let binding $x:\tau_1=\tau_2$. Figure \ref{fig:applyctx} gives the definition of applying context on types.
-
-\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$.
+\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\ctx[\genA] \bywt \genA$.
 
 Multiple holes also require the order. For example, $\ctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
 
@@ -29,12 +68,10 @@ Hole notation is also used for replace and modification. After an unification, $
 
 \subsection{Typing Rules}
 
-Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. The judgement $\preall e:\tau \toctx \trto t$ is interpreted as, under context $\ctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
-
 \begin{figure*}[h]
     \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\TAx \quad \TVar\quad \TLetVar\]
-    \[\TPi \quad \TAnn\]
+    \[\TAnn \quad \TPi\]
     \[\TLamInf \quad \TLamChk\]
     \[\TLamAnn \quad \TApp\]
     \[\TLet\]
@@ -44,9 +81,7 @@ Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. T
     \headercapm{\preapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
     \[\APi \quad \AEVar\]
     \\
-    \headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation}
-    \\
-    \headercapm{\pregen \tau \lt \sigma}{Generalization}
+    \headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation} \quad \headercapm{\pregen \tau \lt \sigma}{Generalization}
     \[\Instantiation \quad \Generalization\]
     \caption{Typing rules}
     \label{fig:typingrules}
@@ -70,15 +105,19 @@ Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules. T
     \label{fig:unifyrules}
 \end{figure*}
 
-\rul{T-AX} is our impredicative axiom. \rul{T-Var} fetches type information from context for variables. These two rules have no change to the context.
+Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules.
 
-\rul{T-LetVar} is the case of let binding, where we use \rul{Inst} to instantiate the type. As \rul{Inst} shows, instantiating a polymorphism type will add the new existential variables at the end of current context.
+\paragraph{Output context.}
+The judgement $\preall e:\tau \toctx \trto t$ is now with output context, which is used mainly for existance records and solutions of existential variables. The interpretation of judgement is, under context $\ctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
 
-\rul{T-Pi} checks the argument type is of type $\star$, then add the information of $x$ to the context for checking the result type. It will throw away the context after $x$ because all those variables are out of scope.
+First four typing rules remain stardard as natural extensions of the declarative rules.
 
-\rul{T-Ann} checks the expression with its annotation.
+\paragraph{Throw out context.}
+In \rul{T-Pi}, the context $\ctxr$ after $x$ because all those variables are out of scope, and all the existential variables in $\ctxr$ will not be refered again when this rule ends. It is safe to throw existential variables because we could assume all unsolved existential variables are solved by $\star$ which satisfys $\star:\star$.
 
-\paragraph{Typing Dependent Functions}
+\rul{T-Lam$\Chk$} could be interpreted in the same way.
+
+\paragraph{Typing Dependent Functions.}
 \rul{T-Lam$\Inf$} shows one difference between our system and Dunfield and Krishnaswami's system which is due to dependent types. Consider the rule for lambda in Dunfield and Krishnaswami's system:
 
 \begin{mathpar}
@@ -89,7 +128,7 @@ Here $\genB$ is generated before $x$ and is used to check the body. It works wel
 
 \emph{But then we cannot throw the context after $x$, since the result type may have references to the existential variables in the context after $x$}. For example, infering type of expression $\erlam x {\erlam y y}$ will give $\bpi x {\genA_1} {\bpi y {\genA_2} {\genA_2}}$. If we throw away the context after $x$, we will lose the information about $\genA_2$.
 
-The result type has two forms of references to the existential variables after $x$, that is, it can refer to a solved one, or it can refer to an unsolved one. For solved variables, we can substitute the context to the result type. And for unsolved variables, we need to preserve them. So one possible solution is to substitute the context to the result type and preserve the unsolved type variables, as rule \rul{T-Lam$\Inf$} shows. The form definition of UV (stands for unsolved existential variables) shows as follows:
+The result type has two forms of references to the existential variables after $x$, that is, it can refer to a solved one, or it can refer to an unsolved one. For solved variables, we can substitute the context to the result type. And for unsolved variables, we need to preserve them. So one possible solution is to substitute the context to the result type and preserve the unsolved type variables, as rule \rul{T-Lam$\Inf$} shows. The formal definition of UV (stands for unsolved existential variables) shows as follows:
 
 \begin{mathpar}
     \begin{tabular}{r c l l}
@@ -99,17 +138,24 @@ The result type has two forms of references to the existential variables after $
     \end{tabular}
 \end{mathpar}
 
-We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctxr]\tau_2)$, where FV stands for free existential variables.
+We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctxr]\tau_2)$, where FV stands for free existential variables. Because it is only the free existential variables in result type are what we want to preserve.
 
-\rul{T-Lam$\Chk$} continues to check the body with $x$ whose type is assigned as provided type. \rul{T-LamAnn} checks the annotation with $\star$, and continues to check the body. It uses the same method to deal with context as \rul{T-Lam$\Inf$}.
+\rul{T-LamAnn} uses the same methodology.
 
-\rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. In \rul{A-Pi}, the type of $e_1$ is a Pi type, so it checks $e_2$ with the argument type provided. Due to dependency, $e$ will be substituted in the result type. In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. It first destructs $\genA$ into a Pi type, and checks $e_2$ with the new generated existential variable. One notice is that \rul{A-EVar} actually could only resolve non-dependent function type for $\genA$, which means there is no dependency of $x$ in $\genA_2$. For example, expression $\erlam f {(f~nat~1) + (f~\star~nat)}$ will be rejected, because it requests to infer $f$ as a dependently typed function with type $\bpi x \star {\bpi y x} nat$.
+\paragraph{Application.}
+Consider the application rule in declarative system, which assumes $e_1$ is of a Pi type. It is not the case in algorithmic system because the type of $e_1$ could be an existential variable.
 
-\rul{T-Let} first infers the type of the binding, then use \rul{Gen} to do Damas-Milner style polymorphism. When type checking the body, the let binding is added to the context. The result type will be substituted by the context after $x$ and the binding itself. Which means, \lst{let a = int in \\x:a. x} is a well typed expression with type $\bpi x {int} {int}$ instead of $\bpi x a a $.  Let has check mode because it needs to deliver the check type information. For example expression $(\kw{let} y = 3 \kw{in} \erlam f {(f~nat~1) + (f~\star~nat))}: (\bpi f {(\bpi x \star {\bpi y x nat})} nat)$.
+\rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. The judgement $\ctx \byapp \tau_1 ~ e : \tau_2 \toctx$ is interpreted as, in context $\ctx$, the type of the expression being applied is $\tau_1$, the argument is $e_2$, and the output of the rule is the application result type $\tau_2$ with context $\ctxl$.
 
-\rul{T-CastUp} shows $\ercastup$ can only be checked because there are unlimited possibility of $\tau_2$. \rul{T-CastDn} does one-step reduction on original type. Notice context needs to be applied before the reduction.
+In \rul{A-Pi}, the type of $e_1$ is a Pi type, so it checks $e_2$ with the argument type provided.
 
-\rul{Sub} states that if a expression without a check mode rule is checked with a type, the expression will be infered first and two types will be unified.
+In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. It first destructs $\genA$ into a Pi type, and checks $e_2$ with the new generated existential variable. One notice is that \rul{A-EVar} actually could only resolve non-dependent function type for $\genA$, which means there is no dependency of $x$ in $\genA_2$. For example, expression $\erlam f {(f~nat~1) + (f~\star~nat)}$ will be rejected, because it requests to infer $f$ as a dependently typed function with type $\bpi x \star {\bpi y x} nat$.
+
+\rul{T-Let} first infers the type of the binding, then use \rul{Gen} to do Damas-Milner style polymorphism. When type checking the body, the let binding is added to the context. The result type will be substituted by the context after $x$ and the binding itself.
+
+\rul{T-CastUp} and \rul{T-CastDn} will apply the context before reduction.
+
+\rul{T-Sub} requests the two types to be alpha-equal by using unification.
 
 At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating all the variables bound by forall to new existential variables. \rul{Gen} substitutes the context before generalization, and extract the free variables to make a polymorphic type. We could delete $\overbar{\genA}$ from context because they are of no use.
 
