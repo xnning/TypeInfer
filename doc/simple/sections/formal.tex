@@ -263,8 +263,12 @@
     e:\genB \toctx, x:\genA, \ctxr}{\preinf \erlam x e : (\bpi x \genA
     \genB) \toctx}\rname{$\rightarrow$ I $\Rightarrow$}}
 
-\newcommand*{\OInstRArr}{\inferrule{\preuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
-    \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\preuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstRArr}}
+\newcommand*{\OInstLArr}{\inferrule{\preuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
+    \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\preuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstLArr}}
+
+\newcommand*{\OInstLSolve}{\inferrule{\ctx \bywt \tau}{\ctx, \genA, \ctx' \byuni \genA \lt \tau \toctxo, \genA = \tau, \ctx'}\rname{InstLSolve}}
+
+\newcommand*{\OInstLReach}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{InstLReach}}
 
 % ------------------------------------------------------------------------
 % OPERATIONAL SEMANTICS

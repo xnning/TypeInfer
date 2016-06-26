@@ -161,33 +161,29 @@ At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating al
 
 \subsection{Unification}
 
-Figure \ref{fig:unifyrules} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\preuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\ctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$.
+\begin{figure}[h]
+    \[\OInstLSolve\]
+    \[\OInstLArr\]
+    \[\OInstLReach\]
+    \caption{Unification in Dunfield and Krishnaswami's system.}
+    \label{fig:originunification}
+\end{figure}
 
-The first three rules are just identity.
+Figure \ref{fig:unifyrules} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\preuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\ctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$. One feature of the unification is like Hindley-Milner system: there is no forall in unification procedure, which simplifies unification a lot.
 
-The remaining rules except the last two, are structurally defined. They unify each component of the constructor, with context applied before next unification. For rules involving bound variables, $x$ will be added into the context for following unification, and the output context after $x$ will be threw away. Notice the order of $x$ in the context determines the unification $\genA_2 \byuni \bpi x \star \genA_2 \lt \bpi x \star x$ will fail.
+To compare the differences and explain the motivation, Figure \ref{fig:originunification} gives the unification rules in Dunfield and Krishnaswami's system when existential variable appears in the left hand side. Here we omit the rule for forall.
 
-The interesting cases come from the rule \rul{U-EVarTy} and \rul{U-TyEVar}. They behave the same no matter the existential variable appears in which side. So take \rul{U-EVarTy} as example. In Dunfield and Krishnaswami's system, we have rule:
+Back to Figure \ref{fig:unifyrules}, the first three rules are just identity. The remaining rules except the last two, are structurally defined. They unify each component of the constructor, with context applied before next unification. For rules involving bound variables, $x$ will be added into the context for following unification, and the output context after $x$ will be threw away. Notice the order of $x$ in the context determines the unification $\genA_2 \byuni \bpi x \star \genA_2 \lt \bpi x \star x$ will fail.
 
-\begin{mathpar}
-\OInstRArr
-\end{mathpar}
+Then consider extending Figure \ref{fig:originunification} rules to dependently typed expression, the unification could fail:
 
-Consider what will happen when $\ctx \byuni \genA \lt \bpi x {\tau_1} {\tau_2}$:
+$\ctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x$
 
-\begin{itemize}
-    \item Rhs is a normal function: $\ctx \byuni \genA \lt \bpi x \star \star$.\\
-          Original works well and results in $\genA = \bpi x \star \star$.
-    \item Rhs is a dependently typed function: $\ctx, \genA, \ctxr \byuni \genA \lt \bpi x \star x$.\\
-          Here we are requesting $\genA_2$ in \rul{InstRArr} could refer to  $x$. This means we need to add $x$ at least before $\genA_2$ to make $\genA_2$ well typed. But we cannot do it directly because it makes all the type variables in $\ctxr$ be able to refer to $x$.
-          One solution is to skip the procedure of the generation of $\genA_2$. We know that $\bpi x \star x$ is well typed under $\ctx$ so it can be assigned to $\genA$ directly. So what we need to do is to check $\ctx \bywt \bpi x \star x$.
-    \item Dependently typed function involving existential variable: $\ctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x.$\\
-          Here $\bpi x \genB x$ is not well typed in $\ctx$. But this unification do have a solution context: $\ctx, \genA_1, \genA = \bpi  x {\genA_1} x, \genB = \genA_1, \ctxr$. This means, well type solution works not well in existential variable case. They need extra treatment. One solution is we traverse the whole type on the right hand side and turn it to a type that is not bothered by the order of existential variables. This is what the I-rules do.
-\end{itemize}
+Here because $\genB$ appears after $\genA$, so \rul{InstLSolve} cannot be applied. But while trying to use \rul{InstLArr}, we are requesting $\genA_2$ could refer to  $x$. This means we need to add $x$ at least before $\genA_2$ to make $\genA_2$ well typed, which will unfortunately make all the type variables in $\ctxr$ be able to refer to $x$. But this unification do have a solution context: $\ctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1, \ctxr$.
 
-In summary, we cannot destruct $\genA$ because of dependency, we can use well type to skip the generation of $\genA_2$, with the help of I-rules which will resolve the existential variables.
+Good news is that we could merge all three rules in Figure \ref{fig:originunification} to solve this problem, which results in \rul{U-EvarTy}. Actually, the role of rule \rul{InstLArr} and \rul{InstLReach} is to work for cases that \rul{InstLSolve} cannot handle: some existential variables in the right hand side appear after $\genA$ in context (also including forall types if forall type exists).
 
-The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used in unification. The judgement $\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx$ is interpreted as, under context $\ctx$, try to find all the existential variables $\overbar \genB$ in $\tau_1$ that appears after $\genA$ in context, then generate new existential variables $\overbar {\genA_1}$ before $\genA$ and make $\overbar \genB = \overbar {\genA_1}$. These rules will turn $\tau_1$ into $tau_2$ where all the existential variables could be refered directly by $genA$.
+\paragraph{Resolving existential variables.} The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used in \rul{U-EvarTy} and \rul{U-TyEVar}. The judgement $\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx$ is interpreted as, under context $\ctx$, try to find all the existential variables $\overbar \genB$ in $\tau_1$ that appears after $\genA$ in context, then generate new existential variables $\overbar {\genA_1}$ before $\genA$ and make $\overbar \genB = \overbar {\genA_1}$. These rules will turn $\tau_1$ into $\tau_2$ where all the existential variables could be refered directly by $\genA$.
 
 \rul{I-Var} and \rul{I-Star} is just identity.
 
@@ -196,3 +192,5 @@ The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used
 In \rul{I-EVar2}, because $\genB$ cannot be refered to directly, so we create $\genA_1$ before $\genA$ and make $\genB=\genA_1$ and return $\genA_1$ as result. One interpretation of I-Evar2 rule is that it is the combination of original \rul{InstRArr} and \rul{InstRReach} rules in Dunfield and Krishnaswami's system, which create new type variable and make $\genB$ refer to it. This rule could also be used in Dunfield and Krishnaswami's system, with extra treatment of polymorphism types.
 
 Other cases are structurally defined, so they are represented by the single \rul{I-Others}.
+
+Having the I-rules, back to rule \rul{U-EvarTy}. It contains \rul{InstLSolve} directly since we have $\tau_1 \cgto \tau_1$. And reader could check it also contains \rul{InstLArr} and \rul{InstLReach}.
