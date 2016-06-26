@@ -311,46 +311,18 @@
 % EXAMPLES
 % ------------------------------------------------------------------------
 
-%\begin{figure}
-
-%\subsection{Examples}
-
-%\begin{itemize}
-%\item Derivation of $(\erlam x x)~3$.
-%\[\small
-%\inferrule{{\inferrule{\inferrule{x:\genA \in \genA, x:\genA}
-                                %{\genA, x:\genA \byinf x:\genA \dashv \genA, x:\genA}\rname{T-Var}}
-                     %{\byinf \erlam x x : \bpi x \genA \genA \dashv \genA}\rname{T-Lam$\Inf$}} \quad
-            %\inferrule{\inferrule{\genA \byinf 3: \Int \quad
-                                  %\inferrule{\genA \notin FV(\Int) \\ \genA \bycg \Int \cgto \Int \\ \ctxinit \bywt \Int}
-                                            %{\genA \byuni \Int \lt \genA \dashv \genA = \Int}\rname{U-TyEVar}}
-                                 %{\genA \bychk 3: \genA \dashv \genA = \Int}\rname{T-Sub}}
-                      %{\genA \byapp \bpi x \genA \genA ~ 3 :\genA \dashv \genA = \Int }\rname{A-Pi}}
-          %{\byinf (\erlam x x)~3:\genA \dashv \genA = \Int}\rname{T-App}
-%\]
-%\item Derivation of $\kw{let} f = \Int \kw{in} \blam x f {x+3}$.\\
-%Let $\ctx$ be $f:\star = \Int, x:f$\\
-%Arrow type is used to dispaly non dependent function type.
-%\[\small
-%\inferrule{\byinf \Int:\star \quad
-           %\bygen \star \lt \star \quad
-           %\inferrule{\inferrule{\inferrule{\ctx \byinf + : \ldots \quad
-                                            %\inferrule{\inferrule{\ctx \byinf x:f \quad
-                                                                  %[\ctx]f = \Int \quad
-                                                                  %\ctx \byuni \Int \lt \Int }
-                                                                 %{\ctx \bychk x:\Int \dashv \ctx}\rname{T-Sub}}
-                                           %{\ctx \byapp \Int \to \Int \to \Int ~ x: \Int \to \Int \dashv \ctx}\rname{A-Pi}}
-                                           %{\ctx \byinf x + : \Int \to \Int \dashv \ctx}\rname{T-App} \quad
-                                 %\inferrule{\ldots}
-                                           %{\ctx \byapp \Int \to \Int ~ 3 }\rname{A-Pi}}
-                                %{\ctx \byinf x + 3 :\Int \dashv \ctx}\rname{T-App}}
-                     %{f:\star = \Int \byinf \blam x f {x+3} : f \to \Int \vdash f:\star = \Int}\rname{T-LamAnn}
-           %}
-          %{\kw{let} f = \Int \kw{in} \blam x f {x+3} : [f:\star=\Int] (f \to \Int) \vdash \ctxinit }\rname{T-Let}
-%\]
-%\end{itemize}
-
-%\end{figure}
+\newcommand*{\ExUni}{\inferrule{\genA \notin FV(\bpi x \genB x) \quad
+                                       \inferrule{\inferrule{ }
+                                                            {\ctx,\genA,\genB,\ctxr \bycg \genB \cgto \genA_1 \toctx}\rname{I-Evar2}
+                                                  \quad
+                                                  \inferrule{ }
+                                                            {\ctxl \bycg x \cgto x \toctx}\rname{I-Var}}
+                                                 {\ctx,\genA,\genB,\ctxr \bycg \bpi x \genB x \cgto \bpi x {\genA_1} x \toctx}\rname{I-Other}
+                                      \quad
+                                      \inferrule{ %\inferrule{ }{\ctx,\genA_1 \bywt \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\ctx,\genA_1,x \bywt x}\rname{WF-Var}
+                                                 }
+                                                {\ctx,\genA_1 \bywt \bpi x {\genA_1} x}\rname{WF-Pi}}
+                               {\ctx,\genA,\genB,\ctxr \byuni \genA \lt \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1, \ctxr} \rname{U-EvarTy}}
 
 %%% Local Variables:
 %%% mode: latex
