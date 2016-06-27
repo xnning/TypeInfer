@@ -251,9 +251,9 @@
 \newcommand*{\CELetVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_3 \\ [\ctxr]\tau_2 = [\ctxr]\tau_4}{\ctx, x:\tau_1=\tau_2 \exto \ctxr, x:\tau_3 = \tau_4}\rname{CE-LetVar}}
 \newcommand*{\CEEVar}{\inferrule{ }{\ctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}
 \newcommand*{\CESolvedEVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2}\rname{CE-SolvedEVar}}
-\newcommand*{\CESolve}{\inferrule{\ctx \exto \ctxr}{\ctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
+\newcommand*{\CESolve}{\inferrule{\ctx \exto \ctxr \\ \prechk \tau : \star}{\ctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
 \newcommand*{\CEAdd}{\inferrule{\ctx \exto \ctxr}{\ctx, \genA \exto \ctxr, \genA}\rname{CE-Add}}
-\newcommand*{\CEAddSolved}{\inferrule{\ctx \exto \ctxr}{\ctx \exto \ctxr, \genA:\tau}\rname{CE-AddSolved}}
+\newcommand*{\CEAddSolved}{\inferrule{\ctx \exto \ctxr \\ \prechk \tau : \star}{\ctx \exto \ctxr, \genA:\tau}\rname{CE-AddSolved}}
 
 % ------------------------------------------------------------------------
 % REFERENCE OF ORIGINAL SYSTEM
@@ -281,31 +281,6 @@
 \newcommand*{\SCastDown}{\inferrule{e \redto e'}{\castdn e \redto \castdn e'}\rname{S-CastDown}}
 \newcommand*{\SLet}{\inferrule{ }{\kw{let} x = e_1 \kw{in} e_2 \redto e_2 \subst x {e_1}}\rname{S-Let}}
 \newcommand*{\SAnn}{\inferrule{e \redto e'}{ e:\tau \redto e':\tau}\rname{S-Ann}}
-
-% ------------------------------------------------------------------------
-% OTHER FORMALIZATION
-% ------------------------------------------------------------------------
-
-%\headercapm{\ctx \exto \ctxr}{Context Extension}
-
-%\[\CEEmtpy \quad \CEVar\]
-%\[\CETypedVar\]
-%\[\CELetVar\]
-%\[\CEEVar \quad \CESolvedEVar\]
-%\[\CESolve\]
-%\[\CEAdd \quad \CEAddSolved\]
-
-%\headercapm{[\cctx]\ctx = \ctx}{Apply a complete context to a context}
-
-%\begin{tabular}{r c l l}
-    %$[\ctxinit]\ctxinit$   & = & $\ctxinit$    \\
-    %$[\cctx,x](\ctx,x)$ & = & $[\cctx]\ctx,x$  \\
-    %$[\cctx,x:\tau_1](\ctx,x:\tau_2)$ & = & $[\cctx]\ctx,x:[\cctx]\tau_1$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-    %$[\cctx,x:\tau_1=\tau_2](\ctx,x:\tau_3=\tau_4)$ & = & $[\cctx]\ctx,x:[\cctx]\tau_1=[\cctx]\tau_2$ & if $[\cctx]\tau_1$=$[\cctx]\tau_3$ and $[\cctx]\tau_2$=$[\cctx]\tau_4$ \\
-    %$[\cctx,\genA=\tau_1](\ctx,\genA)$ & = & $[\cctx]\ctx$ \\
-    %$[\cctx,\genA=\tau_1](\ctx,\genA=\tau_2)$ & = & $[\cctx]\ctx$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-    %$[\cctx,\genA=\tau_1]\ctx$ & = & $[\cctx]\ctx$ & if $\genA \notin dom(\ctx)$ \\
-%\end{tabular}
 
 % ------------------------------------------------------------------------
 % EXAMPLES
