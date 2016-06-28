@@ -31,14 +31,18 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
 Now we could extend the definition of context subsitution as shown in Figure \ref{fig:applyctx}. Intuitively, Existential variables in solved form could be substituted by its solution.
 
 \begin{figure}[h]
-    \headercapm{\ctx \bywt \sigma}{Well Form of $\sigma$ under context $\ctx$}
+    \headercapm{\ctx \bywt \sigma}{Well Form of type $\sigma$ under context $\ctx$}
 
-    \[\WFEVar\]
+    \[\TWFEVar \quad \TWFPi \]
+    \[\TWFPoly \quad \TWFOther \]
 
     \headercapm{\ctx\wc}{Context $\ctx$ is well formed}
 
-    \[\WCEVar\]
-    \[\WCSolvedEVar\]
+    \[\TWCEmpty \quad \TWCVar\]
+    \[\TWCTypedVar\]
+    \[\TWCLetVar\]
+    \[\TWCEVar\]
+    \[\TWCSolvedEVar\]
     \caption{Well formedness with existential variables.}
     \label{fig:existwellform}
 \end{figure}
