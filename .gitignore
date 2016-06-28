@@ -20,3 +20,7 @@ doc/simple/auto
 *.swp
 
 /src/src_bk/*
+
+*.vo
+*.glob
+doc/simple/coq/.depend
