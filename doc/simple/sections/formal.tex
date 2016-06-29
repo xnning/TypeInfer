@@ -86,11 +86,15 @@
     e:\tau_2 \trto {t_2} \\
     \opt{\prechk {\tau_1 : \star  \trto {t_1}}}
     }{\prechk \erlam x e : (\bpi x {\tau_1} \tau_2)  \trto {\blam x {t_1} t_2}}\rname{D-Lam$\Chk$}}
-\newcommand*{\DLamAnn}{\inferrule{\prechk \tau_1 : \star
+\newcommand*{\DLamAnnInf}{\inferrule{\prechk \tau_1 : \star
     \trto {t_1} \\
-    \ctx,x:\tau_1 \byall
-    e:\tau_2\trto {t_2}}{\preall \blam x {\tau_1} e : (\bpi x {\tau_1}
-    \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn}}
+    \ctx,x:\tau_1 \byinf
+    e:\tau_2\trto {t_2}}{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn$\Inf$}}
+\newcommand*{\DLamAnnChk}{\inferrule{
+    \ctx,x:\tau_1 \bychk
+    e:\tau_2\trto {t_2}}{\prechk \blam x {\tau_1} e : (\bpi x {\tau_1}
+    \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn$\Chk$}}
 \newcommand*{\DApp}{\inferrule{
     \preinf e_1 : \bpi  x {\tau_1} {\tau_2} \trto {t_1} \\
     \prechk e_2 : \tau_1 \trto {t_2}

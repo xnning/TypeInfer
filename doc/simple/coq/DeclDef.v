@@ -73,7 +73,7 @@ Inductive DTerm : DExpr -> Prop :=
   | DTerm_Let : forall L e1 e2,
       DTerm e1 ->
       (forall x, x \notin L -> DTerm (e2 ^ x)) ->
-      DTerm (DE_Pi e1 e2)
+      DTerm (DE_Let e1 e2)
   | DTerm_CastUp : forall e,
       DTerm e -> DTerm (DE_CastUp e)
   | DTerm_CastDn : forall e,
@@ -112,7 +112,7 @@ Fixpoint DFv (e : DExpr) {struct e} : vars :=
   | DE_ILam e    => DFv e
   | DE_Lam t e   => (DFv t) \u (DFv e)
   | DE_Pi t1 t2  => (DFv t1) \u (DFv t2)
-  | DE_Let e1 e2 => (DFv e1) \u (DFv e1)
+  | DE_Let e1 e2 => (DFv e1) \u (DFv e2)
   | DE_CastUp e  => DFv e
   | DE_CastDn e  => DFv e
   | DE_Ann e t   => (DFv e) \u (DFv t)
@@ -215,7 +215,6 @@ with DTypingC : DCtx -> DExpr -> DExpr -> Prop :=
                  DTypingC (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
       DTypingC G (DE_ILam e) (DE_Pi t1 t2)
   | DTC_LamAnn : forall L G e t1 t2,
-      DTypingC G t1 DE_Star ->
       (forall x, x \notin L ->
                  DTypingC (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
       DTypingC G (DE_ILam e) (DE_Pi t1 t2)
@@ -251,9 +250,13 @@ with DWf : DCtx -> Prop :=
       DTypingC G t DE_Star ->
       DWf (G & x ~ DC_Typ t)
   | DWf_LetVar : forall G x s t,
+      DWf G -> x # G -> DWfTyp G (DT_Expr s) ->
+      DTypingC G t s ->
+      DWf (G & x ~ DC_Bnd (DT_Expr s) t)
+  | DWf_LetVar2 : forall L G x s t,
       DWf G -> x # G -> DWfTyp G s ->
-      DTypingC G t DE_Star ->
-      DWf (G & x ~ DC_Bnd s t)
+      (forall x, x \notin L -> DWf (G & x ~ DC_Bnd (DOpenT s (DE_FVar x)) t)) ->
+      DWf (G & x ~ DC_Bnd (DT_Forall s) t)
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
   | DInst_Expr : forall G t1,
@@ -270,6 +273,6 @@ with DGen : DCtx -> DExpr -> DType -> Prop :=
       DTypingI G e t ->
       DGen G e (DT_Expr t)
   | DGen_Poly : forall L G e s,
-      (forall x, x \notin L ->
+      (forall x, x \notin L -> x \notin (DFv e) ->
                  DGen (G & x ~ DC_Typ DE_Star) e (DOpenT s (DE_FVar x))) ->
       DGen G e (DT_Forall s).
