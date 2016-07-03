@@ -217,7 +217,7 @@ with DTypingC : DCtx -> DExpr -> DExpr -> Prop :=
   | DTC_LamAnn : forall L G e t1 t2,
       (forall x, x \notin L ->
                  DTypingC (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingC G (DE_ILam e) (DE_Pi t1 t2)
+      DTypingC G (DE_Lam t1 e) (DE_Pi t1 t2)
   | DTC_Let : forall L G e1 e2 s t2,
       DGen G e1 s ->
       (forall x, x \notin L ->
