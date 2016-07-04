@@ -320,9 +320,9 @@ with AWf : ACtx -> Prop :=
      | AWf_Var : forall G x,
          AWf G -> x # G ->
          AWf (G & x ~ AC_Var)
-     | AWf_TyVar : forall G H x t,
+     | AWf_TyVar : forall G x t,
          AWf G -> x # G ->
-         ATypingC G t AE_Star H ->
+         AWfTyp G (AT_Expr t) ->
          AWf (G & x ~ AC_Typ t)
      | AWf_LetVar : forall G H x s t,
          AWf G -> x # G -> AWfTyp G (AT_Expr s) ->
@@ -330,14 +330,12 @@ with AWf : ACtx -> Prop :=
          AWf (G & x ~ AC_Bnd (AT_Expr s) t)
      | AWf_LetVar2 : forall L G x s t,
          AWf G -> x # G -> AWfTyp G s ->
-         (forall x, x \notin L -> AWf (G & x ~ AC_Bnd (AOpenT s (AE_FVar x)) t)) ->
+         (forall y, y \notin L -> AWf (G & y ~ AC_Typ AE_Star & x ~ AC_Bnd (AOpenT s (AE_FVar y)) t)) ->
          AWf (G & x ~ AC_Bnd (AT_Forall s) t)
      | AWf_Ctx_Unsolved_EVar : forall G x,
          AWf G -> x # G ->
          AWf (G & x ~ AC_Unsolved_EVar)
-     | AWf_Ctx_Solved_EVar : forall G H x t,
+     | AWf_Ctx_Solved_EVar : forall G x t,
          AWf G -> x # G ->
-         ATypingC G t AE_Star H ->
+         AWfTyp G (AT_Expr t) ->
          AWf (G & x ~ AC_Solved_EVar t).
-
-
