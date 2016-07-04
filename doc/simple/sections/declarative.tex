@@ -30,6 +30,25 @@
     \label{fig:declapplyctx}
 \end{figure}
 
+\begin{figure}[t]
+    \begin{mathpar}
+    \begin{tabular}{r c l}
+        $FV(x)$   & = & $\{x\}$       \\
+        $FV(\star)$    & = & $\varnothing$            \\
+        $FV(e_1 ~ e_2)$    & = & $FV(e_1) \cup FV(e_2)$            \\
+        $FV(\erlam x e)$   & = & $FV(e) - \{x\}$            \\
+        $FV(\blam x t e)$  & = & $FV(t) \cup FV(e) - \{x\}$            \\
+        $FV(\bpi x t e)$   & = & $FV(t) \cup FV(e) - \{x\}$            \\
+        $FV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FV(e_1) \cup FV(e_2) - \{x\}$            \\
+        $FV(\castupz e)$   & = & $FV(e)$            \\
+        $FV(\castdn e)$    & = & $FV(e)$            \\
+        $FV(e:t)$          & = & $FV(e) \cup FV(t)$            \\
+    \end{tabular}
+    \end{mathpar}
+    \caption{Free variables}
+    \label{fig:decl-free-variables}
+\end{figure}
+
 The typing rule for declarative system are shown in figure \ref{fig:decltyping}.
 
 \paragraph{Bidirectional typing.} The judgement $\preall e:\sigma \trto t$ is interpreted as, under context $\ctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.

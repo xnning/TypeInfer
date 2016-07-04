@@ -64,6 +64,26 @@ Now we could extend the definition of context subsitution as shown in Figure \re
     \label{fig:applyctx}
 \end{figure}
 
+\begin{figure}[t]
+    \begin{mathpar}
+    \begin{tabular}{r c l}
+        $FV(\genA)$        & = & $\{\genA\}$       \\
+        $FV(x)$            & = & $\varnothing$       \\
+        $FV(\star)$        & = & $\varnothing$            \\
+        $FV(e_1 ~ e_2)$    & = & $FV(e_1) \cup FV(e_2)$            \\
+        $FV(\erlam x e)$   & = & $FV(e)$            \\
+        $FV(\blam x t e)$  & = & $FV(t) \cup FV(e)$            \\
+        $FV(\bpi x t e)$   & = & $FV(t) \cup FV(e)$            \\
+        $FV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FV(e_1) \cup FV(e_2)$            \\
+        $FV(\castupz e)$   & = & $FV(e)$            \\
+        $FV(\castdn e)$    & = & $FV(e)$            \\
+        $FV(e:t)$          & = & $FV(e) \cup FV(t)$            \\
+    \end{tabular}
+    \end{mathpar}
+    \caption{Free variables with existential variables.}
+    \label{fig:algo-free-variables}
+\end{figure}
+
 \paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\ctx[\genA] \bywt \genA$.
 
 Multiple holes also require the order. For example, $\ctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
