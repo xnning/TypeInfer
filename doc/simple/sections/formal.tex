@@ -211,11 +211,11 @@
 % UNIFY TVAR
 % ------------------------------------------------------------------------
 
-\newcommand*{\IVar}{\inferrule{ }{\ctx \bycg x \cgto x \toctxo}\rname{I-Var}}
-\newcommand*{\IStar}{\inferrule{ }{\ctx \bycg \star \cgto \star \toctxo}\rname{I-Star}}
 \newcommand*{\IEVarA}{\inferrule{ }{\ctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar1}}
 \newcommand*{\IEVarB}{\inferrule{ }{\ctx[\genA][\genB] \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{I-EVar2}}
-\newcommand*{\IOthers}{\inferrule{\ctx \bycg \tau_0 \cgto \tau_0' \toctx_1 \\ \ctxl_i \bycg [\ctxl_i]\tau_i \cgto \tau_i' \toctx_{i+1}}{\ctx \bycg T\ \overbar{\tau_n} \cgto T\ \overbar{\tau_n'}}\rname{I-Other}}
+\newcommand*{\IPi}{\inferrule{\ctx \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }
+{\ctx \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{I-Pi}}
+\newcommand*{\IOthers}{\inferrule{  } {\ctx \bycg \tau \cgto \tau \toctxo}\rname{I-Other}}
 
 % ------------------------------------------------------------------------
 % WELL FORM
