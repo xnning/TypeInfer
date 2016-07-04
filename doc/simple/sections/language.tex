@@ -10,7 +10,7 @@
         && \synor & $\ercastup e \mid \castdn e$ \\
         && \synor & $e : \tau$ \\
         Contexts &
-        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\sigma=e$ \\
+        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit \mid \ctx,x:\tau \mid \ctx,x:\sigma=e$ \\
     \end{tabular}
     \caption{Declarative syntax.}
     \label{fig:declsyntax}
@@ -79,7 +79,7 @@ Figure \ref{fig:wellform} gives the definition of well formedness of a context a
 
     \headercapm{\ctx\wc}{Context $\ctx$ is well formed}
 
-    \[\WCEmpty \quad \WCVar\]
+    \[\WCEmpty\]
     \[\WCTypedVar\]
     \[\WCLetVar\]
     \caption{Well formedness}

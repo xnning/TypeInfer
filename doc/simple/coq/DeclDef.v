@@ -121,7 +121,6 @@ Fixpoint DFv (e : DExpr) {struct e} : vars :=
 (** Context *)
 
 Inductive DCtxT : Set :=
-  | DC_Var : DCtxT
   | DC_Typ : DExpr -> DCtxT
   | DC_Bnd : DType -> DExpr -> DCtxT.
 
@@ -131,7 +130,6 @@ Definition DCtxSubst (G : DCtx) (e : DExpr) : DExpr :=
   LibList.fold_left
     (fun (c : var * DCtxT) v => let (x, p) := c in
         match p with
-        | DC_Var => v
         | DC_Typ _ => v
         | DC_Bnd s t => DSubst x t v
         end) e G.
@@ -242,9 +240,6 @@ with DWfTyp : DCtx -> DType -> Prop :=
 
 with DWf : DCtx -> Prop :=
   | DWf_Nil : DWf empty
-  | DWf_Var : forall G x,
-      DWf G -> x # G ->
-      DWf (G & x ~ DC_Var)
   | DWf_TyVar : forall G x t,
       DWf G -> x # G ->
       DTypingC G t DE_Star ->

@@ -19,9 +19,8 @@
     \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
 
     \begin{mathpar}
-    \begin{tabular}{r c l l}
+    \begin{tabular}{r c l}
         $[\ctxinit]e$   & = & $e$       \\
-        $[\ctx,x]e$ & = & $[\ctx]e$ \\
         $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
         $[\ctx,x:\sigma = \tau]e$ & = & $[\ctx](e[x\mapsto \tau])$ \\
     \end{tabular}
