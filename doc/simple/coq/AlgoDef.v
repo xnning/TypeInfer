@@ -360,16 +360,16 @@ with AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
       AUnify G t1 t2 H1 ->
       AUnify H1 (ACtxSubst H1 t3) (ACtxSubst H1 t4) H ->
       AUnify G (AE_App t1 t3) (AE_App t2 t3) H
-  | AUnify_Let : forall t1 t2 t3 t4 G H1 H I L,
+  | AUnify_Let : forall t1 t2 t3 t4 G H1 H L,
       AUnify G t1 t2 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxSubst H1 (t3 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Var & I)) ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxSubst H1 (t3 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Var)) ->
       AUnify G (AE_Let t1 t3) (AE_Let t2 t4) H
-  | AUnify_ILam : forall t1 t2 G H I L,
-      (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (t1 @ x) (t2 @ x) (H & x ~ AC_Var & I)) ->
+  | AUnify_ILam : forall t1 t2 G H L,
+      (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (t1 @ x) (t2 @ x) (H & x ~ AC_Var)) ->
       AUnify G (AE_ILam t1) (AE_ILam t2) H
-  | AUnify_Lam : forall t1 t2 t3 t4 G H1 H I L,
+  | AUnify_Lam : forall t1 t2 t3 t4 G H1 H L,
       AUnify G t1 t3 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1 & I)) ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1)) ->
       AUnify G (AE_Lam t1 t2) (AE_Lam t3 t4) H
   | AUnify_CastUp : forall t1 t2 G H,
       AUnify G t1 t2 H ->
@@ -377,9 +377,9 @@ with AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
   | AUnify_CastDn : forall t1 t2 G H,
       AUnify G t1 t2 H ->
       AUnify G (AE_CastDn t1) (AE_CastDn t2) H
-  | AUnify_Pi : forall t1 t2 t3 t4 G H1 H I L,
+  | AUnify_Pi : forall t1 t2 t3 t4 G H1 H L,
       AUnify G t1 t3 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ AE_Star) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ AE_Star & I)) ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1)) ->
       AUnify G (AE_Pi t1 t2) (AE_Pi t3 t4) H
   | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
       AUnify G t1 t2 H1 ->

@@ -148,18 +148,18 @@
     \toctx}{\preuni \tau_1~\tau_2 \lt \tau_1'~\tau_2'
     \toctx}\rname{U-App}}
 \newcommand*{\ULam}{\inferrule{\preuni[,x] \tau \lt \tau'
-    \toctx,x,\ctxr}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
+    \toctx,x}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
 \newcommand*{\ULamAnn}{\inferrule{\preuni \tau_1 \lt \tau_3 \toctx_1 \\
     \ctxl_1, x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_4
-    \toctx,x:\tau_1,\ctxr}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
+    \toctx,x:\tau_1}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
     {\tau_3} \tau_4 \toctx}\rname{U-LamAnn}}
 \newcommand*{\UPi}{\inferrule{\preuni \tau_1' \lt \tau_1 \toctx_1
     \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
-    \toctx,x:\tau_1,\ctxr}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
+    \toctx,x:\tau_1}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
     {\tau_1'} \tau_2' \toctx}\rname{U-Pi}}
 \newcommand*{\ULet}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
     \\ \ctxl_1, x \byuni {[\ctxl_1]}\tau_2 \lt [\ctxl_1]\tau_2'
-    \toctx, x, \ctxr}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
+    \toctx, x}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
     {\tau_1'} \kw{in} \tau_2' \toctx}\rname{U-Let}}
 \newcommand*{\UCastUp}{\inferrule{\preuni \tau \lt \tau'
     \toctx}{\preuni \ercastup \tau \lt \ercastup \tau' \toctx}\rname{U-CastUp}}
