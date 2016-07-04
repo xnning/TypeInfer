@@ -116,7 +116,7 @@ Fixpoint ATSubst (z : var) (u : AExpr) (e : AType) {struct e} : AType :=
 Fixpoint AFv (e : AExpr) {struct e} : vars :=
   match e with
   | AE_BVar i    => \{}
-  | AE_FVar x    => \{x}
+  | AE_FVar x    => \{}
   | AE_EVar x    => \{x}
   | AE_Star      => \{}
   | AE_App e1 e2 => (AFv e1) \u (AFv e2)
@@ -145,6 +145,16 @@ Inductive ACtxT : Set :=
   | AC_Solved_EVar : AExpr -> ACtxT.
 
 Definition ACtx := LibEnv.env ACtxT.
+
+Fixpoint ACtxFv (G : ACtx) : vars :=
+  match G with
+  | nil => \{}
+  | cons (x, p) t =>
+    match p with
+    | AC_Typ ty => (AFv ty) \u (ACtxFv t)
+    | _ => ACtxFv t
+    end
+  end.
 
 Definition ACtxSubst (G : ACtx) (e : AExpr) : AExpr :=
   LibList.fold_left
@@ -197,24 +207,27 @@ Inductive ARed : AExpr -> AExpr -> Prop :=
 Inductive AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
   | AUnify_Base : forall a b c d, AUnify a b c d.
 
-Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
-  | AInst_Expr : forall G H t,
-      AInst G (AT_Expr t) t H
-  | AInst_Poly : forall L G H a s t,
-      (forall x, x \notin L ->
-                 AInst (G & x ~ AC_Typ AE_Star) (AOpenT s (AE_FVar x)) (t @ x) H) ->
-      AInst G (AT_Forall s) (t @@ (AE_EVar a)) (H & a ~ AC_Unsolved_EVar).
-
 Inductive AGen : ACtx -> AExpr -> AType -> Prop :=
   | AGen_Expr : forall G t,
+      ((AFv t) \- (ACtxFv G) = \{}) ->
       AGen G t (AT_Expr (ACtxSubst G t))
   | AGen_Poly : forall L G a t s,
-      a \in (ATFv s) -> a # G ->
+      (a \in ((AFv t) \- (ACtxFv G))) ->
       (forall x, x \notin L -> x \notin (ATFv s) ->
-                 AGen (G & x ~ AC_Typ AE_Star) t (AOpenT s (AE_FVar x))) ->
+                 AGen (G & x ~ AC_Typ AE_Star) (ASubst a (AE_FVar x) t) (AOpenT s (AE_FVar x))) ->
       AGen G t (AT_Forall (ATSubst a (AE_BVar 0) s)).
 
-Inductive ATypingI : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
+Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
+  | AInst_Expr : forall G t,
+      AInst G (AT_Expr t) t G
+  | AInst_Poly : forall L G H a s t,
+      (forall x, x \notin L ->
+                 AInst (G & x ~ AC_Typ AE_Star) (AOpenT (AT_Forall s) (AE_FVar x)) (t @ x) H) ->
+      AWf (H & a ~ AC_Unsolved_EVar) ->
+      AInst G (AT_Forall s) (t @@ (AE_EVar a)) (H & a ~ AC_Unsolved_EVar)
+with
+
+ATypingI : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
   | ATI_Ax : forall G, AWf G -> ATypingI G AE_Star AE_Star G
   | ATI_Var : forall G x t, AWf G -> binds x (AC_Typ t) G ->
                             ATypingI G (AE_FVar x) t G
