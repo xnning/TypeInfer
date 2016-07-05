@@ -202,6 +202,91 @@ Inductive AGen : ACtx -> AExpr -> AType -> Prop :=
                  AGen (G & x ~ AC_Typ AE_Star) (ASubst a (AE_FVar x) t) (AOpenT s (AE_FVar x))) ->
       AGen G t (AT_Forall (ATSubst a (AE_BVar 0) s)).
 
+Inductive AWTerm : ACtx -> AExpr -> Prop :=
+  | AWTerm_Var : forall G x, binds x AC_Var G -> AWTerm G (AE_FVar x)
+  | AWTerm_TypVar : forall G x t, binds x (AC_Typ t) G -> AWTerm G (AE_FVar x)
+  | AWTerm_LetVar : forall G x t e, binds x (AC_Bnd t e) G -> AWTerm G (AE_FVar x)
+  | AWTerm_EVar : forall G a, binds a AC_Unsolved_EVar G -> AWTerm G (AE_EVar a)
+  | AWTerm_Solved_EVar : forall G a t, binds a (AC_Solved_EVar t) G -> AWTerm G (AE_EVar a)
+  | AWTerm_Star: forall G, AWTerm G AE_Star
+  | AWTerm_App: forall e1 e2 G, AWTerm G e1 -> AWTerm G e2 -> AWTerm G (AE_App e1 e2)
+  | AWTerm_Lam: forall e G L,
+      (forall x, x \notin L -> AWTerm (G & x ~ AC_Var) (e @ x)) -> AWTerm G (AE_Lam e)
+  | AWTerm_Pi: forall t1 t2 G L,
+      AWTerm G t1 ->
+      (forall x, x \notin L -> AWTerm (G & x ~ AC_Var) (t2 @ x)) -> AWTerm G (AE_Pi t1 t2)
+  | AWTerm_Let: forall e1 e2 G L,
+      AWTerm G e1 ->
+      (forall x, x \notin L -> AWTerm (G & x ~ AC_Var) (e2 @ x)) -> AWTerm G (AE_Let e1 e2)
+  | AWTerm_CastUp : forall e G, AWTerm G e -> AWTerm G (AE_CastUp e)
+  | AWTerm_CastDn : forall e G, AWTerm G e -> AWTerm G (AE_CastDn e)
+  | AWTerm_Ann: forall e1 e2 G, AWTerm G e1 -> AWTerm G e2 -> AWTerm G (AE_Ann e1 e2)
+.
+
+Inductive AResolveEVar : ACtx -> var -> AExpr -> AExpr -> ACtx -> Prop :=
+  | AResolveEVar_EVar_Before : forall a b G1 G2 G3,
+      AResolveEVar (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3) a (AE_EVar b) (AE_EVar b)
+                   (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3)
+  | AResolveEVar_EVar_After : forall a b G1 G2 G3 a1,
+      AResolveEVar (G1 & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Unsolved_EVar & G3) a (AE_EVar b) (AE_EVar a1)
+                   (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Solved_EVar (AE_EVar a1) & G3)
+  | AResolveEVar_Pi : forall a t1 t2 t3 t4 G H1 H L,
+      AResolveEVar G a t1 t3 H1 ->
+      (forall x, x \notin L -> AResolveEVar H1 a (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) H) ->
+      AResolveEVar G a (AE_Pi t1 t2) (AE_Pi t3 t4) H
+  | AResolveEVar_Var : forall a x G, AResolveEVar G a (AE_FVar x) (AE_FVar x) G
+  | AResolveEVar_Star : forall a G, AResolveEVar G a AE_Star AE_Star G
+  | AResolveEVar_App : forall a t1 t2 G, AResolveEVar G a (AE_App t1 t2) (AE_App t1 t2) G
+  | AResolveEVar_Lam : forall a t1 G, AResolveEVar G a (AE_Lam t1) (AE_Lam t1) G
+  | AResolveEVar_Let : forall a t1 t2 G, AResolveEVar G a (AE_Let t1 t2) (AE_Let t1 t2) G
+  | AResolveEVar_CastUp : forall a t G, AResolveEVar G a (AE_CastUp t) (AE_CastUp t) G
+  | AResolveEVar_CastDn : forall a t G, AResolveEVar G a (AE_CastDn t) (AE_CastDn t) G
+  | AResolveEVar_Ann : forall a t1 t2 G, AResolveEVar G a (AE_Ann t1 t2) (AE_Ann t1 t2) G
+.
+
+Inductive AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
+  | AUnify_Var : forall x G, binds x AC_Var G -> AUnify G (AE_FVar x) (AE_FVar x) G
+  | AUnify_Typed_Var : forall x G t, binds x (AC_Typ t) G -> AUnify G (AE_FVar x) (AE_FVar x) G
+  | AUnify_Bnd_Var : forall x t s G, binds x (AC_Bnd s t) G -> AUnify G (AE_FVar x) (AE_FVar x) G
+  | AUnify_EVar : forall a G, binds a AC_Unsolved_EVar G -> AUnify G (AE_EVar a) (AE_EVar a) G
+  (* no case for solved evar since it is fully applied under context *)
+  | AUnify_Star : forall G, AUnify G (AE_Star) (AE_Star) G
+  | AUnify_App : forall t1 t2 t3 t4 G H1 H,
+      AUnify G t1 t2 H1 ->
+      AUnify H1 (ACtxSubst H1 t3) (ACtxSubst H1 t4) H ->
+      AUnify G (AE_App t1 t3) (AE_App t2 t3) H
+  | AUnify_Let : forall t1 t2 t3 t4 G H1 H L,
+      AUnify G t1 t2 H1 ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxSubst H1 (t3 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Var)) ->
+      AUnify G (AE_Let t1 t3) (AE_Let t2 t4) H
+  | AUnify_Lam : forall t1 t2 G H L,
+      (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (t1 @ x) (t2 @ x) (H & x ~ AC_Var)) ->
+      AUnify G (AE_Lam t1) (AE_Lam t2) H
+  | AUnify_CastUp : forall t1 t2 G H,
+      AUnify G t1 t2 H ->
+      AUnify G (AE_CastUp t1) (AE_CastUp t2) H
+  | AUnify_CastDn : forall t1 t2 G H,
+      AUnify G t1 t2 H ->
+      AUnify G (AE_CastDn t1) (AE_CastDn t2) H
+  | AUnify_Pi : forall t1 t2 t3 t4 G H1 H L,
+      AUnify G t1 t3 H1 ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1)) ->
+      AUnify G (AE_Pi t1 t2) (AE_Pi t3 t4) H
+  | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
+      AUnify G t1 t2 H1 ->
+      AUnify H1 (ACtxSubst H1 t3) (ACtxSubst H1 t4) H ->
+      AUnify G (AE_Ann t1 t3) (AE_Ann t2 t3) H
+  | AUnify_EVarTy : forall a t1 t2 G H1 H2,
+      a \notin (AFv (t1)) ->
+      AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
+      AWTerm H1 t2 ->
+      AUnify G (AE_EVar a) t1 (H1 & a ~ AC_Solved_EVar t2 & H2)
+  | AUnify_TyEVar : forall a t1 t2 G H1 H2,
+      a \notin (AFv (t1)) ->
+      AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
+      AWTerm H1 t2 ->
+      AUnify G t1 (AE_EVar a) (H1 & a ~ AC_Solved_EVar t2 & H2).
+
 Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
   | AInst_Expr : forall G t,
       AInst G (AT_Expr t) t G
@@ -324,69 +409,4 @@ with AWf : ACtx -> Prop :=
          AWf G -> x # G ->
          AWfTyp G (AT_Expr t) ->
          AWf (G & x ~ AC_Solved_EVar t)
-
-with AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
-  | AUnify_Var : forall x G, binds x AC_Var G -> AUnify G (AE_FVar x) (AE_FVar x) G
-  | AUnify_Typed_Var : forall x G t, binds x (AC_Typ t) G -> AUnify G (AE_FVar x) (AE_FVar x) G
-  | AUnify_Bnd_Var : forall x t s G, binds x (AC_Bnd s t) G -> AUnify G (AE_FVar x) (AE_FVar x) G
-  | AUnify_EVar : forall a G, binds a AC_Unsolved_EVar G -> AUnify G (AE_EVar a) (AE_EVar a) G
-  (* no case for solved evar since it is fully applied under context *)
-  | AUnify_Star : forall G, AUnify G (AE_Star) (AE_Star) G
-  | AUnify_App : forall t1 t2 t3 t4 G H1 H,
-      AUnify G t1 t2 H1 ->
-      AUnify H1 (ACtxSubst H1 t3) (ACtxSubst H1 t4) H ->
-      AUnify G (AE_App t1 t3) (AE_App t2 t3) H
-  | AUnify_Let : forall t1 t2 t3 t4 G H1 H L,
-      AUnify G t1 t2 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxSubst H1 (t3 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Var)) ->
-      AUnify G (AE_Let t1 t3) (AE_Let t2 t4) H
-  | AUnify_Lam : forall t1 t2 G H L,
-      (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (t1 @ x) (t2 @ x) (H & x ~ AC_Var)) ->
-      AUnify G (AE_Lam t1) (AE_Lam t2) H
-  | AUnify_CastUp : forall t1 t2 G H,
-      AUnify G t1 t2 H ->
-      AUnify G (AE_CastUp t1) (AE_CastUp t2) H
-  | AUnify_CastDn : forall t1 t2 G H,
-      AUnify G t1 t2 H ->
-      AUnify G (AE_CastDn t1) (AE_CastDn t2) H
-  | AUnify_Pi : forall t1 t2 t3 t4 G H1 H L,
-      AUnify G t1 t3 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1)) ->
-      AUnify G (AE_Pi t1 t2) (AE_Pi t3 t4) H
-  | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
-      AUnify G t1 t2 H1 ->
-      AUnify H1 (ACtxSubst H1 t3) (ACtxSubst H1 t4) H ->
-      AUnify G (AE_Ann t1 t3) (AE_Ann t2 t3) H
-  | AUnify_EVarTy : forall a t1 t2 G H1 H2,
-      a \notin (AFv (t1)) ->
-      AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
-      AWfTyp H1 (AT_Expr t2) ->
-      AUnify G (AE_EVar a) t1 (H1 & a ~ AC_Solved_EVar t2 & H2)
-  | AUnify_TyEVar : forall a t1 t2 G H1 H2,
-      a \notin (AFv (t1)) ->
-      AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
-      AWfTyp H1 (AT_Expr t2) ->
-      AUnify G t1 (AE_EVar a) (H1 & a ~ AC_Solved_EVar t2 & H2)
-
-with
-
-AResolveEVar : ACtx -> var -> AExpr -> AExpr -> ACtx -> Prop :=
-  | AResolveEVar_EVar_Before : forall a b G1 G2 G3,
-      AResolveEVar (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3) a (AE_EVar b) (AE_EVar b)
-                   (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3)
-  | AResolveEVar_EVar_After : forall a b G1 G2 G3 a1,
-      AResolveEVar (G1 & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Unsolved_EVar & G3) a (AE_EVar b) (AE_EVar a1)
-                   (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Solved_EVar (AE_EVar a1) & G3)
-  | AResolveEVar_Pi : forall a t1 t2 t3 t4 G H1 H L,
-      AResolveEVar G a t1 t3 H1 ->
-      (forall x, x \notin L -> AResolveEVar H1 a (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) H) ->
-      AResolveEVar G a (AE_Pi t1 t2) (AE_Pi t3 t4) H
-  | AResolveEVar_Var : forall a x G, AResolveEVar G a (AE_FVar x) (AE_FVar x) G
-  | AResolveEVar_Star : forall a G, AResolveEVar G a AE_Star AE_Star G
-  | AResolveEVar_App : forall a t1 t2 G, AResolveEVar G a (AE_App t1 t2) (AE_App t1 t2) G
-  | AResolveEVar_Lam : forall a t1 G, AResolveEVar G a (AE_Lam t1) (AE_Lam t1) G
-  | AResolveEVar_Let : forall a t1 t2 G, AResolveEVar G a (AE_Let t1 t2) (AE_Let t1 t2) G
-  | AResolveEVar_CastUp : forall a t G, AResolveEVar G a (AE_CastUp t) (AE_CastUp t) G
-  | AResolveEVar_CastDn : forall a t G, AResolveEVar G a (AE_CastDn t) (AE_CastDn t) G
-  | AResolveEVar_Ann : forall a t1 t2 G, AResolveEVar G a (AE_Ann t1 t2) (AE_Ann t1 t2) G
 .

@@ -50,7 +50,7 @@ Having the notation of complete context, this section gives the lemma about the 
 
 \begin{theorem}[Soundness of Unification]
 
-If $\ctx \byuni \tau_1 \lt \tau_2 \toctx$ and $\ctxl \exto \cctx$, then $[\cctx]\ctxl \bywt [\cctx]\tau_1$ and $[\cctx]\ctxl \bywt [\cctx]\tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$.
+If $\ctx \byuni \tau_1 \lt \tau_2 \toctx$ and $\ctxl \exto \cctx$, then $[\cctx]\ctxl \bywf [\cctx]\tau_1$ and $[\cctx]\ctxl \bywf [\cctx]\tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$.
 \end{theorem}
 
 This theorem states that, if in algorithmic system, with context $\ctx$, unify $\tau_1$ and $\tau_2$ results in a output context $\ctxl$, which is extended to complete context $\cctx$, then we have the two types $[\cctx]\tau_1$, $[\cctx]\tau_2$ are well formed under declarative context $[\cctx]\ctxl$, and they are alpha equivalent.
@@ -72,12 +72,12 @@ To prove the completeness of the algorithmic system with respect to the declarat
 
 \begin{theorem}[Completeness of Unification]
 
-If $\ctx \exto \cctx$ and $\ctx \bywt \tau_1$ and $\ctx \bywt \tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$, then there exist $\ctxl$ and $\cctx'$ such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byuni [\ctx]\tau_1 \lt [\ctx]\tau_2 \toctx$.
+If $\ctx \exto \cctx$ and $\ctx \bywf \tau_1$ and $\ctx \bywf \tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$, then there exist $\ctxl$ and $\cctx'$ such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byuni [\ctx]\tau_1 \lt [\ctx]\tau_2 \toctx$.
 \end{theorem}
 
 \begin{theorem}[Completeness of Typing]
 
-Given $\ctx \exto \cctx$ and $\ctx \bywt \tau$
+Given $\ctx \exto \cctx$ and $\ctx \bywf \tau$
 \begin{enumerate}
     \item If $[\cctx]\ctx \byinf e : \tau$\\
           then there exists $\ctxl$ and $\cctx'$ and $\tau'$\\

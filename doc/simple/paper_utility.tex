@@ -167,6 +167,9 @@
 \newcommand{\bytar}{\vdash}
 \newcommand{\byinst}{\vdash_\Inst}
 \newcommand{\bygen}{\vdash_\Gen}
+\newcommand{\bycg}{\vdash}
+\newcommand{\bywf}{\vdash}
+\newcommand{\bywt}{\vDash}
 \newcommand{\toctx}{\dashv \ctxl}
 \newcommand{\toctxo}{\dashv \ctx}
 \newcommand{\toctxr}{\dashv \ctxr}
@@ -178,21 +181,18 @@
 \newcommand{\pretar}[1][]{\tctx {#1} \bytar}
 \newcommand{\preinst}[1][]{\ctx {#1} \byinst}
 \newcommand{\pregen}[1][]{\ctx {#1} \bygen}
+\newcommand{\precg}[1][]{\ctx {#1} \bycg}
+\newcommand{\prewf}[1][]{\ctx {#1} \bywf}
+\newcommand{\prewt}[1][]{\ctx {#1} \bywt}
 \newcommand{\wc}{\ \var{ctx}}
 \newcommand{\exto}{\longrightarrow}
+\newcommand{\cgto}{\longmapsto}
 
 % Primitives
 \newcommand{\Int}{\var{Int}}
 \newcommand{\String}{\var{String}}
 
 \newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
-
-% change
-\newcommand{\cgto}{\longmapsto}
-\newcommand{\bycg}{\vdash}
-\newcommand{\precg}[1][]{\ctx {#1} \bycg}
-\newcommand{\bywt}{\vdash}
-\newcommand{\prewt}[1][]{\ctx {#1} \bywt}
 
 %%% Local Variables:
 %%% mode: latex

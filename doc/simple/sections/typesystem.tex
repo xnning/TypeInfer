@@ -31,7 +31,14 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
 Now we could extend the definition of context subsitution as shown in Figure \ref{fig:applyctx}. Intuitively, Existential variables in solved form could be substituted by its solution.
 
 \begin{figure}[h]
-    \headercapm{\ctx \bywt \sigma}{Well Form of type $\sigma$ under context $\ctx$}
+    \headercapm{\ctx \bywt \sigma}{Well Term of type $\sigma$ under context $\ctx$}
+    \[\TWTVar \quad \TWTEVar \quad \TWTStar\]
+    \[\TWTPoly \quad \TWTApp\]
+    \[\TWTLam \quad \TWTPi\]
+    \[\TWTLet \quad \TWTCastUp\]
+    \[\TWTCastDn \quad \TWTAnn\]
+
+    \headercapm{\ctx \bywf \sigma}{Well Form of type $\sigma$ under context $\ctx$}
 
     \[\TWFEVar \quad \TWFPi \]
     \[\TWFPoly \quad \TWFOther \]
@@ -96,7 +103,7 @@ Now we could extend the definition of context subsitution as shown in Figure \re
     \label{fig:algo-free-variables}
 \end{figure}
 
-\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\ctx[\genA] \bywt \genA$.
+\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\ctx[\genA] \bywf \genA$.
 
 Multiple holes also require the order. For example, $\ctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
 

@@ -221,27 +221,39 @@
 % WELL FORM
 % ------------------------------------------------------------------------
 
-\newcommand*{\WFPoly}{\inferrule{ \prewt[,x:\star] \sigma}{ \prewt \forall x: \star. \sigma}\rname{WF-Poly}}
-\newcommand*{\WFOther}{\inferrule{ \prechk \tau : \star}{ \prewt \tau}\rname{WF-Other}}
+\newcommand*{\WFPoly}{\inferrule{ \prewf[,x:\star] \sigma}{ \prewf \forall x: \star. \sigma}\rname{WF-Poly}}
+\newcommand*{\WFOther}{\inferrule{ \prechk \tau : \star}{ \prewf \tau}\rname{WF-Other}}
 
-\newcommand*{\TWFEVar}{\inferrule{\genA \in \ctx }{\prewt \genA}\rname{WF-EVar}}
-\newcommand*{\TWFPi}{\inferrule{\prewt \tau_1 \\ \prewt \tau_2 }{\prewt \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
+\newcommand*{\TWFEVar}{\inferrule{\genA \in \ctx }{\prewf \genA}\rname{WF-EVar}}
+\newcommand*{\TWFPi}{\inferrule{\prewf \tau_1 \\ \prewf \tau_2 }{\prewf \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
 \newcommand*{\TWFPoly}{\WFPoly}
-\newcommand*{\TWFOther}{\inferrule{ \prechk \tau : \star \toctx}{ \prewt \tau}\rname{WF-Other}}
+\newcommand*{\TWFOther}{\inferrule{ \prechk \tau : \star \toctx}{ \prewf \tau}\rname{WF-Other}}
 
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
-\newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau}
+\newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
+\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau}
 {\ctx, x:\sigma = e}\rname{WC-LetVar}}
 
 \newcommand*{\TWCEmpty}{\WCEmpty}
 \newcommand*{\TWCVar}{\WCVar}
 \newcommand*{\TWCTypedVar}{\WCTypedVar}
-\newcommand*{\TWCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywt \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau\toctx}
+\newcommand*{\TWCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau\toctx}
 {\ctx, x:\sigma = e}\rname{WC-LetVar}}
 \newcommand*{\TWCEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx)}{\ctx, \genA \wc}\rname{WC-EVar}}
-\newcommand*{\TWCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywt \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+\newcommand*{\TWCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywf \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+
+\newcommand*{\TWTVar}{\inferrule{x \in \ctx}{\prewt x}\rname{WT-Var}}
+\newcommand*{\TWTEVar}{\inferrule{\genA \in \ctx}{\prewt \genA}\rname{WT-EVar}}
+\newcommand*{\TWTStar}{\inferrule{ }{\prewt \star}\rname{WT-Star}}
+\newcommand*{\TWTApp}{\inferrule{\prewt e_1 \\ \prewt e_2}{\prewt e_1 ~ e_2}\rname{WT-App}}
+\newcommand*{\TWTLam}{\inferrule{\prewt[,x] e}{\prewt \erlam x e}\rname{WT-Lam}}
+\newcommand*{\TWTPi}{\inferrule{\prewt \tau_1 \\ \prewt[,x] \tau_2}{\prewt \bpi x {\tau_1} {\tau_2}}\rname{WT-Pi}}
+\newcommand*{\TWTLet}{\inferrule{\prewt e_1 \\ \prewt[,x] e_2}{\prewt \kw{let} x = e_1 \kw{in} e_2}\rname{WT-Let}}
+\newcommand*{\TWTCastUp}{\inferrule{\prewt e}{\prewt \castupz e}\rname{WT-CastUp}}
+\newcommand*{\TWTCastDn}{\inferrule{\prewt e}{\prewt \castdn e}\rname{WT-CastDn}}
+\newcommand*{\TWTAnn}{\inferrule{\prewt e \\ \prewt \tau}{\prewt e:\tau}\rname{WT-Ann}}
+\newcommand*{\TWTPoly}{\inferrule{\prewt[,x] \sigma }{\prewt \forall x:\star. \sigma}\rname{WT-Poly}}
 
 % ------------------------------------------------------------------------
 % TRANSLATION CONTEXT
@@ -277,7 +289,7 @@
 \newcommand*{\OInstLArr}{\inferrule{\preuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\preuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstLArr}}
 
-\newcommand*{\OInstLSolve}{\inferrule{\ctx \bywt \tau}{\ctx, \genA, \ctx' \byuni \genA \lt \tau \toctxo, \genA = \tau, \ctx'}\rname{InstLSolve}}
+\newcommand*{\OInstLSolve}{\inferrule{\ctx \bywf \tau}{\ctx, \genA, \ctx' \byuni \genA \lt \tau \toctxo, \genA = \tau, \ctx'}\rname{InstLSolve}}
 
 \newcommand*{\OInstLReach}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{InstLReach}}
 
@@ -305,9 +317,9 @@
                                                             {\ctxl \bycg x \cgto x \toctx}\rname{I-Var}}
                                                  {\ctx,\genA,\genB,\ctxr \bycg \bpi x \genB x \cgto \bpi x {\genA_1} x \toctx}\rname{I-Other}
                                       \quad
-                                      \inferrule{ %\inferrule{ }{\ctx,\genA_1 \bywt \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\ctx,\genA_1,x \bywt x}\rname{WF-Var}
+                                      \inferrule{ %\inferrule{ }{\ctx,\genA_1 \bywf \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\ctx,\genA_1,x \bywf x}\rname{WF-Var}
                                                  }
-                                                {\ctx,\genA_1 \bywt \bpi x {\genA_1} x}\rname{WF-Pi}}
+                                                {\ctx,\genA_1 \bywf \bpi x {\genA_1} x}\rname{WF-Pi}}
                                {\ctx,\genA,\genB,\ctxr \byuni \genA \lt \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1, \ctxr} \rname{U-EvarTy}}
 
 %%% Local Variables:
