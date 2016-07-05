@@ -7,7 +7,7 @@
         Type & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
 
         Expr & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
-        && \synor & $\erlam x e \mid \blam x \tau e \mid \bpi x {\tau_1} \tau_2$ \\
+        && \synor & $\erlam x e \mid \bpi x {\tau_1} \tau_2$ \\
         && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
         && \synor & $\ercastup e \mid \castdn e$ \\
         && \synor & $e : \tau$ \\
@@ -73,7 +73,6 @@ Now we could extend the definition of context subsitution as shown in Figure \re
             $FEV(\star)$        & = & $\varnothing$            \\
             $FEV(e_1 ~ e_2)$    & = & $FEV(e_1) \cup FEV(e_2)$            \\
             $FEV(\erlam x e)$   & = & $FEV(e)$            \\
-            $FEV(\blam x t e)$  & = & $FEV(t) \cup FEV(e)$            \\
             $FEV(\bpi x t e)$   & = & $FEV(t) \cup FEV(e)$            \\
             $FEV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FEV(e_1) \cup FEV(e_2)$            \\
             $FEV(\castupz e)$   & = & $FEV(e)$            \\
@@ -110,8 +109,7 @@ Hole notation is also used for replace and modification. After an unification, $
     \[\TAx \quad \TVar\quad \TLetVar\]
     \[\TAnn \quad \TPi\]
     \[\TLamInf \quad \TLamChk\]
-    \[\TLamAnnInf \quad \TApp\]
-    \[\TLamAnnChk\]
+    \[\TApp\]
     \[\TLet\]
     \[\TCastUp \quad \TCastDn\]
     \[\TSub\]
@@ -129,8 +127,7 @@ Hole notation is also used for replace and modification. After an unification, $
 \headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
     \[\UVar \quad \UEVarId \quad \UStar\]
     \[\UApp \quad \ULet\]
-    \[\ULam \quad \ULamAnn\]
-    \[\UCastUp \quad \UCastDn\]
+    \[\ULam \quad \UCastUp \quad \UCastDn\]
     \[\UPi \quad \UAnn\]
     \[\UEVarTy\]
     \[\UTyEVar\]
@@ -176,8 +173,6 @@ The result type has two forms of references to the existential variables after $
 \end{mathpar}
 
 We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctxr]\tau_2)$, where FV stands for free existential variables. Because it is only the free existential variables in result type are what we want to preserve.
-
-\rul{T-LamAnn} uses the same methodology.
 
 \paragraph{Application.}
 Consider the application rule in declarative system, which assumes $e_1$ is of a Pi type. It is not the case in algorithmic system because the type of $e_1$ could be an existential variable.

@@ -11,8 +11,7 @@ Inductive DExpr : Set :=
   | DE_FVar : var -> DExpr
   | DE_Star : DExpr
   | DE_App : DExpr -> DExpr -> DExpr
-  | DE_ILam : DExpr -> DExpr
-  | DE_Lam : DExpr -> DExpr -> DExpr
+  | DE_Lam : DExpr -> DExpr
   | DE_Pi : DExpr -> DExpr -> DExpr
   | DE_Let : DExpr -> DExpr -> DExpr
   | DE_CastUp : DExpr -> DExpr
@@ -31,8 +30,7 @@ Fixpoint DOpenRec (k : nat) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
   | DE_FVar x    => DE_FVar x
   | DE_Star      => DE_Star
   | DE_App e1 e2 => DE_App    (DOpenRec k u e1) (DOpenRec k u e2)
-  | DE_ILam e    => DE_ILam   (DOpenRec (S k) u e)
-  | DE_Lam t e   => DE_Lam    (DOpenRec k u t) (DOpenRec (S k) u e)
+  | DE_Lam e     => DE_Lam    (DOpenRec (S k) u e)
   | DE_Pi t1 t2  => DE_Pi     (DOpenRec k u t1) (DOpenRec (S k) u t2)
   | DE_Let e1 e2 => DE_Let    (DOpenRec k u e1) (DOpenRec (S k) u e2)
   | DE_CastUp e  => DE_CastUp (DOpenRec k u e)
@@ -59,13 +57,9 @@ Inductive DTerm : DExpr -> Prop :=
   | DTerm_Star : DTerm DE_Star
   | DTerm_App : forall e1 e2,
       DTerm e1 -> DTerm e2 -> DTerm (DE_App e1 e2)
-  | DTerm_ILam : forall L e,
+  | DTerm_Lam : forall L e,
       (forall x, x \notin L -> DTerm (e ^ x)) ->
-      DTerm (DE_ILam e)
-  | DTerm_Lam : forall L t e,
-      DTerm t ->
-      (forall x, x \notin L -> DTerm (e ^ x)) ->
-      DTerm (DE_Lam t e)
+      DTerm (DE_Lam e)
   | DTerm_Pi : forall L t1 t2,
       DTerm t1 ->
       (forall x, x \notin L -> DTerm (t2 ^ x)) ->
@@ -92,8 +86,7 @@ Fixpoint DSubst (z : var) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
   | DE_FVar x    => If x = z then u else (DE_FVar x)
   | DE_Star      => DE_Star
   | DE_App e1 e2 => DE_App    (DSubst z u e1) (DSubst z u e2)
-  | DE_ILam e    => DE_ILam   (DSubst z u e)
-  | DE_Lam t e   => DE_Lam    (DSubst z u t) (DSubst z u e)
+  | DE_Lam e     => DE_Lam    (DSubst z u e)
   | DE_Pi t1 t2  => DE_Pi     (DSubst z u t1) (DSubst z u t2)
   | DE_Let e1 e2 => DE_Let    (DSubst z u e1) (DSubst z u e2)
   | DE_CastUp e  => DE_CastUp (DSubst z u e)
@@ -109,8 +102,7 @@ Fixpoint DFv (e : DExpr) {struct e} : vars :=
   | DE_FVar x    => \{x}
   | DE_Star      => \{}
   | DE_App e1 e2 => (DFv e1) \u (DFv e2)
-  | DE_ILam e    => DFv e
-  | DE_Lam t e   => (DFv t) \u (DFv e)
+  | DE_Lam e     => DFv e
   | DE_Pi t1 t2  => (DFv t1) \u (DFv t2)
   | DE_Let e1 e2 => (DFv e1) \u (DFv e2)
   | DE_CastUp e  => DFv e
@@ -137,14 +129,10 @@ Definition DCtxSubst (G : DCtx) (e : DExpr) : DExpr :=
 (** Reduction *)
 
 Inductive DRed : DExpr -> DExpr -> Prop :=
-  | DR_Beta : forall t e1 e2,
-      DTerm (DE_Lam t e1) ->
+  | DR_Beta : forall e1 e2,
+      DTerm (DE_Lam e1) ->
       DTerm e2 ->
-      DRed (DE_App (DE_Lam t e1) e2) (e1 ^^ e2)
-  | DR_BetaI : forall e1 e2,
-      DTerm (DE_ILam e1) ->
-      DTerm e2 ->
-      DRed (DE_App (DE_ILam e1) e2) (e1 ^^ e2)
+      DRed (DE_App (DE_Lam e1) e2) (e1 ^^ e2)
   | DR_CastDnUp : forall e,
       DTerm e ->
       DRed (DE_CastDn (DE_CastUp e)) e
@@ -178,12 +166,7 @@ Inductive DTypingI : DCtx -> DExpr -> DExpr -> Prop :=
       DTypingC G t1 DE_Star ->
       (forall x, x \notin L ->
                  DTypingI (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingI G (DE_ILam e) (DE_Pi t1 t2)
-  | DTI_LamAnn : forall L G e t1 t2,
-      DTypingC G t1 DE_Star ->
-      (forall x, x \notin L ->
-                 DTypingI (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingI G (DE_Lam t1 e) (DE_Pi t1 t2)
+      DTypingI G (DE_Lam e) (DE_Pi t1 t2)
   | DTI_App : forall G e1 e2 t1 t2,
       DTypingI G e1 (DE_Pi t1 t2) ->
       DTypingC G e2 t1 ->
@@ -211,11 +194,7 @@ with DTypingC : DCtx -> DExpr -> DExpr -> Prop :=
   | DTC_Lam : forall L G e t1 t2,
       (forall x, x \notin L ->
                  DTypingC (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingC G (DE_ILam e) (DE_Pi t1 t2)
-  | DTC_LamAnn : forall L G e t1 t2,
-      (forall x, x \notin L ->
-                 DTypingC (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingC G (DE_Lam t1 e) (DE_Pi t1 t2)
+      DTypingC G (DE_Lam e) (DE_Pi t1 t2)
   | DTC_Let : forall L G e1 e2 s t2,
       DGen G e1 s ->
       (forall x, x \notin L ->

@@ -12,8 +12,7 @@ Inductive AExpr : Set :=
   | AE_EVar : var -> AExpr
   | AE_Star : AExpr
   | AE_App : AExpr -> AExpr -> AExpr
-  | AE_ILam : AExpr -> AExpr
-  | AE_Lam : AExpr -> AExpr -> AExpr
+  | AE_Lam : AExpr -> AExpr
   | AE_Pi : AExpr -> AExpr -> AExpr
   | AE_Let : AExpr -> AExpr -> AExpr
   | AE_CastUp : AExpr -> AExpr
@@ -34,8 +33,7 @@ Fixpoint AOpenRec (k : nat) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
   | AE_EVar x    => AE_EVar x
   | AE_Star      => AE_Star
   | AE_App e1 e2 => AE_App    (AOpenRec k u e1) (AOpenRec k u e2)
-  | AE_ILam e    => AE_ILam   (AOpenRec (S k) u e)
-  | AE_Lam t e   => AE_Lam    (AOpenRec k u t) (AOpenRec (S k) u e)
+  | AE_Lam e     => AE_Lam   (AOpenRec (S k) u e)
   | AE_Pi t1 t2  => AE_Pi     (AOpenRec k u t1) (AOpenRec (S k) u t2)
   | AE_Let e1 e2 => AE_Let    (AOpenRec k u e1) (AOpenRec (S k) u e2)
   | AE_CastUp e  => AE_CastUp (AOpenRec k u e)
@@ -62,13 +60,9 @@ Inductive ATerm : AExpr -> Prop :=
   | ATerm_Star : ATerm AE_Star
   | ATerm_App : forall e1 e2,
       ATerm e1 -> ATerm e2 -> ATerm (AE_App e1 e2)
-  | ATerm_ILam : forall L e,
+  | ATerm_Lam : forall L e,
       (forall x, x \notin L -> ATerm (e @ x)) ->
-      ATerm (AE_ILam e)
-  | ATerm_Lam : forall L t e,
-      ATerm t ->
-      (forall x, x \notin L -> ATerm (e @ x)) ->
-      ATerm (AE_Lam t e)
+      ATerm (AE_Lam e)
   | ATerm_Pi : forall L t1 t2,
       ATerm t1 ->
       (forall x, x \notin L -> ATerm (t2 @ x)) ->
@@ -96,8 +90,7 @@ Fixpoint ASubst (z : var) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
   | AE_EVar x    => If x = z then u else (AE_EVar x)
   | AE_Star      => AE_Star
   | AE_App e1 e2 => AE_App    (ASubst z u e1) (ASubst z u e2)
-  | AE_ILam e    => AE_ILam   (ASubst z u e)
-  | AE_Lam t e   => AE_Lam    (ASubst z u t) (ASubst z u e)
+  | AE_Lam e     => AE_Lam   (ASubst z u e)
   | AE_Pi t1 t2  => AE_Pi     (ASubst z u t1) (ASubst z u t2)
   | AE_Let e1 e2 => AE_Let    (ASubst z u e1) (ASubst z u e2)
   | AE_CastUp e  => AE_CastUp (ASubst z u e)
@@ -120,8 +113,7 @@ Fixpoint AFv (e : AExpr) {struct e} : vars :=
   | AE_EVar x    => \{x}
   | AE_Star      => \{}
   | AE_App e1 e2 => (AFv e1) \u (AFv e2)
-  | AE_ILam e    => AFv e
-  | AE_Lam t e   => (AFv t) \u (AFv e)
+  | AE_Lam e     => AFv e
   | AE_Pi t1 t2  => (AFv t1) \u (AFv t2)
   | AE_Let e1 e2 => (AFv e1) \u (AFv e2)
   | AE_CastUp e  => AFv e
@@ -181,14 +173,10 @@ Fixpoint ACtxUV (G : ACtx) {struct G} : ACtx :=
 (** Reduction *)
 
 Inductive ARed : AExpr -> AExpr -> Prop :=
-  | AR_Beta : forall t e1 e2,
-      ATerm (AE_Lam t e1) ->
+  | AR_Beta : forall e1 e2,
+      ATerm (AE_Lam e1) ->
       ATerm e2 ->
-      ARed (AE_App (AE_Lam t e1) e2) (e1 @@ e2)
-  | AR_BetaI : forall e1 e2,
-      ATerm (AE_ILam e1) ->
-      ATerm e2 ->
-      ARed (AE_App (AE_ILam e1) e2) (e1 @@ e2)
+      ARed (AE_App (AE_Lam e1) e2) (e1 @@ e2)
   | AR_CastDnUp : forall e,
       ATerm e ->
       ARed (AE_CastDn (AE_CastUp e)) e
@@ -247,13 +235,7 @@ ATypingI : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
                    ATypingI (G & a ~ AC_Unsolved_EVar & x ~ AC_Typ (AE_EVar a))
                             (e @ x) (t2 @ x)
                             (H & x ~ AC_Typ (AE_EVar a) & I)) ->
-      ATypingI G (AE_ILam e) (AE_Pi (AE_EVar a) (ACtxSubst I t2)) (H & ACtxUV I)
-  | ATI_LamAnn : forall L G H1 H I e t1 t2,
-      ATypingC G t1 AE_Star H1 ->
-      (forall x, x \notin L ->
-                 ATypingI (H1 & x ~ (AC_Typ t1)) (e @ x) (t2 @ x)
-                          (H & x ~ AC_Typ t1 & I)) ->
-      ATypingI G (AE_Lam t1 e) (AE_Pi t1 (ACtxSubst I t2)) (H & ACtxUV I)
+      ATypingI G (AE_Lam e) (AE_Pi (AE_EVar a) (ACtxSubst I t2)) (H & ACtxUV I)
   | ATI_App : forall G H1 H e1 e2 t1 t2,
       ATypingI G e1 (AE_Pi t1 t2) H1 ->
       ATypingApp H1 (ACtxSubst H1 t1) e2 t2 H ->
@@ -275,14 +257,7 @@ with ATypingC : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
       (forall x, x \notin L ->
                  ATypingC (G & x ~ AC_Typ t1) (e @ x) (t2 @ x)
                           (H & x ~ AC_Typ t1 & I)) ->
-      ATypingC G (AE_ILam e) (AE_Pi t1 t2) H
-  | ATC_LamAnn : forall L G H1 H2 H I e t1 t2 t3,
-      ATypingC G t1 AE_Star H1 ->
-      AUnify H1 (ACtxSubst H1 t1) (ACtxSubst H1 t3) H2 ->
-      (forall x, x \notin L ->
-                 ATypingC (H2 & x ~ (AC_Typ t1)) (e @ x) (t2 @ x)
-                          (H & x ~ AC_Typ t1 & I)) ->
-      ATypingC G (AE_Lam t1 e) (AE_Pi t3 t2) H
+      ATypingC G (AE_Lam e) (AE_Pi t1 t2) H
   | ATC_Let : forall L G H1 H I e1 e2 s t1 t2,
       ATypingI G e1 t1 H1 ->
       AGen H1 t1 s ->
@@ -365,13 +340,9 @@ with AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
       AUnify G t1 t2 H1 ->
       (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxSubst H1 (t3 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Var)) ->
       AUnify G (AE_Let t1 t3) (AE_Let t2 t4) H
-  | AUnify_ILam : forall t1 t2 G H L,
+  | AUnify_Lam : forall t1 t2 G H L,
       (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (t1 @ x) (t2 @ x) (H & x ~ AC_Var)) ->
-      AUnify G (AE_ILam t1) (AE_ILam t2) H
-  | AUnify_Lam : forall t1 t2 t3 t4 G H1 H L,
-      AUnify G t1 t3 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxSubst H1 (t2 @ x)) (ACtxSubst H1 (t4 @ x)) (H & x ~ AC_Typ t1)) ->
-      AUnify G (AE_Lam t1 t2) (AE_Lam t3 t4) H
+      AUnify G (AE_Lam t1) (AE_Lam t2) H
   | AUnify_CastUp : forall t1 t2 G H,
       AUnify G t1 t2 H ->
       AUnify G (AE_CastUp t1) (AE_CastUp t2) H
@@ -413,8 +384,7 @@ AResolveEVar : ACtx -> var -> AExpr -> AExpr -> ACtx -> Prop :=
   | AResolveEVar_Var : forall a x G, AResolveEVar G a (AE_FVar x) (AE_FVar x) G
   | AResolveEVar_Star : forall a G, AResolveEVar G a AE_Star AE_Star G
   | AResolveEVar_App : forall a t1 t2 G, AResolveEVar G a (AE_App t1 t2) (AE_App t1 t2) G
-  | AResolveEVar_ILam : forall a t1 G, AResolveEVar G a (AE_ILam t1) (AE_ILam t1) G
-  | AResolveEVar_Lam: forall a t1 t2 G, AResolveEVar G a (AE_Lam t1 t2) (AE_Lam t1 t2) G
+  | AResolveEVar_Lam : forall a t1 G, AResolveEVar G a (AE_Lam t1) (AE_Lam t1) G
   | AResolveEVar_Let : forall a t1 t2 G, AResolveEVar G a (AE_Let t1 t2) (AE_Let t1 t2) G
   | AResolveEVar_CastUp : forall a t G, AResolveEVar G a (AE_CastUp t) (AE_CastUp t) G
   | AResolveEVar_CastDn : forall a t G, AResolveEVar G a (AE_CastDn t) (AE_CastDn t) G

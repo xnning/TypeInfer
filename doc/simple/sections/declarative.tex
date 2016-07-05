@@ -4,8 +4,8 @@
     \headercapm{\preall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\DAx \quad \DVar \quad \DLetVar \]
     \[\DAnn \quad \DLamInf \quad \DLamChk\]
-    \[\DLamAnnInf \quad \DLamAnnChk \quad \DApp\]
-    \[\DLet \quad \DPi\]
+    \[\DApp \quad \DPi\]
+    \[\DLet\]
     \[\DCastUp \quad \DCastDn\]
     \[\DSub \quad \DConv\]
     \\
@@ -36,7 +36,6 @@
         $FV(\star)$    & = & $\varnothing$            \\
         $FV(e_1 ~ e_2)$    & = & $FV(e_1) \cup FV(e_2)$            \\
         $FV(\erlam x e)$   & = & $FV(e) - \{x\}$            \\
-        $FV(\blam x t e)$  & = & $FV(t) \cup FV(e) - \{x\}$            \\
         $FV(\bpi x t e)$   & = & $FV(t) \cup FV(e) - \{x\}$            \\
         $FV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FV(e_1) \cup FV(e_2) - \{x\}$            \\
         $FV(\castupz e)$   & = & $FV(e)$            \\
