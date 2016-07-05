@@ -49,6 +49,8 @@ Definition DOpenT e u := DOpenTypRec 0 u e.
 
 Notation "e ^^ u" := (DOpen e u) (at level 67).
 Notation "e ^ x" := (DOpen e (DE_FVar x)).
+Notation "e ^^' u" := (DOpenT e u) (at level 67).
+Notation "e ^' x" := (DOpenT e (DE_FVar x)) (at level 67).
 
 (** Closed Terms *)
 
@@ -78,6 +80,15 @@ Inductive DTerm : DExpr -> Prop :=
 Definition DBody t :=
   exists L, forall x, x \notin L -> DTerm (t ^ x).
 
+Inductive DTermTy : DType -> Prop :=
+  | DTermTy_Expr : forall e, DTerm e -> DTermTy (DT_Expr e)
+  | DTermTy_Forall : forall L t,
+      (forall x, x \notin L -> DTermTy (t ^' x)) ->
+      DTermTy (DT_Forall t).
+
+Definition DBodyTy t :=
+  exists L, forall x, x \notin L -> DTermTy (t ^' x).
+
 (** Substitution *)
 
 Fixpoint DSubst (z : var) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
@@ -94,6 +105,12 @@ Fixpoint DSubst (z : var) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
   | DE_Ann e t   => DE_Ann    (DSubst z u e) (DSubst z u t)
   end.
 
+Fixpoint DTSubst (z : var) (u : DExpr) (e : DType) {struct e} : DType :=
+  match e with
+  | DT_Forall s  => DT_Forall (DTSubst z u s)
+  | DT_Expr t    => DT_Expr (DSubst z u t)
+  end.
+
 (** Free Varialble *)
 
 Fixpoint DFv (e : DExpr) {struct e} : vars :=
@@ -108,6 +125,12 @@ Fixpoint DFv (e : DExpr) {struct e} : vars :=
   | DE_CastUp e  => DFv e
   | DE_CastDn e  => DFv e
   | DE_Ann e t   => (DFv e) \u (DFv t)
+  end.
+
+Fixpoint DTFv (e : DType) {struct e} : vars :=
+  match e with
+  | DT_Forall s => DTFv s
+  | DT_Expr t   => DFv t
   end.
 
 (** Context *)
@@ -192,6 +215,7 @@ Inductive DTypingI : DCtx -> DExpr -> DExpr -> Prop :=
       
 with DTypingC : DCtx -> DExpr -> DExpr -> Prop :=
   | DTC_Lam : forall L G e t1 t2,
+      DTypingC G t1 DE_Star ->
       (forall x, x \notin L ->
                  DTypingC (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
       DTypingC G (DE_Lam e) (DE_Pi t1 t2)
@@ -214,7 +238,7 @@ with DWfTyp : DCtx -> DType -> Prop :=
       DWfTyp G (DT_Expr t)
   | DWf_Poly : forall L G s,
       (forall x, x \notin L ->
-                 DWfTyp (G & x ~ DC_Typ DE_Star) (DOpenT s (DE_FVar x))) ->
+                 DWfTyp (G & x ~ DC_Typ DE_Star) (s ^' x)) ->
       DWfTyp G (DT_Forall s)
 
 with DWf : DCtx -> Prop :=
@@ -229,7 +253,7 @@ with DWf : DCtx -> Prop :=
       DWf (G & x ~ DC_Bnd (DT_Expr s) t)
   | DWf_LetVar2 : forall L G x s t,
       DWf G -> x # G -> DWfTyp G s ->
-      (forall x, x \notin L -> DWf (G & x ~ DC_Bnd (DOpenT s (DE_FVar x)) t)) ->
+      (forall x, x \notin L -> DWf (G & x ~ DC_Bnd (s ^' x) t)) ->
       DWf (G & x ~ DC_Bnd (DT_Forall s) t)
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
@@ -239,7 +263,7 @@ with DInst : DCtx -> DType -> DExpr -> Prop :=
   | DInst_Poly : forall L G t s t1,
       DTypingC G t DE_Star ->
       (forall x, x \notin L ->
-                 DInst (G & x ~ DC_Typ DE_Star) (DOpenT s (DE_FVar x)) (t1 ^ x)) ->
+                 DInst (G & x ~ DC_Typ DE_Star) (s ^' x) (t1 ^ x)) ->
       DInst G (DT_Forall s) (t1 ^^ t)
 
 with DGen : DCtx -> DExpr -> DType -> Prop :=
@@ -248,5 +272,5 @@ with DGen : DCtx -> DExpr -> DType -> Prop :=
       DGen G e (DT_Expr t)
   | DGen_Poly : forall L G e s,
       (forall x, x \notin L -> x \notin (DFv e) ->
-                 DGen (G & x ~ DC_Typ DE_Star) e (DOpenT s (DE_FVar x))) ->
+                 DGen (G & x ~ DC_Typ DE_Star) e (s ^' x)) ->
       DGen G e (DT_Forall s).
