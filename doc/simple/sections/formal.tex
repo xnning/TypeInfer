@@ -138,9 +138,9 @@
 
 \newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
 \newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
 {\ctx[\genA] \byuni \genA \lt \tau_1 \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-EvarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
 {\ctx[\genA] \byuni \tau_1 \lt \genA \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-TyEVar}}
 \newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
 \newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
@@ -205,7 +205,7 @@
 
 \newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctxo, \overbar{\genA}} \rname{Inst}}
 
-\newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FV(\tau_2) - FV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+\newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FEV(\tau_2) - FEV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFY TVAR
@@ -297,7 +297,7 @@
 % EXAMPLES
 % ------------------------------------------------------------------------
 
-\newcommand*{\ExUni}{\inferrule{\genA \notin FV(\bpi x \genB x) \quad
+\newcommand*{\ExUni}{\inferrule{\genA \notin FEV(\bpi x \genB x) \quad
                                        \inferrule{\inferrule{ }
                                                             {\ctx,\genA,\genB,\ctxr \bycg \genB \cgto \genA_1 \toctx}\rname{I-Evar2}
                                                   \quad
