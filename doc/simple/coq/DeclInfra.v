@@ -62,8 +62,6 @@ Proof.
   unfolds DOpen. pick_fresh x.
    apply* (@dopen_rec_term_core e 0 (DE_FVar x)).
   unfolds DOpen. pick_fresh x.
-   apply* (@dopen_rec_term_core e 0 (DE_FVar x)).
-  unfolds DOpen. pick_fresh x.
    apply* (@dopen_rec_term_core t2 0 (DE_FVar x)).
   unfolds DOpen. pick_fresh x.
    apply* (@dopen_rec_term_core e2 0 (DE_FVar x)).
@@ -186,7 +184,6 @@ Lemma dsubst_term : forall t z u,
 Proof.
   induction 2; simple*.
   case_var*.
-  apply_fresh* DTerm_ILam as y. rewrite* dsubst_open_var.
   apply_fresh* DTerm_Lam as y. rewrite* dsubst_open_var.
   apply_fresh* DTerm_Pi as y. rewrite* dsubst_open_var.
   apply_fresh* DTerm_Let as y. rewrite* dsubst_open_var.
@@ -220,14 +217,8 @@ Hint Resolve dsubst_term dopen_term dtsubst_term dopent_term.
 
 (* Properties of Body *)
 
-Lemma dbody_ilam : forall e,
-  DTerm (DE_ILam e) -> DBody e.
-Proof.
-  intros. unfold DBody. inversion* H.
-Qed.
-
-Lemma dbody_lam : forall t e,
-  DTerm (DE_Lam t e) -> DBody e.
+Lemma dbody_lam : forall e,
+  DTerm (DE_Lam e) -> DBody e.
 Proof.
   intros. unfold DBody. inversion* H.
 Qed.
@@ -242,12 +233,6 @@ Lemma dbody_let : forall e1 e2,
   DTerm (DE_Let e1 e2) -> DBody e2.
 Proof.
   intros. unfold DBody. inversion* H.
-Qed.
-
-Lemma dterm_lam : forall t e,
-  DTerm (DE_Lam t e) -> DTerm t.
-Proof.
-  intros. inversion* H.
 Qed.
 
 Lemma dterm_pi : forall t1 t2,
@@ -276,7 +261,6 @@ Qed.
 
 Hint Extern 1 (DTerm ?t) =>
   match goal with
-  | H: DTerm (DE_Lam t ?t2) |- _ => apply (@dterm_lam t2)
   | H: DTerm (DE_Pi t ?t2) |- _ => apply (@dterm_pi t2)
   | H: DTerm (DE_Let t ?t2) |- _ => apply (@dterm_let t2)
   | H: DTerm (DT_Expr ?t2) |- _ => apply (@dtermty_expr t2)
@@ -284,8 +268,7 @@ Hint Extern 1 (DTerm ?t) =>
 
 Hint Extern 3 (DBody ?t) =>
   match goal with 
-  | H: context [DE_ILam t] |- _ => apply (@dbody_ilam)
-  | H: context [DE_Lam ?t1 t] |- _ => apply (@dbody_lam t1)
+  | H: context [DE_Lam t] |- _ => apply (@dbody_lam)
   | H: context [DE_Pi ?t1 t] |- _ => apply (@dbody_pi t1)
   | H: context [DE_Let ?t1 t] |- _ => apply (@dbody_let t1)
   end.
@@ -316,14 +299,8 @@ Hint Extern 1 (DBodyTy ?t) =>
   end.
 
 
-Lemma dterm_ilam_prove : forall e,
-  DBody e -> DTerm (DE_ILam e).
-Proof.
-  intros. apply_fresh* DTerm_ILam as x.
-Qed.
-
-Lemma dterm_lam_prove : forall e t,
-  DTerm t -> DBody e -> DTerm (DE_Lam t e).
+Lemma dterm_lam_prove : forall e,
+  DBody e -> DTerm (DE_Lam e).
 Proof.
   intros. apply_fresh* DTerm_Lam as x.
 Qed.
@@ -352,7 +329,7 @@ Proof.
   intros. apply* DTermTy_Expr.
 Qed.
 
-Hint Resolve dterm_ilam_prove dterm_lam_prove
+Hint Resolve dterm_lam_prove
      dterm_pi_prove dterm_let_prove
      dtermty_forall_prove dtermty_expr_prove.
 
@@ -412,13 +389,9 @@ Hint Extern 1 (DTerm ?t) => match goal with
   | H: DRed _ t |- _ => apply (proj2 (dred_regular H))
   end.
 
-Hint Extern 1 (DTerm (DE_ILam (DSubst ?x ?u ?t2))) =>
-  match goal with H: DTerm (DE_ILam t2) |- _ => 
-  unsimpl (DSubst x u (DE_ILam t2)) end.
-
-Hint Extern 1 (DTerm (DE_Lam (DSubst ?x ?u ?t1) (DSubst ?x ?u ?t2))) =>
-  match goal with H: DTerm (DE_Lam t1 t2) |- _ => 
-  unsimpl (DSubst x u (DE_Lam t1 t2)) end.
+Hint Extern 1 (DTerm (DE_Lam (DSubst ?x ?u ?t2))) =>
+  match goal with H: DTerm (DE_Lam t2) |- _ => 
+  unsimpl (DSubst x u (DE_Lam t2)) end.
 
 Hint Extern 1 (DTerm (DE_Pi (DSubst ?x ?u ?t1) (DSubst ?x ?u ?t2))) =>
   match goal with H: DTerm (DE_Pi t1 t2) |- _ => 
