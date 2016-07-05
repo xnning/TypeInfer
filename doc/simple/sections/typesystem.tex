@@ -65,21 +65,34 @@ Now we could extend the definition of context subsitution as shown in Figure \re
 \end{figure}
 
 \begin{figure}[t]
-    \begin{mathpar}
-    \begin{tabular}{r c l}
-        $FEV(\genA)$        & = & $\{\genA\}$       \\
-        $FEV(x)$            & = & $\varnothing$       \\
-        $FEV(\star)$        & = & $\varnothing$            \\
-        $FEV(e_1 ~ e_2)$    & = & $FEV(e_1) \cup FEV(e_2)$            \\
-        $FEV(\erlam x e)$   & = & $FEV(e)$            \\
-        $FEV(\blam x t e)$  & = & $FEV(t) \cup FEV(e)$            \\
-        $FEV(\bpi x t e)$   & = & $FEV(t) \cup FEV(e)$            \\
-        $FEV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FEV(e_1) \cup FEV(e_2)$            \\
-        $FEV(\castupz e)$   & = & $FEV(e)$            \\
-        $FEV(\castdn e)$    & = & $FEV(e)$            \\
-        $FEV(e:t)$          & = & $FEV(e) \cup FEV(t)$            \\
-    \end{tabular}
-    \end{mathpar}
+    \headercapm{FEV(e)}{free existential variables of a type}
+        \begin{mathpar}
+        \begin{tabular}{r c l}
+            $FEV(\genA)$        & = & $\{\genA\}$       \\
+            $FEV(x)$            & = & $\varnothing$       \\
+            $FEV(\star)$        & = & $\varnothing$            \\
+            $FEV(e_1 ~ e_2)$    & = & $FEV(e_1) \cup FEV(e_2)$            \\
+            $FEV(\erlam x e)$   & = & $FEV(e)$            \\
+            $FEV(\blam x t e)$  & = & $FEV(t) \cup FEV(e)$            \\
+            $FEV(\bpi x t e)$   & = & $FEV(t) \cup FEV(e)$            \\
+            $FEV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FEV(e_1) \cup FEV(e_2)$            \\
+            $FEV(\castupz e)$   & = & $FEV(e)$            \\
+            $FEV(\castdn e)$    & = & $FEV(e)$            \\
+            $FEV(e:t)$          & = & $FEV(e) \cup FEV(t)$            \\
+            $FEV(\forall x:\star. \sigma)$     & = & $FEV(\sigma)$            \\
+        \end{tabular}
+        \end{mathpar}
+
+    \headercapm{FEV(\ctx)}{free existential variables of context}
+        \begin{mathpar}
+        \begin{tabular}{r c l}
+            $FEV(\ctx, x)$        & = & $FEV(\ctx)$       \\
+            $FEV(\ctx, x:\tau)$   & = & $FEV(\ctx) \cup FEV(\tau)$       \\
+            $FEV(\ctx, x:\sigma = \tau)$     & = & $FEV(\ctx) \cup FEV(\sigma) $       \\
+            $FEV(\ctx, \genA)$        & = & $FEV(\ctx)$       \\
+            $FEV(\ctx, \genA=\tau)$   & = & $FEV(\ctx)$       \\
+        \end{tabular}
+        \end{mathpar}
     \caption{Free existential variables.}
     \label{fig:algo-free-variables}
 \end{figure}

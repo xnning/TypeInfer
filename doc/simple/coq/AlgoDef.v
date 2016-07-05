@@ -152,6 +152,7 @@ Fixpoint ACtxFv (G : ACtx) : vars :=
   | cons (x, p) t =>
     match p with
     | AC_Typ ty => (AFv ty) \u (ACtxFv t)
+    | AC_Bnd s e => (ATFv s) \u (ACtxFv t)
     | _ => ACtxFv t
     end
   end.
