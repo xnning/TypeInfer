@@ -160,6 +160,17 @@ Definition ACtxSubst (G : ACtx) (e : AExpr) : AExpr :=
         | AC_Solved_EVar t => ASubst x t v
         end) e G.
 
+Definition ACtxTSubst (G : ACtx) (e : AType) : AType :=
+  LibList.fold_left
+    (fun (c : var * ACtxT) v => let (x, p) := c in
+        match p with
+        | AC_Var => v
+        | AC_Typ _ => v
+        | AC_Bnd s t => ATSubst x t v
+        | AC_Unsolved_EVar => v
+        | AC_Solved_EVar t => ATSubst x t v
+        end) e G.
+
 Fixpoint ACtxUV (G : ACtx) {struct G} : ACtx :=
   match G with
   | nil => nil

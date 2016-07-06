@@ -116,10 +116,9 @@ Hole notation is also used for replace and modification. After an unification, $
     \[\TAx \quad \TVar\quad \TLetVar\]
     \[\TAnn \quad \TPi\]
     \[\TLamInf \quad \TLamChk\]
-    \[\TApp\]
     \[\TLet\]
     \[\TCastUp \quad \TCastDn\]
-    \[\TSub\]
+    \[\TApp \quad \TSub\]
     \\
     \headercapm{\preapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
     \[\APi \quad \AEVar\]
@@ -139,8 +138,7 @@ Hole notation is also used for replace and modification. After an unification, $
     \[\UEVarTy\]
     \[\UTyEVar\]
 \headercapm{\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Resolve existential variables in $\tau_1$}
-    \[\IEVarA\]
-    \[\IEVarB\]
+    \[\IEVarA \quad \IEVarB\]
     \[\IPi \quad \IOthers\]
     \caption{Unification rules}
     \label{fig:unifyrules}

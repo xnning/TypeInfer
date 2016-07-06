@@ -20,7 +20,7 @@
         $[\ctxinit]\ctxinit$   & = & $\ctxinit$    \\
         $[\cctx,x](\ctx,x)$ & = & $[\cctx]\ctx,x$  \\
         $[\cctx,x:\tau_1](\ctx,x:\tau_2)$ & = & $[\cctx]\ctx,x:[\cctx]\tau_1$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-        $[\cctx,x:\tau_1=\tau_2](\ctx,x:\tau_3=\tau_4)$ & = & $[\cctx]\ctx,x:[\cctx]\tau_1=[\cctx]\tau_2$ & if $[\cctx]\tau_1$=$[\cctx]\tau_3$ and $[\cctx]\tau_2$=$[\cctx]\tau_4$ \\
+        $[\cctx,x:\sigma_1=\tau_1](\ctx,x:\sigma_2=\tau_2)$ & = & $[\cctx]\ctx,x:[\cctx]\sigma_1=[\cctx]\tau_1$ & if $[\cctx]\sigma_1$=$[\cctx]\sigma_2$ and $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
         $[\cctx,\genA=\tau_1](\ctx,\genA)$ & = & $[\cctx]\ctx$ \\
         $[\cctx,\genA=\tau_1](\ctx,\genA=\tau_2)$ & = & $[\cctx]\ctx$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
         $[\cctx,\genA=\tau_1]\ctx$ & = & $[\cctx]\ctx$ & if $\genA \notin dom(\ctx)$ \\

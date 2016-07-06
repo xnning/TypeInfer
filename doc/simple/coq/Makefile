@@ -26,7 +26,8 @@ COQDOC=$(COQBIN)coqdoc --quiet --utf8 --html
 
 FILES=\
 	DeclDef\
-	AlgoDef
+	AlgoDef\
+	CtxExtension
 
 ALL=$(FILES)
 

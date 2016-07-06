@@ -271,12 +271,12 @@
 \newcommand*{\CEEmtpy}{\inferrule{  }{\ctxinit \exto \ctxinit}\rname{CE-Empty}}
 \newcommand*{\CEVar}{\inferrule{\ctx \exto \ctxr}{\ctx, x \exto \ctxr, x}\rname{CE-Var}}
 \newcommand*{\CETypedVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, x:\tau_1 \exto \ctxr, x:\tau_2}\rname{CE-TypedVar}}
-\newcommand*{\CELetVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_3 \\ [\ctxr]\tau_2 = [\ctxr]\tau_4}{\ctx, x:\tau_1=\tau_2 \exto \ctxr, x:\tau_3 = \tau_4}\rname{CE-LetVar}}
-\newcommand*{\CEEVar}{\inferrule{ }{\ctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}
+\newcommand*{\CELetVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\sigma_1 = [\ctxr]\sigma_2 \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, x:\sigma_1=\tau_1 \exto \ctxr, x:\sigma_2 = \tau_2}\rname{CE-LetVar}}
+\newcommand*{\CEEVar}{\inferrule{\ctx \exto \ctxr}{\ctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}
 \newcommand*{\CESolvedEVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2}\rname{CE-SolvedEVar}}
-\newcommand*{\CESolve}{\inferrule{\ctx \exto \ctxr \\ \prechk \tau : \star}{\ctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
-\newcommand*{\CEAdd}{\inferrule{\ctx \exto \ctxr}{\ctx, \genA \exto \ctxr, \genA}\rname{CE-Add}}
-\newcommand*{\CEAddSolved}{\inferrule{\ctx \exto \ctxr \\ \prechk \tau : \star}{\ctx \exto \ctxr, \genA = \tau}\rname{CE-AddSolved}}
+\newcommand*{\CESolve}{\inferrule{\ctx \exto \ctxr \\ \ctxr \bywf \tau}{\ctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
+\newcommand*{\CEAdd}{\inferrule{\ctx \exto \ctxr}{\ctx \exto \ctxr, \genA}\rname{CE-Add}}
+\newcommand*{\CEAddSolved}{\inferrule{\ctx \exto \ctxr \\ \ctxr \bywf \tau}{\ctx \exto \ctxr, \genA = \tau}\rname{CE-AddSolved}}
 
 % ------------------------------------------------------------------------
 % REFERENCE OF ORIGINAL SYSTEM
