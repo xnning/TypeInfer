@@ -252,8 +252,8 @@ with DWf : DCtx -> Prop :=
       DTypingC G t s ->
       DWf (G & x ~ DC_Bnd (DT_Expr s) t)
   | DWf_LetVar2 : forall L G x s t,
-      DWf G -> x # G -> DWfTyp G s ->
-      (forall x, x \notin L -> DWf (G & x ~ DC_Bnd (s ^' x) t)) ->
+      DWf G -> x # G -> DWfTyp G (DT_Forall s) ->
+      (forall y, y \notin L -> DWf (G & x ~ DC_Bnd (s ^' y) t)) ->
       DWf (G & x ~ DC_Bnd (DT_Forall s) t)
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
