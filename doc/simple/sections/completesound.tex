@@ -50,17 +50,35 @@ Having the notation of complete context, this section gives the lemma about the 
 
 \begin{theorem}[Soundness of Unification]
 
-If $\ctx \byuni \tau_1 \lt \tau_2 \toctx$ and $\ctxl \exto \cctx$, then $[\cctx]\ctxl \bywf [\cctx]\tau_1$ and $[\cctx]\ctxl \bywf [\cctx]\tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$.
+If $\ctx \byuni \tau_1 \lt \tau_2 \toctx$ where $[\ctx] \tau_1 = \tau_1$ and $[\ctx] \tau_2 = \tau_2$,
+and $\ctxl \exto \cctx$,
+then $[\cctx]\ctxl \bywf [\cctx]\tau_1$ and $[\cctx]\ctxl \bywf [\cctx]\tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$.
 \end{theorem}
 
 This theorem states that, if in algorithmic system, with context $\ctx$, unify $\tau_1$ and $\tau_2$ results in a output context $\ctxl$, which is extended to complete context $\cctx$, then we have the two types $[\cctx]\tau_1$, $[\cctx]\tau_2$ are well formed under declarative context $[\cctx]\ctxl$, and they are alpha equivalent.
 
+\begin{theorem}[Soundness of Instantiation]
+
+If $\preinst \sigma \lt \tau \toctx$ where $\prewf \sigma$ and $\prewf \tau$,
+and $\ctxl \exto \cctx$,
+then $[\cctx]\ctxl \byinst [\cctx]\sigma \lt [\cctx]\tau$.
+\end{theorem}
+
+\begin{theorem}[Soundness of Generalization]
+
+If $\preinf e:\tau \toctx $ and $\ctxl \bygen \tau \lt \sigma$,
+and $\ctxl \exto \cctx$,
+then $[\cctx]\ctxl \bygen [\cctx]e:[\cctx]\sigma$.
+\end{theorem}
+
 \begin{theorem}[Soundness of Typing]
 
-Given $\ctxr \exto \cctx$
+Given $\ctxl \exto \cctx$
 \begin{enumerate}
-   \item If $\preinf e: \tau \toctx$ then $[\cctx]\ctxl \byinf e: [\cctx]\tau$
-   \item If $\prechk e: \tau \toctx$ then $[\cctx]\ctxl \bychk e: [\cctx]\tau$
+   \item If $\preinf e: \tau \toctx$ then $[\cctx]\ctxl \byinf [\cctx]e: [\cctx]\tau$
+   \item If $\prechk e: \tau \toctx$ then $[\cctx]\ctxl \bychk [\cctx]e: [\cctx]\tau$
+   \item If $\preinf e_1:\tau_1 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_1 ~ e_2 : \tau_2 \toctx$,
+       then $[\cctx]\ctxl \byinf [\cctx]e_1 ~ [\cctx]e_2 : [\cctx]\tau_2$
 \end{enumerate}
 \end{theorem}
 
