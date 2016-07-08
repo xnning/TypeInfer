@@ -93,15 +93,32 @@ To prove the completeness of the algorithmic system with respect to the declarat
 If $\ctx \exto \cctx$ and $\ctx \bywf \tau_1$ and $\ctx \bywf \tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$, then there exist $\ctxl$ and $\cctx'$ such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byuni [\ctx]\tau_1 \lt [\ctx]\tau_2 \toctx$.
 \end{theorem}
 
+\begin{theorem}[Completeness of Instantiation]
+
+If $\ctx \exto \cctx$ and $[\cctx]\ctx \byinst [\cctx]\sigma \lt [\cctx]\tau$
+then there exists $\ctxl$ and $\cctx'$
+such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinst [\ctx]\sigma \lt [\ctx]\tau \toctx$.
+\end{theorem}
+
+\begin{theorem}[Completeness of Generalization]
+
+If $\ctx \exto \cctx$ and $[\cctx] \ctx \bygen [\cctx]e \lt [\cctx]\sigma$,
+then there exists $\ctxl$ and $\cctx'$ and $\tau$
+such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinf e : \tau \toctx$ and $\ctxl \bygen \tau \lt \sigma$.
+\end{theorem}
+
 \begin{theorem}[Completeness of Typing]
 
-Given $\ctx \exto \cctx$ and $\ctx \bywf \tau$
+Given $\ctx \exto \cctx$
 \begin{enumerate}
-    \item If $[\cctx]\ctx \byinf e : \tau$\\
-          then there exists $\ctxl$ and $\cctx'$ and $\tau'$\\
-          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinf e:\tau' \toctx$ and $\tau = [\cctx']\tau'$.
-    \item If $[\cctx]\ctx \byinf e : [\cctx]\tau$\\
+    \item If $\ctx \bywf \tau$ and $[\cctx]\ctx \bychk [\cctx]e : [\cctx]\tau$\\
           then there exists $\ctxl$ and $\cctx'$\\
           such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \bychk e: [\ctx]\tau \toctx$.
+    \item If $[\cctx]\ctx \byinf [\cctx]e : \tau$\\
+          then there exists $\ctxl$ and $\cctx'$ and $\tau'$\\
+          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinf e:\tau' \toctx$ and $\tau = [\cctx']\tau'$.
+    \item If $[\cctx]\ctx \byinf [\cctx]e_1 ~ [\cctx]e_2 :\tau_1$\\
+          then there exists $\ctxl$ and $\ctxl_1$ and $\cctx'$ and $\tau_1'$ and $\tau_2$\\
+          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $[\cctx']\ctxl_1 \byinf [\cctx]e_1 :[\cctx']\tau_2$ and $\ctx \byinf e_1 : \tau_2 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_2 ~ e_2 :\tau_1' \toctx$ and $\tau_1 = [\cctx']\tau_1'$.
 \end{enumerate}
 \end{theorem}
