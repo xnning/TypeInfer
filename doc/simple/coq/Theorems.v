@@ -4,7 +4,7 @@ Require Import CtxExtension.
 
 (* Soundness *)
 
-Theorem Soundness_Unification : forall G H I t1 t2 H' t1' t2',
+Definition Soundness_Unification := forall G H I t1 t2 H' t1' t2',
     AUnify G t1 t2 H ->
     t1 = ACtxSubst G t1 ->
     t2 = ACtxSubst G t2 ->
@@ -15,7 +15,7 @@ Theorem Soundness_Unification : forall G H I t1 t2 H' t1' t2',
     ACpltCtxSubst I t2 t2' ->
     (DWfTyp H' (DT_Expr t1') /\ DWfTyp H' (DT_Expr t2') /\ t1' = t2').
 
-Theorem  Soundness_Instantiation : forall G H I s t H' s' t',
+Definition  Soundness_Instantiation := forall G H I s t H' s' t',
     AInst G s t H ->
     AWfTyp G s -> AWfTyp G (AT_Expr t) ->
     ExtCtx H I ->
@@ -25,7 +25,7 @@ Theorem  Soundness_Instantiation : forall G H I s t H' s' t',
     ACpltCtxSubst I t t' ->
     DInst H' s' t'.
 
-Theorem Soundness_Generalization : forall G H I e s t H' e' s',
+Definition Soundness_Generalization := forall G H I e s t H' e' s',
     ATypingI G e t H ->
     AGen H t s ->
     ExtCtx H I ->
@@ -35,7 +35,7 @@ Theorem Soundness_Generalization : forall G H I e s t H' e' s',
     ACpltCtxSubst I e e' ->
     DGen H' e' s'.
 
-Theorem Soundness_Typing : forall G H I e t H' e' t',
+Definition Soundness_Typing := forall G H I e t H' e' t',
     ExtCtx H I ->
     CompleteCtx I ->
     ACpltCtxSubstCtx I H H' ->
@@ -43,7 +43,7 @@ Theorem Soundness_Typing : forall G H I e t H' e' t',
     ACpltCtxSubst I e e' ->
     (ATypingI G e t H -> DTypingI H' e' t') /\ (ATypingC G e t H -> DTypingC H' e' t').
 
-Theorem Soundness_TypingApp : forall G H1 H I e1 e2 t1 t2 H' e1' e2' t2',
+Definition Soundness_TypingApp := forall G H1 H I e1 e2 t1 t2 H' e1' e2' t2',
     ExtCtx H I ->
     CompleteCtx I ->
     ATypingI G e1 t1 H1 ->
@@ -56,7 +56,7 @@ Theorem Soundness_TypingApp : forall G H1 H I e1 e2 t1 t2 H' e1' e2' t2',
 
 (* Completeness *)
 
-Theorem Completeness_Unification: forall G I t1 t2 t1' t2',
+Definition Completeness_Unification := forall G I t1 t2 t1' t2',
     ExtCtx G I ->
     CompleteCtx I ->
     AWfTyp G (AT_Expr t1) ->
@@ -66,7 +66,7 @@ Theorem Completeness_Unification: forall G I t1 t2 t1' t2',
     t1' = t2' ->
     (exists H I', CompleteCtx I' /\ ExtCtx H I' /\ ExtCtx I I' /\ AUnify G (ACtxSubst G t1) (ACtxSubst G t2) H).
 
-Theorem Completeness_Instantiation: forall G G' I s t s' t',
+Definition Completeness_Instantiation := forall G G' I s t s' t',
     ExtCtx G I ->
     CompleteCtx I ->
     ACpltCtxSubstCtx I G G' ->
@@ -75,7 +75,7 @@ Theorem Completeness_Instantiation: forall G G' I s t s' t',
     DInst G' s' t' ->
     (exists H I', CompleteCtx I' /\ ExtCtx H I' /\ ExtCtx I I' /\ AInst G (ACtxTSubst G s) (ACtxSubst G t) H).
 
-Theorem Completeness_Generalization: forall G G' I e e' s s',
+Definition Completeness_Generalization := forall G G' I e e' s s',
     ExtCtx G I ->
     CompleteCtx I ->
     ACpltCtxSubstCtx I G G' ->
@@ -84,7 +84,7 @@ Theorem Completeness_Generalization: forall G G' I e e' s s',
     DGen G' e' s' ->
     (exists H I' t, CompleteCtx I' /\ ExtCtx H I' /\ ExtCtx I I' /\ ATypingI G e t H /\ AGen H t s).
 
-Theorem Completeness_TypingC : forall G G' I e e' t t',
+Definition Completeness_TypingC := forall G G' I e e' t t',
     ExtCtx G I ->
     CompleteCtx I ->
     AWfTyp G (AT_Expr t) ->
@@ -94,7 +94,7 @@ Theorem Completeness_TypingC : forall G G' I e e' t t',
     DTypingC G' e' t' ->
     (exists H I', CompleteCtx I' /\ ExtCtx H I' /\ ExtCtx I I' /\ ATypingC G e (ACtxSubst G t) H).
 
-Theorem Completeness_TypingI : forall G G' I e e' t,
+Definition Completeness_TypingI := forall G G' I e e' t,
     ExtCtx G I ->
     CompleteCtx I ->
     ACpltCtxSubstCtx I G G' ->
@@ -102,7 +102,7 @@ Theorem Completeness_TypingI : forall G G' I e e' t,
     DTypingI G' e' t ->
     (exists H I' t', CompleteCtx I' /\ ExtCtx H I' /\ ExtCtx I I' /\ ATypingI G e t' H /\ ACpltCtxSubst I' t' t).
 
-Theorem Completeness_TypingApp : forall G G' I e1 e1' e2 e2' t1,
+Definition Completeness_TypingApp := forall G G' I e1 e1' e2 e2' t1,
     ExtCtx G I ->
     CompleteCtx I ->
     ACpltCtxSubstCtx I G G' ->
