@@ -3,7 +3,7 @@
 \subsection{Context Extension}
 
 \begin{figure*}[h]
-    \headercapm{\ctx \exto \ctxr}{Context Extension}
+    \headercapm{\tctx \exto \ctxr}{Context Extension}
 
     \[\CEEmtpy \quad \CEVar\quad\CETypedVar\]
     \[\CELetVar\quad\CEEVar \quad \CESolvedEVar\]
@@ -13,17 +13,17 @@
 \end{figure*}
 
 \begin{figure*}[h]
-    \headercapm{[\cctx]\ctx = \ctx}{Apply a complete context to a context}
+    \headercapm{[\cctx]\tctx = \dctx}{Apply a complete context to a context}
 
     \begin{mathpar}
     \begin{tabular}{r c l l}
         $[\ctxinit]\ctxinit$   & = & $\ctxinit$    \\
-        $[\cctx,x](\ctx,x)$ & = & $[\cctx]\ctx,x$  \\
-        $[\cctx,x:\tau_1](\ctx,x:\tau_2)$ & = & $[\cctx]\ctx,x:[\cctx]\tau_1$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-        $[\cctx,x:\sigma_1=\tau_1](\ctx,x:\sigma_2=\tau_2)$ & = & $[\cctx]\ctx,x:[\cctx]\sigma_1=[\cctx]\tau_1$ & if $[\cctx]\sigma_1$=$[\cctx]\sigma_2$ and $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-        $[\cctx,\genA=\tau_1](\ctx,\genA)$ & = & $[\cctx]\ctx$ \\
-        $[\cctx,\genA=\tau_1](\ctx,\genA=\tau_2)$ & = & $[\cctx]\ctx$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-        $[\cctx,\genA=\tau_1]\ctx$ & = & $[\cctx]\ctx$ & if $\genA \notin dom(\ctx)$ \\
+        $[\cctx,x](\tctx,x)$ & = & $[\cctx]\tctx$  \\
+        $[\cctx,x:\tau_1](\tctx,x:\tau_2)$ & = & $[\cctx]\tctx,x:[\cctx]\tau_1$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
+        $[\cctx,x:\sigma_1=\tau_1](\tctx,x:\sigma_2=\tau_2)$ & = & $[\cctx]\tctx,x:[\cctx]\sigma_1=[\cctx]\tau_1$ & if $[\cctx]\sigma_1$=$[\cctx]\sigma_2$ and $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
+        $[\cctx,\genA=\tau_1](\tctx,\genA)$ & = & $[\cctx]\tctx$ \\
+        $[\cctx,\genA=\tau_1](\tctx,\genA=\tau_2)$ & = & $[\cctx]\tctx$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
+        $[\cctx,\genA=\tau_1]\tctx$ & = & $[\cctx]\tctx$ & if $\genA \notin dom(\tctx)$ \\
     \end{tabular}
     \end{mathpar}
     \caption{Apply complete context.}
@@ -41,7 +41,7 @@ Since complete context has all existential variables solved, applying a complete
 \begin{lemma}[Stability of Complete Contexts]
   \label{lemma:stability-of-complete-context}
 
-  If $\ctx \exto \cctx$, then $[\cctx]\ctx = [\cctx]\cctx$.
+  If $\tctx \exto \cctx$, then $[\cctx]\tctx = [\cctx]\cctx$.
 \end{lemma}
 
 \subsection{Soundness}
@@ -50,23 +50,23 @@ Having the notation of complete context, this section gives the lemma about the 
 
 \begin{theorem}[Soundness of Unification]
 
-If $\ctx \byuni \tau_1 \lt \tau_2 \toctx$ where $[\ctx] \tau_1 = \tau_1$ and $[\ctx] \tau_2 = \tau_2$,
+If $\tctx \byuni \tau_1 \lt \tau_2 \toctx$ where $[\tctx] \tau_1 = \tau_1$ and $[\tctx] \tau_2 = \tau_2$,
 and $\ctxl \exto \cctx$,
 then $[\cctx]\ctxl \bywf [\cctx]\tau_1$ and $[\cctx]\ctxl \bywf [\cctx]\tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$.
 \end{theorem}
 
-This theorem states that, if in algorithmic system, with context $\ctx$, unify $\tau_1$ and $\tau_2$ results in a output context $\ctxl$, which is extended to complete context $\cctx$, then we have the two types $[\cctx]\tau_1$, $[\cctx]\tau_2$ are well formed under declarative context $[\cctx]\ctxl$, and they are alpha equivalent.
+This theorem states that, if in algorithmic system, with context $\tctx$, unify $\tau_1$ and $\tau_2$ results in a output context $\ctxl$, which is extended to complete context $\cctx$, then we have the two types $[\cctx]\tau_1$, $[\cctx]\tau_2$ are well formed under declarative context $[\cctx]\ctxl$, and they are alpha equivalent.
 
 \begin{theorem}[Soundness of Instantiation]
 
-If $\preinst \sigma \lt \tau \toctx$ where $\prewf \sigma$ and $\prewf \tau$,
+If $\tpreinst \sigma \lt \tau \toctx$ where $\tprewf \sigma$ and $\tprewf \tau$,
 and $\ctxl \exto \cctx$,
 then $[\cctx]\ctxl \byinst [\cctx]\sigma \lt [\cctx]\tau$.
 \end{theorem}
 
 \begin{theorem}[Soundness of Generalization]
 
-If $\preinf e:\tau \toctx $ and $\ctxl \bygen \tau \lt \sigma$,
+If $\tpreinf e:\tau \toctx $ and $\ctxl \bygen \tau \lt \sigma$,
 and $\ctxl \exto \cctx$,
 then $[\cctx]\ctxl \bygen [\cctx]e:[\cctx]\sigma$.
 \end{theorem}
@@ -75,14 +75,14 @@ then $[\cctx]\ctxl \bygen [\cctx]e:[\cctx]\sigma$.
 
 Given $\ctxl \exto \cctx$
 \begin{enumerate}
-   \item If $\preinf e: \tau \toctx$ then $[\cctx]\ctxl \byinf [\cctx]e: [\cctx]\tau$
-   \item If $\prechk e: \tau \toctx$ then $[\cctx]\ctxl \bychk [\cctx]e: [\cctx]\tau$
-   \item If $\preinf e_1:\tau_1 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_1 ~ e_2 : \tau_2 \toctx$,
+   \item If $\tpreinf e: \tau \toctx$ then $[\cctx]\ctxl \byinf [\cctx]e: [\cctx]\tau$
+   \item If $\tprechk e: \tau \toctx$ then $[\cctx]\ctxl \bychk [\cctx]e: [\cctx]\tau$
+   \item If $\tpreinf e_1:\tau_1 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_1 ~ e_2 : \tau_2 \toctx$,
        then $[\cctx]\ctxl \byinf [\cctx]e_1 ~ [\cctx]e_2 : [\cctx]\tau_2$
 \end{enumerate}
 \end{theorem}
 
-Soundness of typing has two forms corresponding to two modes in typing procedure. It states if in algorithmic system, with context $\ctx$, we could infer expression $e$ of type $\tau$, then in declarative context $[\cctx]\ctxl$, we could infer $e$ of type $[\cctx]\tau$. The statement is similar in the check case.
+Soundness of typing has two forms corresponding to two modes in typing procedure. It states if in algorithmic system, with context $\tctx$, we could infer expression $e$ of type $\tau$, then in declarative context $[\cctx]\ctxl$, we could infer $e$ of type $[\cctx]\tau$. The statement is similar in the check case.
 
 \subsection{Completeness}
 
@@ -90,35 +90,35 @@ To prove the completeness of the algorithmic system with respect to the declarat
 
 \begin{theorem}[Completeness of Unification]
 
-If $\ctx \exto \cctx$ and $\ctx \bywf \tau_1$ and $\ctx \bywf \tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$, then there exist $\ctxl$ and $\cctx'$ such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byuni [\ctx]\tau_1 \lt [\ctx]\tau_2 \toctx$.
+If $\tctx \exto \cctx$ and $\tctx \bywf \tau_1$ and $\tctx \bywf \tau_2$ and $[\cctx]\tau_1 = [\cctx]\tau_2$, then there exist $\ctxl$ and $\cctx'$ such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\tctx \byuni [\tctx]\tau_1 \lt [\tctx]\tau_2 \toctx$.
 \end{theorem}
 
 \begin{theorem}[Completeness of Instantiation]
 
-If $\ctx \exto \cctx$ and $[\cctx]\ctx \byinst [\cctx]\sigma \lt [\cctx]\tau$
+If $\tctx \exto \cctx$ and $[\cctx]\tctx \byinst [\cctx]\sigma \lt [\cctx]\tau$
 then there exists $\ctxl$ and $\cctx'$
-such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinst [\ctx]\sigma \lt [\ctx]\tau \toctx$.
+such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\tctx \byinst [\tctx]\sigma \lt [\tctx]\tau \toctx$.
 \end{theorem}
 
 \begin{theorem}[Completeness of Generalization]
 
-If $\ctx \exto \cctx$ and $[\cctx] \ctx \bygen [\cctx]e \lt [\cctx]\sigma$,
+If $\tctx \exto \cctx$ and $[\cctx] \tctx \bygen [\cctx]e \lt [\cctx]\sigma$,
 then there exists $\ctxl$ and $\cctx'$ and $\tau$
-such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinf e : \tau \toctx$ and $\ctxl \bygen \tau \lt \sigma$.
+such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\tctx \byinf e : \tau \toctx$ and $\ctxl \bygen \tau \lt \sigma$.
 \end{theorem}
 
 \begin{theorem}[Completeness of Typing]
 
-Given $\ctx \exto \cctx$
+Given $\tctx \exto \cctx$
 \begin{enumerate}
-    \item If $\ctx \bywf \tau$ and $[\cctx]\ctx \bychk [\cctx]e : [\cctx]\tau$\\
+    \item If $\tctx \bywf \tau$ and $[\cctx]\tctx \bychk [\cctx]e : [\cctx]\tau$\\
           then there exists $\ctxl$ and $\cctx'$\\
-          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \bychk e: [\ctx]\tau \toctx$.
-    \item If $[\cctx]\ctx \byinf [\cctx]e : \tau$\\
+          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\tctx \bychk e: [\tctx]\tau \toctx$.
+    \item If $[\cctx]\tctx \byinf [\cctx]e : \tau$\\
           then there exists $\ctxl$ and $\cctx'$ and $\tau'$\\
-          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\ctx \byinf e:\tau' \toctx$ and $\tau = [\cctx']\tau'$.
-    \item If $[\cctx]\ctx \byinf [\cctx]e_1 ~ [\cctx]e_2 :\tau_1$\\
+          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $\tctx \byinf e:\tau' \toctx$ and $\tau = [\cctx']\tau'$.
+    \item If $[\cctx]\tctx \byinf [\cctx]e_1 ~ [\cctx]e_2 :\tau_1$\\
           then there exists $\ctxl$ and $\ctxl_1$ and $\cctx'$ and $\tau_1'$ and $\tau_2$\\
-          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $[\cctx']\ctxl_1 \byinf [\cctx]e_1 :[\cctx']\tau_2$ and $\ctx \byinf e_1 : \tau_2 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_2 ~ e_2 :\tau_1' \toctx$ and $\tau_1 = [\cctx']\tau_1'$.
+          such that $\ctxl \exto \cctx'$ and $\cctx \exto \cctx'$ and $[\cctx']\ctxl_1 \byinf [\cctx]e_1 :[\cctx']\tau_2$ and $\tctx \byinf e_1 : \tau_2 \toctx_1$ and $\ctxl_1 \byapp [\ctxl_1]\tau_2 ~ e_2 :\tau_1' \toctx$ and $\tau_1 = [\cctx']\tau_1'$.
 \end{enumerate}
 \end{theorem}

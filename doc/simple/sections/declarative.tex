@@ -1,7 +1,7 @@
 \section{Declarative System}
 
 \begin{figure*}[h]
-    \headercapm{\preall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \headercapm{\dpreall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\DAx \quad \DVar \quad \DLetVar \]
     \[\DAnn \quad \DLamInf \quad \DLamChk\]
     \[\DApp \quad \DPi\]
@@ -9,20 +9,20 @@
     \[\DCastUp \quad \DCastDn\]
     \[\DSub \quad \DConv\]
     \\
-    \headercapm{\preinst \sigma \lt \tau}{Instantiation} \quad \headercapm{\pregen e : \sigma}{Generalization}
+    \headercapm{\dpreinst \sigma \lt \tau}{Instantiation} \quad \headercapm{\dpregen e : \sigma}{Generalization}
     \[\DInstantiation \quad \DGeneralization\]
     \caption{Declarative typing rules}
     \label{fig:decltyping}
 \end{figure*}
 
 \begin{figure}[t]
-    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
+    \headercapm{[\dctx]e_1 = e_2}{Apply context to a type}
 
     \begin{mathpar}
     \begin{tabular}{r c l}
         $[\ctxinit]e$   & = & $e$       \\
-        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
-        $[\ctx,x:\sigma = \tau]e$ & = & $[\ctx](e[x\mapsto \tau])$ \\
+        $[\dctx,x:\tau]e$ & = & $[\dctx]e$ \\
+        $[\dctx,x:\sigma = \tau]e$ & = & $[\dctx](e[x\mapsto \tau])$ \\
     \end{tabular}
     \end{mathpar}
     \caption{Applying a context}
@@ -49,7 +49,7 @@
 
 The typing rule for declarative system are shown in figure \ref{fig:decltyping}.
 
-\paragraph{Bidirectional typing.} The judgement $\preall e:\sigma \trto t$ is interpreted as, under context $\ctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.
+\paragraph{Bidirectional typing.} The judgement $\dpreall e:\sigma \trto t$ is interpreted as, under context $\dctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.
 
 \rul{D-Ax} is our impredicative axiom. \rul{D-Var} fetches type information from context for variables. \rul{D-LetVar} is the case for let binding, where we use \rul{D-Inst} to instantiate the type.
 
@@ -65,7 +65,7 @@ The typing rule for declarative system are shown in figure \ref{fig:decltyping}.
 
 \paragraph{Contextual equivalence.} Instead of normal delta-rule($\delta$-reduction) used to deal with let binding, here we use contextual equivalence as shown in \rul{D-Conv}.
 
-Using context as a substitution is defined in Figure \ref{fig:declapplyctx}, where let binding is the only form that will be applied. But as we will see soon, this notation extends smoothly in the algorithmic system. If two types are alpha-equal under context substitution of $\ctx$, we regard these two types contextual equivalence under $\ctx$.
+Using context as a substitution is defined in Figure \ref{fig:declapplyctx}, where let binding is the only form that will be applied. But as we will see soon, this notation extends smoothly in the algorithmic system. If two types are alpha-equal under context substitution of $\dctx$, we regard these two types contextual equivalence under $\dctx$.
 
 Having these notations, we could see in the precondition of \rul{D-Conv}, the type of $e$ could be replaced with another type only if these two types are contextual equivalence under current context.
 

@@ -12,13 +12,13 @@
         && \synor & $\ercastup e \mid \castdn e$ \\
         && \synor & $e : \tau$ \\
         Contexts &
-        $\ctx,\ctxl,\ctxr$ & \syndef & $\ctxinit$ \\
-        && \synor & $\ctx,x \mid \ctx,x:\tau \mid \ctx,x:\sigma=e$ \\
-        && \synor & $\ctx,\genA \mid \ctx,\genA=\tau$ \\
+        $\tctx,\ctxl,\ctxr$ & \syndef & $\ctxinit$ \\
+        && \synor & $\tctx,x \mid \tctx,x:\tau \mid \tctx,x:\sigma=e$ \\
+        && \synor & $\tctx,\genA \mid \tctx,\genA=\tau$ \\
         Complete Ctx &
-        $\cctx$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau$ \\
-        && \synor & $\ctx,x:\tau=\tau_2$ \\
-        && \synor & $\ctx,\genA=\tau$ \\
+        $\cctx$ & \syndef & $\ctxinit \mid \cctx,x \mid \cctx,x:\tau$ \\
+        && \synor & $\cctx,x:\tau=\tau_2$ \\
+        && \synor & $\cctx,\genA=\tau$ \\
     \end{tabular}
     \caption{syntax.}
     \label{fig:syntax}
@@ -31,19 +31,19 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
 Now we could extend the definition of context subsitution as shown in Figure \ref{fig:applyctx}. Intuitively, Existential variables in solved form could be substituted by its solution.
 
 \begin{figure}[h]
-    \headercapm{\ctx \bywt \sigma}{Well Term of type $\sigma$ under context $\ctx$}
+    \headercapm{\tctx \bywt \sigma}{Well Term of type $\sigma$ under context $\tctx$}
     \[\TWTVar \quad \TWTEVar \quad \TWTStar\]
     \[\TWTPoly \quad \TWTApp\]
     \[\TWTLam \quad \TWTPi\]
     \[\TWTLet \quad \TWTCastUp\]
     \[\TWTCastDn \quad \TWTAnn\]
 
-    \headercapm{\ctx \bywf \sigma}{Well Form of type $\sigma$ under context $\ctx$}
+    \headercapm{\tctx \bywf \sigma}{Well Form of type $\sigma$ under context $\tctx$}
 
     \[\TWFEVar \quad \TWFPi \]
     \[\TWFPoly \quad \TWFOther \]
 
-    \headercapm{\ctx\wc}{Context $\ctx$ is well formed}
+    \headercapm{\tctx\wc}{Context $\tctx$ is well formed}
 
     \[\TWCEmpty \quad \TWCVar\]
     \[\TWCTypedVar\]
@@ -55,16 +55,16 @@ Now we could extend the definition of context subsitution as shown in Figure \re
 \end{figure}
 
 \begin{figure}[t]
-    \headercapm{[\ctx]e_1 = e_2}{Apply context to a type}
+    \headercapm{[\tctx]e_1 = e_2}{Apply context to a type}
 
     \begin{mathpar}
     \begin{tabular}{r c l l}
         $[\ctxinit]e$   & = & $e$       \\
-        $[\ctx,x]e$      & = & $[\ctx]e$ \\
-        $[\ctx,x:\tau]e$ & = & $[\ctx]e$ \\
-        $[\ctx,x:\sigma = \tau]e$ & = & $[\ctx](e[x\mapsto \tau])$ \\
-        $[\ctx, \genA]e$ & = & $[\ctx]e$ \\
-        $[\ctx, \genA=\tau]e$ & = & $[\ctx](e[\genA \mapsto \tau])$
+        $[\tctx,x]e$      & = & $[\tctx]e$ \\
+        $[\tctx,x:\tau]e$ & = & $[\tctx]e$ \\
+        $[\tctx,x:\sigma = \tau]e$ & = & $[\tctx](e[x\mapsto \tau])$ \\
+        $[\tctx, \genA]e$ & = & $[\tctx]e$ \\
+        $[\tctx, \genA=\tau]e$ & = & $[\tctx](e[\genA \mapsto \tau])$
     \end{tabular}
     \end{mathpar}
     \caption{Applying a context with existential variables.}
@@ -89,30 +89,30 @@ Now we could extend the definition of context subsitution as shown in Figure \re
         \end{tabular}
         \end{mathpar}
 
-    \headercapm{FEV(\ctx)}{free existential variables of context}
+    \headercapm{FEV(\tctx)}{free existential variables of context}
         \begin{mathpar}
         \begin{tabular}{r c l}
-            $FEV(\ctx, x)$        & = & $FEV(\ctx)$       \\
-            $FEV(\ctx, x:\tau)$   & = & $FEV(\ctx) \cup FEV(\tau)$       \\
-            $FEV(\ctx, x:\sigma = \tau)$     & = & $FEV(\ctx) \cup FEV(\sigma) $       \\
-            $FEV(\ctx, \genA)$        & = & $FEV(\ctx)$       \\
-            $FEV(\ctx, \genA=\tau)$   & = & $FEV(\ctx)$       \\
+            $FEV(\tctx, x)$        & = & $FEV(\tctx)$       \\
+            $FEV(\tctx, x:\tau)$   & = & $FEV(\tctx) \cup FEV(\tau)$       \\
+            $FEV(\tctx, x:\sigma = \tau)$     & = & $FEV(\tctx) \cup FEV(\sigma) $       \\
+            $FEV(\tctx, \genA)$        & = & $FEV(\tctx)$       \\
+            $FEV(\tctx, \genA=\tau)$   & = & $FEV(\tctx)$       \\
         \end{tabular}
         \end{mathpar}
     \caption{Free existential variables.}
     \label{fig:algo-free-variables}
 \end{figure}
 
-\paragraph{Hole notation.} We use notations like $\ctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\ctx_1, x, \ctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\ctx[\genA] \bywf \genA$.
+\paragraph{Hole notation.} We use notations like $\tctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\tctx_1, x, \tctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\tctx[\genA] \bywf \genA$.
 
-Multiple holes also require the order. For example, $\ctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
+Multiple holes also require the order. For example, $\tctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
 
-Hole notation is also used for replace and modification. After an unification, $\ctx[\genA]$ could become $\ctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
+Hole notation is also used for replace and modification. After an unification, $\tctx[\genA]$ could become $\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
 
 \subsection{Typing Rules}
 
 \begin{figure*}[h]
-    \headercapm{\preall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \headercapm{\tpreall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\TAx \quad \TVar\quad \TLetVar\]
     \[\TAnn \quad \TPi\]
     \[\TLamInf \quad \TLamChk\]
@@ -120,24 +120,24 @@ Hole notation is also used for replace and modification. After an unification, $
     \[\TCastUp \quad \TCastDn\]
     \[\TApp \quad \TSub\]
     \\
-    \headercapm{\preapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
+    \headercapm{\tpreapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
     \[\APi \quad \AEVar\]
     \\
-    \headercapm{\preinst \sigma \lt \tau \toctx}{Instantiation} \quad \headercapm{\pregen \tau \lt \sigma}{Generalization}
+    \headercapm{\tpreinst \sigma \lt \tau \toctx}{Instantiation} \quad \headercapm{\tpregen \tau \lt \sigma}{Generalization}
     \[\Instantiation \quad \Generalization\]
     \caption{Typing rules}
     \label{fig:typingrules}
 \end{figure*}
 
 \begin{figure*}[h]
-\headercapm{\preuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
+\headercapm{\tpreuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
     \[\UVar \quad \UEVarId \quad \UStar\]
     \[\UApp \quad \ULet\]
     \[\ULam \quad \UCastUp \quad \UCastDn\]
     \[\UPi \quad \UAnn\]
     \[\UEVarTy\]
     \[\UTyEVar\]
-\headercapm{\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Resolve existential variables in $\tau_1$}
+\headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Resolve existential variables in $\tau_1$}
     \[\IEVarA \quad \IEVarB\]
     \[\IPi \quad \IOthers\]
     \caption{Unification rules}
@@ -147,7 +147,7 @@ Hole notation is also used for replace and modification. After an unification, $
 Figure \ref{fig:typingrules} gives the algorithmic bidirectional typing rules.
 
 \paragraph{Output context.}
-The judgement $\preall e:\tau \toctx \trto t$ is now with output context, which is used mainly for existance records and solutions of existential variables. The interpretation of judgement is, under context $\ctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
+The judgement $\tpreall e:\tau \toctx \trto t$ is now with output context, which is used mainly for existance records and solutions of existential variables. The interpretation of judgement is, under context $\tctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
 
 First four typing rules remain stardard as natural extensions of the declarative rules.
 
@@ -172,8 +172,8 @@ The result type has two forms of references to the existential variables after $
 \begin{mathpar}
     \begin{tabular}{r c l l}
         $UV(\ctxinit)$    & = & $\cdot$       \\
-        $UV(\ctx, \genA)$ & = & $UV(\ctx), \genA$ \\
-        $UV(\ctx, \_)$     & = & $UV(\ctx)$
+        $UV(\tctx, \genA)$ & = & $UV(\tctx), \genA$ \\
+        $UV(\tctx, \_)$     & = & $UV(\tctx)$
     \end{tabular}
 \end{mathpar}
 
@@ -182,7 +182,7 @@ We can minimize the context if replace $UV(\ctxr)$ with $UV(\ctxr) \cap FV([\ctx
 \paragraph{Application.}
 Consider the application rule in declarative system, which assumes $e_1$ is of a Pi type. It is not the case in algorithmic system because the type of $e_1$ could be an existential variable.
 
-\rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. The judgement $\ctx \byapp \tau_1 ~ e : \tau_2 \toctx$ is interpreted as, in context $\ctx$, the type of the expression being applied is $\tau_1$, the argument is $e_2$, and the output of the rule is the application result type $\tau_2$ with context $\ctxl$.
+\rul{T-App} first infers the type of $e_1$ to get $\tau_1$, then substitute the context in $\tau_1$ and enter the application typing rules, which is defined by the A-rules. The judgement $\tctx \byapp \tau_1 ~ e : \tau_2 \toctx$ is interpreted as, in context $\tctx$, the type of the expression being applied is $\tau_1$, the argument is $e_2$, and the output of the rule is the application result type $\tau_2$ with context $\ctxl$.
 
 In \rul{A-Pi}, the type of $e_1$ is a Pi type, so it checks $e_2$ with the argument type provided.
 
@@ -199,7 +199,7 @@ At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating al
 \subsection{Unification}
 
 \begin{figure}[h]
-    \headercapm{\ctx \byuni \genA \lt A \toctx}{Under input context $\ctx$, instantiate $\genA$ such that $\genA \lt A$, with output context $\ctxl$}
+    \headercapm{\tctx \byuni \genA \lt A \toctx}{Under input context $\tctx$, instantiate $\genA$ such that $\genA \lt A$, with output context $\ctxl$}
     \[\OInstLSolve\]
     \[\OInstLArr\]
     \[\OInstLReach\]
@@ -207,7 +207,7 @@ At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating al
     \label{fig:originunification}
 \end{figure}
 
-Figure \ref{fig:unifyrules} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\preuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\ctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$. One feature of the unification is like Hindley-Milner system: there is no forall in unification procedure, which simplifies unification a lot.
+Figure \ref{fig:unifyrules} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\tpreuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\tctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$. One feature of the unification is like Hindley-Milner system: there is no forall in unification procedure, which simplifies unification a lot.
 
 To compare the differences and explain the motivation, Figure \ref{fig:originunification} gives the unification rules in Dunfield and Krishnaswami's system when existential variable appears in the left hand side. Here we omit the rule for forall.
 
@@ -215,13 +215,13 @@ Back to Figure \ref{fig:unifyrules}, the first three rules are just identity. Th
 
 The last two rules deal with existential variable case. Consider extending rules in Figure \ref{fig:originunification} to dependently typed expression to deal with existential variables, this unification problem would fail:
 
-$\ctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x$
+$\tctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x$
 
-Here because $\genB$ appears after $\genA$, so \rul{InstLSolve} cannot be applied. But while trying to use \rul{InstLArr}, we are requesting $\genA_2$ could refer to  $x$. This means we need to add $x$ at least before $\genA_2$ to make $\genA_2$ well typed, which will unfortunately make all the type variables in $\ctxr$ be able to refer to $x$. But this unification do have a solution context: $\ctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1, \ctxr$.
+Here because $\genB$ appears after $\genA$, so \rul{InstLSolve} cannot be applied. But while trying to use \rul{InstLArr}, we are requesting $\genA_2$ could refer to  $x$. This means we need to add $x$ at least before $\genA_2$ to make $\genA_2$ well typed, which will unfortunately make all the type variables in $\ctxr$ be able to refer to $x$. But this unification do have a solution context: $\tctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1, \ctxr$.
 
 Good news is that we could merge all three rules in Figure \ref{fig:originunification} to solve this problem, which results in \rul{U-EvarTy}. Actually, the role of rule \rul{InstLArr} and \rul{InstLReach} is to work for cases that \rul{InstLSolve} cannot handle: some existential variables in the right hand side appear after $\genA$ in context (another case is forall types if type system has forall types).
 
-\paragraph{Resolving existential variables.} The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used in \rul{U-EvarTy} and \rul{U-TyEVar}. The judgement $\ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx$ is interpreted as, under context $\ctx$, try to find all the existential variables $\overbar \genB$ in $\tau_1$ that appears after $\genA$ in context, then generate new existential variables $\overbar {\genA_1}$ before $\genA$ and make $\overbar \genB = \overbar {\genA_1}$. These rules will turn $\tau_1$ into $\tau_2$ where all the existential variables could be refered directly by $\genA$.
+\paragraph{Resolving existential variables.} The latter part of Figure \ref{fig:unifyrules} defines the I-rules that are used in \rul{U-EvarTy} and \rul{U-TyEVar}. The judgement $\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx$ is interpreted as, under context $\tctx$, try to find all the existential variables $\overbar \genB$ in $\tau_1$ that appears after $\genA$ in context, then generate new existential variables $\overbar {\genA_1}$ before $\genA$ and make $\overbar \genB = \overbar {\genA_1}$. These rules will turn $\tau_1$ into $\tau_2$ where all the existential variables could be refered directly by $\genA$.
 
 \rul{I-Var} and \rul{I-Star} is just identity.
 
@@ -234,7 +234,7 @@ Other cases are structurally defined, so they are represented by the single \rul
 Having the I-rules, back to rule \rul{U-EvarTy}. It first does the occur check, and use I-rules to solve the problem of existential variables, at last checks the well typedness of the result. It is easy to see this rule contains \rul{InstLSolve} directly since we have $\tau_1 \cgto \tau_1$. And it contains \rul{InstLArr} and \rul{InstLReach} respectively from \rul{I-Other} and \rul{I-EVar2}. Now this unification problem is solved, which is shown in Figure \ref{fig:solveunify}.
 
 \begin{figure*}[h]
-    $\ctxl = \ctx,\genA_1,\genA,\genB =\genA_1,\ctxr$
+    $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1,\ctxr$
     \[\ExUni\]
     \caption{Solve unification problem.}
     \label{fig:solveunify}

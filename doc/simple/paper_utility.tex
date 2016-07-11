@@ -153,8 +153,8 @@
 \newcommand{\varB}{\beta}
 
 %% Context
-\newcommand{\ctx}{\Gamma}
-\newcommand{\tctx}{\Sigma}
+\newcommand{\dctx}{\Psi}
+\newcommand{\tctx}{\Gamma}
 \newcommand{\ctxinit}{\varnothing}
 \newcommand{\ctxl}{\Theta}
 \newcommand{\ctxr}{\Delta}
@@ -171,19 +171,30 @@
 \newcommand{\bywf}{\vdash}
 \newcommand{\bywt}{\vDash}
 \newcommand{\toctx}{\dashv \ctxl}
-\newcommand{\toctxo}{\dashv \ctx}
+\newcommand{\toctxo}{\dashv \tctx}
 \newcommand{\toctxr}{\dashv \ctxr}
-\newcommand{\preinf}[1][]{\ctx {#1} \byinf}
-\newcommand{\prechk}[1][]{\ctx {#1} \bychk}
-\newcommand{\preall}[1][]{\ctx {#1} \byall}
-\newcommand{\preapp}[1][]{\ctx {#1} \byapp}
-\newcommand{\preuni}[1][]{\ctx {#1} \byuni}
-\newcommand{\pretar}[1][]{\tctx {#1} \bytar}
-\newcommand{\preinst}[1][]{\ctx {#1} \byinst}
-\newcommand{\pregen}[1][]{\ctx {#1} \bygen}
-\newcommand{\precg}[1][]{\ctx {#1} \bycg}
-\newcommand{\prewf}[1][]{\ctx {#1} \bywf}
-\newcommand{\prewt}[1][]{\ctx {#1} \bywt}
+\newcommand{\dpreinf}[1][]{\dctx {#1} \byinf}
+\newcommand{\dprechk}[1][]{\dctx {#1} \bychk}
+\newcommand{\dpreall}[1][]{\dctx {#1} \byall}
+\newcommand{\dpreapp}[1][]{\dctx {#1} \byapp}
+\newcommand{\dpreuni}[1][]{\dctx {#1} \byuni}
+\newcommand{\dpretar}[1][]{\dtctx {#1} \bytar}
+\newcommand{\dpreinst}[1][]{\dctx {#1} \byinst}
+\newcommand{\dpregen}[1][]{\dctx {#1} \bygen}
+\newcommand{\dprecg}[1][]{\dctx {#1} \bycg}
+\newcommand{\dprewf}[1][]{\dctx {#1} \bywf}
+\newcommand{\dprewt}[1][]{\dctx {#1} \bywt}
+\newcommand{\tpreinf}[1][]{\tctx {#1} \byinf}
+\newcommand{\tprechk}[1][]{\tctx {#1} \bychk}
+\newcommand{\tpreall}[1][]{\tctx {#1} \byall}
+\newcommand{\tpreapp}[1][]{\tctx {#1} \byapp}
+\newcommand{\tpreuni}[1][]{\tctx {#1} \byuni}
+\newcommand{\tpretar}[1][]{\ttctx {#1} \bytar}
+\newcommand{\tpreinst}[1][]{\tctx {#1} \byinst}
+\newcommand{\tpregen}[1][]{\tctx {#1} \bygen}
+\newcommand{\tprecg}[1][]{\tctx {#1} \bycg}
+\newcommand{\tprewf}[1][]{\tctx {#1} \bywf}
+\newcommand{\tprewt}[1][]{\tctx {#1} \bywt}
 \newcommand{\wc}{\ \var{ctx}}
 \newcommand{\exto}{\longrightarrow}
 \newcommand{\cgto}{\longmapsto}

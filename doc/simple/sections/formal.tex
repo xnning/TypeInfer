@@ -1,183 +1,179 @@
 % Setup spaces between column
 \setlength{\tabcolsep}{2pt}
 
-%Complete Contexts &
-%$\cctx$ & \syndef & $\ctxinit \mid \ctx,x \mid \ctx,x:\tau \mid \ctx,x:\tau=\tau_2$ \\
-%&& \synor & $\ctx,\genA=\tau$ \\
-
 % ------------------------------------------------------------------------
 % TYPING RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\TAx}{\inferrule{ }{\preinf \star:\star \toctxo}\rname{T-Ax}}
-\newcommand*{\TVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau \toctxo
+\newcommand*{\TAx}{\inferrule{ }{\tpreinf \star:\star \toctxo}\rname{T-Ax}}
+\newcommand*{\TVar}{\inferrule{x:\tau \in \tctx}{\tpreinf x:\tau \toctxo
   }\rname{T-Var}}
-\newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2 \toctx}{\preinf x:\tau_2 \toctx
+\newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \tctx \\ \tpreinst \sigma \lt \tau_2 \toctx}{\tpreinf x:\tau_2 \toctx
   }\rname{T-LetVar}}
-\newcommand*{\TSub}{\inferrule{\preinf e : \tau_1 \toctx_1 \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
-    \lt [\ctxl_1]\tau_2 \toctx}{\prechk e:\tau_2 \toctx }\rname{T-Sub}}
-\newcommand*{\TAnn}{\inferrule{\prechk \tau:\star \toctx_1 \\
-    \ctxl_1 \bychk e:\tau \toctx }{\preinf (e:\tau):\tau \toctx
+\newcommand*{\TSub}{\inferrule{\tpreinf e : \tau_1 \toctx_1 \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
+    \lt [\ctxl_1]\tau_2 \toctx}{\tprechk e:\tau_2 \toctx }\rname{T-Sub}}
+\newcommand*{\TAnn}{\inferrule{\tprechk \tau:\star \toctx_1 \\
+    \ctxl_1 \bychk e:\tau \toctx }{\tpreinf (e:\tau):\tau \toctx
   }\rname{T-Ann}}
-\newcommand*{\TLamInf}{\inferrule{\preinf[,\genA,x:\genA]
-    e:\tau_2 \toctx, x:\genA, \ctxr }{\preinf \erlam x e : (\bpi x \genA
+\newcommand*{\TLamInf}{\inferrule{\tpreinf[,\genA,x:\genA]
+    e:\tau_2 \toctx, x:\genA, \ctxr }{\tpreinf \erlam x e : (\bpi x \genA
     [\ctxr]\tau_2) \toctx, UV(\ctxr) }\rname{T-Lam$\Inf$}}
-\newcommand*{\TLamChk}{\inferrule{\prechk[,x:\tau_1]
+\newcommand*{\TLamChk}{\inferrule{\tprechk[,x:\tau_1]
     e:\tau_2 \toctx,x:\tau_1,\ctxr \\
-    \opt{\prechk {\tau_1 : \star \toctx_1 }}
-    }{\prechk \erlam x e : \bpi x {\tau_1}
+    \opt{\tprechk {\tau_1 : \star \toctx_1 }}
+    }{\tprechk \erlam x e : \bpi x {\tau_1}
     \tau_2 \toctx }\rname{T-Lam$\Chk$}}
-\newcommand*{\TLamAnnInf}{\inferrule{\prechk \tau_1 : \star \toctx_1\\
+\newcommand*{\TLamAnnInf}{\inferrule{\tprechk \tau_1 : \star \toctx_1\\
     \ctxl_1,x:\tau_1 \byinf
-    e:\tau_2 \toctx, x:\tau_1, \ctxr }{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    e:\tau_2 \toctx, x:\tau_1, \ctxr }{\tpreinf \blam x {\tau_1} e : (\bpi x {\tau_1}
     [\ctxr]\tau_2) \toctx, UV(\ctxr) }\rname{T-LamAnn$\Inf$}}
-\newcommand*{\TLamAnnChk}{\inferrule{\prechk \tau_1 : \star \toctx_1\\
+\newcommand*{\TLamAnnChk}{\inferrule{\tprechk \tau_1 : \star \toctx_1\\
     \ctxl_1 \byuni [\ctxl_1] \tau_1 \lt [\ctxl_1] \tau_3 \toctx_2 \\
     \ctxl_2,x:\tau_1 \bychk
     e:\tau_2 \toctx, x:\tau_1, \ctxr }
-    {\prechk \blam x {\tau_1} e : (\bpi x {\tau_3} \tau_2) \toctx }\rname{T-LamAnn$\Chk$}}
+    {\tprechk \blam x {\tau_1} e : (\bpi x {\tau_3} \tau_2) \toctx }\rname{T-LamAnn$\Chk$}}
 \newcommand*{\TApp}{\inferrule{
-    \preinf e_1 : \tau_1 \toctx_1 \\
+    \tpreinf e_1 : \tau_1 \toctx_1 \\
     \ctxl_1 \byapp [\ctxl_1]\tau_1~e_2 : \tau_2 \toctx \\
-}{\preinf e_1~e_2:\tau_2 \toctx}\rname{T-App}}
+}{\tpreinf e_1~e_2:\tau_2 \toctx}\rname{T-App}}
 \newcommand*{\TAppPi}{\inferrule{
-    \preinf e_1 : \bpi x {\tau_1} \tau_2 \toctx_1 \\
+    \tpreinf e_1 : \bpi x {\tau_1} \tau_2 \toctx_1 \\
     \ctxl_1 \bychk e_2 : [\ctxl_1]\tau_1 \toctx \\
-}{\preinf e_1~e_2:\tau_2 \subst x
+}{\tpreinf e_1~e_2:\tau_2 \subst x
     {e_2} \toctx}\rname{T-AppPi}}
 \newcommand*{\TAppVar}{\inferrule{
-    \preinf e_1 : \genA \toctx_1[\genA] \\
+    \tpreinf e_1 : \genA \toctx_1[\genA] \\
     \ctxl_1[\genA_1,\genA_2,\genA=\bpi x {\genA_1} \genA_2] \bychk e_2 : \genA_1 \toctx \\
-}{\preinf e_1~e_2:\genA_2 \toctx}\rname{T-AppVar}}
-\newcommand*{\TPi}{\inferrule{\prechk \tau_1 : \star \toctx_1 \\
-\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr}{\preinf \bpi x {\tau_1} {\tau_2} :
+}{\tpreinf e_1~e_2:\genA_2 \toctx}\rname{T-AppVar}}
+\newcommand*{\TPi}{\inferrule{\tprechk \tau_1 : \star \toctx_1 \\
+\ctxl_1,x:\tau_1 \bychk \tau_2 : \star \toctx,x:\tau_1,\ctxr}{\tpreinf \bpi x {\tau_1} {\tau_2} :
     \star \toctx }\rname{T-Pi}}
-\newcommand*{\TLet}{\inferrule{\preinf e_1 : \tau_1 \toctx_1  \\
+\newcommand*{\TLet}{\inferrule{\tpreinf e_1 : \tau_1 \toctx_1  \\
 \ctxl_1 \bygen {\tau_1} \lt \sigma \\
-\ctxl_1, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr }{\preall \kw{let} x=e_1
+\ctxl_1, x:\sigma = e_1 \byall e_2 : \tau_2 \toctx, x:\sigma = e_1, \ctxr }{\tpreall \kw{let} x=e_1
 \kw{in} e_2 : [x:\sigma=e_1, \ctxr]\tau_2 \toctx, UV(\ctxr) }\rname{T-Let}}
-\newcommand*{\TCastUp}{\inferrule{[\ctx]\tau_2
+\newcommand*{\TCastUp}{\inferrule{[\tctx]\tau_2
     \redto \tau_1 \\
-    \prechk e : \tau_1 \toctx \\
-    \opt{\prechk \tau_1 : \star \toctx_1}
+    \tprechk e : \tau_1 \toctx \\
+    \opt{\tprechk \tau_1 : \star \toctx_1}
     }
-  {\prechk \ercastup e : \tau_2 \toctx
+  {\tprechk \ercastup e : \tau_2 \toctx
     }\rname{T-CastUp}}
-\newcommand*{\TCastDn}{\inferrule{\preinf e : \tau_1 \toctx \\
-    [\ctxl]\tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
+\newcommand*{\TCastDn}{\inferrule{\tpreinf e : \tau_1 \toctx \\
+    [\ctxl]\tau_1 \redto \tau_2}{\tpreinf \castdn e : \tau_2
     \toctx }\rname{T-CastDn}}
 
 % DECLARATIVE
 
-\newcommand*{\DAx}{\inferrule{ }{\preinf \star:\star \trto \star}\rname{D-Ax}}
-\newcommand*{\DVar}{\inferrule{x:\tau \in \ctx}{\preinf x:\tau
+\newcommand*{\DAx}{\inferrule{ }{\dpreinf \star:\star \trto \star}\rname{D-Ax}}
+\newcommand*{\DVar}{\inferrule{x:\tau \in \dctx}{\dpreinf x:\tau
   \trto x}\rname{D-Var}}
-\newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \ctx \\ \preinst \sigma \lt \tau_2 \trto f}{\preinf x:\tau_2
+\newcommand*{\DLetVar}{\inferrule{x:\sigma = \tau \in \dctx \\ \dpreinst \sigma \lt \tau_2 \trto f}{\dpreinf x:\tau_2
   \trto {f~x}}\rname{D-LetVar}}
-\newcommand*{\DSub}{\inferrule{\preinf e : \tau \trto{t}}
-  {\prechk e:\tau  \trto{t}}\rname{D-Sub}}
-\newcommand*{\DAnn}{\inferrule{\prechk \tau:\star \\
-    \ctx \bychk e:\tau  \trto t}{\preinf (e:\tau):\tau
+\newcommand*{\DSub}{\inferrule{\dpreinf e : \tau \trto{t}}
+  {\dprechk e:\tau  \trto{t}}\rname{D-Sub}}
+\newcommand*{\DAnn}{\inferrule{\dprechk \tau:\star \\
+    \dctx \bychk e:\tau  \trto t}{\dpreinf (e:\tau):\tau
   \trto t}\rname{D-Ann}}
-\newcommand*{\DLamInf}{\inferrule{ \prechk \tau_1 : \star \trto {t_1} \\ \preinf[,x:\tau_1]
-    e:\tau_2 \trto {t_2}}{\preinf \erlam x e : (\bpi x {\tau_1} {\tau_2})
+\newcommand*{\DLamInf}{\inferrule{ \dprechk \tau_1 : \star \trto {t_1} \\ \dpreinf[,x:\tau_1]
+    e:\tau_2 \trto {t_2}}{\dpreinf \erlam x e : (\bpi x {\tau_1} {\tau_2})
     \trto {\blam x {t_1} {t_2}}}\rname{D-Lam$\Inf$}}
-\newcommand*{\DLamChk}{\inferrule{\prechk[,x:\tau_1]
+\newcommand*{\DLamChk}{\inferrule{\dprechk[,x:\tau_1]
     e:\tau_2 \trto {t_2} \\
-    \opt{\prechk {\tau_1 : \star  \trto {t_1}}}
-    }{\prechk \erlam x e : (\bpi x {\tau_1} \tau_2)  \trto {\blam x {t_1} t_2}}\rname{D-Lam$\Chk$}}
-\newcommand*{\DLamAnnInf}{\inferrule{\prechk \tau_1 : \star
+    \opt{\dprechk {\tau_1 : \star  \trto {t_1}}}
+    }{\dprechk \erlam x e : (\bpi x {\tau_1} \tau_2)  \trto {\blam x {t_1} t_2}}\rname{D-Lam$\Chk$}}
+\newcommand*{\DLamAnnInf}{\inferrule{\dprechk \tau_1 : \star
     \trto {t_1} \\
-    \ctx,x:\tau_1 \byinf
-    e:\tau_2\trto {t_2}}{\preinf \blam x {\tau_1} e : (\bpi x {\tau_1}
+    \dctx,x:\tau_1 \byinf
+    e:\tau_2\trto {t_2}}{\dpreinf \blam x {\tau_1} e : (\bpi x {\tau_1}
     \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn$\Inf$}}
 \newcommand*{\DLamAnnChk}{\inferrule{
-    \ctx,x:\tau_1 \bychk
-    e:\tau_2\trto {t_2}}{\prechk \blam x {\tau_1} e : (\bpi x {\tau_1}
+    \dctx,x:\tau_1 \bychk
+    e:\tau_2\trto {t_2}}{\dprechk \blam x {\tau_1} e : (\bpi x {\tau_1}
     \tau_2) \trto {\blam x {t_1} t_2}}\rname{D-LamAnn$\Chk$}}
 \newcommand*{\DApp}{\inferrule{
-    \preinf e_1 : \bpi  x {\tau_1} {\tau_2} \trto {t_1} \\
-    \prechk e_2 : \tau_1 \trto {t_2}
-}{\preinf e_1~e_2:\tau_2 \subst x {e_2}  \trto {t_1~t_2}}\rname{D-App}}
-\newcommand*{\DPi}{\inferrule{\prechk \tau_1 : \star \trto {t_1} \\
-\ctx,x:\tau_1 \bychk \tau_2 : \star \trto {t_2}}{\preinf \bpi x {\tau_1} {\tau_2} :
+    \dpreinf e_1 : \bpi  x {\tau_1} {\tau_2} \trto {t_1} \\
+    \dprechk e_2 : \tau_1 \trto {t_2}
+}{\dpreinf e_1~e_2:\tau_2 \subst x {e_2}  \trto {t_1~t_2}}\rname{D-App}}
+\newcommand*{\DPi}{\inferrule{\dprechk \tau_1 : \star \trto {t_1} \\
+\dctx,x:\tau_1 \bychk \tau_2 : \star \trto {t_2}}{\dpreinf \bpi x {\tau_1} {\tau_2} :
     \star \trto {\bpi x {t_1} t_2}}\rname{D-Pi}}
-\newcommand*{\DLet}{\inferrule{\pregen e_1 : \sigma \trto {t_1} \\
-\ctx, x:\sigma = e_1 \byall e_2 : \tau_2 \trto {t_2}}{\preall \kw{let} x=e_1
+\newcommand*{\DLet}{\inferrule{\dpregen e_1 : \sigma \trto {t_1} \\
+\dctx, x:\sigma = e_1 \byall e_2 : \tau_2 \trto {t_2}}{\dpreall \kw{let} x=e_1
 \kw{in} e_2 : \tau_2 \subst x {e_1} \trto {\kw{let} x = t_1 \kw{in} t_2}}\rname{D-Let}}
 \newcommand*{\DCastUp}{\inferrule{\tau_2 \redto \tau_1 \\
-    \prechk e : \tau_1 \trto {t_2} \\
-    \opt{\prechk \tau_1 : \star \trto {t_1}}
+    \dprechk e : \tau_1 \trto {t_2} \\
+    \opt{\dprechk \tau_1 : \star \trto {t_1}}
     }
-  {\prechk \ercastup e : \tau_2
+  {\dprechk \ercastup e : \tau_2
     \trto {\castup {t_1} t_2}}\rname{D-CastUp}}
-\newcommand*{\DCastDn}{\inferrule{\preinf e : \tau_1\trto t \\
-    \tau_1 \redto \tau_2}{\preinf \castdn e : \tau_2
+\newcommand*{\DCastDn}{\inferrule{\dpreinf e : \tau_1\trto t \\
+    \tau_1 \redto \tau_2}{\dpreinf \castdn e : \tau_2
     \trto {\castdn t}}\rname{D-CastDn}}
-\newcommand*{\DConv}{\inferrule{\preinf e_1 : \tau_1 \trto t \\ [\ctx]\tau_1 = [\ctx]\tau_2}
-    {\preinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
+\newcommand*{\DConv}{\inferrule{\dpreinf e_1 : \tau_1 \trto t \\ [\dctx]\tau_1 = [\dctx]\tau_2}
+    {\dpreinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
 
-\newcommand*{\DPoly}{\inferrule{\prechk[x:\star] \sigma : \star \trto {t}}
-{\preinf \forall x:\star. \sigma : \star \trto {\bpi x \star t}}\rname{D-Poly}}
+\newcommand*{\DPoly}{\inferrule{\dprechk[x:\star] \sigma : \star \trto {t}}
+{\dpreinf \forall x:\star. \sigma : \star \trto {\bpi x \star t}}\rname{D-Poly}}
 
-\newcommand*{\DInstantiation}{\inferrule{\prechk \overbar{\tau} : \star \trto {\overbar t} \\
+\newcommand*{\DInstantiation}{\inferrule{\dprechk \overbar{\tau} : \star \trto {\overbar t} \\
 \sigma = \forall{\overbar{x:\star}}. \tau_1 \\
-\opt{\prechk \sigma : \star \trto{t_1}}
+\opt{\dprechk \sigma : \star \trto{t_1}}
 }
-{\preinst \sigma \lt \tau_1[\overbar{x} \mapsto \overbar{\tau}] \trto {\blam x {t_1} x ~ \overbar{t}}
+{\dpreinst \sigma \lt \tau_1[\overbar{x} \mapsto \overbar{\tau}] \trto {\blam x {t_1} x ~ \overbar{t}}
 } \rname{D-Inst}}
 
-\newcommand*{\DGeneralization}{\inferrule{ \preinf[, \overbar{x:\star}] e : \tau \trto {t_1}
+\newcommand*{\DGeneralization}{\inferrule{ \dpreinf[, \overbar{x:\star}] e : \tau \trto {t_1}
 \\  \overbar x \notin FV(e)}
-{\pregen e : \forall \overbar{x:\star}. \tau
+{\dpregen e : \forall \overbar{x:\star}. \tau
 \trto {(\blam {x_1} \star {\blam {x_2} \star {... \blam {x_n} \star {t_1}}})}} \rname{D-Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFICATION RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\UVar}{\inferrule{ }{\preuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
-\newcommand*{\UEVarId}{\inferrule{ }{\preuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
-\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
-{\ctx[\genA] \byuni \genA \lt \tau_1 \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-EvarTy}}
-\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \ctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
-{\ctx[\genA] \byuni \tau_1 \lt \genA \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-TyEVar}}
-\newcommand*{\UStar}{\inferrule{ }{\preuni \star \lt \star \toctxo}\rname{U-Star}}
-\newcommand*{\UApp}{\inferrule{\preuni \tau_2 \lt \tau_2' \toctx_1 \\
+\newcommand*{\UVar}{\inferrule{ }{\tpreuni[{[x]}] x \lt x \toctxo[x]}\rname{U-Var}}
+\newcommand*{\UEVarId}{\inferrule{ }{\tpreuni[{[\genA]}] \genA \lt \genA \toctxo[\genA]}\rname{U-EVarId}}
+\newcommand*{\UEVarTy}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
+{\tctx[\genA] \byuni \genA \lt \tau_1 \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-EvarTy}}
+\newcommand*{\UTyEVar}{\inferrule{\genA \not \in \fun{FEV}(\tau_1) \\ \tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx_1, \genA, \ctxl_2 \\ \ctxl_1 \bywt \tau_2}
+{\tctx[\genA] \byuni \tau_1 \lt \genA \toctx_1, \genA=\tau_2, \ctxl_2}\rname{U-TyEVar}}
+\newcommand*{\UStar}{\inferrule{ }{\tpreuni \star \lt \star \toctxo}\rname{U-Star}}
+\newcommand*{\UApp}{\inferrule{\tpreuni \tau_2 \lt \tau_2' \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]\tau_1 \lt [\ctxl_1]\tau_1'
-    \toctx}{\preuni \tau_1~\tau_2 \lt \tau_1'~\tau_2'
+    \toctx}{\tpreuni \tau_1~\tau_2 \lt \tau_1'~\tau_2'
     \toctx}\rname{U-App}}
-\newcommand*{\ULam}{\inferrule{\preuni[,x] \tau \lt \tau'
-    \toctx,x}{\preuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
-\newcommand*{\ULamAnn}{\inferrule{\preuni \tau_1 \lt \tau_3 \toctx_1 \\
+\newcommand*{\ULam}{\inferrule{\tpreuni[,x] \tau \lt \tau'
+    \toctx,x}{\tpreuni \erlam x \tau \lt \erlam x \tau' \toctx}\rname{U-Lam}}
+\newcommand*{\ULamAnn}{\inferrule{\tpreuni \tau_1 \lt \tau_3 \toctx_1 \\
     \ctxl_1, x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_4
-    \toctx,x:\tau_1}{\preuni \blam x {\tau_1} \tau_2 \lt \blam x
+    \toctx,x:\tau_1}{\tpreuni \blam x {\tau_1} \tau_2 \lt \blam x
     {\tau_3} \tau_4 \toctx}\rname{U-LamAnn}}
-\newcommand*{\UPi}{\inferrule{\preuni \tau_1' \lt \tau_1 \toctx_1
+\newcommand*{\UPi}{\inferrule{\tpreuni \tau_1' \lt \tau_1 \toctx_1
     \\ \ctxl_1,x:\tau_1 \byuni [\ctxl_1]\tau_2 \lt [\ctxl_1]\tau_2'
-    \toctx,x:\tau_1}{\preuni \bpi x {\tau_1} \tau_2 \lt \bpi x
+    \toctx,x:\tau_1}{\tpreuni \bpi x {\tau_1} \tau_2 \lt \bpi x
     {\tau_1'} \tau_2' \toctx}\rname{U-Pi}}
-\newcommand*{\ULet}{\inferrule{\preuni \tau_1 \lt \tau_1' \toctx_1
+\newcommand*{\ULet}{\inferrule{\tpreuni \tau_1 \lt \tau_1' \toctx_1
     \\ \ctxl_1, x \byuni {[\ctxl_1]}\tau_2 \lt [\ctxl_1]\tau_2'
-    \toctx, x}{\preuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
+    \toctx, x}{\tpreuni \kw{let} x ={\tau_1} \kw{in} \tau_2 \lt \kw{let} x=
     {\tau_1'} \kw{in} \tau_2' \toctx}\rname{U-Let}}
-\newcommand*{\UCastUp}{\inferrule{\preuni \tau \lt \tau'
-    \toctx}{\preuni \ercastup \tau \lt \ercastup \tau' \toctx}\rname{U-CastUp}}
-\newcommand*{\UCastDn}{\inferrule{\preuni \tau \lt \tau'
-    \toctx}{\preuni \castdn \tau \lt \castdn \tau' \toctx}\rname{U-CastDn}}
-\newcommand*{\UAnn}{\inferrule{\preuni \tau \lt \tau' \toctx_1 \\
+\newcommand*{\UCastUp}{\inferrule{\tpreuni \tau \lt \tau'
+    \toctx}{\tpreuni \ercastup \tau \lt \ercastup \tau' \toctx}\rname{U-CastUp}}
+\newcommand*{\UCastDn}{\inferrule{\tpreuni \tau \lt \tau'
+    \toctx}{\tpreuni \castdn \tau \lt \castdn \tau' \toctx}\rname{U-CastDn}}
+\newcommand*{\UAnn}{\inferrule{\tpreuni \tau \lt \tau' \toctx_1 \\
     \ctxl_1 \byuni [\ctxl_1]e \lt [\ctxl_1]e'
-    \toctx}{\preuni e:\tau \lt e':\tau'
+    \toctx}{\tpreuni e:\tau \lt e':\tau'
     \toctx}\rname{U-Ann}}
 
 % ------------------------------------------------------------------------
 % APPLICATION RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\APi}{\inferrule{\prechk e:\tau_1 \toctx \trto t}{\preapp (\bpi x
+\newcommand*{\APi}{\inferrule{\tprechk e:\tau_1 \toctx \trto t}{\tpreapp (\bpi x
     {\tau_1} \tau_2)~e : \tau_2[x \mapsto e] \toctx \trto t}\rname{A-Pi}}
-\newcommand*{\AEVar}{\inferrule{\prechk[{[\genA_2,\genA_1,\genA=\bpi x
-    {\genA_1} \genA_2]}] e : \genA_1 \toctx \trto t}{\preapp[{[\genA]}]
+\newcommand*{\AEVar}{\inferrule{\tprechk[{[\genA_2,\genA_1,\genA=\bpi x
+    {\genA_1} \genA_2]}] e : \genA_1 \toctx \trto t}{\tpreapp[{[\genA]}]
   \genA~e : \genA_2 \toctx \trto t}\rname{A-EVar}}
 
 % ------------------------------------------------------------------------
@@ -203,95 +199,95 @@
 % POLYMORPHISM
 % ------------------------------------------------------------------------
 
-\newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\preinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctxo, \overbar{\genA}} \rname{Inst}}
+\newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\tpreinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctxo, \overbar{\genA}} \rname{Inst}}
 
-\newcommand*{\Generalization}{\inferrule{\tau_2 = [\ctx]\tau \\ \overbar{\genA} = FEV(\tau_2) - FEV(\ctx)}{\pregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+\newcommand*{\Generalization}{\inferrule{\tau_2 = [\tctx]\tau \\ \overbar{\genA} = FEV(\tau_2) - FEV(\tctx)}{\tpregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFY TVAR
 % ------------------------------------------------------------------------
 
-\newcommand*{\IEVarA}{\inferrule{ }{\ctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar1}}
-\newcommand*{\IEVarB}{\inferrule{ }{\ctx[\genA][\genB] \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{I-EVar2}}
-\newcommand*{\IPi}{\inferrule{\ctx \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }
-{\ctx \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{I-Pi}}
-\newcommand*{\IOthers}{\inferrule{  } {\ctx \bycg \tau \cgto \tau \toctxo}\rname{I-Other}}
+\newcommand*{\IEVarA}{\inferrule{ }{\tctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar1}}
+\newcommand*{\IEVarB}{\inferrule{ }{\tctx[\genA][\genB] \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{I-EVar2}}
+\newcommand*{\IPi}{\inferrule{\tctx \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }
+{\tctx \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{I-Pi}}
+\newcommand*{\IOthers}{\inferrule{  } {\tctx \bycg \tau \cgto \tau \toctxo}\rname{I-Other}}
 
 % ------------------------------------------------------------------------
 % WELL FORM
 % ------------------------------------------------------------------------
 
-\newcommand*{\WFPoly}{\inferrule{ \prewf[,x:\star] \sigma}{ \prewf \forall x: \star. \sigma}\rname{WF-Poly}}
-\newcommand*{\WFOther}{\inferrule{ \prechk \tau : \star}{ \prewf \tau}\rname{WF-Other}}
+\newcommand*{\WFPoly}{\inferrule{ \dprewf[,x:\star] \sigma}{ \dprewf \forall x: \star. \sigma}\rname{WF-Poly}}
+\newcommand*{\WFOther}{\inferrule{ \dprechk \tau : \star}{ \dprewf \tau}\rname{WF-Other}}
 
-\newcommand*{\TWFEVar}{\inferrule{\genA \in \ctx }{\prewf \genA}\rname{WF-EVar}}
-\newcommand*{\TWFPi}{\inferrule{\prewf \tau_1 \\ \prewf \tau_2 }{\prewf \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
+\newcommand*{\TWFEVar}{\inferrule{\genA \in \tctx }{\tprewf \genA}\rname{WF-EVar}}
+\newcommand*{\TWFPi}{\inferrule{\tprewf \tau_1 \\ \tprewf \tau_2 }{\tprewf \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
 \newcommand*{\TWFPoly}{\WFPoly}
-\newcommand*{\TWFOther}{\inferrule{ \prechk \tau : \star \toctx}{ \prewf \tau}\rname{WF-Other}}
+\newcommand*{\TWFOther}{\inferrule{ \tprechk \tau : \star \toctx}{ \tprewf \tau}\rname{WF-Other}}
 
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
-\newcommand*{\WCVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx)}{\ctx, x \wc}\rname{WC-Var}}
-\newcommand*{\WCTypedVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \tau}{\ctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\WCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau}
-{\ctx, x:\sigma = e}\rname{WC-LetVar}}
+\newcommand*{\WCVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx)}{\dctx, x \wc}\rname{WC-Var}}
+\newcommand*{\WCTypedVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \tau}{\dctx, x: \tau \wc}\rname{WC-TypedVar}}
+\newcommand*{\WCLetVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \dprechk[,\overbar{y:\star}] e:\tau}
+{\dctx, x:\sigma = e}\rname{WC-LetVar}}
 
-\newcommand*{\TWCEmpty}{\WCEmpty}
-\newcommand*{\TWCVar}{\WCVar}
-\newcommand*{\TWCTypedVar}{\WCTypedVar}
-\newcommand*{\TWCLetVar}{\inferrule{\ctx \wc \\ x \notin dom(\ctx) \\ \ctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \prechk[,\overbar{y:\star}] e:\tau\toctx}
-{\ctx, x:\sigma = e}\rname{WC-LetVar}}
-\newcommand*{\TWCEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx)}{\ctx, \genA \wc}\rname{WC-EVar}}
-\newcommand*{\TWCSolvedEVar}{\inferrule{\ctx \wc \\ \genA \notin dom(\ctx) \\ \ctx \bywf \tau}{\ctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+\newcommand*{\TWCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
+\newcommand*{\TWCVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx)}{\tctx, x \wc}\rname{WC-Var}}
+\newcommand*{\TWCTypedVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx) \\ \tctx \bywf \tau}{\tctx, x: \tau \wc}\rname{WC-TypedVar}}
+\newcommand*{\TWCLetVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx) \\ \tctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \tprechk[,\overbar{y:\star}] e:\tau\toctx}
+{\tctx, x:\sigma = e}\rname{WC-LetVar}}
+\newcommand*{\TWCEVar}{\inferrule{\tctx \wc \\ \genA \notin dom(\tctx)}{\tctx, \genA \wc}\rname{WC-EVar}}
+\newcommand*{\TWCSolvedEVar}{\inferrule{\tctx \wc \\ \genA \notin dom(\tctx) \\ \tctx \bywf \tau}{\tctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
 
-\newcommand*{\TWTVar}{\inferrule{x \in \ctx}{\prewt x}\rname{WT-Var}}
-\newcommand*{\TWTEVar}{\inferrule{\genA \in \ctx}{\prewt \genA}\rname{WT-EVar}}
-\newcommand*{\TWTStar}{\inferrule{ }{\prewt \star}\rname{WT-Star}}
-\newcommand*{\TWTApp}{\inferrule{\prewt e_1 \\ \prewt e_2}{\prewt e_1 ~ e_2}\rname{WT-App}}
-\newcommand*{\TWTLam}{\inferrule{\prewt[,x] e}{\prewt \erlam x e}\rname{WT-Lam}}
-\newcommand*{\TWTPi}{\inferrule{\prewt \tau_1 \\ \prewt[,x] \tau_2}{\prewt \bpi x {\tau_1} {\tau_2}}\rname{WT-Pi}}
-\newcommand*{\TWTLet}{\inferrule{\prewt e_1 \\ \prewt[,x] e_2}{\prewt \kw{let} x = e_1 \kw{in} e_2}\rname{WT-Let}}
-\newcommand*{\TWTCastUp}{\inferrule{\prewt e}{\prewt \castupz e}\rname{WT-CastUp}}
-\newcommand*{\TWTCastDn}{\inferrule{\prewt e}{\prewt \castdn e}\rname{WT-CastDn}}
-\newcommand*{\TWTAnn}{\inferrule{\prewt e \\ \prewt \tau}{\prewt e:\tau}\rname{WT-Ann}}
-\newcommand*{\TWTPoly}{\inferrule{\prewt[,x] \sigma }{\prewt \forall x:\star. \sigma}\rname{WT-Poly}}
+\newcommand*{\TWTVar}{\inferrule{x \in \tctx}{\tprewt x}\rname{WT-Var}}
+\newcommand*{\TWTEVar}{\inferrule{\genA \in \tctx}{\tprewt \genA}\rname{WT-EVar}}
+\newcommand*{\TWTStar}{\inferrule{ }{\tprewt \star}\rname{WT-Star}}
+\newcommand*{\TWTApp}{\inferrule{\tprewt e_1 \\ \tprewt e_2}{\tprewt e_1 ~ e_2}\rname{WT-App}}
+\newcommand*{\TWTLam}{\inferrule{\tprewt[,x] e}{\tprewt \erlam x e}\rname{WT-Lam}}
+\newcommand*{\TWTPi}{\inferrule{\tprewt \tau_1 \\ \tprewt[,x] \tau_2}{\tprewt \bpi x {\tau_1} {\tau_2}}\rname{WT-Pi}}
+\newcommand*{\TWTLet}{\inferrule{\tprewt e_1 \\ \tprewt[,x] e_2}{\tprewt \kw{let} x = e_1 \kw{in} e_2}\rname{WT-Let}}
+\newcommand*{\TWTCastUp}{\inferrule{\tprewt e}{\tprewt \castupz e}\rname{WT-CastUp}}
+\newcommand*{\TWTCastDn}{\inferrule{\tprewt e}{\tprewt \castdn e}\rname{WT-CastDn}}
+\newcommand*{\TWTAnn}{\inferrule{\tprewt e \\ \tprewt \tau}{\tprewt e:\tau}\rname{WT-Ann}}
+\newcommand*{\TWTPoly}{\inferrule{\tprewt[,x] \sigma }{\tprewt \forall x:\star. \sigma}\rname{WT-Poly}}
 
 % ------------------------------------------------------------------------
 % TRANSLATION CONTEXT
 % ------------------------------------------------------------------------
 
 \newcommand*{\TCEmpty}{\inferrule{ } {\ctxinit \trtop \ctxinit}\rname{TC-Empty}}
-\newcommand*{\TCTypedVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \tau : \star \trtop t} {\ctx, x:\tau \trtop \tctx, x:t}\rname{TC-TypedVar}}
-\newcommand*{\TCLetVar}{\inferrule{\ctx \trtop \tctx \\ \prechk \sigma : \star \trtop t_1 \\ \pregen \tau : \sigma \trtop t_2
-} {\ctx, x:\sigma = \tau \trtop \tctx, x:t_1 = t_2}\rname{TC-LetVar}}
+\newcommand*{\TCTypedVar}{\inferrule{\tctx \trtop \tctx \\ \tprechk \tau : \star \trtop t} {\tctx, x:\tau \trtop \tctx, x:t}\rname{TC-TypedVar}}
+\newcommand*{\TCLetVar}{\inferrule{\tctx \trtop \tctx \\ \tprechk \sigma : \star \trtop t_1 \\ \tpregen \tau : \sigma \trtop t_2
+} {\tctx, x:\sigma = \tau \trtop \tctx, x:t_1 = t_2}\rname{TC-LetVar}}
 
 % ------------------------------------------------------------------------
 % CONTEXT EXTENSION
 % ------------------------------------------------------------------------
 
 \newcommand*{\CEEmtpy}{\inferrule{  }{\ctxinit \exto \ctxinit}\rname{CE-Empty}}
-\newcommand*{\CEVar}{\inferrule{\ctx \exto \ctxr}{\ctx, x \exto \ctxr, x}\rname{CE-Var}}
-\newcommand*{\CETypedVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, x:\tau_1 \exto \ctxr, x:\tau_2}\rname{CE-TypedVar}}
-\newcommand*{\CELetVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\sigma_1 = [\ctxr]\sigma_2 \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, x:\sigma_1=\tau_1 \exto \ctxr, x:\sigma_2 = \tau_2}\rname{CE-LetVar}}
-\newcommand*{\CEEVar}{\inferrule{\ctx \exto \ctxr}{\ctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}
-\newcommand*{\CESolvedEVar}{\inferrule{\ctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\ctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2}\rname{CE-SolvedEVar}}
-\newcommand*{\CESolve}{\inferrule{\ctx \exto \ctxr \\ \ctxr \bywf \tau}{\ctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
-\newcommand*{\CEAdd}{\inferrule{\ctx \exto \ctxr}{\ctx \exto \ctxr, \genA}\rname{CE-Add}}
-\newcommand*{\CEAddSolved}{\inferrule{\ctx \exto \ctxr \\ \ctxr \bywf \tau}{\ctx \exto \ctxr, \genA = \tau}\rname{CE-AddSolved}}
+\newcommand*{\CEVar}{\inferrule{\tctx \exto \ctxr}{\tctx, x \exto \ctxr, x}\rname{CE-Var}}
+\newcommand*{\CETypedVar}{\inferrule{\tctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\tctx, x:\tau_1 \exto \ctxr, x:\tau_2}\rname{CE-TypedVar}}
+\newcommand*{\CELetVar}{\inferrule{\tctx \exto \ctxr \\ [\ctxr]\sigma_1 = [\ctxr]\sigma_2 \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\tctx, x:\sigma_1=\tau_1 \exto \ctxr, x:\sigma_2 = \tau_2}\rname{CE-LetVar}}
+\newcommand*{\CEEVar}{\inferrule{\tctx \exto \ctxr}{\tctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}
+\newcommand*{\CESolvedEVar}{\inferrule{\tctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\tctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2}\rname{CE-SolvedEVar}}
+\newcommand*{\CESolve}{\inferrule{\tctx \exto \ctxr \\ \ctxr \bywf \tau}{\tctx, \genA \exto \ctxr, \genA = \tau}\rname{CE-Solve}}
+\newcommand*{\CEAdd}{\inferrule{\tctx \exto \ctxr}{\tctx \exto \ctxr, \genA}\rname{CE-Add}}
+\newcommand*{\CEAddSolved}{\inferrule{\tctx \exto \ctxr \\ \ctxr \bywf \tau}{\tctx \exto \ctxr, \genA = \tau}\rname{CE-AddSolved}}
 
 % ------------------------------------------------------------------------
 % REFERENCE OF ORIGINAL SYSTEM
 % ------------------------------------------------------------------------
 
-\newcommand*{\OLamInf}{\inferrule{\prechk[,\genA,\genB,x:\genA]
-    e:\genB \toctx, x:\genA, \ctxr}{\preinf \erlam x e : (\bpi x \genA
+\newcommand*{\OLamInf}{\inferrule{\tprechk[,\genA,\genB,x:\genA]
+    e:\genB \toctx, x:\genA, \ctxr}{\tpreinf \erlam x e : (\bpi x \genA
     \genB) \toctx}\rname{$\rightarrow$ I $\Rightarrow$}}
 
-\newcommand*{\OInstLArr}{\inferrule{\preuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
-    \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\preuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstLArr}}
+\newcommand*{\OInstLArr}{\inferrule{\tpreuni[{[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2]}] \genA_1 \lt A_1 \toctx_1 \\
+    \ctxl_1 \byuni [\ctxl_1]A_2 \lt \genA_2 \toctx} {\tpreuni[{[\genA]}] \genA \lt A_1 \to A_2 \toctx}\rname{InstLArr}}
 
-\newcommand*{\OInstLSolve}{\inferrule{\ctx \bywf \tau}{\ctx, \genA, \ctx' \byuni \genA \lt \tau \toctxo, \genA = \tau, \ctx'}\rname{InstLSolve}}
+\newcommand*{\OInstLSolve}{\inferrule{\tctx \bywf \tau}{\tctx, \genA, \tctx' \byuni \genA \lt \tau \toctxo, \genA = \tau, \tctx'}\rname{InstLSolve}}
 
-\newcommand*{\OInstLReach}{\inferrule{ }{\preuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{InstLReach}}
+\newcommand*{\OInstLReach}{\inferrule{ }{\tpreuni[{[\genA][\genB]}] \genA \lt \genB \toctxo[\genA][\genB=\genA]}\rname{InstLReach}}
 
 % ------------------------------------------------------------------------
 % OPERATIONAL SEMANTICS
@@ -311,16 +307,16 @@
 
 \newcommand*{\ExUni}{\inferrule{\genA \notin FEV(\bpi x \genB x) \quad
                                        \inferrule{\inferrule{ }
-                                                            {\ctx,\genA,\genB,\ctxr \bycg \genB \cgto \genA_1 \toctx}\rname{I-Evar2}
+                                                            {\tctx,\genA,\genB,\ctxr \bycg \genB \cgto \genA_1 \toctx}\rname{I-Evar2}
                                                   \quad
                                                   \inferrule{ }
                                                             {\ctxl \bycg x \cgto x \toctx}\rname{I-Var}}
-                                                 {\ctx,\genA,\genB,\ctxr \bycg \bpi x \genB x \cgto \bpi x {\genA_1} x \toctx}\rname{I-Other}
+                                                 {\tctx,\genA,\genB,\ctxr \bycg \bpi x \genB x \cgto \bpi x {\genA_1} x \toctx}\rname{I-Other}
                                       \quad
-                                      \inferrule{ %\inferrule{ }{\ctx,\genA_1 \bywf \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\ctx,\genA_1,x \bywf x}\rname{WF-Var}
+                                      \inferrule{ %\inferrule{ }{\tctx,\genA_1 \bywf \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\tctx,\genA_1,x \bywf x}\rname{WF-Var}
                                                  }
-                                                {\ctx,\genA_1 \bywf \bpi x {\genA_1} x}\rname{WF-Pi}}
-                               {\ctx,\genA,\genB,\ctxr \byuni \genA \lt \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1, \ctxr} \rname{U-EvarTy}}
+                                                {\tctx,\genA_1 \bywf \bpi x {\genA_1} x}\rname{WF-Pi}}
+                               {\tctx,\genA,\genB,\ctxr \byuni \genA \lt \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1, \ctxr} \rname{U-EvarTy}}
 
 %%% Local Variables:
 %%% mode: latex
