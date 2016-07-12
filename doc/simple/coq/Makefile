@@ -27,6 +27,7 @@ COQDOC=$(COQBIN)coqdoc --quiet --utf8 --html
 FILES=\
 	DeclDef\
 	AlgoDef\
+	UtilityEnv\
 	CtxExtension\
 	Theorems
 

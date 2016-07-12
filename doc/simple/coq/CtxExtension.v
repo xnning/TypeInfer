@@ -2,6 +2,7 @@
 Require Import DeclDef.
 Require Import AlgoDef.
 Require Import LibLN.
+Require Import UtilityEnv.
 
 (* Context extension *)
 
@@ -91,10 +92,26 @@ Inductive ACpltCtxSubstCtx : ACtx -> ACtx -> DCtx -> Prop :=
 
 Set Implicit Arguments.
 
-Lemma declaration_preservation : forall G I x v1,
+Definition declaration_preservation_def := forall G I x v1,
     ExtCtx G I -> binds x v1 G -> exists v2, binds x v2 I.
+
+Definition declaration_preservation_dom_def := forall G I x,
+    ExtCtx G I -> x \in (dom G) -> x \in (dom I).
+
+Definition ok_context_def := forall G I, ExtCtx G I -> ok G.
+
+Definition ok_preservation_def := forall G I, ExtCtx G I -> ok I.
+
+Definition declaration_order_preservation_def := forall G I G1 G2 G3 x y xv1 yv1,
+    ExtCtx G I ->
+    G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3 ->
+    exists xv2 yv2 I1 I2 I3, I = I1 & x ~ xv2 & I2 & y ~ yv2 & I3.
+
+(* Proofs *)
+
+Lemma declaration_preservation : declaration_preservation_def.
 Proof.
-  intros* H0 H1. induction H0; auto;
+  introv H0 H1. induction H0; auto;
   try(binds_cases H1; eauto; apply IHExtCtx in B; inversion B as (x1 & HG); exists* x1).
   exists* v1.
   apply IHExtCtx in H1; inversion H1 as (x1 & HG); exists* x1.
@@ -105,28 +122,9 @@ Proof.
   apply* binds_push_neq.
 Qed.
 
-Lemma union_left :forall A (x:A) E F,
-    x \in E ->
-    x \in (E \u F).
+Lemma declaration_preservation_dom : declaration_preservation_dom_def.
 Proof.
-  intros* H.
-  assert(subset E (E \u F)). apply subset_union_weak_l.
-  apply* (H0 x).
-Qed.
-
-Lemma union_right :forall A (x:A) E F,
-    x \in E ->
-    x \in (F \u E).
-Proof.
-  intros* H.
-  assert(subset E (F \u E)). apply subset_union_weak_r.
-  apply* (H0 x).
-Qed.
-
-Lemma declaration_preservation_dom : forall G I x,
-    ExtCtx G I -> x \in (dom G) -> x \in (dom I).
-Proof.
-  intros* HE HX. induction HE; auto;
+  introv HE HX. induction HE; auto;
   try(
   try(destruct (eq_var_dec x x0); subst);
   try(destruct (eq_var_dec x a); subst);
@@ -136,20 +134,161 @@ Proof.
   rewrite in_singleton in HX1; subst; auto_star)).
 Qed.
 
-Lemma ok_context : forall G I,
-    ExtCtx G I -> ok G.
+Lemma ok_context : ok_context_def.
 Proof.
-  intros* H. induction H; auto;
+  introv H. induction H; auto;
   try(apply ok_push; eauto;
-  simpl_dom;
+
   unfold notin; unfold not; intros HV; apply (declaration_preservation_dom H0) in HV; apply* H1).
 Qed.
 
-Lemma ok_preservation : forall G I,
-    ExtCtx G I -> ok I.
+Lemma ok_preservation : ok_preservation_def.
 Proof.
-  intros* H.
+  introv H.
   assert (ok G). apply* ok_context.
   induction H; subst; auto_star.
 Qed.
 
+Lemma declaration_order_preservation : declaration_order_preservation_def.
+Proof.
+  introv HE HG.
+  gen G1 G2 G3 x y xv1 yv1.
+  assert (ok G). apply* ok_context.
+  induction HE; intros* HG.
+  (* ExtCtx_Empty *)
+  eapply empty_middle_inv in HG. inversion HG.
+
+  (* ExtCtx_Var  *)
+  assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec x y); subst.
+  assert (x0 \in (dom (G & y ~ AC_Var))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H3. destruct H3 as [H11 | H12]. rewrite in_singleton in H11. apply H2 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H4.
+  apply split_context in H4. destruct H4 as (G1' & G2' & v' & H4'); subst.
+  exists v' AC_Var G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & x ~ AC_Var). apply (tail_exists_eq n) in HG. auto.
+  inversion H3. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & x ~ AC_Var). rewrite* concat_assoc.
+
+  (* ExtCtx_TypVar  *)
+  assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec x y); subst.
+  assert (x0 \in (dom (G & y ~ AC_Typ t1))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Typ t2) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & x ~ AC_Typ t1). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & x ~ AC_Typ t2). rewrite* concat_assoc.
+
+  (* ExtCtx_LetVar *)
+  assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec x y); subst.
+  assert (x0 \in (dom (G & y ~ AC_Bnd s1 t1))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H5. destruct H5 as [H11 | H12]. rewrite in_singleton in H11. apply H4 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H6.
+  apply split_context in H6. destruct H6 as (G1' & G2' & v' & H6'); subst.
+  exists v' (AC_Bnd s2 t2) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & x ~ AC_Bnd s1 t1). apply (tail_exists_eq n) in HG. auto.
+  inversion H5. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & x ~ AC_Bnd s2 t2). rewrite* concat_assoc.
+
+  (* ExtCtx_EVar *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Unsolved_EVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H3. destruct H3 as [H11 | H12]. rewrite in_singleton in H11. apply H2 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H4.
+  apply split_context in H4. destruct H4 as (G1' & G2' & v' & H4'); subst.
+  exists v' AC_Unsolved_EVar G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Unsolved_EVar). apply (tail_exists_eq n) in HG. auto.
+  inversion H3. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Unsolved_EVar). rewrite* concat_assoc.
+
+  (* ExtCtx_SolvedEVar *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Solved_EVar t1))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Solved_EVar t1) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Solved_EVar t1). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t1). rewrite* concat_assoc.
+
+  (* ExtCtx_Solve *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Unsolved_EVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Solved_EVar t) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Unsolved_EVar). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (ok_context HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t). rewrite* concat_assoc.
+
+  (* ExtCtx_Add *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  apply (IHHE H) in HG.
+  destruct HG as (xv2 & yv2 & I1 & I2 & I3 & HH0); subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Unsolved_EVar).
+  rewrite* concat_assoc.
+
+  (* ExtCtx_AddSolved *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  apply (IHHE H) in HG.
+  destruct HG as (xv2 & yv2 & I1 & I2 & I3 & HH0); subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t).
+  rewrite* concat_assoc.
+Qed.
