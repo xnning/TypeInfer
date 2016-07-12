@@ -7,19 +7,19 @@ Require Import LibLN.
 
 Inductive ExtCtx : ACtx -> ACtx -> Prop :=
   | ExtCtx_Empty: ExtCtx empty empty
-  | ExtCtx_Var : forall G H x, ExtCtx G H -> ExtCtx (G & x ~ AC_Var) (H & x ~ AC_Var)
+  | ExtCtx_Var : forall G H x, ExtCtx G H -> x # H -> ExtCtx (G & x ~ AC_Var) (H & x ~ AC_Var)
   | ExtCtx_TypVar : forall G H x t1 t2,
-      ExtCtx G H -> ACtxSubst H t1 = ACtxSubst H t2 -> ExtCtx (G & x ~ AC_Typ t1) (H & x ~ AC_Typ t2)
+      ExtCtx G H -> x # H -> ACtxSubst H t1 = ACtxSubst H t2 -> ExtCtx (G & x ~ AC_Typ t1) (H & x ~ AC_Typ t2)
   | ExtCtx_LetVar : forall G H x s1 s2 t1 t2,
-      ExtCtx G H -> ACtxTSubst H s1 = ACtxTSubst H s2 ->  ACtxSubst H t1 = ACtxSubst H t2 ->
+      ExtCtx G H -> x # H -> ACtxTSubst H s1 = ACtxTSubst H s2 ->  ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & x ~ AC_Bnd s1 t1) (H & x ~ AC_Bnd s2 t2)
-  | ExtCtx_EVar : forall G H a, ExtCtx G H -> ExtCtx (G & a ~ AC_Unsolved_EVar) (H & a ~ AC_Unsolved_EVar)
-  | ExtCtx_SolvedEVar: forall G H a t1 t2, ExtCtx G H -> ACtxSubst H t1 = ACtxSubst H t2 ->
+  | ExtCtx_EVar : forall G H a, ExtCtx G H -> a # H -> ExtCtx (G & a ~ AC_Unsolved_EVar) (H & a ~ AC_Unsolved_EVar)
+  | ExtCtx_SolvedEVar: forall G H a t1 t2, ExtCtx G H -> a # H -> ACtxSubst H t1 = ACtxSubst H t2 ->
                                       ExtCtx (G & a ~ AC_Solved_EVar t1) (H & a ~ AC_Solved_EVar t1)
-  | ExtCtx_Solve : forall G H a t, ExtCtx G H -> AWfTyp H (AT_Expr t) ->
+  | ExtCtx_Solve : forall G H a t, ExtCtx G H -> a # H -> AWfTyp H (AT_Expr t) ->
                               ExtCtx (G & a ~ AC_Unsolved_EVar) (H & a ~ AC_Solved_EVar t)
-  | ExtCtx_Add : forall G H a, ExtCtx G H -> ExtCtx G (H & a ~ AC_Unsolved_EVar)
-  | ExtCtx_AddSolved: forall G H a t, ExtCtx G H -> AWfTyp H (AT_Expr t) ->
+  | ExtCtx_Add : forall G H a, ExtCtx G H -> a # H ->ExtCtx G (H & a ~ AC_Unsolved_EVar)
+  | ExtCtx_AddSolved: forall G H a t, ExtCtx G H -> a # H -> AWfTyp H (AT_Expr t) ->
                                ExtCtx G (H & a ~ AC_Solved_EVar t)
 .
 
@@ -86,3 +86,70 @@ Inductive ACpltCtxSubstCtx : ACtx -> ACtx -> DCtx -> Prop :=
       CompleteCtx H -> ACpltCtxSubstCtx H G I -> a # G ->
       ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t) G I
 .
+
+(* Properties *)
+
+Set Implicit Arguments.
+
+Lemma declaration_preservation : forall G I x v1,
+    ExtCtx G I -> binds x v1 G -> exists v2, binds x v2 I.
+Proof.
+  intros* H0 H1. induction H0; auto;
+  try(binds_cases H1; eauto; apply IHExtCtx in B; inversion B as (x1 & HG); exists* x1).
+  exists* v1.
+  apply IHExtCtx in H1; inversion H1 as (x1 & HG); exists* x1.
+  assert (a <> x). unfold not; intros; subst; eapply binds_fresh_inv; eauto.
+  apply* binds_push_neq.
+  apply IHExtCtx in H1; inversion H1 as (x1 & HG); exists x1.
+  assert (a <> x). unfold not; intros; subst; eapply binds_fresh_inv; eauto.
+  apply* binds_push_neq.
+Qed.
+
+Lemma union_left :forall A (x:A) E F,
+    x \in E ->
+    x \in (E \u F).
+Proof.
+  intros* H.
+  assert(subset E (E \u F)). apply subset_union_weak_l.
+  apply* (H0 x).
+Qed.
+
+Lemma union_right :forall A (x:A) E F,
+    x \in E ->
+    x \in (F \u E).
+Proof.
+  intros* H.
+  assert(subset E (F \u E)). apply subset_union_weak_r.
+  apply* (H0 x).
+Qed.
+
+Lemma declaration_preservation_dom : forall G I x,
+    ExtCtx G I -> x \in (dom G) -> x \in (dom I).
+Proof.
+  intros* HE HX. induction HE; auto;
+  try(
+  try(destruct (eq_var_dec x x0); subst);
+  try(destruct (eq_var_dec x a); subst);
+  try(simpl_dom; apply union_left; apply in_singleton_self);
+  try(simpl_dom; apply union_right; apply* IHHE);
+  try(rewrite in_union in HX; destruct HX as [HX1 | HX2];auto;
+  rewrite in_singleton in HX1; subst; auto_star)).
+Qed.
+
+Lemma ok_context : forall G I,
+    ExtCtx G I -> ok G.
+Proof.
+  intros* H. induction H; auto;
+  try(apply ok_push; eauto;
+  simpl_dom;
+  unfold notin; unfold not; intros HV; apply (declaration_preservation_dom H0) in HV; apply* H1).
+Qed.
+
+Lemma ok_preservation : forall G I,
+    ExtCtx G I -> ok I.
+Proof.
+  intros* H.
+  assert (ok G). apply* ok_context.
+  induction H; subst; auto_star.
+Qed.
+
