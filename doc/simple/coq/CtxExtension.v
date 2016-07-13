@@ -107,6 +107,13 @@ Definition declaration_order_preservation_def := forall G I G1 G2 G3 x y xv1 yv1
     G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3 ->
     exists xv2 yv2 I1 I2 I3, I = I1 & x ~ xv2 & I2 & y ~ yv2 & I3.
 
+Definition reverse_declaration_order_preservation_def := forall G I x y xv2 yv2 I1 I2 I3,
+    ExtCtx G I ->
+    x \in dom G ->
+    y \in dom G ->
+    I = I1 & x ~ xv2 & I2 & y ~ yv2 & I3 ->
+    exists G1 G2 G3 xv1 yv1, G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3.
+
 (* Proofs *)
 
 Lemma declaration_preservation : declaration_preservation_def.
@@ -291,4 +298,54 @@ Proof.
   destruct HG as (xv2 & yv2 & I1 & I2 & I3 & HH0); subst.
   exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t).
   rewrite* concat_assoc.
+Qed.
+
+Lemma reverse_declaration_order_preservation : reverse_declaration_order_preservation_def.
+Proof.
+  introv HE Hx Hy HI.
+  assert (HX := Hx).
+  apply split_context in Hx.
+  destruct Hx as (Gx1 & Gx2 & v1 & Hx).
+  assert (HY := Hy).
+  rewrite Hx in Hy.
+  simpl_dom.
+  repeat (rewrite in_union in Hy).
+  destruct Hy as [[Hy1 | Hy2] | Hy3].
+  (* y in the left of x *)
+  apply split_context in Hy1.
+  destruct Hy1 as (Gx3 & Gx4 & yv1 & Hy1). rewrite Hy1 in Hx.
+  assert (HYD := Hx).
+  apply (declaration_order_preservation HE) in Hx.
+  destruct Hx as (xv2' & yv2' & I1' & I2' & I3' & I').
+  rewrite I' in HI.
+  assert ( I1' & y ~ xv2' & I2' & x ~ yv2' & I3' = I1' & y ~ xv2' & (I2' & x ~ yv2' & I3')). rewrite concat_assoc. rewrite concat_assoc. auto.
+  rewrite H in HI.
+  assert (I1' = I1 & x ~ xv2 & I2 /\ xv2' = yv2 /\ I2' & x ~ yv2' & I3' =  I3).
+  apply ok_middle_eq with (I0 := I1' & y ~ xv2' & (I2' & x ~ yv2' & I3')) (G0:= I1 & x ~ xv2 & I2 & y ~ yv2 & I3) (x0:=y).
+  apply ok_preservation in HE. rewrite I' in HE. rewrite <- H. auto. auto.
+  apply ok_preservation in HE. rewrite I' in HE. rewrite <- HI. rewrite <- H. auto. auto. auto.
+  destruct H0 as [HI1 [_ _]].
+  assert (x \in dom (I1 & x ~ xv2 & I2)).
+  rewrite HI in H. clear HI.
+  simpl_dom.
+  apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \notin dom (I1')). apply ok_preservation in HE. rewrite I' in HE. apply ok_middle_inv_l in HE.
+  simpl_dom.
+  apply notin_union in HE. destruct HE as [HE _].
+  apply notin_union in HE. destruct HE as [HE _]. auto.
+  rewrite <- HI1 in H0.
+  apply get_some in H0.
+  inversion H0.
+  assert (binds x x0 I1'). auto.
+  assert (False). apply (binds_fresh_inv H3 H1). inversion H4.
+  (* y in the \{x\} *)
+  assert (y <> x). apply ok_preservation in HE. rewrite HI in HE.
+  apply ok_non_eq in HE. auto.
+  rewrite in_singleton in Hy2. apply H in Hy2. inversion Hy2.
+  (* y in the right of x *)
+  apply split_context in Hy3. destruct Hy3 as (G1' & G2' & v' & Hy3).
+  rewrite Hy3 in Hx.
+  exists* Gx1 G1' G2' v1 v'.
+  rewrite concat_assoc in Hx.
+  rewrite concat_assoc in Hx. auto.
 Qed.

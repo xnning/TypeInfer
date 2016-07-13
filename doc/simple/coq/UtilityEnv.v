@@ -62,3 +62,70 @@ Proof.
   apply notin_union in H.  destruct H as [_ H].
   apply* notin_singleton.
 Qed.
+
+Lemma tail_empty_eq : forall {A} x vx vy (G G1 I I1 I2: env A),
+    ok I ->
+    I = I1 & x ~ vy & I2 ->
+    ok G ->
+    G = G1 & x ~ vx ->
+    G = I ->
+    G1 = I1 /\ vx = vy /\ I2 = empty.
+Proof.
+  introv HIOK HI HGOK HG HEQ.
+  induction I2 using env_ind.
+  rewrite concat_empty_r in HI.
+  subst. apply eq_push_inv in HEQ.
+  auto_star.
+  subst.
+  rewrite concat_assoc in HEQ.
+  apply eq_push_inv in HEQ.
+  destruct HEQ as [HEQ _]. rewrite HEQ in *.
+  rewrite concat_assoc in HIOK.
+  rewrite <- concat_empty_r in HIOK.
+  apply ok_non_eq in HIOK.
+  assert False. apply* HIOK. inversion H.
+Qed.
+
+Lemma ok_middle_eq : forall {A} (I I1 I2 G G1 G2: env A) x v1 v2,
+    ok I ->
+    I = I1 & x ~ v1 & I2 ->
+    ok G ->
+    G = G1 & x ~ v2 & G2 ->
+    I = G ->
+    I1 = G1 /\ v1 = v2 /\ I2 = G2.
+Proof.
+  introv HIOK HI. gen I I1 G G1 G2 x v1 v2.
+  induction I2 using env_ind.
+  introv HIOK HI HGOK HG HEQ.
+  rewrite concat_empty_r in HI.
+  rewrite HI in HEQ. rewrite HG in HEQ.
+  assert (I1 = G1 /\ v1 = v2 /\ G2 = empty).
+  apply tail_empty_eq with (x0:=x) (G0:=I1 & x ~ v1) (I0 := G1 & x ~ v2 & G2). rewrite HG in HGOK. auto. auto. rewrite HI in HIOK. auto. auto. auto.
+  destruct H as [H1 [H2 H3]].
+  auto.
+
+  introv HI HGOK HG HEQ. gen I I1 I2 G G1 x v1 v2.
+  induction G2 using env_ind.
+  introv OKI IHI OKG HI HG HEQ.
+  rewrite concat_empty_r in HG.
+  rewrite HI in HEQ. rewrite HG in HEQ.
+  assert (G1 = I1 /\ v2 = v1 /\ (I2 & x ~ v) = empty). apply tail_empty_eq with (x1:=x0) (G0:=G1 & x0 ~ v2) (I0:= I1 & x0 ~ v1 & (I2 & x ~ v)); auto. rewrite HI in OKI; auto. rewrite HG in OKG; auto.
+  destruct H as [_ [_ H]].
+  assert (empty = I2 & x ~ v). auto.
+  apply  empty_push_inv in H0. inversion H0.
+
+  introv OKI IHI.
+  introv OKG HI HG HEQ.
+
+  rewrite concat_assoc in HI.
+  rewrite concat_assoc in HG.
+  rewrite HI in HEQ. rewrite HG in HEQ.
+  assert (x1 = x /\ v = v0). apply eq_push_inv in HEQ. destruct HEQ as [HEQ1 [HEQ2 HEQ3]]. auto.
+  destruct H as [HEQX HEQV]. rewrite HEQX in * ; clear HEQX; rewrite HEQV in *; clear HEQV.
+
+  rewrite HI in OKI. apply ok_push_inv in OKI. destruct OKI as [OKI _].
+  rewrite HG in OKG. apply ok_push_inv in OKG. destruct OKG as [OKG _].
+  assert ( I1 = G1 /\ v1 = v2 /\ I2 = G2). apply IHI with (I := I1 & x0 ~ v1 & I2) (G := G1 & x0 ~ v2 & G2) (x:=x0); auto.
+  apply eq_push_inv in HEQ. destruct HEQ as [_ [_ HEQ]]. auto.
+  destruct H as [H1 [H2 H3]]. subst. auto.
+Qed.
