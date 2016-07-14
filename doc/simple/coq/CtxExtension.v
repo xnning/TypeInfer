@@ -318,26 +318,9 @@ Proof.
   apply (declaration_order_preservation HE) in Hx.
   destruct Hx as (xv2' & yv2' & I1' & I2' & I3' & I').
   rewrite I' in HI.
-  assert ( I1' & y ~ xv2' & I2' & x ~ yv2' & I3' = I1' & y ~ xv2' & (I2' & x ~ yv2' & I3')). rewrite concat_assoc. rewrite concat_assoc. auto.
-  rewrite H in HI.
-  assert (I1' = I1 & x ~ xv2 & I2 /\ xv2' = yv2 /\ I2' & x ~ yv2' & I3' =  I3).
-  apply ok_middle_eq with (I0 := I1' & y ~ xv2' & (I2' & x ~ yv2' & I3')) (G0:= I1 & x ~ xv2 & I2 & y ~ yv2 & I3) (x0:=y).
-  apply ok_preservation in HE. rewrite I' in HE. rewrite <- H. auto. auto.
-  apply ok_preservation in HE. rewrite I' in HE. rewrite <- HI. rewrite <- H. auto. auto. auto.
-  destruct H0 as [HI1 [_ _]].
-  assert (x \in dom (I1 & x ~ xv2 & I2)).
-  rewrite HI in H. clear HI.
-  simpl_dom.
-  apply union_left. apply union_right. apply in_singleton_self.
-  assert (x \notin dom (I1')). apply ok_preservation in HE. rewrite I' in HE. apply ok_middle_inv_l in HE.
-  simpl_dom.
-  apply notin_union in HE. destruct HE as [HE _].
-  apply notin_union in HE. destruct HE as [HE _]. auto.
-  rewrite <- HI1 in H0.
-  apply get_some in H0.
-  inversion H0.
-  assert (binds x x0 I1'). auto.
-  assert (False). apply (binds_fresh_inv H3 H1). inversion H4.
+  apply reverse_order_inv in HI. inversion HI.
+  apply ok_preservation in HE. rewrite* <- I'.
+  apply ok_preservation in HE. rewrite* <- HI. rewrite* <- I'.
   (* y in the \{x\} *)
   assert (y <> x). apply ok_preservation in HE. rewrite HI in HE.
   apply ok_non_eq in HE. auto.

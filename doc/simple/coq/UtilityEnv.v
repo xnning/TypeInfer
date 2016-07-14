@@ -129,3 +129,28 @@ Proof.
   apply eq_push_inv in HEQ. destruct HEQ as [_ [_ HEQ]]. auto.
   destruct H as [H1 [H2 H3]]. subst. auto.
 Qed.
+
+Lemma reverse_order_inv : forall A (G1 G2 G3 : env A) I1 I2 I3 x vx1 vx2 y vy1 vy2,
+    ok (G1 & x ~ vx1 & G2 & y ~ vy1 & G3) ->
+    ok (I1 & y ~ vy2 & I2 & x ~ vx2 & I3) ->
+    (G1 & x ~ vx1 & G2 & y ~ vy1 & G3) = (I1 & y ~ vy2 & I2 & x ~ vx2 & I3) -> False.
+Proof.
+  introv OKG OKI HEQ.
+  assert (G1 = I1 & y ~ vy2 & I2 /\ vx1 = vx2 /\ G2 & y ~ vy1 & G3 = I3).
+  apply ok_middle_eq with (G:=I1 & y ~ vy2 & I2 & x ~ vx2 & I3) (I:=G1 & x ~ vx1 & G2 & y ~ vy1 & G3) (x0:=x); auto_star.
+  rewrite* HEQ.
+  rewrite* concat_assoc.
+  rewrite* concat_assoc.
+
+  assert (y \in dom (I1 & y ~ vy2 & I2)).
+  simpl_dom. apply union_left. apply union_right. apply in_singleton_self.
+  assert (y \notin dom G1).
+  apply ok_middle_inv_l in OKG.
+  simpl_dom. apply notin_union in OKG. destruct OKG as [OKG _].
+  apply notin_union in OKG. destruct OKG as [OKG _]. auto.
+  destruct H as [H _].
+  rewrite <- H in H0.
+  apply get_some in H0. inversion H0.
+  assert (binds y x0 G1); auto.
+  apply (binds_fresh_inv H3 H1).
+Qed.
