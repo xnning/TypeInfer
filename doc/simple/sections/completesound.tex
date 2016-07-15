@@ -30,9 +30,9 @@
     \label{fig:apply-complete-ctx}
 \end{figure*}
 
-In Figure \ref{fig:syntax}, we give the definition of complete context $\cctx$ below algorithmic context. The main difference between complete context and context is that a complete context has all existential variables solved.
+In Figure \ref{fig:algo-syntax}, we give the definition of complete context $\cctx$ below algorithmic context. The main difference between complete context and context is that a complete context has all existential variables solved.
 
-A context can be extended to gain a complete context by context extension as shown in Figure \ref{fig:ctx-extension}. \rul{CE-Empty} states that empty context could be extended to empty context. \rul{CE-Var} preserves the variable. \rul{CE-TypedVar} replaces the type with a contextually equivalent one. \rul{CE-LetVar} has two types that could be replaced. \rul{CE-EVar} and \rul{CE-SolvedEVar} keeps the existential variable, in the meanwhile \rul{CE-SolvedEVar} solves existential variables with a type. \rul{CE-Add} and \rul{CE-CEAddSolved} adds one existential variable with unsolved and solved form respectively.
+A context can be extended to gain a complete context by context extension as shown in Figure \ref{fig:ctx-extension}. \rul{CE-Empty} states that empty context could be extended to empty context. \rul{CE-Var} preserves the variable. \rul{CE-TypedVar} replaces the type with a contextually equivalent one. \rul{CE-LetVar} has two types that could be replaced. \rul{CE-EVar} and \rul{CE-SolvedEVar} keeps the existential variable, in the meanwhile \rul{CE-SolvedEVar} solves existential variables with a type. \rul{CE-Add} and \rul{CE-AddSolved} adds one existential variable with unsolved and solved form respectively.
 
 Information could only be preserved or increased during context extension, including the existence of variables, their relative orders, type annotations, solutions for existential variables and all other information.
 
@@ -64,12 +64,16 @@ and $\ctxl \exto \cctx$,
 then $[\cctx]\ctxl \byinst [\cctx]\sigma \lt [\cctx]\tau$.
 \end{theorem}
 
+If in algorithmic system, well-formed type $\sigma$ could be instantiated to another well-formed type $\tau$ with output context $\ctxl$, and $\ctxl$ extends to complete context $\Omega$, then in declarative system, the relationship of corresponding context and types also holds.
+
 \begin{theorem}[Soundness of Generalization]
 
 If $\tpreinf e:\tau \toctx $ and $\ctxl \bygen \tau \lt \sigma$,
 and $\ctxl \exto \cctx$,
 then $[\cctx]\ctxl \bygen [\cctx]e:[\cctx]\sigma$.
 \end{theorem}
+
+Generalization has different forms in two systems, so we need to an extra expression $e$. If in algorithmic system, expression $e$ has type $\tau$ and the latter could be generalized to type scheme $\sigma$, then in declarative system, the corresponding expression $e$ could have a correspondingly generalized type.
 
 \begin{theorem}[Soundness of Typing]
 
@@ -82,7 +86,7 @@ Given $\ctxl \exto \cctx$
 \end{enumerate}
 \end{theorem}
 
-Soundness of typing has two forms corresponding to two modes in typing procedure. It states if in algorithmic system, with context $\tctx$, we could infer expression $e$ of type $\tau$, then in declarative context $[\cctx]\ctxl$, we could infer $e$ of type $[\cctx]\tau$. The statement is similar in the check case.
+Soundness of typing has three forms corresponding to two modes in typing procedure and the application form. It states if in algorithmic system, with context $\tctx$, we could infer expression $e$ of type $\tau$, then in declarative context $[\cctx]\ctxl$, we could infer $e$ of type $[\cctx]\tau$. The statement is similar in rest cases.
 
 \subsection{Completeness}
 

@@ -199,9 +199,9 @@
 % POLYMORPHISM
 % ------------------------------------------------------------------------
 
-\newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\tpreinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctxo, \overbar{\genA}} \rname{Inst}}
+\newcommand*{\Instantiation}{\inferrule{\sigma = \forall{\overbar{x:\star}}. \tau}{\tpreinst \sigma \lt \tau[\overbar{x} \mapsto \overbar{\genA}] \toctxo, \overbar{\genA}} \rname{A-Inst}}
 
-\newcommand*{\Generalization}{\inferrule{\tau_2 = [\tctx]\tau \\ \overbar{\genA} = FEV(\tau_2) - FEV(\tctx)}{\tpregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{Gen}}
+\newcommand*{\Generalization}{\inferrule{\tau_2 = [\tctx]\tau \\ \overbar{\genA} = FEV(\tau_2) - FEV(\tctx)}{\tpregen \tau \lt \forall \overbar{x:\star}. \tau_2[\overbar{\genA} \mapsto \overbar{x}]} \rname{A-Gen}}
 
 % ------------------------------------------------------------------------
 % UNIFY TVAR
