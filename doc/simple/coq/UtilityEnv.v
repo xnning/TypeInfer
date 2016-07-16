@@ -154,3 +154,29 @@ Proof.
   assert (binds y x0 G1); auto.
   apply (binds_fresh_inv H3 H1).
 Qed.
+
+Lemma AWf_left : forall G H,
+    AWf (G & H) -> AWf G.
+Proof.
+  introv IH. gen_eq I: (G & H). gen G H. induction IH; intros IG HH HI;
+  try(apply empty_concat_inv in HI; destruct HI as [HIG HIH]; subst; constructor);
+  try(
+  induction HH using env_ind;
+  try(rewrite concat_empty_r in HI;
+  rewrite <- HI; constructor; auto);
+  try(rewrite concat_assoc in HI;
+  apply eq_push_inv in HI; destruct HI as [HIx [HIv HIgh]]; apply* IHIH)).
+
+  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H); auto.
+
+  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar2 with (L:=L); auto.
+Qed.
+
+Lemma AWf_push_inv : forall G x v,
+    AWf (G & x ~ v) -> x # G.
+Proof.
+  introv WF. inversion WF;
+  try(apply empty_push_inv in H0; inversion H0);
+  try(apply eq_push_inv in H; destruct H as [eqg [eqx eqv]]; subst; simpl_dom; auto).
+  try(apply eq_push_inv in H0; destruct H0 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
+Qed.

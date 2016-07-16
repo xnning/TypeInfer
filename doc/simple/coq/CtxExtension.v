@@ -138,14 +138,33 @@ Definition extension_reflexivity_def := forall G,
 
 Inductive Softness : ACtx -> Prop :=
   | Softness_Empty: Softness empty
-  | Softness_Unsolved: forall G a, Softness G -> AWf (G & a ~ AC_Unsolved_EVar) -> Softness (G & a ~ AC_Unsolved_EVar)
-  | Softness_Solved: forall G a t, Softness G -> a # G -> AWf (G & a ~ AC_Solved_EVar t) -> Softness (G & a ~ AC_Solved_EVar t).
+  | Softness_Unsolved: forall G a, Softness G -> a # G -> Softness (G & a ~ AC_Unsolved_EVar)
+  | Softness_Solved: forall G a t, Softness G -> a # G -> Softness (G & a ~ AC_Solved_EVar t).
 
 Definition  right_softness_def := forall G I H,
     ExtCtx G I ->
     Softness H ->
     AWf (I & H) ->
     ExtCtx G (I & H).
+
+Definition evar_input_def := forall (G H: ACtx) a,
+    ExtCtx (G & a ~ AC_Unsolved_EVar) H ->
+    exists H1 H2 H3, H = H1 & H2 & H3 /\ ExtCtx G H1 /\ (H2 = a ~ AC_Unsolved_EVar \/ exists t, H2 = a ~ AC_Solved_EVar t) /\ Softness H3.
+
+Definition solution_admissibility_for_extension_def := forall G a t H,
+    AWf (G & a ~ AC_Unsolved_EVar & H) ->
+    AWfTyp G (AT_Expr t) ->
+    ExtCtx (G & a ~ AC_Unsolved_EVar & H) (G & a ~ AC_Solved_EVar t & H).
+
+Definition solved_variable_addition_for_extension_def := forall G H a t,
+    AWf (G & H) ->
+    AWf (G & a ~ AC_Solved_EVar t & H) ->
+    ExtCtx (G & H) (G & a ~ AC_Solved_EVar t & H).
+
+Definition unsolved_variable_addition_for_extension_def := forall G H a,
+    AWf (G & H) ->
+    AWf (G & a ~ AC_Unsolved_EVar & H) ->
+    ExtCtx (G & H) (G & a ~ AC_Unsolved_EVar & H).
 
 (* Proofs *)
 
@@ -420,27 +439,132 @@ Proof.
   apply eq_push_inv in H0. destruct H0 as [EQAX [EQV EQGH]]; subst.
   constructor*. apply* IHenv.
   rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H4; inversion H4);
+  inversion IH; try(apply empty_push_inv in H3; inversion H3);
   try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
   inversion EQX).
-  apply eq_push_inv in H4; destruct H4 as [EQIG [EQX EQAC]];
+  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
   inversion EQX.
-  rewrite EQAC in H4. auto.
+  rewrite EQAC in H3. auto.
   rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H4; inversion H4);
+  inversion IH; try(apply empty_push_inv in H3; inversion H3);
   try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
   inversion EQX).
-  apply eq_push_inv in H4; destruct H4 as [EQIG [EQX EQAC]];
+  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
   inversion EQX.
-  rewrite EQAC in H5. rewrite <- EQIG. auto.
+  rewrite EQAC in H4. rewrite <- EQIG. auto.
 
   rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H4; inversion H4);
+  inversion IH; try(apply empty_push_inv in H3; inversion H3);
   try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
   inversion EQX).
-  apply eq_push_inv in H4; destruct H4 as [EQIG [EQX EQAC]];
+  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
   inversion EQX.
-  rewrite EQAC in H6. rewrite <- H7. auto.
+  rewrite EQAC in H5. rewrite <- H6. auto.
 Qed.
 
+Lemma evar_input: evar_input_def.
+Proof.
+  introv GH.
+  gen_eq GG : (G & a ~ AC_Unsolved_EVar). introv GInfo.
+  induction GH;
+  try(apply eq_push_inv in GInfo; destruct GInfo as [ eqa [inv eqg]]; subst; inversion inv).
+  apply empty_push_inv in GInfo; inversion GInfo.
+  exists* H (a ~ AC_Unsolved_EVar) (empty:ACtx).
+  rewrite* concat_empty_r. split; auto.  split; auto.
+  split; auto. constructor.
+
+  exists* H (a ~ AC_Solved_EVar t) (empty:ACtx).
+  rewrite* concat_empty_r. split; auto.  split; auto.
+  split. right; exists* t. constructor.
+
+  assert (neqa: a0 <> a).
+    assert (a \in dom H). apply (declaration_preservation_dom GH). rewrite* GInfo. simpl_dom; apply union_left. apply in_singleton_self.
+    unfold not. intros eqa. subst.
+    apply get_some in H1. destruct H1 as (v & H1).
+    apply binds_fresh_inv with (x:= a) (E:=H) (v:=v); auto.
+  apply IHGH in GInfo.
+  destruct GInfo as (H1 & H2 & H3 & [HInfo [GH1 [GH2 GH3]]]).
+  exists* H1 H2 (H3 & a0 ~ AC_Unsolved_EVar).
+  rewrite* concat_assoc. subst. split; auto.  split; auto.
+  split; auto. constructor; auto.
+
+  assert (neqa: a0 <> a).
+    assert (a \in dom H). apply (declaration_preservation_dom GH). rewrite* GInfo. simpl_dom; apply union_left. apply in_singleton_self.
+    unfold not. intros eqa. subst.
+    apply get_some in H2. destruct H2 as (v & H2).
+    apply binds_fresh_inv with (x:= a) (E:=H) (v:=v); auto.
+  apply IHGH in GInfo.
+  destruct GInfo as (H1' & H2 & H3 & [HInfo [GH1 [GH2 GH3]]]).
+  exists* H1' H2 (H3 & a0 ~ AC_Solved_EVar t).
+  rewrite* concat_assoc. subst. split; auto.  split; auto.
+  split; auto. constructor; auto.
+Qed.
+
+Lemma solution_admissibility_for_extension : solution_admissibility_for_extension_def.
+Proof.
+  introv. gen G a t.
+  induction H using env_ind.
+  introv WF WFTyp.
+  repeat(rewrite concat_empty_r).
+  constructor. apply extension_reflexivity.
+  rewrite concat_empty_r in WF.
+  inversion WF;
+    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
+    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
+  apply empty_push_inv in H0; inversion H0.
+  inversion WF; rewrite concat_empty_r in *;
+    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
+    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
+  apply empty_push_inv in H0; inversion H0.
+  auto.
+
+  introv WF WFTyp.
+  repeat(rewrite concat_assoc).
+  rewrite concat_assoc in WF.
+  induction v; constructor*;
+
+  try(apply* IHenv; apply AWf_left in WF; auto);
+  try(apply AWf_push_inv in WF; auto).
+Qed.
+
+Lemma solved_variable_addition_for_extension:
+  solved_variable_addition_for_extension_def.
+Proof.
+  introv. gen G a t.
+  induction H using env_ind.
+  introv WFGH WFGAH.
+  repeat(rewrite concat_empty_r in *).
+  constructor. apply extension_reflexivity.
+  auto.  apply AWf_push_inv with (v:= AC_Solved_EVar t) . auto.
+  inversion WFGAH;
+    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
+    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
+  apply empty_push_inv in H0; inversion H0.
+  inversion H. subst; auto.
+
+  introv WF WFTyp.
+  repeat(rewrite concat_assoc in *).
+  induction v; constructor*;
+  try(apply IHenv; apply AWf_left in WF; auto;
+  apply AWf_left in WFTyp; auto);
+  try(apply AWf_push_inv in WFTyp; auto).
+Qed.
+
+Lemma unsolved_variable_addition_for_extension:
+  unsolved_variable_addition_for_extension_def.
+Proof.
+  introv. gen G a.
+  induction H using env_ind.
+  introv WFGH WFGAH.
+  repeat(rewrite concat_empty_r in *).
+  constructor. apply extension_reflexivity.
+  auto. apply AWf_push_inv in WFGAH. auto.
+
+  introv WF WFTyp.
+  repeat(rewrite concat_assoc in *).
+  induction v; constructor*;
+  try(apply IHenv; apply AWf_left in WF; auto;
+  apply AWf_left in WFTyp; auto);
+  try(apply AWf_push_inv in WFTyp; auto).
+Qed.
 
