@@ -52,6 +52,8 @@ Definition AOpenT e u := AOpenTypRec 0 u e.
 
 Notation "e @@ u" := (AOpen e u) (at level 67).
 Notation "e @ x" := (AOpen e (AE_FVar x)) (at level 67).
+Notation "e @@' u" := (AOpenT e u) (at level 67).
+Notation "e @' x" := (AOpenT e (AE_FVar x)) (at level 67).
 
 (** Closed Terms *)
 Inductive ATerm : AExpr -> Prop :=
@@ -81,12 +83,36 @@ Inductive ATerm : AExpr -> Prop :=
 Definition ABody t :=
   exists L, forall x, x \notin L -> ATerm (t @ x).
 
+Inductive ATermTy : AType -> Prop :=
+  | ATermTy_Expr : forall e, ATerm e -> ATermTy (AT_Expr e)
+  | ATermTy_Forall : forall L t,
+      (forall x, x \notin L -> ATermTy (t @' x)) ->
+      ATermTy (AT_Forall t).
+
+Definition ABodyTy t :=
+  exists L, forall x, x \notin L -> ATermTy (t @' x).
+
 (** Substitution *)
 
 Fixpoint ASubst (z : var) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
   match e with
   | AE_BVar i    => AE_BVar i
   | AE_FVar x    => If x = z then u else (AE_FVar x)
+  | AE_EVar x    => AE_EVar x
+  | AE_Star      => AE_Star
+  | AE_App e1 e2 => AE_App    (ASubst z u e1) (ASubst z u e2)
+  | AE_Lam e     => AE_Lam   (ASubst z u e)
+  | AE_Pi t1 t2  => AE_Pi     (ASubst z u t1) (ASubst z u t2)
+  | AE_Let e1 e2 => AE_Let    (ASubst z u e1) (ASubst z u e2)
+  | AE_CastUp e  => AE_CastUp (ASubst z u e)
+  | AE_CastDn e  => AE_CastDn (ASubst z u e)
+  | AE_Ann e t   => AE_Ann    (ASubst z u e) (ASubst z u t)
+  end.
+
+Fixpoint AESubst (z : var) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
+  match e with
+  | AE_BVar i    => AE_BVar i
+  | AE_FVar x    => AE_FVar x
   | AE_EVar x    => If x = z then u else (AE_EVar x)
   | AE_Star      => AE_Star
   | AE_App e1 e2 => AE_App    (ASubst z u e1) (ASubst z u e2)
@@ -109,7 +135,7 @@ Fixpoint ATSubst (z : var) (u : AExpr) (e : AType) {struct e} : AType :=
 Fixpoint AFv (e : AExpr) {struct e} : vars :=
   match e with
   | AE_BVar i    => \{}
-  | AE_FVar x    => \{}
+  | AE_FVar x    => \{x}
   | AE_EVar x    => \{x}
   | AE_Star      => \{}
   | AE_App e1 e2 => (AFv e1) \u (AFv e2)
@@ -119,6 +145,21 @@ Fixpoint AFv (e : AExpr) {struct e} : vars :=
   | AE_CastUp e  => AFv e
   | AE_CastDn e  => AFv e
   | AE_Ann e t   => (AFv e) \u (AFv t)
+  end.
+
+Fixpoint AEFv (e : AExpr) {struct e} : vars :=
+  match e with
+  | AE_BVar i    => \{}
+  | AE_FVar x    => \{}
+  | AE_EVar x    => \{x}
+  | AE_Star      => \{}
+  | AE_App e1 e2 => (AEFv e1) \u (AEFv e2)
+  | AE_Lam e     => AEFv e
+  | AE_Pi t1 t2  => (AEFv t1) \u (AEFv t2)
+  | AE_Let e1 e2 => (AEFv e1) \u (AEFv e2)
+  | AE_CastUp e  => AEFv e
+  | AE_CastDn e  => AEFv e
+  | AE_Ann e t   => (AEFv e) \u (AEFv t)
   end.
 
 Fixpoint ATFv (e : AType) {struct e} : vars :=
