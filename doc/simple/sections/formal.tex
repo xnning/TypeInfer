@@ -293,7 +293,7 @@
 % OPERATIONAL SEMANTICS
 % ------------------------------------------------------------------------
 
-\newcommand*{\SBetaA}{\inferrule{ }{(\blam x \tau {e_1}) e_2 \redto e_1 \subst x {e_2} }\rname{S-Beta1}}
+\newcommand*{\SBetaA}{\inferrule{ }{(\blam x \tau {e_1}) e_2 \redto e_1 \subst x {e_2} }\rname{S-Beta}}
 \newcommand*{\SBetaB}{\inferrule{ }{(\erlam x {e_1}) e_2 \redto e_1 \subst x {e_2}}\rname{S-Beta2}}
 \newcommand*{\SApp}{\inferrule{ e_1 \redto e_1' }{e_1~e_2 \redto e_1'~e_2}\rname{S-App}}
 \newcommand*{\SCastDownUp}{\inferrule{  }{\castdn (\ercastup e) \redto e}\rname{S-CastDownUp}}
