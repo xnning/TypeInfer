@@ -955,10 +955,14 @@ Qed.
 
 Lemma dtypingc_fresh : forall E T x,
     DTypingC E T DE_Star -> x # E -> x \notin DFv T
-with dtypingi_fresh : forall E T x,
+with dtypingI_fresh : forall E T x,
     DTypingI E T DE_Star -> x # E -> x \notin DFv T.
 Proof.
-  admit.
+  introv Typ. gen_eq T2: DE_Star.
+  induction Typ; simpls; intros.
+  false*. admit.
+  false. rewrite H0 in H. inversion H.
+  subst*.
   
   introv Typ. gen_eq T2: DE_Star.
   induction Typ; simpls; intros.
@@ -967,5 +971,25 @@ Proof.
   rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H3.
   subst*.
   false*.
-  notin_simpl. admit. admit.
+  admit.
+  admit. admit.
+  rewrite H0 in H. inversion H.
+  admit. admit. admit. admit.
 Admitted.
+
+Lemma notin_dfv_from_dwf : forall E F x V,
+  DWf (E & x ~ DC_Typ V & F) -> x \notin DFv V.
+Proof.
+  intros.
+  lets W: (dwf_left H). inversions W.
+  false (empty_push_inv H1).
+  destruct (eq_push_inv H0) as [? [? ?]].
+  injection H5. intros.
+  subst~.
+  apply* dtypingc_fresh.
+  destruct (eq_push_inv H0) as [? [? ?]].
+  false*.
+  destruct (eq_push_inv H0) as [? [? ?]].
+  false*.
+Qed.
+
