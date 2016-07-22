@@ -38,6 +38,24 @@ Proof.
   exists* G1 (G2 & x0 ~ v) v0. rewrite* concat_assoc.
 Qed.
 
+Lemma split_bind_context: forall {A} (G : env A) x v,
+    binds x v G ->
+    exists G1 G2, G = G1 & (x ~ v) & G2.
+Proof.
+  intros* HX.
+  induction G using env_ind.
+  apply binds_empty_inv in HX. inversion HX.
+  destruct (eq_var_dec x x0). subst.
+  apply binds_push_eq_inv in HX. subst.
+  exists* G (empty : env A). rewrite concat_empty_r. auto.
+  apply binds_push_neq_inv in HX.
+  apply IHG in HX.
+  destruct HX as (G1 & G2 & HG).
+  exists* G1 (G2 & x0 ~ v0).
+  rewrite HG. rewrite concat_assoc. auto.
+auto.
+Qed.
+
 Lemma tail_exists_eq : forall {A} x vx y vy (E F G: env A),
     x <> y ->
     E & x ~ vx = F & y ~ vy & G ->
@@ -179,4 +197,152 @@ Proof.
   try(apply empty_push_inv in H0; inversion H0);
   try(apply eq_push_inv in H; destruct H as [eqg [eqx eqv]]; subst; simpl_dom; auto).
   try(apply eq_push_inv in H0; destruct H0 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
+Qed.
+
+Lemma subst_empty_env : forall a,
+    ACtxSubst empty a = a.
+Proof.
+  intro a.
+  unfold ACtxSubst.
+  rewrite empty_def.
+  rewrite LibList.fold_left_nil.
+  auto.
+Qed.
+
+Lemma tsubst_empty_env : forall a,
+    ACtxTSubst empty a = a.
+Proof.
+  intro a.
+  unfold ACtxTSubst.
+  rewrite empty_def.
+  rewrite LibList.fold_left_nil.
+  auto.
+Qed.
+
+Lemma subst_star : forall G,
+    ACtxSubst G AE_Star = AE_Star.
+Proof.
+  intro G.
+  induction G.
+  unfold ACtxSubst. auto.
+  unfold ACtxSubst. destruct a. simpl.
+  destruct a; auto.
+Qed.
+
+Lemma subst_add_var : forall G e x,
+    ACtxSubst (G & x ~ AC_Var) e = ACtxSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_var : forall G e x,
+    ACtxTSubst (G & x ~ AC_Var) e = ACtxTSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma subst_add_typvar : forall G e x t,
+    ACtxSubst (G & x ~ AC_Typ t) e = ACtxSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_typvar : forall G e x t,
+    ACtxTSubst (G & x ~ AC_Typ t) e = ACtxTSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma subst_add_evar : forall G e x,
+     ACtxSubst (G & x ~ AC_Unsolved_EVar) e = ACtxSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_evar : forall G e x,
+     ACtxTSubst (G & x ~ AC_Unsolved_EVar) e = ACtxTSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_bndvar: forall H x s t e,
+    ACtxTSubst (H & x ~ AC_Bnd s t) e = ACtxTSubst H (ATSubst x t e).
+Proof.
+  introv. rewrite <- cons_to_push in *.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma subst_add_bndvar: forall H x s t e,
+    ACtxSubst (H & x ~ AC_Bnd s t) e = ACtxSubst H (ASubst x t e).
+Proof.
+  introv. rewrite <- cons_to_push in *.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_solved_evar: forall H x t e,
+    ACtxTSubst (H & x ~ AC_Solved_EVar t) e = ACtxTSubst H (ATSubst x t e).
+Proof.
+  introv. rewrite <- cons_to_push in *.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma subst_add_solved_evar: forall H x t e,
+    ACtxSubst (H & x ~ AC_Solved_EVar t) e = ACtxSubst H (ASubst x t e).
+Proof.
+  introv. rewrite <- cons_to_push in *.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma subst_notin : forall x v e,
+    x \notin (AFv e) ->
+    ASubst x v e = e.
+Proof.
+  introv notin.
+  induction e; simpl; auto;
+  try(simpl in notin; rewrite* IHe1; rewrite* IHe2);
+  try(rewrite* IHe).
+
+  destruct (eq_var_dec v0 x).
+  subst. simpl in notin0. apply notin_same in notin0. inversion notin0.
+  case_var*.
+Qed.
+
+Lemma subst_twice : forall x v e,
+    x \notin (AFv v) ->
+    ASubst x v (ASubst x v e) = ASubst x v e.
+Proof.
+  introv notin.
+  induction e; simpl; auto;
+    try(rewrite* IHe1; rewrite* IHe2);
+    try(rewrite* IHe).
+  destruct (eq_var_dec v0 x).
+  case_var*. rewrite* subst_notin.
+  case_var*. simpl. case_var*.
+Qed.
+
+Lemma tsubst_tsubst: forall x vx y vy e,
+    x <> y ->
+    x \notin AFv (vx) ->
+    ATSubst x vx (ATSubst y vy e) =
+    ATSubst x vx (ATSubst y (ASubst x vx vy) e) .
+Proof.
+ introv.
+ induction e; introv neq notin.
+ simpl.
+ rewrite* IHe.
+
+ induction a; simpl; auto;
+   try(simpl in IHa1; inversion IHa1; rewrite H0;
+       simpl in IHa2; inversion IHa2; rewrite H1);
+   try(simpl in IHa; inversion IHa; rewrite H0); auto.
+
+ destruct (eq_var_dec v y).
+  case_var*. rewrite* subst_twice.
+  case_var*.
 Qed.
