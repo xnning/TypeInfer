@@ -427,7 +427,7 @@ Proof.
   introv OKG.
   induction OKG; auto.
   apply ExtCtx_LetVar with (t2:=t); auto.
-  apply* AWf_LetVar.
+  apply* AWf_LetVar. rewrite* H2.
   apply* ExtCtx_LetVar.
 Qed.
 

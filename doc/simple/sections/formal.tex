@@ -228,7 +228,7 @@
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx)}{\dctx, x \wc}\rname{WC-Var}}
 \newcommand*{\WCTypedVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \tau}{\dctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\WCLetVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \dprechk[,\overbar{y:\star}] e:\tau}
+\newcommand*{\WCLetVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \sigma \\ [\dctx]\sigma = \forall {\overbar {y:\star}}.\tau \\ \dprechk[,\overbar{y:\star}] e:\tau}
 {\dctx, x:\sigma = e}\rname{WC-LetVar}}
 
 \newcommand*{\TWCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}

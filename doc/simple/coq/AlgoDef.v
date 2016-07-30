@@ -446,9 +446,10 @@ with AWf : ACtx -> Prop :=
          AWf G -> x # G ->
          AWfTyp G (AT_Expr t) ->
          AWf (G & x ~ AC_Typ t)
-     | AWf_LetVar : forall G H x s t,
+     | AWf_LetVar : forall G H x s s2 t,
          AWf G -> x # G -> AWfTyp G (AT_Expr s) ->
-         ATypingC G t s H ->
+         ACtxSubst G s = s2 ->
+         ATypingC G t s2 H ->
          AWf (G & x ~ AC_Bnd (AT_Expr s) t)
      | AWf_LetVar2 : forall L G x s t,
          AWf G -> x # G -> AWfTyp G s ->
