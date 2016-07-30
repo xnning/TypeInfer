@@ -3,6 +3,8 @@ Require Import DeclDef.
 Require Import AlgoDef.
 Require Import LibLN.
 Require Import UtilityEnv.
+Require Import AlgoInfra.
+
 
 (* Context extension *)
 
@@ -135,11 +137,6 @@ Definition reverse_declaration_order_preservation_def := forall G I x y xv2 yv2 
 
 Definition extension_reflexivity_def := forall G,
     AWf G -> ExtCtx G G.
-
-Inductive Softness : ACtx -> Prop :=
-  | Softness_Empty: Softness empty
-  | Softness_Unsolved: forall G a, Softness G -> a # G -> Softness (G & a ~ AC_Unsolved_EVar)
-  | Softness_Solved: forall G a t, Softness G -> a # G -> Softness (G & a ~ AC_Solved_EVar t).
 
 Definition  right_softness_def := forall G I H,
     ExtCtx G I ->

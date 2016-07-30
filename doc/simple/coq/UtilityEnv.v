@@ -1,8 +1,14 @@
 Require Import DeclDef.
 Require Import AlgoDef.
 Require Import LibLN.
+Require Import AlgoInfra.
 
 Set Implicit Arguments.
+
+Inductive Softness : ACtx -> Prop :=
+  | Softness_Empty: Softness empty
+  | Softness_Unsolved: forall G a, Softness G -> a # G -> Softness (G & a ~ AC_Unsolved_EVar)
+  | Softness_Solved: forall G a t, Softness G -> a # G -> Softness (G & a ~ AC_Solved_EVar t).
 
 Lemma union_left :forall {A} (x:A) E F,
     x \in E ->
@@ -345,4 +351,102 @@ Proof.
  destruct (eq_var_dec v y).
   case_var*. rewrite* subst_twice.
   case_var*.
+Qed.
+
+Lemma tsubst_tsubst_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin AFv (vx) ->
+    y \notin AFv (vx) ->
+    ATSubst x vx (ATSubst y vy e) =
+    ATSubst y (ASubst x vx vy) (ATSubst x vx e).
+Proof.
+  introv.
+  induction e; introv neq notinx notiny.
+  simpl.
+  rewrite* IHe.
+
+  induction a; simpl; auto;
+   try(simpl in IHa1; inversion IHa1; rewrite H0;
+       simpl in IHa2; inversion IHa2; rewrite H1);
+   try(simpl in IHa; inversion IHa; rewrite H0); auto.
+  destruct (eq_var_dec v y).
+  case_var*.  case_var*. simpl. case_var*.
+  destruct (eq_var_dec v x).
+  case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
+  case_var*. case_var*. simpl. case_var*. case_var*.
+Qed.
+
+Lemma notin_open : forall x y e n,
+    x \notin (AFv (AOpenRec n y e)) ->
+    x \notin (AFv e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin; try(simpl in *; auto);
+    try(
+  apply notin_union in notin;
+  destruct notin as [notin1 notin2];
+  apply IHe1 in notin1;
+  apply IHe2 in notin2;
+  auto);
+    try(apply IHe in notin; auto).
+Qed.
+
+Lemma notin_topen : forall x y e n,
+    x \notin (ATFv (AOpenTypRec n y e)) ->
+    x \notin (ATFv e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. apply* notin_open.
+Qed.
+Lemma notin_uv : forall G x, x # G -> x # (ACtxUV G).
+Proof.
+  introv notin.
+  induction G using env_ind.
+  rewrite empty_def. simpl. rewrite <- empty_def. auto.
+  induction v; rewrite <- cons_to_push; simpl; auto.
+Qed.
+
+Lemma soft_uv : forall G, AWf G -> Softness (ACtxUV G).
+Proof.
+  introv wf. induction G using env_ind.
+  rewrite empty_def. simpl. rewrite <- empty_def. constructor.
+  induction v; rewrite <- cons_to_push; simpl; auto.
+  apply* IHG. eapply AWf_left. apply wf.
+  apply* IHG. eapply AWf_left. apply wf.
+  apply* IHG. eapply AWf_left. apply wf.
+  constructor. apply* IHG. eapply AWf_left. apply wf. apply notin_uv. apply* AWf_push_inv.
+  apply* IHG. apply* AWf_left.
+Qed.
+
+Lemma empty_uv : ACtxUV empty = empty.
+Proof.
+  rewrite empty_def. simpl. rewrite <- empty_def. auto.
+Qed.
+
+Lemma concat_uv: forall G H,
+    ACtxUV (G & H) = (ACtxUV G) & (ACtxUV H).
+Proof.
+  introv. gen G. induction H using env_ind; introv.
+  rewrite empty_uv. rewrite concat_empty_r.  rewrite concat_empty_r. auto.
+  rewrite concat_assoc.
+  induction v; repeat(rewrite <- cons_to_push);  simpl; auto.
+  rewrite IHenv. rewrite concat_assoc. auto.
+Qed.
+
+Lemma awf_uv : forall G H,
+    AWf (G & H) ->
+    AWf (G & ACtxUV H).
+Proof.
+  introv wf.
+  induction H using env_ind.
+  rewrite empty_def. simpl. rewrite <- empty_def. auto.
+  induction v; rewrite <- cons_to_push; simpl; auto.
+  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
+  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
+  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
+  rewrite concat_assoc. constructor. apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf. simpl_dom. apply notin_union. rewrite concat_assoc in wf. apply AWf_push_inv in wf. split. auto. apply notin_uv. auto.
+  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
+Qed.
 Qed.
