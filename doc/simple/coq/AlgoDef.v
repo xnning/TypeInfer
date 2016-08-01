@@ -345,7 +345,7 @@ Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
   | AInst_Poly : forall L G H a s t,
       (forall x, x \notin L ->
                  AInst (G & x ~ AC_Typ AE_Star) (AOpenT (AT_Forall s) (AE_FVar x)) (t @ x) H) ->
-      AWf (H & a ~ AC_Unsolved_EVar) ->
+      a \notin L ->
       AInst G (AT_Forall s) (t @@ (AE_EVar a)) (H & a ~ AC_Unsolved_EVar)
 with
 
@@ -415,7 +415,10 @@ with ATypingApp : ACtx -> AExpr -> AExpr -> AExpr -> ACtx -> Prop :=
   | ATA_Pi : forall G H e t1 t2,
       ATypingC G e t1 H ->
       ATypingApp G (AE_Pi t1 t2) e (t2 @@ e) H
-  | ATA_EVar : forall G1 G2 H a2 a1 a e,
+  | ATA_EVar : forall G1 G2 H a2 a1 L a e,
+      AWf (G1 & a ~ AC_Unsolved_EVar & G2) ->
+      a1 \notin L ->
+      a2 \notin L ->
       ATypingC (G1 & a2 ~ AC_Unsolved_EVar & a1 ~ AC_Unsolved_EVar &
                 a ~ AC_Solved_EVar (AE_Pi (AE_EVar a1) (AE_EVar a2)) & G2)
                e (AE_EVar a1) H ->

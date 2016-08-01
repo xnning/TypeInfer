@@ -191,7 +191,7 @@ Proof.
   try(rewrite concat_assoc in HI;
   apply eq_push_inv in HI; destruct HI as [HIx [HIv HIgh]]; apply* IHIH)).
 
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H); auto.
+  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H) (s2:=s2); auto.
 
   rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar2 with (L:=L); auto.
 Qed.
