@@ -185,7 +185,7 @@ Proof.
   try(rewrite concat_assoc in HI;
   apply eq_push_inv in HI; destruct HI as [HIx [HIv HIgh]]; apply* IHIH)).
 
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H); auto.
+  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H) (s2 := s2); auto.
 
   rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar2 with (L:=L); auto.
 Qed.
@@ -309,7 +309,7 @@ Proof.
   try(rewrite* IHe).
 
   destruct (eq_var_dec v0 x).
-  subst. simpl in notin0. apply notin_same in notin0. inversion notin0.
+  subst. simpl in notin. apply notin_same in notin. inversion notin.
   case_var*.
 Qed.
 
