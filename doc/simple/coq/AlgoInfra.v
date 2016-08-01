@@ -403,10 +403,9 @@ Hint Extern 1 (ATermTy (AT_Forall (ATSubst ?x ?u ?t2))) =>
   match goal with H: ATermTy (AT_Forall t2) |- _ => 
   unsimpl (ATSubst x u (AT_Forall t2)) end.
 
-Definition regular_ctx (E : ACtx) :=
+Definition regular_actx (E : ACtx) :=
   AWf E /\ ok E /\
   (forall x U, binds x (AC_Typ U) E -> ATerm U) /\
   (forall x T U, binds x (AC_Bnd T U) E -> ATermTy T /\ ATerm U) /\
   (forall x T, binds x (AC_Solved_EVar T) E -> ATerm T).
-
 

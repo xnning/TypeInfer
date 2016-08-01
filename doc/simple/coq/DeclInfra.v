@@ -854,30 +854,36 @@ Proof.
   specializes IHt1 n. auto. specializes IHt2 n. auto.
 Qed.
 
-Lemma dtyping_fresh : forall m E T x,
-    DTyping m E T DE_Star -> x # E -> x \notin DFv T.
+Lemma dtyping_fresh : forall m x E t T,
+    DTyping m E t T -> x # E -> x \notin DFv t
+with dgen_fresh : forall x E t s,
+    DGen E t s -> x # E -> x \notin DFv t.
 Proof.
-  (* introv Typ. gen_eq T2: DE_Star. *)
-  (* induction Typ; simpls; intros. *)
-  (* false*. admit. *)
-  (* false. rewrite H0 in H. inversion H. *)
-  (* subst*. *)
-  
   introv Typ.
   induction Typ; simpls; intros.
   auto.
   rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H1.
   rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H2.
-  subst*.
+  lets: (IHTyp1 H). lets: (IHTyp2 H). auto.
   pick_fresh y. apply* (@dfv_open_var y).
   lets: (IHTyp1 H). lets: (IHTyp2 H). auto.
   pick_fresh y. notin_simpl.
-  induction H. admit.
- auto. apply* (@dfv_open_var y).
-  admit.
-  admit. admit.
-  admit.
-  admit. admit. admit. admit. admit.
+  apply* dgen_fresh.
+  apply* (@dfv_open_var y).
+  pick_fresh y. notin_simpl. auto. apply* (@dfv_open_var y).
+  lets: (IHTyp H0). auto.
+  lets: (IHTyp H0). auto.
+  pick_fresh y. notin_simpl. auto. apply* (@dfv_open_var y).
+  pick_fresh y. notin_simpl.
+  apply* dgen_fresh.
+  apply* (@dfv_open_var y).
+  lets: (IHTyp H0). auto.
+  lets: (IHTyp H). auto.
+ 
+  introv Gen.
+  induction Gen; simpls; intros.
+  apply* dtyping_fresh.
+  pick_fresh y. apply* H0.
 Qed.
 
 Lemma notin_dfv_from_dwf : forall E F x V,
@@ -895,4 +901,48 @@ Proof.
   destruct (eq_push_inv H0) as [? [? ?]].
   false*.
 Qed.
+
+Lemma notin_dfv_from_binds : forall x y U E,
+  DWf E -> binds y (DC_Typ U) E -> x # E -> x \notin DFv U.
+Proof.
+  induction E using env_ind; intros.
+  false* binds_empty_inv.
+  destruct v.
+  destruct (dwf_push_inv H).
+  destruct (binds_push_inv H0) as [[? ?]|[? ?]]; subst.
+  inversions H. false* (empty_push_inv H6).
+  injection H5; intros; subst.
+  destruct (eq_push_inv H4) as [? [? ?]]. subst~. 
+  injection H9; intros; subst.
+  apply dtyping_fresh with (m := Chk)(E := E)(T := DE_Star).
+  auto. auto.   
+  destruct (eq_push_inv H4) as [? [? ?]]. false*.
+  destruct (eq_push_inv H4) as [? [? ?]]. false*.
+  apply* IHE.
+  destruct (binds_push_inv H0) as [[? ?]|[? ?]]; subst.
+  false*.
+  inversions H. false* (empty_push_inv H5).
+  destruct (eq_push_inv H4) as [? [? ?]]. false*. 
+  destruct (eq_push_inv H4) as [? [? ?]]; subst~.
+  destruct (eq_push_inv H4) as [? [? ?]]; subst~.
+Qed.
+
+Lemma notin_dfv_from_binds' : forall E F x V y U,
+  DWf (E & x ~ DC_Typ V & F) -> binds y (DC_Typ U) E -> x \notin DFv U.
+Proof.
+  intros. lets W: (dwf_left H). inversions keep W.
+  false (empty_push_inv H2). 
+  destruct (eq_push_inv H1) as [? [? ?]]. subst~. 
+  lets W': (dwf_left W). apply* notin_dfv_from_binds.
+  destruct (eq_push_inv H1) as [? [? ?]]. false*.
+  destruct (eq_push_inv H1) as [? [? ?]]. false*.
+Qed.
+
+Hint Extern 1 (?x \notin DFv ?V) => 
+  match goal with H: DWf (?E & x ~ DC_Typ V & ?F) |- _ =>
+    apply (@notin_dfv_from_dwf E F) end.
+
+Hint Extern 1 (?x \notin DFv ?U) => 
+  match goal with H: DWf (?E & x ~ DC_Typ ?V & ?F), B: binds ?y U ?E |- _ =>
+    apply (@notin_dfv_from_binds' E F x V y) end.
 
