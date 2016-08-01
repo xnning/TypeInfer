@@ -173,68 +173,69 @@ Inductive DRed : DExpr -> DExpr -> Prop :=
 
 (** Typing *)
 
-Inductive DTypingI : DCtx -> DExpr -> DExpr -> Prop :=
-  | DTI_Ax : forall G, DWf G -> DTypingI G DE_Star DE_Star
+Inductive DMode := Inf | Chk.
+
+Inductive DTyping : DMode -> DCtx -> DExpr -> DExpr -> Prop :=
+  | DTI_Ax : forall G, DWf G -> DTyping Inf G DE_Star DE_Star
   | DTI_Var : forall G x t, DWf G -> binds x (DC_Typ t) G ->
-                            DTypingI G (DE_FVar x) t
+                            DTyping Inf G (DE_FVar x) t
   | DTI_LetVar : forall G x s t t2,
       DWf G -> binds x (DC_Bnd s t) G ->
       DInst G s t2 ->
-      DTypingI G (DE_FVar x) t2
+      DTyping Inf G (DE_FVar x) t2
   | DTI_Ann : forall G e t,
-      DTypingC G t DE_Star ->
-      DTypingC G e t ->
-      DTypingI G (DE_Ann e t) t
+      DTyping Chk G t DE_Star ->
+      DTyping Chk G e t ->
+      DTyping Inf G (DE_Ann e t) t
   | DTI_Lam : forall L G e t1 t2,
-      DTypingC G t1 DE_Star ->
+      DTyping Chk G t1 DE_Star ->
       (forall x, x \notin L ->
-                 DTypingI (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingI G (DE_Lam e) (DE_Pi t1 t2)
+                 DTyping Inf (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
+      DTyping Inf G (DE_Lam e) (DE_Pi t1 t2)
   | DTI_App : forall G e1 e2 t1 t2,
-      DTypingI G e1 (DE_Pi t1 t2) ->
-      DTypingC G e2 t1 ->
-      DTypingI G (DE_App e1 e2) (t2 ^^ e2)
+      DTyping Inf G e1 (DE_Pi t1 t2) ->
+      DTyping Chk G e2 t1 ->
+      DTyping Inf G (DE_App e1 e2) (t2 ^^ e2)
   | DTI_Let : forall L G e1 e2 s t2,
       DGen G e1 s ->
       (forall x, x \notin L ->
-                 DTypingI (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
-      DTypingI G (DE_Let e1 e2) (t2 ^^ e1)
+                 DTyping Inf (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
+      DTyping Inf G (DE_Let e1 e2) (t2 ^^ e1)
   | DTI_Pi : forall L G t1 t2,
-      DTypingC G t1 DE_Star ->
+      DTyping Chk G t1 DE_Star ->
       (forall x, x \notin L ->
-                 DTypingC (G & (x ~ DC_Typ t1)) (t2 ^ x) DE_Star) ->
-      DTypingI G (DE_Pi t1 t2) DE_Star
+                 DTyping Chk (G & (x ~ DC_Typ t1)) (t2 ^ x) DE_Star) ->
+      DTyping Inf G (DE_Pi t1 t2) DE_Star
   | DTI_CastDn : forall G e t1 t2,
-      DTypingI G e t1 ->
+      DTyping Inf G e t1 ->
       DRed t1 t2 ->
-      DTypingI G (DE_CastDn e) t2
+      DTyping Inf G (DE_CastDn e) t2
   | DTI_Conv : forall G e1 t1 t2,
-      DTypingI G e1 t2 ->
+      DTyping Inf G e1 t2 ->
       DCtxSubst G t1 = DCtxSubst G t2 ->
-      DTypingI G e1 t2
+      DTyping Inf G e1 t2
       
-with DTypingC : DCtx -> DExpr -> DExpr -> Prop :=
   | DTC_Lam : forall L G e t1 t2,
-      DTypingC G t1 DE_Star ->
+      DTyping Chk G t1 DE_Star ->
       (forall x, x \notin L ->
-                 DTypingC (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTypingC G (DE_Lam e) (DE_Pi t1 t2)
+                 DTyping Chk (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
+      DTyping Chk G (DE_Lam e) (DE_Pi t1 t2)
   | DTC_Let : forall L G e1 e2 s t2,
       DGen G e1 s ->
       (forall x, x \notin L ->
-                 DTypingC (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
-      DTypingC G (DE_Let e1 e2) (t2 ^^ e1)
+                 DTyping Chk (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
+      DTyping Chk G (DE_Let e1 e2) (t2 ^^ e1)
   | DTC_CastUp : forall G e t1 t2,
-      DTypingC G e t1 ->
+      DTyping Chk G e t1 ->
       DRed t2 t1 ->
-      DTypingC G (DE_CastUp e) t2
+      DTyping Chk G (DE_CastUp e) t2
   | DTC_Sub : forall G e t,
-      DTypingI G e t ->
-      DTypingC G e t
+      DTyping Inf G e t ->
+      DTyping Chk G e t
 
 with DWfTyp : DCtx -> DType -> Prop :=
   | DWf_Expr : forall G t,
-      DTypingC G t DE_Star ->
+      DTyping Chk G t DE_Star ->
       DWfTyp G (DT_Expr t)
   | DWf_Poly : forall L G s,
       (forall x, x \notin L ->
@@ -245,11 +246,11 @@ with DWf : DCtx -> Prop :=
   | DWf_Nil : DWf empty
   | DWf_TyVar : forall G x t,
       DWf G -> x # G ->
-      DTypingC G t DE_Star ->
+      DTyping Chk G t DE_Star ->
       DWf (G & x ~ DC_Typ t)
   | DWf_LetVar : forall G x s t,
       DWf G -> x # G -> DWfTyp G (DT_Expr s) ->
-      DTypingC G t s ->
+      DTyping Chk G t s ->
       DWf (G & x ~ DC_Bnd (DT_Expr s) t)
   | DWf_LetVar2 : forall L G x s t,
       DWf G -> x # G -> DWfTyp G (DT_Forall s) ->
@@ -258,19 +259,22 @@ with DWf : DCtx -> Prop :=
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
   | DInst_Expr : forall G t1,
-      DTypingC G t1 DE_Star ->
+      DTyping Chk G t1 DE_Star ->
       DInst G (DT_Expr t1) t1
   | DInst_Poly : forall L G t s t1,
-      DTypingC G t DE_Star ->
+      DTyping Chk G t DE_Star ->
       (forall x, x \notin L ->
                  DInst (G & x ~ DC_Typ DE_Star) (s ^' x) (t1 ^ x)) ->
       DInst G (DT_Forall s) (t1 ^^ t)
 
 with DGen : DCtx -> DExpr -> DType -> Prop :=
   | DGen_Expr : forall G e t,
-      DTypingI G e t ->
+      DTyping Inf G e t ->
       DGen G e (DT_Expr t)
   | DGen_Poly : forall L G e s,
       (forall x, x \notin L -> x \notin (DFv e) ->
                  DGen (G & x ~ DC_Typ DE_Star) e (s ^' x)) ->
       DGen G e (DT_Forall s).
+
+Definition DTypingC := DTyping Chk.
+Definition DTypingI := DTyping Inf.

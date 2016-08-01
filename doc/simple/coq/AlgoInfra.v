@@ -23,17 +23,11 @@ Tactic Notation "apply_fresh" "*" constr(T) "as" ident(x) :=
 Ltac exists_fresh := 
   let L := gather_vars_with (fun x : vars => x) in exists L.
 
-Scheme atypingi_induct := Induction for ATypingI Sort Prop
-  with atypingc_induct := Induction for ATypingC Sort Prop
+Scheme atyping_induct := Induction for ATyping Sort Prop
   with awftyp_induct := Induction for AWfTyp Sort Prop
-  with awf_induct := Induction for AWf Sort Prop
-  with ainst_induct := Induction for AInst Sort Prop
-  with atypapp_induct := Induction for ATypingApp Sort Prop.
+  with awf_induct := Induction for AWf Sort Prop.
 
-Scheme atypingi_ind := Induction for ATypingI Sort Prop
-  with atypingc_ind := Induction for ATypingC Sort Prop.
-
-Hint Constructors ARed ATypingI ATypingC AWfTyp AWf AInst AGen ATypingApp
+Hint Constructors ARed ATyping AMode AWfTyp AWf AInst AGen
      AUnify AResolveEVar AWTerm.
 
 (** Substitution *)
