@@ -1179,3 +1179,52 @@ Proof.
   split. auto. split. auto. intros SoftG2. constructor. apply* SoftG2H2.
   rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
 Qed.
+
+Lemma awf_ok: forall G,
+  AWf G -> ok G.
+Proof.
+  introv wf.
+  induction wf; auto.
+Qed.
+
+Lemma extension_weakening_awterm: forall G H a,
+    AWTerm G a ->
+    ExtCtx G H -> ok H ->
+    AWTerm H a.
+Proof.
+  introv ga gh wf. gen H.
+  induction ga; introv gh wf; auto; try(apply split_bind_context in H; destruct H as (G1 & G2 & gi); rewrite gi in gh).
+  apply extension_order_var in gh. destruct gh as (H1 & H2 & [hi _]).
+  rewrite hi. constructor*.
+  rewrite hi in wf. apply* binds_middle_eq.
+  apply* ok_middle_inv_r.
+
+  apply extension_order_typvar in gh. destruct gh as (H1 & H2 & t2 & [hi _]).
+  rewrite hi. apply* AWTerm_TypVar.
+  rewrite hi in wf. apply* binds_middle_eq.
+  apply* ok_middle_inv_r.
+
+  apply extension_order_bndvar in gh. destruct gh as (H1 & H2 & s2 & t2 & [hi _]).
+  rewrite hi. apply* AWTerm_LetVar.
+  rewrite hi in wf. apply* binds_middle_eq.
+  apply* ok_middle_inv_r.
+
+  apply extension_order_unsolved_evar in gh. destruct gh as (H1 & H2 & [hi _]).
+  destruct hi as [hi1 | (t & hi1)];
+    try(rewrite hi1);
+    [apply* AWTerm_EVar | apply* AWTerm_Solved_EVar];
+    try(rewrite hi1 in wf; apply* binds_middle_eq);try(apply* ok_middle_inv_r).
+
+  apply extension_order_solved_evar in gh. destruct gh as (H1 & H2 & t2 & [hi _]).
+  rewrite hi. apply* AWTerm_Solved_EVar.
+  rewrite hi in wf. apply* binds_middle_eq.
+  apply* ok_middle_inv_r.
+
+  apply AWTerm_Lam with (L:=L \u dom H1). introv notin. apply* H0.
+
+  apply AWTerm_Pi with (L:=L \u dom H1). apply* IHga.
+  introv notin. apply* H0.
+
+  apply AWTerm_Let with (L:=L \u dom H1). apply* IHga.
+  introv notin. apply* H0.
+Qed.
