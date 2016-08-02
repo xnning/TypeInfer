@@ -23,17 +23,13 @@ Tactic Notation "apply_fresh" "*" constr(T) "as" ident(x) :=
 Ltac exists_fresh := 
   let L := gather_vars_with (fun x : vars => x) in exists L.
 
-Scheme dtypingi_induct := Induction for DTypingI Sort Prop
-  with dtypingc_induct := Induction for DTypingC Sort Prop
+Scheme dtyping_induct := Induction for DTyping Sort Prop
   with dwftyp_induct := Induction for DWfTyp Sort Prop
   with dwf_induct := Induction for DWf Sort Prop
   with dinst_induct := Induction for DInst Sort Prop
   with dgen_induct := Induction for DGen Sort Prop.
 
-Scheme dtypingi_ind := Induction for DTypingI Sort Prop
-  with dtypingc_ind := Induction for DTypingC Sort Prop.
-
-Hint Constructors DRed DTypingI DTypingC DWfTyp DWf DInst DGen.
+Hint Constructors DRed DTyping DMode DWfTyp DWf DInst DGen.
 
 (** Substitution *)
 
@@ -412,15 +408,14 @@ Definition contains_terms (E : DCtx) :=
   (forall x U, binds x (DC_Typ U) E -> DTerm U) /\
   (forall x T U, binds x (DC_Bnd T U) E -> DTermTy T /\ DTerm U).
 
-Lemma regular_dtypingi : forall E t T, DTypingI E t T ->
+Lemma regular_dtyping : forall m E t T, DTyping m E t T ->
   (DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T).
 Proof.
-  apply dtypingi_induct with
-  (P0 := fun E t T (_ : DTypingC E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P1 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
-  (P2 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P3 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
-  (P4 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
+  apply dtyping_induct with
+  (P0 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
+  (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
+  (P3 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
     unfolds contains_terms; intros; splits*.
   
   pick_fresh x. assert (x \notin L) by auto.
@@ -501,104 +496,15 @@ Proof.
   destruct~ (H x H0 H1) as [_ [_ [_ [H2 _]]]].
 Qed.
 
-Lemma regular_dtypingc : forall E t T, DTypingC E t T ->
-  (DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T).
-Proof.
-  apply dtypingc_induct with
-  (P := fun E t T (_ : DTypingI E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P1 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
-  (P2 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P3 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
-  (P4 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
-    unfolds contains_terms; intros; splits*.
-
-  pick_fresh x. assert (x \notin L) by auto.
-  destruct (H x H0) as [H1 [_ [_ _]]].
-  inversion* H1. false* empty_push_inv.
-  destruct (eq_push_inv H2) as [_ [_ Eq]]. subst*.
-  destruct (eq_push_inv H2) as [_ [_ Eq]]. subst*.
-  destruct (eq_push_inv H2) as [_ [_ Eq]]. subst*.
-
-  pick_fresh x. assert (x \notin L) by auto.
-  destruct~ (H x H0) as [_ [H1 [_ _]]].
-
-  split; intros.
-  pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as [_ [_ [[H2 _] _]]].
-  apply* (H2 x U).
-  pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as [_ [_ [[_ H2] _]]].
-  apply* (H2 x T U).
-  
-  intros. false* binds_empty_inv.
-  intros. false* binds_empty_inv.
-
-  intros. destruct (binds_push_inv H1) as [[? ?]|[? ?]].
-  injection H3; intros. subst*.
-  destruct H as [_ [H4 _]].
-  apply H4 with (x := x0). auto.
-
-  intros. destruct (binds_push_inv H1) as [[? ?]|[? ?]].
-  false*. destruct H as [_ [_ H4]].
-  apply H4 with (x := x0). auto.
-
-  intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
-  false*. destruct H as [_ [H5 _]].
-  apply H5 with (x := x0). auto.
-
-  intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
-  injection H4; intros. subst*.
-  destruct H as [_ [_ H5]].
-  apply H5 with (x := x0). auto.
-
-  intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
-  false*. destruct H as [_ [H5 _]].
-  apply H5 with (x := x0). auto.
-
-  intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
-  injection H4; intros. subst*.
-  pick_fresh y. assert (y \notin L) by auto.
-  destruct (H1 y H3) as [_ [_ H5]].
-  destruct (H5 x (s ^' y) t). auto. split*.
-  destruct H as [_ [_ H5]].
-  apply H5 with (x := x0). auto.
-
-  pick_fresh x. assert (x \notin L) by auto.
-  assert (x \notin DFv e) by auto.
-  destruct (H x H0 H1) as [H2 [_ [_ _]]].
-  inversion* H2. false* empty_push_inv.
-  destruct (eq_push_inv H3) as [_ [_ Eq]]. subst*.
-  destruct (eq_push_inv H3) as [_ [_ Eq]]. subst*.
-  destruct (eq_push_inv H3) as [_ [_ Eq]]. subst*.
-
-  pick_fresh x. assert (x \notin L) by auto.
-  assert (x \notin DFv e) by auto.
-  destruct~ (H x H0 H1) as [_ [H2 [_ _]]].
-
-  split; intros.
-  pick_fresh y. assert (y \notin L) by auto.
-  assert (y \notin DFv e) by auto.
-  destruct~ (H y H1 H2) as [_ [_ [[H3 _] _]]].
-  apply* (H3 x U).
-  pick_fresh y. assert (y \notin L) by auto.
-  assert (y \notin DFv e) by auto.
-  destruct~ (H y H1 H2) as [_ [_ [[_ H3] _]]].
-  apply* (H3 x T U).
-  
-  pick_fresh x. assert (x \notin L) by auto.
-  assert (x \notin DFv e) by auto.
-  destruct~ (H x H0 H1) as [_ [_ [_ [H2 _]]]].
-Qed.
 
 Lemma regular_dinst : forall E s t, DInst E s t ->
   (DWf E /\ ok E /\ contains_terms E /\ DTermTy s /\ DTerm t).
 Proof.
   apply dinst_induct with
-  (P := fun E t T (_ : DTypingI E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P0 := fun E t T (_ : DTypingC E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P1 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
-  (P2 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P4 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
+  (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
+  (P0 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
+  (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
+  (P3 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
     unfolds contains_terms; intros; splits*.
   
   pick_fresh x. assert (x \notin L) by auto.
@@ -683,11 +589,10 @@ Lemma regular_dgen : forall E t s, DGen E t s ->
   (DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy s).
 Proof.
   apply dgen_induct with
-  (P := fun E t T (_ : DTypingI E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P0 := fun E t T (_ : DTypingC E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P1 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
-  (P2 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P3 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T);
+  (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
+  (P0 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
+  (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T);
     unfolds contains_terms; intros; splits*.
   
   pick_fresh x. assert (x \notin L) by auto.
@@ -772,11 +677,10 @@ Lemma regular_dwftyp : forall E t, DWfTyp E t ->
   (DWf E /\ ok E /\ contains_terms E /\ DTermTy t).
 Proof.
   apply dwftyp_induct with
-  (P := fun E t T (_ : DTypingI E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P0 := fun E t T (_ : DTypingC E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
-  (P2 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P3 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
-  (P4 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
+  (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
+  (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
+  (P3 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
     unfolds contains_terms; intros; splits*.
   
   pick_fresh x. assert (x \notin L) by auto.
@@ -858,10 +762,8 @@ Proof.
 Qed.
 
 Hint Extern 1 (DTerm ?t) => match goal with
-  | H: DTypingI _ t _ |- _ => apply (proj32 (proj33 (regular_dtypingi H)))
-  | H: DTypingI _ _ t |- _ => apply (proj33 (proj33 (regular_dtypingi H)))
-  | H: DTypingC _ t _ |- _ => apply (proj32 (proj33 (regular_dtypingc H)))
-  | H: DTypingC _ _ t |- _ => apply (proj33 (proj33 (regular_dtypingc H)))
+  | H: DTyping _ _ t _ |- _ => apply (proj32 (proj33 (regular_dtyping H)))
+  | H: DTyping _ _ _ t |- _ => apply (proj33 (proj33 (regular_dtyping H)))
   | H: DInst _ _ t    |- _ => apply (proj33 (proj33 (regular_dinst H)))
   | H: DGen _ t _     |- _ => apply (proj32 (proj33 (regular_dgen H)))
   end.
@@ -874,8 +776,8 @@ Hint Extern 1 (DTermTy ?s) => match goal with
 
 Lemma dok_from_wf : forall E, DWf E -> ok E.
 Proof.
-  induction 1. auto. autos* (regular_dtypingc H1).
-  autos* (regular_dtypingc H2).
+  induction 1. auto. autos* (regular_dtyping H1).
+  autos* (regular_dtyping H2).
   autos* (regular_dwftyp H1).
 Qed.
 
@@ -884,8 +786,7 @@ Hint Extern 1 (ok ?E) => match goal with
   end.
 
 Hint Extern 1 (DWf ?E) => match goal with
-  | H: DTypingC E _ _ |- _ => apply (proj1 (regular_dtypingc H))
-  | H: DTypingI E _ _ |- _ => apply (proj1 (regular_dtypingi H))
+  | H: DTyping _ E _ _ |- _ => apply (proj1 (regular_dtyping H))
   | H: DInst E _ _    |- _ => apply (proj1 (regular_dinst H))
   | H: DGen E _ _     |- _ => apply (proj1 (regular_dinst H))
   | H: DWfTyp E _     |- _ => apply (proj1 (regular_dwftyp H))   
@@ -953,29 +854,37 @@ Proof.
   specializes IHt1 n. auto. specializes IHt2 n. auto.
 Qed.
 
-Lemma dtypingc_fresh : forall E T x,
-    DTypingC E T DE_Star -> x # E -> x \notin DFv T
-with dtypingI_fresh : forall E T x,
-    DTypingI E T DE_Star -> x # E -> x \notin DFv T.
+Lemma dtyping_fresh : forall m x E t T,
+    DTyping m E t T -> x # E -> x \notin DFv t
+with dgen_fresh : forall x E t s,
+    DGen E t s -> x # E -> x \notin DFv t.
 Proof.
-  introv Typ. gen_eq T2: DE_Star.
-  induction Typ; simpls; intros.
-  false*. admit.
-  false. rewrite H0 in H. inversion H.
-  subst*.
-  
-  introv Typ. gen_eq T2: DE_Star.
+  introv Typ.
   induction Typ; simpls; intros.
   auto.
+  rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H1.
   rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H2.
-  rewrite notin_singleton. intro. subst. applys binds_fresh_inv H0 H3.
-  subst*.
-  false*.
-  admit.
-  admit. admit.
-  rewrite H0 in H. inversion H.
-  admit. admit. admit. admit.
-Admitted.
+  lets: (IHTyp1 H). lets: (IHTyp2 H). auto.
+  pick_fresh y. apply* (@dfv_open_var y).
+  lets: (IHTyp1 H). lets: (IHTyp2 H). auto.
+  pick_fresh y. notin_simpl.
+  apply* dgen_fresh.
+  apply* (@dfv_open_var y).
+  pick_fresh y. notin_simpl. auto. apply* (@dfv_open_var y).
+  lets: (IHTyp H0). auto.
+  lets: (IHTyp H0). auto.
+  pick_fresh y. notin_simpl. auto. apply* (@dfv_open_var y).
+  pick_fresh y. notin_simpl.
+  apply* dgen_fresh.
+  apply* (@dfv_open_var y).
+  lets: (IHTyp H0). auto.
+  lets: (IHTyp H). auto.
+ 
+  introv Gen.
+  induction Gen; simpls; intros.
+  apply* dtyping_fresh.
+  pick_fresh y. apply* H0.
+Qed.
 
 Lemma notin_dfv_from_dwf : forall E F x V,
   DWf (E & x ~ DC_Typ V & F) -> x \notin DFv V.
@@ -986,10 +895,54 @@ Proof.
   destruct (eq_push_inv H0) as [? [? ?]].
   injection H5. intros.
   subst~.
-  apply* dtypingc_fresh.
+  apply* dtyping_fresh.
   destruct (eq_push_inv H0) as [? [? ?]].
   false*.
   destruct (eq_push_inv H0) as [? [? ?]].
   false*.
 Qed.
+
+Lemma notin_dfv_from_binds : forall x y U E,
+  DWf E -> binds y (DC_Typ U) E -> x # E -> x \notin DFv U.
+Proof.
+  induction E using env_ind; intros.
+  false* binds_empty_inv.
+  destruct v.
+  destruct (dwf_push_inv H).
+  destruct (binds_push_inv H0) as [[? ?]|[? ?]]; subst.
+  inversions H. false* (empty_push_inv H6).
+  injection H5; intros; subst.
+  destruct (eq_push_inv H4) as [? [? ?]]. subst~. 
+  injection H9; intros; subst.
+  apply dtyping_fresh with (m := Chk)(E := E)(T := DE_Star).
+  auto. auto.   
+  destruct (eq_push_inv H4) as [? [? ?]]. false*.
+  destruct (eq_push_inv H4) as [? [? ?]]. false*.
+  apply* IHE.
+  destruct (binds_push_inv H0) as [[? ?]|[? ?]]; subst.
+  false*.
+  inversions H. false* (empty_push_inv H5).
+  destruct (eq_push_inv H4) as [? [? ?]]. false*. 
+  destruct (eq_push_inv H4) as [? [? ?]]; subst~.
+  destruct (eq_push_inv H4) as [? [? ?]]; subst~.
+Qed.
+
+Lemma notin_dfv_from_binds' : forall E F x V y U,
+  DWf (E & x ~ DC_Typ V & F) -> binds y (DC_Typ U) E -> x \notin DFv U.
+Proof.
+  intros. lets W: (dwf_left H). inversions keep W.
+  false (empty_push_inv H2). 
+  destruct (eq_push_inv H1) as [? [? ?]]. subst~. 
+  lets W': (dwf_left W). apply* notin_dfv_from_binds.
+  destruct (eq_push_inv H1) as [? [? ?]]. false*.
+  destruct (eq_push_inv H1) as [? [? ?]]. false*.
+Qed.
+
+Hint Extern 1 (?x \notin DFv ?V) => 
+  match goal with H: DWf (?E & x ~ DC_Typ V & ?F) |- _ =>
+    apply (@notin_dfv_from_dwf E F) end.
+
+Hint Extern 1 (?x \notin DFv ?U) => 
+  match goal with H: DWf (?E & x ~ DC_Typ ?V & ?F), B: binds ?y U ?E |- _ =>
+    apply (@notin_dfv_from_binds' E F x V y) end.
 

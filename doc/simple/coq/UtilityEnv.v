@@ -449,4 +449,3 @@ Proof.
   rewrite concat_assoc. constructor. apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf. simpl_dom. apply notin_union. rewrite concat_assoc in wf. apply AWf_push_inv in wf. split. auto. apply notin_uv. auto.
   apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
 Qed.
-Qed.
