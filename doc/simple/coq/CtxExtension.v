@@ -11,32 +11,44 @@ Require Import AlgoInfra.
 Inductive ExtCtx : ACtx -> ACtx -> Prop :=
   | ExtCtx_Empty: ExtCtx empty empty
   | ExtCtx_Var : forall G H x,
-      ExtCtx G H -> x # H ->
+      ExtCtx G H ->
+      x# G -> x # H ->
       ExtCtx (G & x ~ AC_Var) (H & x ~ AC_Var)
-  | ExtCtx_TypVar : forall G H x t1 t2,
-      ExtCtx G H -> x # H -> AWf (G & x ~ AC_Typ t1) ->
+  | ExtCtx_TypVar : forall G H I1 I2 x t1 t2,
+      ExtCtx G H ->
+      AWf (G & x ~ AC_Typ t1) I1 ->
+      AWf (H & x ~ AC_Typ t1) I2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & x ~ AC_Typ t1) (H & x ~ AC_Typ t2)
-  | ExtCtx_LetVar : forall G H x s1 s2 t1 t2,
-      ExtCtx G H -> x # H -> AWf (G & x ~ AC_Bnd s1 t1) ->
+  | ExtCtx_LetVar : forall G H I1 I2 x s1 s2 t1 t2,
+      ExtCtx G H ->
+      AWf (G & x ~ AC_Bnd s1 t1) I1 ->
+      AWf (H & x ~ AC_Bnd s1 t1) I2 ->
       ACtxTSubst H s1 = ACtxTSubst H s2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & x ~ AC_Bnd s1 t1) (H & x ~ AC_Bnd s2 t2)
   | ExtCtx_EVar : forall G H a,
-      ExtCtx G H -> a # H ->
+      ExtCtx G H ->
+      a # G -> a # H ->
       ExtCtx (G & a ~ AC_Unsolved_EVar) (H & a ~ AC_Unsolved_EVar)
-  | ExtCtx_SolvedEVar: forall G H a t1 t2,
-      ExtCtx G H -> a # H -> AWf (G & a ~ AC_Solved_EVar t1) ->
+  | ExtCtx_SolvedEVar: forall G H I1 I2 a t1 t2,
+      ExtCtx G H ->
+      AWf (G & a ~ AC_Solved_EVar t1) I1 ->
+      AWf (H & a ~ AC_Solved_EVar t1) I2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & a ~ AC_Solved_EVar t1) (H & a ~ AC_Solved_EVar t2)
-  | ExtCtx_Solve : forall G H a t,
-      ExtCtx G H -> a # H -> AWfTyp H (AT_Expr t) ->
+  | ExtCtx_Solve : forall G H I a t,
+      ExtCtx G H ->
+      a # G ->
+      AWf (H & a ~ AC_Solved_EVar t) I ->
       ExtCtx (G & a ~ AC_Unsolved_EVar) (H & a ~ AC_Solved_EVar t)
   | ExtCtx_Add : forall G H a,
-      ExtCtx G H -> a # H ->
+      ExtCtx G H ->
+      a # H ->
       ExtCtx G (H & a ~ AC_Unsolved_EVar)
-  | ExtCtx_AddSolved: forall G H a t,
-      ExtCtx G H -> a # H -> AWfTyp H (AT_Expr t) ->
+  | ExtCtx_AddSolved: forall G H I a t,
+      ExtCtx G H ->
+      AWf (H & a ~ AC_Solved_EVar t) I ->
       ExtCtx G (H & a ~ AC_Solved_EVar t)
 .
 
@@ -121,7 +133,7 @@ Definition ok_context_def := forall G I, ExtCtx G I -> ok G.
 
 Definition ok_preservation_def := forall G I, ExtCtx G I -> ok I.
 
-Definition awf_context_def := forall G I, ExtCtx G I -> AWf G.
+Definition awf_context_def := forall G I, ExtCtx G I -> exists H, AWf G H.
 
 Definition declaration_order_preservation_def := forall G I G1 G2 G3 x y xv1 yv1,
     ExtCtx G I ->
@@ -135,32 +147,32 @@ Definition reverse_declaration_order_preservation_def := forall G I x y xv2 yv2 
     I = I1 & x ~ xv2 & I2 & y ~ yv2 & I3 ->
     exists G1 G2 G3 xv1 yv1, G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3.
 
-Definition extension_reflexivity_def := forall G,
-    AWf G -> ExtCtx G G.
+Definition extension_reflexivity_def := forall G H,
+    AWf G H -> ExtCtx G G.
 
-Definition  right_softness_def := forall G I H,
+Definition  right_softness_def := forall G I H H2,
     ExtCtx G I ->
     Softness H ->
-    AWf (I & H) ->
+    AWf (I & H) H2 ->
     ExtCtx G (I & H).
 
 Definition evar_input_def := forall (G H: ACtx) a,
     ExtCtx (G & a ~ AC_Unsolved_EVar) H ->
     exists H1 H2 H3, H = H1 & H2 & H3 /\ ExtCtx G H1 /\ (H2 = a ~ AC_Unsolved_EVar \/ exists t, H2 = a ~ AC_Solved_EVar t) /\ Softness H3.
 
-Definition solution_admissibility_for_extension_def := forall G a t H,
-    AWf (G & a ~ AC_Unsolved_EVar & H) ->
-    AWfTyp G (AT_Expr t) ->
+Definition solution_admissibility_for_extension_def := forall G a t H I1 I2,
+    AWf (G & a ~ AC_Unsolved_EVar & H) I1 ->
+    AWf (G & a ~ AC_Solved_EVar t & H) I2 ->
     ExtCtx (G & a ~ AC_Unsolved_EVar & H) (G & a ~ AC_Solved_EVar t & H).
 
-Definition solved_variable_addition_for_extension_def := forall G H a t,
-    AWf (G & H) ->
-    AWf (G & a ~ AC_Solved_EVar t & H) ->
+Definition solved_variable_addition_for_extension_def := forall G H a t I1 I2,
+    AWf (G & H) I1 ->
+    AWf (G & a ~ AC_Solved_EVar t & H) I2 ->
     ExtCtx (G & H) (G & a ~ AC_Solved_EVar t & H).
 
-Definition unsolved_variable_addition_for_extension_def := forall G H a,
-    AWf (G & H) ->
-    AWf (G & a ~ AC_Unsolved_EVar & H) ->
+Definition unsolved_variable_addition_for_extension_def := forall G H a I1 I2,
+    AWf (G & H) I1 ->
+    AWf (G & a ~ AC_Unsolved_EVar & H) I2 ->
     ExtCtx (G & H) (G & a ~ AC_Unsolved_EVar & H).
 
 Definition extension_order_var_def := forall (G1 G2 H: ACtx) x,
@@ -197,7 +209,8 @@ Proof.
   assert (a <> x). unfold not; intros; subst; eapply binds_fresh_inv; eauto.
   apply* binds_push_neq.
   apply IHExtCtx in H1; inversion H1 as (x1 & HG); exists x1.
-  assert (a <> x). unfold not; intros; subst; eapply binds_fresh_inv; eauto.
+  assert (a <> x). unfold not. intros. subst. eapply binds_fresh_inv; eauto.
+  apply* AWf_push_inv.
   apply* binds_push_neq.
 Qed.
 
@@ -220,27 +233,33 @@ Proof.
   induction GI; auto.
 Qed.
 
+Lemma awf_context : awf_context_def.
+Proof.
+  introv H. induction H; auto; try(exists* I1).
+  exists* (empty: ACtx).
+  destruct IHExtCtx as (Hg & IH). exists* (Hg & x ~ AC_Var).
+  destruct IHExtCtx as (Hg & IH). exists* (Hg & a ~ AC_Unsolved_EVar).
+  destruct IHExtCtx as (Hg & IH). exists* (Hg & a ~ AC_Unsolved_EVar).
+Qed.
+
 Lemma ok_context : ok_context_def.
 Proof.
-  introv H. induction H; auto;
-  try(apply ok_push; eauto;
-
-  unfold notin; unfold not; intros HV; apply (declaration_preservation_dom H0) in HV; apply* H1).
+  introv H. apply awf_context in H. destruct H as (H' & H). apply* awf_is_ok.
 Qed.
 
 Lemma ok_preservation : ok_preservation_def.
 Proof.
   introv H.
   assert (ok G). apply* ok_context.
-  induction H; subst; auto_star.
+  induction H; subst; auto.
+  apply awf_is_ok in H3. apply ok_push_inv in H3. apply* ok_push.
+  apply awf_is_ok in H3. apply ok_push_inv in H3. apply* ok_push.
+  apply awf_is_ok in H3. apply ok_push_inv in H3. apply* ok_push.
+  apply awf_is_ok in H3. apply ok_push_inv in H3. apply* ok_push.
+  apply awf_is_ok in H2. apply ok_push_inv in H2. apply* ok_push.
 Qed.
 
 Hint Resolve declaration_preservation_inv.
-Lemma awf_context : awf_context_def.
-Proof.
-  introv H. induction H; auto;
-  try(constructor*).
-Qed.
 
 Lemma declaration_order_preservation : declaration_order_preservation_def.
 Proof.
@@ -255,14 +274,14 @@ Proof.
   assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
   destruct (eq_var_dec x y); subst.
   assert (x0 \in (dom (G & y ~ AC_Var))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
-  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H3. destruct H3 as [H11 | H12]. rewrite in_singleton in H11. apply H2 in H11. inversion H11. auto.
-  apply (declaration_preservation_dom HE) in H4.
-  apply split_context in H4. destruct H4 as (G1' & G2' & v' & H4'); subst.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H4'); subst.
   exists v' AC_Var G1' G2' (empty: ACtx).
   rewrite* concat_empty_r.
 
   assert (exists G', G3 = G' & x ~ AC_Var). apply (tail_exists_eq n) in HG. auto.
-  inversion H3. subst.
+  inversion H4. subst.
   rewrite concat_assoc in HG.
   apply eq_push_inv in HG.
   destruct HG as [_ [_ HGG]].
@@ -287,9 +306,9 @@ Proof.
   apply eq_push_inv in HG.
   destruct HG as [_ [_ HGG]].
   apply (IHHE (ok_context HE)) in HGG.
-  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
   subst.
-  exists* xv2 yv2 I1 I2 (I3 & x ~ AC_Typ t2). rewrite* concat_assoc.
+  exists* xv2 yv2 I4 I5 (I6 & x ~ AC_Typ t2). rewrite* concat_assoc.
 
   (* ExtCtx_LetVar *)
   assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
@@ -307,22 +326,22 @@ Proof.
   apply eq_push_inv in HG.
   destruct HG as [_ [_ HGG]].
   apply (IHHE (ok_context HE)) in HGG.
-  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
   subst.
-  exists* xv2 yv2 I1 I2 (I3 & x ~ AC_Bnd s2 t2). rewrite* concat_assoc.
+  exists* xv2 yv2 I4 I5 (I6 & x ~ AC_Bnd s2 t2). rewrite* concat_assoc.
 
   (* ExtCtx_EVar *)
   assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
   destruct (eq_var_dec a y); subst.
   assert (x \in (dom (G & y ~ AC_Unsolved_EVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
-  assert (x \in (dom G)). simpl_dom . rewrite in_union in H3. destruct H3 as [H11 | H12]. rewrite in_singleton in H11. apply H2 in H11. inversion H11. auto.
-  apply (declaration_preservation_dom HE) in H4.
-  apply split_context in H4. destruct H4 as (G1' & G2' & v' & H4'); subst.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (declaration_preservation_dom HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H4'); subst.
   exists v' AC_Unsolved_EVar G1' G2' (empty: ACtx).
   rewrite* concat_empty_r.
 
   assert (exists G', G3 = G' & a ~ AC_Unsolved_EVar). apply (tail_exists_eq n) in HG. auto.
-  inversion H3. subst.
+  inversion H4. subst.
   rewrite concat_assoc in HG.
   apply eq_push_inv in HG.
   destruct HG as [_ [_ HGG]].
@@ -347,9 +366,9 @@ Proof.
   apply eq_push_inv in HG.
   destruct HG as [_ [_ HGG]].
   apply (IHHE (ok_context HE)) in HGG.
-  destruct HGG as (xv2 & yv2 & I1 & I2 & I3 & HGG').
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
   subst.
-  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t2). rewrite* concat_assoc.
+  exists* xv2 yv2 I4 I5 (I6 & a ~ AC_Solved_EVar t2). rewrite* concat_assoc.
 
   (* ExtCtx_Solve *)
   assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
@@ -423,60 +442,42 @@ Lemma extension_reflexivity : extension_reflexivity_def.
 Proof.
   introv OKG.
   induction OKG; auto.
-  apply ExtCtx_LetVar with (t2:=t); auto.
-  apply* AWf_LetVar. rewrite* H2.
-  apply* ExtCtx_LetVar.
+  apply ExtCtx_TypVar with (I1:= H & x ~ AC_Typ t)(I2:= H & x ~ AC_Typ t); auto.
+  apply AWf_TyVar with (H1:=H1); auto.
+  apply AWf_TyVar with (H1:=H1); auto.
+
+  apply ExtCtx_LetVar with (I1:= H & x ~ AC_Bnd (AT_Expr s) t)(I2:= H & x ~ AC_Bnd (AT_Expr s) t); auto.
+  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s2:=s2); auto.
+  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s2:=s2); auto.
+
+  apply ExtCtx_LetVar with (I1:=H & x ~ AC_Bnd (AT_Forall s) t)(I2:=H & x ~ AC_Bnd (AT_Forall s) t); auto.
+  apply AWf_LetVar2 with (H1:=H1) (H2:=H2) (H:=H) (L:=L); auto.
+  apply AWf_LetVar2 with (H1:=H1) (H2:=H2) (H:=H) (L:=L); auto.
+
+  apply ExtCtx_SolvedEVar with (I1:=H & x ~ AC_Solved_EVar t)(I2:=H & x ~ AC_Solved_EVar t); auto.
+  apply AWf_Ctx_Solved_EVar with (H1:=H1)(H:=H); auto.
+  apply AWf_Ctx_Solved_EVar with (H1:=H1)(H:=H); auto.
 Qed.
 
 Lemma right_softness: right_softness_def.
 Proof.
-  introv GI SI IH. gen G I.
+  introv GI SI IH. gen G I H2.
   induction H using env_ind; introv GI IH.
   rewrite* concat_empty_r.
   rewrite concat_assoc.
   inversion SI.
   apply empty_push_inv in H1. inversion H1.
   apply eq_push_inv in H0. destruct H0 as [EQAX [EQV EQGH]]; subst.
-  constructor*. apply* IHenv.
-  rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H3; inversion H3);
-  try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
-  inversion EQX).
-  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
-  inversion EQX.
-  rewrite EQAC in H3. auto.
-  rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H3; inversion H3);
-  try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
-  inversion EQX).
-  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
-  inversion EQX.
-  rewrite EQAC in H4. rewrite <- EQIG. auto.
+  rewrite concat_assoc in IH. assert (x # I & H). apply AWf_push_inv in IH. auto.  apply AWf_left in IH. destruct IH as (Hs & IH).
+  constructor*.
 
   apply eq_push_inv in H0. destruct H0 as [EQAX [EQV EQGH]]; subst.
-  constructor*. apply* IHenv.
   rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H3; inversion H3);
-  try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
-  inversion EQX).
-  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
-  inversion EQX.
-  rewrite EQAC in H3. auto.
-  rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H3; inversion H3);
-  try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
-  inversion EQX).
-  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
-  inversion EQX.
-  rewrite EQAC in H4. rewrite <- EQIG. auto.
-
-  rewrite concat_assoc in IH.
-  inversion IH; try(apply empty_push_inv in H3; inversion H3);
-  try(apply eq_push_inv in H0; destruct H0 as [EQIG [EQX EQAC]];
-  inversion EQX).
-  apply eq_push_inv in H3; destruct H3 as [EQIG [EQX EQAC]];
-  inversion EQX.
-  rewrite EQAC in H5. rewrite <- H6. auto.
+  assert (x # I & H). apply AWf_push_inv in IH. auto.
+  assert (IH2:=IH).
+  apply AWf_left in IH. destruct IH as (Hs & IH).
+  apply ExtCtx_AddSolved with (I:=H2); auto.
+  apply* IHenv.
 Qed.
 
 Lemma evar_input: evar_input_def.
@@ -508,81 +509,151 @@ Proof.
   assert (neqa: a0 <> a).
     assert (a \in dom H). apply (declaration_preservation_dom GH). rewrite* GInfo. simpl_dom; apply union_left. apply in_singleton_self.
     unfold not. intros eqa. subst.
-    apply get_some in H2. destruct H2 as (v & H2).
+    apply get_some in H1. destruct H1 as (v & H1).
     apply binds_fresh_inv with (x:= a) (E:=H) (v:=v); auto.
+    apply* AWf_push_inv.
   apply IHGH in GInfo.
   destruct GInfo as (H1' & H2 & H3 & [HInfo [GH1 [GH2 GH3]]]).
   exists* H1' H2 (H3 & a0 ~ AC_Solved_EVar t).
   rewrite* concat_assoc. subst. split; auto.  split; auto.
   split; auto. constructor; auto.
+  apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma solution_admissibility_for_extension : solution_admissibility_for_extension_def.
 Proof.
-  introv. gen G a t.
+  introv. gen G a t I1 I2.
   induction H using env_ind.
-  introv WF WFTyp.
-  repeat(rewrite concat_empty_r).
-  constructor. apply extension_reflexivity.
-  rewrite concat_empty_r in WF.
-  inversion WF;
-    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
-    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
-  apply empty_push_inv in H0; inversion H0.
-  inversion WF; rewrite concat_empty_r in *;
-    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
-    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
-  apply empty_push_inv in H0; inversion H0.
-  auto.
+  introv WFH WFG.
+  repeat(rewrite concat_empty_r in *).
+  apply ExtCtx_Solve with (I:=I2); auto.
+  apply AWf_left in WFH. destruct WFH as (H & WFH).
+  apply* extension_reflexivity.
+  apply* AWf_push_inv.
 
-  introv WF WFTyp.
-  repeat(rewrite concat_assoc).
-  rewrite concat_assoc in WF.
-  induction v; constructor*;
+  introv WFH WFG.
+  repeat(rewrite concat_assoc in *).
+  induction v.
 
-  try(apply* IHenv; apply AWf_left in WF; auto);
-  try(apply AWf_push_inv in WF; auto).
+  apply ExtCtx_Var; auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_TypVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_LetVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_EVar.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_SolvedEVar with (I1:=I1) (I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
 Qed.
 
 Lemma solved_variable_addition_for_extension:
   solved_variable_addition_for_extension_def.
 Proof.
-  introv. gen G a t.
+  introv. gen G a t I1 I2.
   induction H using env_ind.
-  introv WFGH WFGAH.
+  introv WFG WFH.
   repeat(rewrite concat_empty_r in *).
-  constructor. apply extension_reflexivity.
-  auto.  apply AWf_push_inv with (v:= AC_Solved_EVar t) . auto.
-  inversion WFGAH;
-    try(apply eq_push_inv in H; destruct H as [eqg [H eqt]]; subst; auto; inversion H);
-    try(apply eq_push_inv in H0; destruct H0 as [eqg [H0 eqt]]; subst; auto; inversion H0).
-  apply empty_push_inv in H0; inversion H0.
-  inversion H. subst; auto.
+  apply ExtCtx_AddSolved with (I:=I2); auto.
+  apply AWf_left in WFH. destruct WFH as (H & WFH).
+  apply* extension_reflexivity.
 
-  introv WF WFTyp.
+  introv WFG WFH.
   repeat(rewrite concat_assoc in *).
-  induction v; constructor*;
-  try(apply IHenv; apply AWf_left in WF; auto;
-  apply AWf_left in WFTyp; auto);
-  try(apply AWf_push_inv in WFTyp; auto).
+  induction v.
+
+  apply ExtCtx_Var; auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_TypVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_LetVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_EVar.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_SolvedEVar with (I1:=I1) (I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
 Qed.
 
 Lemma unsolved_variable_addition_for_extension:
   unsolved_variable_addition_for_extension_def.
 Proof.
-  introv. gen G a.
+  introv. gen G a I1 I2.
   induction H using env_ind.
-  introv WFGH WFGAH.
+  introv WFG WFH.
   repeat(rewrite concat_empty_r in *).
-  constructor. apply extension_reflexivity.
-  auto. apply AWf_push_inv in WFGAH. auto.
+  apply ExtCtx_Add; auto.
+  apply AWf_left in WFH. destruct WFH as (H & WFH).
+  apply* extension_reflexivity.
+  apply* AWf_push_inv.
 
-  introv WF WFTyp.
+  introv WFG WFH.
   repeat(rewrite concat_assoc in *).
-  induction v; constructor*;
-  try(apply IHenv; apply AWf_left in WF; auto;
-  apply AWf_left in WFTyp; auto);
-  try(apply AWf_push_inv in WFTyp; auto).
+  induction v.
+
+  apply ExtCtx_Var; auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_TypVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_LetVar with (I1:=I1)(I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+
+  apply ExtCtx_EVar.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
+  apply* AWf_push_inv.
+  apply* AWf_push_inv.
+
+  apply ExtCtx_SolvedEVar with (I1:=I1) (I2:=I2); auto.
+  apply AWf_left in WFG. destruct WFG as (G0 & WFG).
+  apply AWf_left in WFH. destruct WFH as (H0 & WFH).
+  apply* IHenv.
 Qed.
 
 Lemma extension_order_var : extension_order_var_def.
@@ -595,16 +666,14 @@ Proof.
   exists* H (empty: ACtx). split. rewrite* concat_empty_r.
   split. apply tail_empty_eq with (G0:= G & x0 ~ AC_Var) (G3 := G) (I := G1 & x0 ~ AC_Var & G2) (I1:= G1) (I2:=G2) (x:=x0) (vx:=AC_Var) (vy:=AC_Var)in IG; auto.
   destruct IG as [IG _]. subst. auto.
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply ok_context in EX. auto. auto.
+  constructor. apply ok_context in EX. auto. auto.
   constructor.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
-  apply IHEX in IG. destruct IG as (H1 & H2 & [HH [EXG1H1 SoftG3H2]]).
-  exists* H1 (H2 & x0 ~ AC_Var). split; auto.
+  apply IHEX in IG. destruct IG as (H11 & H2 & [HH [EXG1H1 SoftG3H2]]).
+  exists* H11 (H2 & x0 ~ AC_Var). split; auto.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   rewrite HG2. intros. inversion H3. apply empty_push_inv in H5. inversion H5. apply eq_push_inv in H4. destruct H4 as [_ [H4 _]]. inversion H4. apply eq_push_inv in H4. destruct H4 as [_ [H4 _]]. inversion H4.
@@ -612,20 +681,20 @@ Proof.
   (* AC_Typ *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Typ t1) (G & x0 ~ AC_Typ t1)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
-  apply IHEX in IG. destruct IG as (H3 & H4 & [HH [EXG1H1 SoftG3H2]]).
-  exists* H3 (H4 & x0 ~ AC_Typ t2). split; auto.
+  apply IHEX in IG. destruct IG as (H33 & H4 & [HH [EXG1H1 SoftG3H2]]).
+  exists* H33 (H4 & x0 ~ AC_Typ t2). split; auto.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
-  rewrite HG2. intros. inversion H5. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [_ [H6 _]]. inversion H6. apply eq_push_inv in H6. destruct H6 as [_ [H6 _]]. inversion H6.
+  rewrite HG2. intros. inversion H3. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5.
 
   (* AC_Bnd *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Bnd s1 t1) (G & x0 ~ AC_Bnd s1 t1)).
-  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -638,7 +707,7 @@ Proof.
   (* AC_Unsolved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -646,12 +715,12 @@ Proof.
   exists* H4 (H5 & a ~ AC_Unsolved_EVar). split; auto.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H1. apply empty_push_inv in H3. inversion H3. apply eq_push_inv in H2. destruct H2 as [EQA [_ eqg]]. rewrite eqg in H3. assumption. apply eq_push_inv in H2.  destruct H2 as [_ [neq _]]. inversion neq. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [_ eqg]]. rewrite eqg in H6. assumption. apply eq_push_inv in H3.  destruct H3 as [_ [neq _]]. inversion neq. rewrite HH in H1. simpl_dom. apply notin_union in H1. destruct H1 as [_ H1]. auto.
 
   (* AC_Solved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Solved_EVar t1) (G & a ~ AC_Solved_EVar t1)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -659,12 +728,12 @@ Proof.
   exists* H4 (H5 & a ~ AC_Solved_EVar t2). split; auto.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H1. apply AWf_push_inv in H1. simpl_dom. auto_star.
 
   (* AC_Solve *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -672,21 +741,21 @@ Proof.
   exists* H4 (H5 & a ~ AC_Solved_EVar t). split; auto.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Add *)
   apply IHEX in IG. destruct IG as (H1 & H2 & [HH [ExtG1H1 SoftG2H2]]).
   exists* H1 (H2 & a ~ AC_Unsolved_EVar). rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. auto_star.
 
   (* AC_AddSolved *)
   apply IHEX in IG. destruct IG as (H2 & H3 & [HH [ExtG1H1 SoftG2H2]]).
   exists* H2 (H3 & a ~ AC_Solved_EVar t). rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma extension_order_typvar : extension_order_typvar_def.
@@ -697,7 +766,7 @@ Proof.
   (* AC_Var *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 AC_Var (G & x0 ~ AC_Var)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -706,20 +775,18 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. inversion H1. apply empty_push_inv in H5. inversion H5. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2.
+  rewrite HG2. intros. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5.
 
   (* AC_Typ *)
   destruct (eq_var_dec x x0); subst.
-  apply tail_empty_eq with (G0:= G & x0 ~ AC_Typ t0) (G3 := G) (I := G1 & x0 ~ AC_Typ t1 & G2) (I1:= G1) (I2:=G2) (x:=x0) (vx:=AC_Typ t0) (vy:=AC_Typ t1) in IG; auto.
+  apply tail_empty_eq with (G0:= G & x0 ~ AC_Typ t0) (G3 := G) (I := G1 & x0 ~ AC_Typ t1 & G2) (I3:= G1) (I4:=G2) (x:=x0) (vx:=AC_Typ t0) (vy:=AC_Typ t1) in IG; auto.
   destruct IG as [IG [eqt _]]. subst. auto.
   exists* H (empty: ACtx) t2. split. rewrite* concat_empty_r.
   split. auto.
   split; auto. inversion eqt; subst; auto. constructor.
 
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply ok_context in EX. auto. apply* AWf_push_inv.
+  apply* awf_is_ok.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -733,7 +800,7 @@ Proof.
   (* AC_Bnd *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Bnd s1 t0) (G & x0 ~ AC_Bnd s1 t0)).
-  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -747,7 +814,7 @@ Proof.
   (* AC_Unsolved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -756,12 +823,12 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H1. apply empty_push_inv in H3. inversion H3. apply eq_push_inv in H2. destruct H2 as [EQA [_ eqg]]. rewrite eqg in H3. assumption. apply eq_push_inv in H2.  destruct H2 as [_ [neq _]]. inversion neq. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [_ eqg]]. rewrite eqg in H6. assumption. apply eq_push_inv in H3.  destruct H3 as [_ [neq _]]. inversion neq. rewrite HH in H1. auto_star.
 
   (* AC_Solved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Solved_EVar t0) (G & a ~ AC_Solved_EVar t0)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -770,12 +837,12 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Solve *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -784,21 +851,21 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Add *)
   apply IHEX in IG. destruct IG as (H1 & H2 & t2 & [HH [ExtG1H1 [t1t2 SoftG2H2]]]).
   exists* H1 (H2 & a ~ AC_Unsolved_EVar) t2. rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. auto_star.
 
   (* AC_AddSolved *)
   apply IHEX in IG. destruct IG as (H2 & H3 & t2 &  [HH [ExtG1H1 [t1t2 SoftG2H2]]]).
   exists* H2 (H3 & a ~ AC_Solved_EVar t) t2. rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma extension_order_bndvar : extension_order_bndvar_def.
@@ -809,7 +876,7 @@ Proof.
   (* AC_Var *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 AC_Var (G & x0 ~ AC_Var)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -819,12 +886,12 @@ Proof.
   split; auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. inversion H1. apply empty_push_inv in H5. inversion H5. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2.
+  rewrite HG2. intros. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5.
 
   (* AC_Typ *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Typ t0) (G & x0 ~ AC_Typ t0)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -838,16 +905,13 @@ Proof.
 
   (* AC_Bnd *)
   destruct (eq_var_dec x x0); subst.
-  apply tail_empty_eq with (G0:= G & x0 ~ AC_Bnd s0 t0) (G3 := G) (I := G1 & x0 ~ AC_Bnd s1 t1 & G2) (I1:= G1) (I2:=G2) (x:=x0) (vx:=AC_Bnd s0 t0) (vy:=AC_Bnd s1 t1) in IG; auto.
+  apply tail_empty_eq with (G0:= G & x0 ~ AC_Bnd s0 t0) (G3 := G) (I := G1 & x0 ~ AC_Bnd s1 t1 & G2) (I3:= G1) (I4:=G2) (x:=x0) (vx:=AC_Bnd s0 t0) (vy:=AC_Bnd s1 t1) in IG; auto.
   destruct IG as [IG [eqt _]]. inversion eqt. subst.
   exists* H (empty: ACtx) s2 t2. split. rewrite* concat_empty_r.
   split. auto.
   split; auto. split; auto. constructor.
 
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. apply* awf_is_ok. apply* awf_is_ok.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -862,7 +926,7 @@ Proof.
   (* AC_Unsolved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -872,12 +936,12 @@ Proof.
   split; auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H1. apply empty_push_inv in H3. inversion H3. apply eq_push_inv in H2. destruct H2 as [EQA [_ eqg]]. rewrite eqg in H3. assumption. apply eq_push_inv in H2.  destruct H2 as [_ [neq _]]. inversion neq. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [_ eqg]]. rewrite eqg in H6. assumption. apply eq_push_inv in H3.  destruct H3 as [_ [neq _]]. inversion neq. rewrite HH in H1. auto_star.
 
   (* AC_Solved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Solved_EVar t0) (G & a ~ AC_Solved_EVar t0)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. apply* awf_is_ok.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -887,12 +951,12 @@ Proof.
   split; auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Solve *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -902,21 +966,21 @@ Proof.
   split; auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Add *)
   apply IHEX in IG. destruct IG as (H1 & H2 & s2 & t2 & [HH [ExtG1H1 [s1s2 [t1t2 SoftG2H2]]]]).
   exists* H1 (H2 & a ~ AC_Unsolved_EVar) s2 t2. rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. split. auto. split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. auto_star.
 
   (* AC_AddSolved *)
   apply IHEX in IG. destruct IG as (H2 & H3 & s2 & t2 &  [HH [ExtG1H1 [s1s2 [t1t2 SoftG2H2]]]]).
   exists* H2 (H3 & a ~ AC_Solved_EVar t) s2 t2. rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. split. auto.  split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma extension_order_unsolved_evar :
@@ -928,7 +992,7 @@ Proof.
   (* AC_Var *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 AC_Var (G & x0 ~ AC_Var)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -938,12 +1002,12 @@ Proof.
   rewrite HH1. rewrite concat_assoc. auto.
   right. exists t. rewrite HH2. rewrite* concat_assoc.
   split; auto.
-  rewrite HG2. intros. inversion H1. apply empty_push_inv in H3. inversion H3. apply eq_push_inv in H2. destruct H2 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H2. destruct H2 as [eqa [eqv eqg]]. inversion eqv.
+  rewrite HG2. intros. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H3. destruct H3 as [eqa [eqv eqg]]. inversion eqv.
 
   (* AC_Typ *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Typ t1) (G & x0 ~ AC_Typ t1)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -958,7 +1022,7 @@ Proof.
   (* AC_Bnd *)
   destruct (eq_var_dec x x0); subst.
   assert (binds x0 (AC_Bnd s1 t1) (G & x0 ~ AC_Bnd s1 t1)).
-  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -975,29 +1039,27 @@ Proof.
   exists* H (empty: ACtx). split. rewrite* concat_empty_r.
   split. apply tail_empty_eq with (G0:= G & a ~ AC_Unsolved_EVar) (G3 := G) (I := G1 & a ~ AC_Unsolved_EVar & G2) (I1:= G1) (I2:=G2) (x:=a) (vx:=AC_Unsolved_EVar) (vy:=AC_Unsolved_EVar)in IG; auto.
   destruct IG as [IG _]. subst. auto.
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply ok_context in EX. auto. auto.
+  constructor. apply ok_context in EX. auto. auto.
   constructor.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
-  apply IHEX in IG. destruct IG as (H1 & H2 & [HH [EXG1H1 SoftG3H2]]).
-  exists* H1 (H2 & a ~ AC_Unsolved_EVar). split; auto.
+  apply IHEX in IG. destruct IG as (H11 & H2 & [HH [EXG1H1 SoftG3H2]]).
+  exists* H11 (H2 & a ~ AC_Unsolved_EVar). split; auto.
   destruct HH as [HH1 | (t & HH2)].
   rewrite HH1. rewrite concat_assoc. auto.
   right. exists t. rewrite HH2. rewrite concat_assoc. auto.
   split; auto.
   intros. constructor. apply* SoftG3H2. rewrite HG2 in H3. inversion H3. apply empty_push_inv in H5. inversion H5. apply eq_push_inv in H4. destruct H4 as [eqa [_ eqg]]. rewrite eqg in H5. auto. apply eq_push_inv in H4. destruct H4 as [_ [eqv _]]. inversion eqv.
   destruct HH as [HH1 | (t & HH2)].
-  rewrite HH1 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ notin]. auto.
-  rewrite HH2 in H0. simpl_dom.  apply notin_union in H0. destruct H0 as [_ notin]. auto.
+  rewrite HH1 in H1. auto_star.
+  rewrite HH2 in H1. auto_star.
 
   (* AC_Solved_EVar *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Solved_EVar t1) (G & a ~ AC_Solved_EVar t1)).
-  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H3. apply binds_middle_eq_inv in H3. inversion H3. rewrite <- IG. apply* awf_is_ok.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1009,19 +1071,17 @@ Proof.
   split; auto.
   rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption.
   destruct HH as [HH1 | (t & HH2)].
-  rewrite HH1 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
-  rewrite HH2 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH1 in H1. apply AWf_push_inv in H1. auto_star.
+  rewrite HH2 in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Solve *)
   destruct (eq_var_dec x a); subst.
   exists* H (empty: ACtx).
   split. right. exists t. rewrite concat_empty_r. auto.
-  split. apply tail_empty_eq with (G0:= G & a ~ AC_Unsolved_EVar) (G3 := G) (I := G1 & a ~ AC_Unsolved_EVar & G2) (I1:= G1) (I2:=G2) (x:=a) (vx:=AC_Unsolved_EVar) (vy:=AC_Unsolved_EVar)in IG; auto.
+  split. apply tail_empty_eq with (G0:= G & a ~ AC_Unsolved_EVar) (G3 := G) (I0 := G1 & a ~ AC_Unsolved_EVar & G2) (I1:= G1) (I2:=G2) (x:=a) (vx:=AC_Unsolved_EVar) (vy:=AC_Unsolved_EVar)in IG; auto.
   destruct IG as [IG _]. subst. auto.
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply* ok_context. auto.
+  constructor. apply* ok_context. auto.
   constructor.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
@@ -1034,8 +1094,8 @@ Proof.
   split; auto.
   intros. constructor. apply* SoftG3H2. rewrite HG2 in H4. inversion H4. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H5. destruct H5 as [eqa [_ eqg]]. rewrite eqg in H6. auto. apply eq_push_inv in H5. destruct H5 as [_ [eqv _]]. inversion eqv.
   destruct HH as [HH1 | (t1 & HH2)].
-  rewrite HH1 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ notin]. auto.
-  rewrite HH2 in H0. simpl_dom.  apply notin_union in H0. destruct H0 as [_ notin]. auto.
+  rewrite HH1 in H1. apply AWf_push_inv in H1. auto_star.
+  rewrite HH2 in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Add *)
   apply IHEX in IG. destruct IG as (H1 & H2 & [HH [ExtG1H1 SoftG2H2]]).
@@ -1043,10 +1103,10 @@ Proof.
   destruct HH as [HH1 | (t1 & HH2)].
   rewrite HH1. split. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH1 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH1 in H0. auto_star.
   split. right. exists t1. rewrite HH2. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH2 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH2 in H0. auto_star.
 
   (* AC_AddSolved *)
   apply IHEX in IG. destruct IG as (H2 & H3 & [HH [ExtG1H1 SoftG2H2]]).
@@ -1055,10 +1115,10 @@ Proof.
   destruct HH as [HH1 | (t1 & HH2)].
   rewrite HH1. split. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH1 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH1 in H0. apply AWf_push_inv in H0. auto_star.
   split. right. exists t1. rewrite HH2. rewrite concat_assoc. auto.
   split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH2 in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HH2 in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma extension_order_solved_evar :
@@ -1070,7 +1130,7 @@ Proof.
   (* AC_Var *)
   destruct (eq_var_dec x a); subst.
   assert (binds a AC_Var (G & a ~ AC_Var)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1079,16 +1139,14 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. inversion H1. apply empty_push_inv in H5. inversion H5. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2. apply eq_push_inv in H2. destruct H2 as [_ [H2 _]]. inversion H2.
+  rewrite HG2. intros. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5. apply eq_push_inv in H5. destruct H5 as [_ [H5 _]]. inversion H5.
 
   (* AC_Typ *)
   destruct (eq_var_dec x a); subst.
-  apply tail_empty_eq with (G0:= G & a ~ AC_Typ t0) (G3 := G) (I := G1 & a ~ AC_Solved_EVar t1 & G2) (I1:= G1) (I2:=G2) (x:=a) (vx:=AC_Typ t0) (vy:=AC_Solved_EVar t1) in IG; auto.
+  apply tail_empty_eq with (G0:= G & a ~ AC_Typ t0) (G3 := G) (I := G1 & a ~ AC_Solved_EVar t1 & G2) (I3:= G1) (I4:=G2) (x:=a) (vx:=AC_Typ t0) (vy:=AC_Solved_EVar t1) in IG; auto.
   destruct IG as [IG [eqt _]]. inversion eqt.
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
+  apply* awf_is_ok.
 
   assert (IG2 := IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1102,7 +1160,7 @@ Proof.
   (* AC_Bnd *)
   destruct (eq_var_dec x a); subst.
   assert (binds a (AC_Bnd s1 t0) (G & a ~ AC_Bnd s1 t0)).
-  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H4. apply binds_middle_eq_inv in H4. inversion H4. rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1116,7 +1174,7 @@ Proof.
   (* AC_Unsolved_EVar *)
   destruct (eq_var_dec a0 a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H1. apply binds_middle_eq_inv in H1. inversion H1. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1125,22 +1183,20 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H1. apply empty_push_inv in H3. inversion H3. apply eq_push_inv in H2. destruct H2 as [EQA [_ eqg]]. rewrite eqg in H3. assumption. apply eq_push_inv in H2.  destruct H2 as [_ [neq _]]. inversion neq. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [_ eqg]]. rewrite eqg in H6. assumption. apply eq_push_inv in H3.  destruct H3 as [_ [neq _]]. inversion neq. rewrite HH in H1. auto_star.
 
   (* AC_Solved_EVar *)
   destruct (eq_var_dec a0 a); subst.
   exists* H (empty: ACtx) t2.
   rewrite concat_empty_r.
   split; auto.
-  apply tail_empty_eq with (G0:= G & a ~ AC_Solved_EVar t0) (G3 := G) (I := G1 & a ~ AC_Solved_EVar t1 & G2) (I1:= G1) (I2:=G2) (x:=a) (vx:=AC_Solved_EVar t0) (vy:=AC_Solved_EVar t1)in IG; auto.
+  apply tail_empty_eq with (G0:= G & a ~ AC_Solved_EVar t0) (G3 := G) (I := G1 & a ~ AC_Solved_EVar t1 & G2) (I3:= G1) (I4:=G2) (x:=a) (vx:=AC_Solved_EVar t0) (vy:=AC_Solved_EVar t1)in IG; auto.
   destruct IG as [IG [eqt _]]. rewrite IG in EX. auto.
   split. auto. inversion eqt. subst.
   split. auto.
   constructor.
-  rewrite <- IG. constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
-  constructor. apply ok_context in EX. auto.
-  apply (declaration_preservation_inv EX) in H0. auto.
+  rewrite <- IG. constructor. apply* ok_context. apply* AWf_push_inv.
+  apply* awf_is_ok.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1149,12 +1205,12 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H3. apply empty_push_inv in H7. inversion H7. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. inversion eqv. apply eq_push_inv in H6. destruct H6 as [EQA [eqv eqg]]. rewrite eqg in H7. assumption. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Solve *)
   destruct (eq_var_dec a0 a); subst.
   assert (binds a (AC_Unsolved_EVar) (G & a ~ AC_Unsolved_EVar)).
-  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. apply* declaration_preservation_inv.
+  apply* binds_push_eq. rewrite IG in H2. apply binds_middle_eq_inv in H2. inversion H2. rewrite <- IG. constructor. apply* ok_context. auto.
 
   assert (IG2:=IG). apply tail_exists_eq in IG2; auto. destruct IG2 as (G3 & HG2). rewrite HG2 in IG. rewrite concat_assoc in IG.
   apply eq_push_inv in IG. destruct IG as [_ [_ IG]].
@@ -1163,7 +1219,7 @@ Proof.
   rewrite HH. rewrite concat_assoc. auto.
   split; auto.
   split; auto.
-  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
+  rewrite HG2. intros. constructor. apply SoftG3H2. inversion H2. apply empty_push_inv in H6. inversion H6. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]].  rewrite eqg in H6. assumption. apply eq_push_inv in H3. destruct H3 as [EQA [eqv eqg]]. inversion eqv. rewrite HH in H1. apply AWf_push_inv in H1. auto_star.
 
   (* AC_Add *)
   apply IHEX in IG. destruct IG as (H1 & H2 & t2 & [HH [ExtG1H1 [t1t2 SoftG2H2]]]).
@@ -1177,14 +1233,7 @@ Proof.
   exists* H2 (H3 & a0 ~ AC_Solved_EVar t) t2. rewrite HH.
   split. rewrite concat_assoc. auto.
   split. auto. split. auto. intros SoftG2. constructor. apply* SoftG2H2.
-  rewrite HH in H0. simpl_dom. apply notin_union in H0. destruct H0 as [_ H0]. auto.
-Qed.
-
-Lemma awf_ok: forall G,
-  AWf G -> ok G.
-Proof.
-  introv wf.
-  induction wf; auto.
+  rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
 Lemma extension_weakening_awterm: forall G H a,

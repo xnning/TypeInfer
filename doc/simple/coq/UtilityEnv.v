@@ -179,30 +179,44 @@ Proof.
   apply (binds_fresh_inv H3 H1).
 Qed.
 
-Lemma AWf_left : forall G H,
-    AWf (G & H) -> AWf G.
+Lemma AWf_left : forall G1 G2 H1,
+    AWf (G1 & G2) H1 -> (exists H, AWf G1 H).
 Proof.
-  introv IH. gen_eq I: (G & H). gen G H. induction IH; intros IG HH HI;
-  try(apply empty_concat_inv in HI; destruct HI as [HIG HIH]; subst; constructor);
-  try(
-  induction HH using env_ind;
-  try(rewrite concat_empty_r in HI;
-  rewrite <- HI; constructor; auto);
-  try(rewrite concat_assoc in HI;
-  apply eq_push_inv in HI; destruct HI as [HIx [HIv HIgh]]; apply* IHIH)).
+  introv IH. gen_eq I: (G1 & G2). gen G1 G2. induction IH; intros IG HH HI.
 
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H) (s2:=s2); auto.
+  apply empty_concat_inv in HI. destruct HI as [HIG HIH]. subst. exists* (empty:ACtx).
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Var).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Typ t).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar2 with (L:=L); auto.
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Expr s) t).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
+
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Forall s) t).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
+
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Unsolved_EVar).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
+
+  induction HH using env_ind.
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Solved_EVar t).
+  rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 Qed.
 
-Lemma AWf_push_inv : forall G x v,
-    AWf (G & x ~ v) -> x # G.
+Lemma AWf_push_inv : forall G H x v,
+    AWf (G & x ~ v) H -> x # G.
 Proof.
   introv WF. inversion WF;
-  try(apply empty_push_inv in H0; inversion H0);
-  try(apply eq_push_inv in H; destruct H as [eqg [eqx eqv]]; subst; simpl_dom; auto).
-  try(apply eq_push_inv in H0; destruct H0 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
+  try(apply empty_push_inv in H1; inversion H1);
+  try(apply eq_push_inv in H1; destruct H1 as [eqg [eqx eqv]]; subst; simpl_dom; auto);
+  try(apply eq_push_inv in H2; destruct H2 as [eqg [eqx eqv]]; subst; simpl_dom; auto);
+  try(apply eq_push_inv in H3; destruct H3 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
 Qed.
 
 Lemma subst_empty_env : forall a,
@@ -400,24 +414,25 @@ Proof.
     simpl in *; auto_star.
     simpl in *. apply* notin_open.
 Qed.
+
+Lemma in_open: forall x y e n,
+    x \in AFv e ->
+    x \in AFv (AOpenRec n y e).
+Proof.
+  introv hi. gen n.
+  induction e; introv; simpl in *; auto_star;
+  try(rewrite in_union in hi; destruct hi as [hi1 | hi2]; [
+   apply union_left; apply* IHe1|
+   apply union_right; apply* IHe2]).
+  rewrite in_empty in hi; inversion hi.
+Qed.
+
 Lemma notin_uv : forall G x, x # G -> x # (ACtxUV G).
 Proof.
   introv notin.
   induction G using env_ind.
   rewrite empty_def. simpl. rewrite <- empty_def. auto.
   induction v; rewrite <- cons_to_push; simpl; auto.
-Qed.
-
-Lemma soft_uv : forall G, AWf G -> Softness (ACtxUV G).
-Proof.
-  introv wf. induction G using env_ind.
-  rewrite empty_def. simpl. rewrite <- empty_def. constructor.
-  induction v; rewrite <- cons_to_push; simpl; auto.
-  apply* IHG. eapply AWf_left. apply wf.
-  apply* IHG. eapply AWf_left. apply wf.
-  apply* IHG. eapply AWf_left. apply wf.
-  constructor. apply* IHG. eapply AWf_left. apply wf. apply notin_uv. apply* AWf_push_inv.
-  apply* IHG. apply* AWf_left.
 Qed.
 
 Lemma empty_uv : ACtxUV empty = empty.
@@ -433,19 +448,4 @@ Proof.
   rewrite concat_assoc.
   induction v; repeat(rewrite <- cons_to_push);  simpl; auto.
   rewrite IHenv. rewrite concat_assoc. auto.
-Qed.
-
-Lemma awf_uv : forall G H,
-    AWf (G & H) ->
-    AWf (G & ACtxUV H).
-Proof.
-  introv wf.
-  induction H using env_ind.
-  rewrite empty_def. simpl. rewrite <- empty_def. auto.
-  induction v; rewrite <- cons_to_push; simpl; auto.
-  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
-  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
-  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
-  rewrite concat_assoc. constructor. apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf. simpl_dom. apply notin_union. rewrite concat_assoc in wf. apply AWf_push_inv in wf. split. auto. apply notin_uv. auto.
-  apply* IHenv. rewrite concat_assoc in wf. eapply AWf_left. apply* wf.
 Qed.
