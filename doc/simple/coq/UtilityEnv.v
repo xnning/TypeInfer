@@ -449,3 +449,57 @@ Proof.
   induction v; repeat(rewrite <- cons_to_push);  simpl; auto.
   rewrite IHenv. rewrite concat_assoc. auto.
 Qed.
+
+Lemma notin_awterm : forall G t x,
+  AWTerm G t ->
+  x # G ->
+  x \notin AFv t.
+Proof.
+  introv wt notin. induction wt; simpl; auto;
+      try(apply notin_singleton; unfold not; introv neq; subst; apply (binds_fresh_inv H notin0)).
+  pick_fresh y. apply* notin_open. apply H0 with (x0:=y); auto_star.
+  pick_fresh y. apply notin_union. split; auto. apply* notin_open. apply H0 with (x0:=y); auto_star.
+  pick_fresh y. apply notin_union. split; auto. apply* notin_open. apply H0 with (x0:=y); auto_star.
+Qed.
+
+Lemma atyping_awterm : forall G m e t H,
+  ATyping m G e t H ->
+  AWTerm G e.
+Proof.
+  introv ty.
+  induction ty; simpl; auto.
+  apply* AWTerm_TypVar.
+  apply* AWTerm_LetVar.
+Qed.
+
+Lemma notin_typing: forall G m e t H x,
+  ATyping m G e t H ->
+  x # G ->
+  x \notin AFv e.
+Proof.
+  introv ty notin. apply atyping_awterm in ty.
+  apply* notin_awterm.
+Qed.
+
+Lemma atyping_awf: forall G m e t H,
+    ATyping m G e t H ->
+    exists I, AWf G I.
+Proof.
+  introv ty.
+  induction ty; simpl; auto.
+  exists* H.
+  exists* H.
+  exists* H1.
+  destruct IHty as (I' & IHty).
+  apply* AWf_left. rewrite* concat_assoc.
+  destruct IHty as (I' & IHty).
+  apply* AWf_left.
+  exists* I.
+Qed.
+
+Lemma awf_is_ok : forall G I,
+    AWf G I ->
+    ok G.
+Proof.
+  introv wf. induction wf; auto.
+Qed.
