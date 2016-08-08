@@ -5,10 +5,11 @@
 % TYPING RULES
 % ------------------------------------------------------------------------
 
-\newcommand*{\TAx}{\inferrule{ }{\tpreinf \star:\star \toctxo}\rname{T-Ax}}
-\newcommand*{\TVar}{\inferrule{x:\tau \in \tctx}{\tpreinf x:\tau \toctxo
+\newcommand*{\TAx}{\inferrule{\tctx \wc \ctxl }{\tpreinf \star:\star \toctx}\rname{T-Ax}}
+\newcommand*{\TVar}{\inferrule{x:\tau \in \tctx \\ \tctx \wc \ctxl}{\tpreinf x:\tau \toctx
   }\rname{T-Var}}
-\newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \tctx \\ \tpreinst \sigma \lt \tau_2 \toctx}{\tpreinf x:\tau_2 \toctx
+\newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \tctx \\ \tctx \wc \ctxl_1 \\
+    \ctxl_1 \byinst \sigma \lt \tau_2 \toctx}{\tpreinf x:\tau_2 \toctx
   }\rname{T-LetVar}}
 \newcommand*{\TSub}{\inferrule{\tpreinf e : \tau_1 \toctx_1 \\ \ctxl_1 \byuni [\ctxl_1]\tau_1
     \lt [\ctxl_1]\tau_2 \toctx}{\tprechk e:\tau_2 \toctx }\rname{T-Sub}}
@@ -220,24 +221,33 @@
 \newcommand*{\WFPoly}{\inferrule{ \dprewf[,x:\star] \sigma}{ \dprewf \forall x: \star. \sigma}\rname{WF-Poly}}
 \newcommand*{\WFOther}{\inferrule{ \dprechk \tau : \star}{ \dprewf \tau}\rname{WF-Other}}
 
-\newcommand*{\TWFEVar}{\inferrule{\genA \in \tctx }{\tprewf \genA}\rname{WF-EVar}}
-\newcommand*{\TWFPi}{\inferrule{\tprewf \tau_1 \\ \tprewf \tau_2 }{\tprewf \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
-\newcommand*{\TWFPoly}{\WFPoly}
-\newcommand*{\TWFOther}{\inferrule{ \tprechk \tau : \star \toctx}{ \tprewf \tau}\rname{WF-Other}}
+\newcommand*{\TWFEVar}{\inferrule{\genA \in \tctx }{\tprewf \genA \toctxo}\rname{WF-EVar}}
+\newcommand*{\TWFPi}{\inferrule{\tprewf \tau_1 \toctx_1\\ \ctxl_1, x:\tau_1
+    \bywf \tau_2 \toctx,x:\tau_1,\ctxr }{\tprewf \bpi x {\tau_1} {\tau_2} \toctx}\rname{WF-Pi}}
+\newcommand*{\TWFPoly}{\inferrule{\tprewf[,x:\star] \sigma \toctx,
+    x:\star,\ctxr}{ \tprewf \forall x: \star. \sigma \toctx}\rname{WF-Poly}}
+\newcommand*{\TWFOther}{\inferrule{ \tprechk \tau : \star \toctx}{ \tprewf \tau \toctx}\rname{WF-Other}}
 
 \newcommand*{\WCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
 \newcommand*{\WCVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx)}{\dctx, x \wc}\rname{WC-Var}}
 \newcommand*{\WCTypedVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \tau}{\dctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\WCLetVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \sigma \\ [\dctx]\sigma = \forall {\overbar {y:\star}}.\tau \\ \dprechk[,\overbar{y:\star}] e:\tau}
+\newcommand*{\WCLetVar}{\inferrule{\dctx \wc \\ x \notin dom(\dctx) \\ \dctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \dprechk[,\overbar{y:\star}] e:\tau}
 {\dctx, x:\sigma = e}\rname{WC-LetVar}}
 
-\newcommand*{\TWCEmpty}{\inferrule{ }{\ctxinit \wc}\rname{WC-Empty}}
-\newcommand*{\TWCVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx)}{\tctx, x \wc}\rname{WC-Var}}
-\newcommand*{\TWCTypedVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx) \\ \tctx \bywf \tau}{\tctx, x: \tau \wc}\rname{WC-TypedVar}}
-\newcommand*{\TWCLetVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx) \\ \tctx \bywf \sigma \\ \sigma = \forall {\overbar {y:\star}}.\tau \\ \tprechk[,\overbar{y:\star}] e:\tau\toctx}
-{\tctx, x:\sigma = e}\rname{WC-LetVar}}
-\newcommand*{\TWCEVar}{\inferrule{\tctx \wc \\ \genA \notin dom(\tctx)}{\tctx, \genA \wc}\rname{WC-EVar}}
-\newcommand*{\TWCSolvedEVar}{\inferrule{\tctx \wc \\ \genA \notin dom(\tctx) \\ \tctx \bywf \tau}{\tctx, \genA = \tau \wc}\rname{WC-SolvedEVar}}
+\newcommand*{\TWCEmpty}{\inferrule{ }{\ctxinit \wc \ctxinit}\rname{WC-Empty}}
+\newcommand*{\TWCVar}{\inferrule{\tctx \wc \ctxl \\ x \notin dom(\tctx)}{\tctx, x \wc \ctxl, x}\rname{WC-Var}}
+\newcommand*{\TWCTypedVar}{\inferrule{\tctx \wc \ctxl_1 \\ x \notin dom(\tctx) \\
+    \ctxl_1 \bywf \tau \toctx}{\tctx, x: \tau \wc \ctxl, x: \tau}\rname{WC-TypedVar}}
+\newcommand*{\TWCLetVar}{\inferrule{\tctx \wc \ctxl_1 \\ x \notin dom(\tctx) \\
+    \ctxl_1 \bywf \sigma \toctx_2 \\
+    \sigma = \forall {\overbar {y:\star}}.\tau \\
+    \ctxl_2 ,\overbar{y:\star} \bychk e:[\ctxl_2]\tau \toctx, \overbar{y:\star}, \ctxr}
+{\tctx, x:\sigma = e \wc \ctxl, x:\sigma = e}\rname{WC-LetVar}}
+\newcommand*{\TWCEVar}{\inferrule{\tctx \wc \ctxl\\ \genA \notin
+    dom(\tctx)}{\tctx, \genA \wc \ctxl, \genA}\rname{WC-EVar}}
+\newcommand*{\TWCSolvedEVar}{\inferrule{\tctx \wc \ctxl_1 \\ \genA \notin
+    dom(\tctx) \\ \ctxl_1 \bywf \tau \toctx}{\tctx, \genA = \tau \wc \ctxl,
+  \genA = \tau}\rname{WC-SolvedEVar}}
 
 \newcommand*{\TWTVar}{\inferrule{x \in \tctx}{\tprewt x}\rname{WT-Var}}
 \newcommand*{\TWTEVar}{\inferrule{\genA \in \tctx}{\tprewt \genA}\rname{WT-EVar}}
