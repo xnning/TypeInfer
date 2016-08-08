@@ -351,117 +351,131 @@ Inductive AUnify : ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
 Inductive AMode := Inf | Chk | App.
 
 Inductive ATyping : AMode -> ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
-  | ATI_Ax : forall G, AWf G -> ATyping Inf G AE_Star AE_Star G
-  | ATI_Var : forall G x t, AWf G -> binds x (AC_Typ t) G ->
-                            ATyping Inf G (AE_FVar x) t G
-  | ATI_LetVar : forall G H x s t t2,
-      AWf G -> binds x (AC_Bnd s t) G ->
-      AInst G s t2 H ->
+  | ATI_Ax : forall G H, AWf G H -> ATyping Inf G AE_Star AE_Star H
+  | ATI_Var : forall G H x t, AWf G H -> binds x (AC_Typ t) G ->
+                            ATyping Inf G (AE_FVar x) t H
+  | ATI_LetVar : forall G H1 H x s t t2,
+      AWf G H1 -> binds x (AC_Bnd s t) G ->
+      AInst H1 s t2 H ->
       ATyping Inf G (AE_FVar x) t2 H
   | ATI_Ann : forall G H H1 e t,
+      AWTerm G (AE_Ann e t) ->
       ATyping Chk G t AE_Star H1 ->
       ATyping Chk H1 e t H ->
       ATyping Inf G (AE_Ann e t) t H
-  | ATI_Pi : forall L G H1 H I t1 t2,
+  | ATI_Pi : forall G H1 H I t1 t2 x,
+      AWTerm G (AE_Pi t1 t2) ->
+      x # G ->
       ATyping Chk G t1 AE_Star H1 ->
-      (forall x, x \notin L ->
-                 ATyping Chk (H1 & (x ~ AC_Typ t1)) (t2 @ x) AE_Star
-                          (H & (x ~ AC_Typ t1) & I)) ->
+      ATyping Chk (H1 & (x ~ AC_Typ t1)) (t2 @ x) AE_Star
+                  (H & (x ~ AC_Typ t1) & I) ->
       ATyping Inf G (AE_Pi t1 t2) AE_Star H
-  | ATI_Lam : forall L G H I e a t2,
-      (forall a x, a \notin L -> x \notin L ->
-                   ATyping Inf (G & a ~ AC_Unsolved_EVar & x ~ AC_Typ (AE_EVar a))
-                            (e @ x) (t2 @ x)
-                            (H & x ~ AC_Typ (AE_EVar a) & I)) ->
+  | ATI_Lam : forall G H I e a t2 x,
+      AWTerm G (AE_Lam e) ->
+      x # G ->
+      a # G ->
+      ATyping Inf (G & a ~ AC_Unsolved_EVar & x ~ AC_Typ (AE_EVar a))
+                  (e @ x) (t2 @ x)
+                  (H & x ~ AC_Typ (AE_EVar a) & I) ->
       ATyping Inf G (AE_Lam e) (AE_Pi (AE_EVar a) (ACtxSubst I t2)) (H & ACtxUV I)
   | ATI_App : forall G H1 H e1 e2 t1 t2,
+      AWTerm G (AE_App e1 e2) ->
       ATyping Inf G e1 (AE_Pi t1 t2) H1 ->
       ATyping App H1 (AE_App (ACtxSubst H1 t1) e2) t2 H ->
       ATyping Inf G (AE_App e1 e2) t2 H
-  | ATI_Let : forall L G H1 H I e1 e2 s t1 t2,
+  | ATI_Let : forall G H1 H I e1 e2 s t1 t2 x,
+      AWTerm G (AE_Let e1 e2) ->
+      x # G -> x \notin AFv t2 ->
       ATyping Inf G e1 t1 H1 ->
       AGen H1 t1 s ->
-      (forall x, x \notin L ->
-                 ATyping Inf (H1 & x ~ AC_Bnd s e1) (e2 @ x) (t2 @ x)
-                          (H & x ~ AC_Bnd s e1 & I)) ->
+      ATyping Inf (H1 & x ~ AC_Bnd s e1) (e2 @ x) (t2 @ x)
+                  (H & x ~ AC_Bnd s e1 & I) ->
       ATyping Inf G (AE_Let e1 e2) (ACtxSubst I (t2 @@ e1)) (H & ACtxUV I)
   | ATI_CastDn : forall G H e t1 t2,
+      AWTerm G (AE_CastDn e) ->
       ATyping Inf G e t1 H ->
       ARed (ACtxSubst H t1) t2 ->
       ATyping Inf G (AE_CastDn e) t2 H
 
-  | ATC_Lam : forall L G H I e t1 t2,
-      (forall x, x \notin L ->
-                 ATyping Chk (G & x ~ AC_Typ t1) (e @ x) (t2 @ x)
-                          (H & x ~ AC_Typ t1 & I)) ->
+  | ATC_Lam : forall G H I e t1 t2 x,
+      AWTerm G (AE_Lam e) -> AWTerm G (AE_Pi t1 t2) ->
+      x # G ->
+      ATyping Chk (G & x ~ AC_Typ t1) (e @ x) (t2 @ x)
+                  (H & x ~ AC_Typ t1 & I) ->
       ATyping Chk G (AE_Lam e) (AE_Pi t1 t2) H
-  | ATC_Let : forall L G H1 H I e1 e2 s t1 t2,
+  | ATC_Let : forall G H1 H I e1 e2 s t1 t2 x,
+      AWTerm G (AE_Let e1 e2) -> AWTerm G t2 ->
+      x # G -> x \notin AFv t2 ->
       ATyping Inf G e1 t1 H1 ->
       AGen H1 t1 s ->
-      (forall x, x \notin L ->
-                 ATyping Chk (H1 & x ~ (AC_Bnd s e1)) (e2 @ x) (t2 @ x)
-                          (H & x ~ AC_Bnd s e1 & I)) ->
+      ATyping Chk (H1 & x ~ (AC_Bnd s e1)) (e2 @ x) (t2 @ x)
+                  (H & x ~ AC_Bnd s e1 & I) ->
       ATyping Chk G (AE_Let e1 e2) (ACtxSubst I (t2 @@ e1)) (H & ACtxUV I)
   | ATC_CastUp : forall G H e t1 t2,
+      AWTerm G (AE_CastUp e) -> AWTerm G t2 ->
       ARed (ACtxSubst G t2) t1 ->
       ATyping Chk G e t1 H ->
       ATyping Chk G (AE_CastUp e) t2 H
   | ATC_Sub : forall G H1 H e t1 t2,
+      AWTerm G e -> AWTerm G t2 ->
       ATyping Inf G e t1 H1 ->
       AUnify H1 (ACtxSubst H1 t1) (ACtxSubst H1 t2) H ->
       ATyping Chk G e t2 H
-  | ATA_Pi : forall G H e t1 t2,
+
+  | ATA_Pi : forall G H e t1 t2 m H1,
+      AWTerm G (AE_App (AE_Pi t1 t2) e) ->
+      ATyping m G (AE_Pi t1 t2) AE_Star H1 ->
       ATyping Chk G e t1 H ->
       ATyping App G (AE_App (AE_Pi t1 t2) e) (t2 @@ e) H
-  | ATA_EVar : forall G1 G2 H a2 a1 a e L,
-      a1 \notin L ->
-      a2 \notin L ->
+  | ATA_EVar : forall G1 G2 H I a e a1 a2,
+      AWTerm (G1 & a ~ AC_Unsolved_EVar & G2) (AE_App (AE_EVar a) e) ->
+      AWf (G1 & a ~ AC_Unsolved_EVar & G2) I ->
       ATyping Chk (G1 & a2 ~ AC_Unsolved_EVar & a1 ~ AC_Unsolved_EVar &
-                a ~ AC_Solved_EVar (AE_Pi (AE_EVar a1) (AE_EVar a2)) & G2)
-               e (AE_EVar a1) H ->
+                    a ~ AC_Solved_EVar (AE_Pi (AE_EVar a1) (AE_EVar a2)) & G2)
+                  e (AE_EVar a1) H ->
       ATyping App (G1 & a ~ AC_Unsolved_EVar & G2) (AE_App (AE_EVar a) e) (AE_EVar a2) H
 
-with AWfTyp : ACtx -> AType -> Prop :=
+with AWfTyp : ACtx -> AType -> ACtx -> Prop :=
      | AWf_Unsolve_EVar : forall G x,
-         binds x AC_Unsolved_EVar G -> AWfTyp G (AT_Expr (AE_EVar x))
+         binds x AC_Unsolved_EVar G -> AWfTyp G (AT_Expr (AE_EVar x)) G
      | AWf_Solved_EVar : forall G x s,
-         binds x (AC_Solved_EVar s) G -> AWfTyp G (AT_Expr (AE_EVar x))
-     | AWf_Pi : forall L G t1 t2,
-         AWfTyp G (AT_Expr t1) ->
-         (forall x, x \notin L -> AWfTyp (G & (x ~ AC_Typ t1)) (AT_Expr (t2 @ x))) ->
-         AWfTyp G (AT_Expr (AE_Pi t1 t2))
-     | AWf_Poly : forall L G s,
-         (forall x, x \notin L -> AWfTyp (G & (x ~ AC_Typ AE_Star)) (AOpenT s (AE_FVar x))) ->
-         AWfTyp G (AT_Forall s)
+         binds x (AC_Solved_EVar s) G -> AWfTyp G (AT_Expr (AE_EVar x)) G
+     | AWf_Pi : forall L G H1 H t1 t2,
+         AWfTyp G (AT_Expr t1) H1 ->
+         (forall x I, x \notin L -> AWfTyp (H1 & x ~ AC_Typ t1) (AT_Expr (t2 @ x)) (H & x ~ AC_Typ t1 & I)) ->
+         AWfTyp G (AT_Expr (AE_Pi t1 t2)) H
+     | AWf_Poly : forall L G H s,
+         (forall x I, x \notin L -> AWfTyp (G & x ~ AC_Typ AE_Star) (AOpenT s (AE_FVar x)) (H & x ~ AC_Typ AE_Star & I)) ->
+         AWfTyp G (AT_Forall s) H
      | AWf_Expr : forall G H t,
          ATyping Chk G t AE_Star H ->
-         AWfTyp G (AT_Expr t)
+         AWfTyp G (AT_Expr t) H
 
-with AWf : ACtx -> Prop :=
-     | AWf_Nil : AWf empty
-     | AWf_Var : forall G x,
-         AWf G -> x # G ->
-         AWf (G & x ~ AC_Var)
-     | AWf_TyVar : forall G x t,
-         AWf G -> x # G ->
-         AWfTyp G (AT_Expr t) ->
-         AWf (G & x ~ AC_Typ t)
-     | AWf_LetVar : forall G H x s s2 t,
-         AWf G -> x # G -> AWfTyp G (AT_Expr s) ->
-         ACtxSubst G s = s2 ->
-         ATyping Chk G t s2 H ->
-         AWf (G & x ~ AC_Bnd (AT_Expr s) t)
-     | AWf_LetVar2 : forall L G x s t,
-         AWf G -> x # G -> AWfTyp G s ->
-         (forall y, y \notin L -> AWf (G & y ~ AC_Typ AE_Star & x ~ AC_Bnd (AOpenT s (AE_FVar y)) t)) ->
-         AWf (G & x ~ AC_Bnd (AT_Forall s) t)
-     | AWf_Ctx_Unsolved_EVar : forall G x,
-         AWf G -> x # G ->
-         AWf (G & x ~ AC_Unsolved_EVar)
-     | AWf_Ctx_Solved_EVar : forall G x t,
-         AWf G -> x # G ->
-         AWfTyp G (AT_Expr t) ->
-         AWf (G & x ~ AC_Solved_EVar t)
+with AWf : ACtx -> ACtx -> Prop :=
+     | AWf_Nil : AWf empty empty
+     | AWf_Var : forall G H x,
+         AWf G H -> x # G ->
+         AWf (G & x ~ AC_Var) (H & x ~ AC_Var)
+     | AWf_TyVar : forall G H H1 x t,
+         AWf G H1 -> x # G ->
+         AWfTyp H1 (AT_Expr t) H ->
+         AWf (G & x ~ AC_Typ t) (H & x ~ AC_Typ t)
+     | AWf_LetVar : forall G H1 H2 H x s s2 t,
+         AWf G H1 -> x # G -> AWfTyp H1 (AT_Expr s) H2 ->
+         ACtxSubst H2 s = s2 ->
+         ATyping Chk H2 t s2 H ->
+         AWf (G & x ~ AC_Bnd (AT_Expr s) t) (H & x ~ AC_Bnd (AT_Expr s) t)
+     | AWf_LetVar2 : forall L G H1 H2 H x s t,
+         AWf G H1 -> x # G -> AWfTyp H1 s H2 ->
+         (forall y I, y \notin L -> AWf (H2 & y ~ AC_Typ AE_Star & x ~ AC_Bnd (AOpenT (AT_Forall s) (AE_FVar y)) t) (H & y ~ AC_Typ AE_Star & I)) ->
+         AWf (G & x ~ AC_Bnd (AT_Forall s) t) (H & x ~ AC_Bnd (AT_Forall s) t)
+     | AWf_Ctx_Unsolved_EVar : forall G H x,
+         AWf G H -> x # G ->
+         AWf (G & x ~ AC_Unsolved_EVar) (H & x ~ AC_Unsolved_EVar)
+     | AWf_Ctx_Solved_EVar : forall G H1 H x t,
+         AWf G H1 -> x # G ->
+         AWfTyp H1 (AT_Expr t) H ->
+         AWf (G & x ~ AC_Solved_EVar t) (H & x ~ AC_Solved_EVar t)
 .
 
 Definition ATypingI := ATyping Inf.
