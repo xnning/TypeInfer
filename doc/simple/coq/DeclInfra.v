@@ -788,7 +788,7 @@ Hint Extern 1 (ok ?E) => match goal with
 Hint Extern 1 (DWf ?E) => match goal with
   | H: DTyping _ E _ _ |- _ => apply (proj1 (regular_dtyping H))
   | H: DInst E _ _    |- _ => apply (proj1 (regular_dinst H))
-  | H: DGen E _ _     |- _ => apply (proj1 (regular_dinst H))
+  | H: DGen E _ _     |- _ => apply (proj1 (regular_dgen H))
   | H: DWfTyp E _     |- _ => apply (proj1 (regular_dwftyp H))   
   end.
 
