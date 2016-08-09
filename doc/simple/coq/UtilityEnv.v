@@ -390,6 +390,25 @@ Proof.
   case_var*. case_var*. simpl. case_var*. case_var*.
 Qed.
 
+Lemma subst_subst_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin AFv (vx) ->
+    y \notin AFv (vx) ->
+    ASubst x vx (ASubst y vy e) =
+    ASubst y (ASubst x vx vy) (ASubst x vx e).
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto;
+    try(rewrite <- IHe; auto);
+    try(rewrite <- IHe1; auto);
+    try(rewrite <- IHe2; auto).
+  destruct (eq_var_dec v y).
+  case_var*.  case_var*. simpl. case_var*.
+  destruct (eq_var_dec v x).
+  case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
+  case_var*. case_var*. simpl. case_var*. case_var*.
+Qed.
+
 Lemma notin_open : forall x y e n,
     x \notin (AFv (AOpenRec n y e)) ->
     x \notin (AFv e).
@@ -502,4 +521,144 @@ Lemma awf_is_ok : forall G I,
     ok G.
 Proof.
   introv wf. induction wf; auto.
+Qed.
+
+Lemma awterm_bnd: forall G I x s t,
+    AWf (G & x ~ AC_Bnd s t) I ->
+    AWTerm G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Bnd s t).
+  induction wf; introv hi; try(
+  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
+  apply empty_push_inv in hi. inversion hi.
+Qed.
+
+Lemma notin_bnd: forall G I x s t,
+    AWf (G & x ~ AC_Bnd s t) I ->
+    x \notin AFv t.
+Proof.
+  introv wf.
+  apply notin_awterm with (G:=G).
+  apply* awterm_bnd.
+  apply* AWf_push_inv.
+Qed.
+
+Lemma awterm_solved_evar: forall G I x t,
+    AWf (G & x ~ AC_Solved_EVar t) I ->
+    AWTerm G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
+  induction wf; introv hi; try(
+  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
+  apply empty_push_inv in hi. inversion hi.
+Qed.
+
+Lemma notin_solved_evar:  forall G I x t,
+    AWf (G & x ~ AC_Solved_EVar t) I ->
+    x \notin AFv t.
+Proof.
+  introv wf.
+  apply notin_awterm with (G:=G).
+  apply* awterm_solved_evar.
+  apply* AWf_push_inv.
+Qed.
+
+Lemma distributivity_ctxsubst_subst : forall H x s e I,
+    AWf H I ->
+    x # H ->
+    ACtxSubst H (ASubst x s e) =
+    ASubst x (ACtxSubst H s) (ACtxSubst H e).
+Proof.
+  introv. gen s e x I.
+  induction H using env_ind; introv wf notin.
+  repeat(rewrite* subst_empty_env).
+
+  induction v.
+
+  repeat(rewrite subst_add_var).
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  repeat(rewrite subst_add_typvar).
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  repeat(rewrite subst_add_bndvar).
+  rewrite subst_subst_distr.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+  simpl_dom. auto.
+  simpl_dom.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_bnd in wf. apply* notin_awterm.
+  apply awterm_bnd in wf. apply* notin_awterm.
+
+  repeat(rewrite subst_add_evar).
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  repeat(rewrite subst_add_solved_evar).
+  rewrite subst_subst_distr.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+  simpl_dom. auto.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_solved_evar in wf. apply* notin_awterm.
+  apply awterm_solved_evar in wf. apply* notin_awterm.
+Qed.
+
+Lemma distributivity_ctxtsubst_tsubst : forall H I x s e,
+    AWf H I ->
+    x # H ->
+    ACtxTSubst H (ATSubst x s e) =
+    ATSubst x (ACtxSubst H s) (ACtxTSubst H e).
+Proof.
+  introv. gen s e x I.
+  induction H using env_ind; introv wf notin.
+  rewrite* subst_empty_env.
+  rewrite* tsubst_empty_env.
+  rewrite* tsubst_empty_env.
+
+  induction v.
+
+  rewrite subst_add_var.
+  rewrite tsubst_add_var.
+  rewrite tsubst_add_var.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  rewrite subst_add_typvar.
+  rewrite tsubst_add_typvar.
+  rewrite tsubst_add_typvar.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  rewrite subst_add_bndvar.
+  rewrite tsubst_add_bndvar.
+  rewrite tsubst_add_bndvar.
+  rewrite tsubst_tsubst_distr.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+  simpl_dom. auto.
+  simpl_dom.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_bnd in wf. apply* notin_awterm.
+  apply awterm_bnd in wf. apply* notin_awterm.
+
+  rewrite subst_add_evar.
+  rewrite tsubst_add_evar.
+  rewrite tsubst_add_evar.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+
+  rewrite subst_add_solved_evar.
+  rewrite tsubst_add_solved_evar.
+  rewrite tsubst_add_solved_evar.
+  rewrite tsubst_tsubst_distr.
+  apply AWf_left in wf. destruct wf as (H0 & wf).
+  apply* IHenv.
+  simpl_dom. auto.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_solved_evar in wf. apply* notin_awterm.
+  apply awterm_solved_evar in wf. apply* notin_awterm.
 Qed.
