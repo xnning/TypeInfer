@@ -90,7 +90,8 @@ Lemma asubst_fresh : forall x t u,
   x \notin AFv t -> ASubst x u t = t.
 Proof.
   intros. induction t; simpls; fequals*.
-  case_var*. 
+  case_var*.
+  case_var*.
 Qed.
 
 Lemma atsubst_fresh : forall x t u, 
@@ -108,6 +109,7 @@ Proof.
   intros. gen n.
   induction t1; intros; simpl; f_equal*.
   case_nat*. case_var*. apply* aopen_rec_term.
+  case_var*. apply* aopen_rec_term.
 Qed.
 
 Lemma asubst_open : forall x u t1 t2, ATerm u -> 
@@ -181,6 +183,7 @@ Lemma asubst_term : forall t z u,
   ATerm u -> ATerm t -> ATerm (ASubst z u t).
 Proof.
   induction 2; simple*.
+  case_var*.
   case_var*.
   apply_fresh* ATerm_Lam as y. rewrite* asubst_open_var.
   apply_fresh* ATerm_Pi as y. rewrite* asubst_open_var.

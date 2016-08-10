@@ -98,21 +98,6 @@ Fixpoint ASubst (z : var) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
   match e with
   | AE_BVar i    => AE_BVar i
   | AE_FVar x    => If x = z then u else (AE_FVar x)
-  | AE_EVar x    => AE_EVar x
-  | AE_Star      => AE_Star
-  | AE_App e1 e2 => AE_App    (ASubst z u e1) (ASubst z u e2)
-  | AE_Lam e     => AE_Lam   (ASubst z u e)
-  | AE_Pi t1 t2  => AE_Pi     (ASubst z u t1) (ASubst z u t2)
-  | AE_Let e1 e2 => AE_Let    (ASubst z u e1) (ASubst z u e2)
-  | AE_CastUp e  => AE_CastUp (ASubst z u e)
-  | AE_CastDn e  => AE_CastDn (ASubst z u e)
-  | AE_Ann e t   => AE_Ann    (ASubst z u e) (ASubst z u t)
-  end.
-
-Fixpoint AESubst (z : var) (u : AExpr) (e : AExpr) {struct e} : AExpr :=
-  match e with
-  | AE_BVar i    => AE_BVar i
-  | AE_FVar x    => AE_FVar x
   | AE_EVar x    => If x = z then u else (AE_EVar x)
   | AE_Star      => AE_Star
   | AE_App e1 e2 => AE_App    (ASubst z u e1) (ASubst z u e2)
