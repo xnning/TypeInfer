@@ -324,12 +324,8 @@ Lemma subst_notin : forall x v e,
     ASubst x v e = e.
 Proof.
   introv notin.
-  induction e; simpl; auto;
-  try(simpl in notin; rewrite* IHe1; rewrite* IHe2);
-  try(rewrite* IHe).
-
-  destruct (eq_var_dec v0 x).
-  subst. simpl in notin0. apply notin_same in notin0. inversion notin0.
+  induction e; simpls; auto; fequals*.
+  case_var*.
   case_var*.
 Qed.
 
@@ -344,6 +340,7 @@ Proof.
   destruct (eq_var_dec v0 x).
   case_var*. rewrite* subst_notin.
   case_var*. simpl. case_var*.
+  case_var*. rewrite* asubst_fresh. simpl. case_var*.
 Qed.
 
 Lemma tsubst_tsubst: forall x vx y vy e,
@@ -365,6 +362,7 @@ Proof.
  destruct (eq_var_dec v y).
   case_var*. rewrite* subst_twice.
   case_var*.
+  case_var*. rewrite* subst_twice.
 Qed.
 
 Lemma tsubst_tsubst_distr: forall x vx y vy e,
@@ -388,6 +386,9 @@ Proof.
   destruct (eq_var_dec v x).
   case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
   case_var*. case_var*. simpl. case_var*. case_var*.
+  case_var*. case_var*. simpl. case_var*. case_var*.
+  simpl. case_var*. rewrite asubst_fresh with (x:=y); auto.
+  simpl. case_var*. case_var*.
 Qed.
 
 Lemma subst_subst_distr: forall x vx y vy e,
@@ -407,6 +408,9 @@ Proof.
   destruct (eq_var_dec v x).
   case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
   case_var*. case_var*. simpl. case_var*. case_var*.
+  case_var*. case_var*. simpl. case_var*. case_var*.
+  simpl. case_var*. rewrite asubst_fresh with (x:=y); auto.
+  simpl. case_var*. case_var*.
 Qed.
 
 Lemma notin_open : forall x y e n,
@@ -561,6 +565,56 @@ Proof.
   apply notin_awterm with (G:=G).
   apply* awterm_solved_evar.
   apply* AWf_push_inv.
+Qed.
+
+Lemma notin_subst: forall x t e,
+  x \notin AFv t ->
+  x \notin AFv (ASubst x t e).
+Proof.
+  introv notin.
+  induction e; simpl; auto.
+  case_if * . simpl. apply* notin_singleton.
+  case_if * . simpl. apply* notin_singleton.
+Qed.
+
+Lemma notin_another_subst: forall x y t e,
+  x \notin AFv e ->
+  x \notin AFv t ->
+  x \notin AFv (ASubst y t e).
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. apply* notin_subst.
+  induction e; simpls; auto.
+  case_if * .
+  case_if * .
+Qed.
+
+Lemma notin_ctxsubst: forall x H I e,
+  x \notin AFv e ->
+  x # H ->
+  AWf H I ->
+  x \notin AFv (ACtxSubst H e).
+Proof.
+  introv notine notinh wf. gen I e.
+  induction H using env_ind; introv wf notine.
+  rewrite* subst_empty_env.
+  assert (wf2:=wf). apply AWf_left in wf2. destruct wf2 as (II & wf2).
+  induction v.
+  rewrite subst_add_var. apply* IHenv.
+  rewrite subst_add_typvar. apply* IHenv.
+  assert (x <> x0). simpl_dom. auto_star.
+
+  rewrite subst_add_bndvar.
+  apply* IHenv. apply* notin_another_subst.
+  apply notin_awterm with (G:=H); auto.
+  apply* awterm_bnd.
+
+  rewrite subst_add_evar. apply* IHenv.
+
+  rewrite subst_add_solved_evar.
+  apply* IHenv. apply* notin_another_subst.
+  apply notin_awterm with (G:=H); auto.
+  apply* awterm_solved_evar.
 Qed.
 
 Lemma distributivity_ctxsubst_subst : forall H x s e I,

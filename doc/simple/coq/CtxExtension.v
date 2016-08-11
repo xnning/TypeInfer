@@ -195,6 +195,22 @@ Definition extension_order_solved_evar_def := forall (G1 G2 H: ACtx) a t1,
     ExtCtx (G1 & a ~ AC_Solved_EVar t1 & G2) H ->
     exists H1 H2 t2, H = H1 & a ~ AC_Solved_EVar t2 & H2 /\ ExtCtx G1 H1 /\ ACtxSubst H1 t1 = ACtxSubst H1 t2 /\ (Softness G2 -> Softness H2).
 
+Definition extension_weakening_awterm_def := forall G H a,
+    AWTerm G a ->
+    ExtCtx G H ->
+    AWTerm H a.
+
+Definition extension_equality_preservation_def := forall a b G H I,
+    ACtxTSubst G a = ACtxTSubst G b ->
+    ExtCtx G H ->
+    AWf H I ->
+    ACtxTSubst H a = ACtxTSubst H b.
+
+Definition substitution_extension_invariance_def := forall G t H I,
+    ExtCtx G H -> AWf H I ->
+    ACtxSubst H t = ACtxSubst H (ACtxSubst G t) /\
+    ACtxSubst H t = ACtxSubst G (ACtxSubst H t).
+
 (* Proofs *)
 
 Hint Constructors ExtCtx.
@@ -1236,10 +1252,7 @@ Proof.
   rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
-Lemma extension_weakening_awterm: forall G H a,
-    AWTerm G a ->
-    ExtCtx G H ->
-    AWTerm H a.
+Lemma extension_weakening_awterm: extension_weakening_awterm_def.
 Proof.
   introv ga gh. assert (wf: ok H). apply* ok_preservation.
   gen H.
@@ -1279,11 +1292,7 @@ Proof.
   introv notin. apply* H0.
 Qed.
 
-Lemma extension_equality_preservation: forall a b G H I,
-    ACtxTSubst G a = ACtxTSubst G b ->
-    ExtCtx G H ->
-    AWf H I ->
-    ACtxTSubst H a = ACtxTSubst H b.
+Lemma extension_equality_preservation: extension_equality_preservation_def.
 Proof.
   introv EQ GH.
   gen a b I. induction GH; introv EQ WF; auto; apply AWf_left in WF; destruct WF as (HC & WF).
@@ -1354,7 +1363,71 @@ Proof.
   rewrite EQ. auto.
 Qed.
 
-Lemma substitution_extension_invariance: forall G t H I,
+Lemma substitution_extension_invariance_right: forall G t H I,
+    ExtCtx G H -> AWf H I ->
+    ACtxSubst H t = ACtxSubst G (ACtxSubst H t).
+Proof.
+  introv gh wf. gen t I. induction gh; introv wf.
+  rewrite* subst_empty_env.
+  rewrite* subst_empty_env.
+
+  repeat(rewrite subst_add_var). apply AWf_left in wf; destruct wf as (I0 & wf). apply* IHgh.
+
+  repeat(rewrite subst_add_typvar). apply AWf_left in wf; destruct wf as (I0 & wf). apply* IHgh.
+
+  repeat(rewrite subst_add_bndvar).
+  assert (wfh:=wf). apply AWf_left in wfh; destruct wfh as (Ih & wfh).
+  assert (wfg:=H0). apply AWf_left in wfg; destruct wfg as (Ig & wfg).
+  assert (x # H). apply* AWf_push_inv.
+  assert (x # G). apply* AWf_push_inv.
+  rewrite distributivity_ctxsubst_subst with (I:=Ih); auto.
+  rewrite distributivity_ctxsubst_subst with (I:=Ig); auto.
+  rewrite distributivity_ctxsubst_subst with (I:=Ig); auto.
+  rewrite <- IHgh with (I:=Ih); auto.
+  rewrite <- IHgh with (I:=Ih); auto.
+  repeat(rewrite <- H3).
+  rewrite <- distributivity_ctxsubst_subst with (I:=Ih); auto.
+  rewrite asubst_fresh with (u:= (ACtxSubst G t1)); auto.
+  apply* notin_ctxsubst.
+  apply* notin_subst.
+  apply* notin_bnd.
+
+  repeat(rewrite subst_add_evar).
+  apply AWf_left in wf; destruct wf as (I0 & wf).
+  apply* IHgh.
+
+  repeat(rewrite subst_add_solved_evar).
+  assert (wfh:=wf). apply AWf_left in wfh; destruct wfh as (Ih & wfh).
+  assert (wfg:=H0). apply AWf_left in wfg; destruct wfg as (Ig & wfg).
+  assert (a # H). apply* AWf_push_inv.
+  assert (a # G). apply* AWf_push_inv.
+  rewrite distributivity_ctxsubst_subst with (I:=Ih); auto.
+  rewrite distributivity_ctxsubst_subst with (I:=Ig); auto.
+  rewrite distributivity_ctxsubst_subst with (I:=Ig); auto.
+  rewrite <- IHgh with (I:=Ih); auto.
+  rewrite <- IHgh with (I:=Ih); auto.
+  repeat(rewrite <- H2).
+  rewrite <- distributivity_ctxsubst_subst with (I:=Ih); auto.
+  rewrite asubst_fresh with (u:= (ACtxSubst G t1)); auto.
+  apply* notin_ctxsubst.
+  apply* notin_subst.
+  apply* notin_solved_evar.
+
+  rewrite subst_add_evar.
+  repeat(rewrite subst_add_solved_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  apply* IHgh.
+
+  repeat(rewrite subst_add_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  apply* IHgh.
+
+  repeat(rewrite subst_add_solved_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  apply* IHgh.
+Qed.
+
+Lemma substitution_extension_invariance_left: forall G t H I,
     ExtCtx G H -> AWf H I ->
     ACtxSubst H t = ACtxSubst H (ACtxSubst G t).
 Proof.
@@ -1412,3 +1485,9 @@ Proof.
   rewrite <- IHgh with (I:=II); auto.
 Qed.
 
+Lemma substitution_extension_invariance: substitution_extension_invariance_def.
+Proof.
+  introv. split.
+  apply* substitution_extension_invariance_left.
+  apply* substitution_extension_invariance_right.
+Qed.
