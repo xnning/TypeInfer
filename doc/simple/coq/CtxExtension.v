@@ -17,13 +17,13 @@ Inductive ExtCtx : ACtx -> ACtx -> Prop :=
   | ExtCtx_TypVar : forall G H I1 I2 x t1 t2,
       ExtCtx G H ->
       AWf (G & x ~ AC_Typ t1) I1 ->
-      AWf (H & x ~ AC_Typ t1) I2 ->
+      AWf (H & x ~ AC_Typ t2) I2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & x ~ AC_Typ t1) (H & x ~ AC_Typ t2)
   | ExtCtx_LetVar : forall G H I1 I2 x s1 s2 t1 t2,
       ExtCtx G H ->
       AWf (G & x ~ AC_Bnd s1 t1) I1 ->
-      AWf (H & x ~ AC_Bnd s1 t1) I2 ->
+      AWf (H & x ~ AC_Bnd s2 t2) I2 ->
       ACtxTSubst H s1 = ACtxTSubst H s2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & x ~ AC_Bnd s1 t1) (H & x ~ AC_Bnd s2 t2)
@@ -34,7 +34,7 @@ Inductive ExtCtx : ACtx -> ACtx -> Prop :=
   | ExtCtx_SolvedEVar: forall G H I1 I2 a t1 t2,
       ExtCtx G H ->
       AWf (G & a ~ AC_Solved_EVar t1) I1 ->
-      AWf (H & a ~ AC_Solved_EVar t1) I2 ->
+      AWf (H & a ~ AC_Solved_EVar t2) I2 ->
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ExtCtx (G & a ~ AC_Solved_EVar t1) (H & a ~ AC_Solved_EVar t2)
   | ExtCtx_Solve : forall G H I a t,
@@ -1490,4 +1490,170 @@ Proof.
   introv. split.
   apply* substitution_extension_invariance_left.
   apply* substitution_extension_invariance_right.
+Qed.
+
+Lemma substitution_extension_invariance_type_left: forall G t H I,
+    ExtCtx G H -> AWf H I ->
+    ACtxTSubst H t = ACtxTSubst H (ACtxTSubst G t).
+Proof.
+  introv gh wf. gen t I. induction gh; introv wf.
+  rewrite* tsubst_empty_env.
+  rewrite* tsubst_empty_env.
+
+  repeat(rewrite tsubst_add_var). apply AWf_left in wf; destruct wf as (I0 & wf). apply* IHgh.
+
+  repeat(rewrite tsubst_add_typvar). apply AWf_left in wf; destruct wf as (I0 & wf). apply* IHgh.
+
+  repeat(rewrite tsubst_add_bndvar).
+  apply AWf_left in wf; destruct wf as (I0 & wf).
+  assert (x # H). apply* AWf_push_inv.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite <- IHgh with (I:=I0); auto.
+  repeat(rewrite <- H3).
+  rewrite <- distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite <- distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite* tsubst_twice. apply* notin_bnd.
+
+  repeat(rewrite tsubst_add_evar).
+  apply AWf_left in wf; destruct wf as (I0 & wf).
+  apply* IHgh.
+
+  repeat(rewrite tsubst_add_solved_evar).
+  apply AWf_left in wf; destruct wf as (I0 & wf).
+  assert (a # H). apply* AWf_push_inv.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite <- IHgh with (I:=I0); auto.
+  repeat(rewrite <- H2).
+  rewrite <- distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite <- distributivity_ctxtsubst_tsubst with (I:=I0); auto.
+  rewrite* tsubst_twice. apply* notin_solved_evar.
+
+  rewrite tsubst_add_evar.
+  repeat(rewrite tsubst_add_solved_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  assert (a # H). apply* AWf_push_inv.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=II); auto.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=II); auto.
+  rewrite <- IHgh with (I:=II); auto.
+
+  repeat(rewrite tsubst_add_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  apply* IHgh.
+
+  repeat(rewrite tsubst_add_solved_evar).
+  apply AWf_left in wf; destruct wf as (II & wf).
+  assert (a # H). apply* AWf_push_inv.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=II); auto.
+  rewrite distributivity_ctxtsubst_tsubst with (I:=II); auto.
+  rewrite <- IHgh with (I:=II); auto.
+Qed.
+
+Lemma extension_transitivity : forall G H I S1,
+    ExtCtx G H ->
+    ExtCtx H I -> AWf I S1 ->
+    ExtCtx G I.
+Proof.
+  introv GH HI.
+  assert (WFH: exists S2, AWf H S2). apply* awf_context.
+  assert (WFG: exists S3, AWf G S3). apply* awf_context.
+  destruct WFH as (S2 & WFH).
+  destruct WFG as (S3 & WFG).
+  gen G S1 S2 S3.
+
+  (* ExtCtx_Empty *)
+  induction HI; introv GH WFH WFG WFI; auto;
+  try(assert (WFI2:=WFI); apply AWf_left in WFI2; destruct WFI2 as (IC & WFI2));
+  try(assert (WFH2:=WFH); apply AWf_left in WFH2; destruct WFH2 as (HC & WFH2)).
+
+  (* ExtCtx_Var *)
+  inversion GH;
+  try(apply eq_push_inv in H3; destruct H3 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H4; inversion H4.
+  subst. clear EQV.
+  apply AWf_left in WFG. destruct WFG as (GC & WFG).
+  apply IHHI with (S1:=IC) (S2:=HC) (S3:=GC) in H4; auto.
+
+  (* ExtCtx_TypVar *)
+  inversion GH;
+  try(apply eq_push_inv in H4; destruct H4 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H5; inversion H5.
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H5; auto.
+  apply ExtCtx_TypVar with (I1:= I0) (I2:=S1); auto.
+  assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H9.
+  rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto.
+  rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto.
+  rewrite H3; auto.
+
+  (* ExtCtx_LetVar *)
+  inversion GH;
+  try(apply eq_push_inv in H5; destruct H5 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H6; inversion H6.
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H6; auto.
+  apply ExtCtx_LetVar with (I1:= I0) (I2:=S1); auto.
+  assert (ACtxTSubst H (ACtxTSubst G s0) = ACtxTSubst H (ACtxTSubst G s1)). rewrite* H9.
+  repeat(rewrite <- substitution_extension_invariance_type_left with (I:= IC) in H4; auto).
+  rewrite <- H2; auto.
+  assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H11.
+  repeat(rewrite <- substitution_extension_invariance_left with (I:= IC) in H4; auto).
+  rewrite H4; auto.
+
+  (* ExtCtx_EVar *)
+  inversion GH;
+  try(apply eq_push_inv in H3; destruct H3 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H4; inversion H4.
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H4; auto.
+
+  subst. clear EQV.
+  apply IHHI with (G0:=G0) (S1:=IC) (S2:=HC) (S3:=S3) in H4; auto.
+
+  (* ExtCtx_SolvedEVar *)
+  inversion GH;
+  try(apply eq_push_inv in H4; destruct H4 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H5; inversion H5.
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H5; auto.
+  apply ExtCtx_SolvedEVar with (I1:= I0) (I2:=S1); auto.
+  assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H9.
+  repeat(rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto).
+  rewrite H3; auto.
+
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H5; auto.
+  apply ExtCtx_Solve with  (I:=S1); auto.
+
+  subst. clear EQV.
+  apply IHHI with (G0:=G0) (S1:=IC) (S2:=HC) (S3:=S3) in H5; auto.
+  apply ExtCtx_AddSolved with (I:=S1); auto.
+
+  (* ExtCtx_Solve *)
+  inversion GH;
+  try(apply eq_push_inv in H3; destruct H3 as [EQX [EQV EQ]]; inversion EQV).
+  apply empty_push_inv in H4; inversion H4.
+  subst. clear EQV.
+  assert (WFG2:=WFG). apply AWf_left in WFG2. destruct WFG2 as (GC & WFG2).
+  apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H4; auto.
+  apply ExtCtx_Solve with  (I:=S1); auto.
+
+  subst. clear EQV.
+  apply IHHI with (G0:=G0) (S1:=IC) (S2:=HC) (S3:=S3) in H4; auto.
+  apply ExtCtx_AddSolved with  (I:=S1); auto.
+
+  (* ExtCtx_Add *)
+  apply IHHI with  (S1:=IC) (S2:=S2) (S3:=S3) in GH; auto.
+
+  (* ExtCtx_AddSolved *)
+  apply IHHI with  (S1:=IC) (S2:=S2) (S3:=S3) in GH; auto.
+  apply ExtCtx_AddSolved with (I:=S1); auto.
 Qed.

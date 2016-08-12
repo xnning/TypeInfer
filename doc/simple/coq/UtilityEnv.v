@@ -343,6 +343,15 @@ Proof.
   case_var*. rewrite* asubst_fresh. simpl. case_var*.
 Qed.
 
+Lemma tsubst_twice: forall x v t,
+    x \notin (AFv v) ->
+    ATSubst x v (ATSubst x v t) = ATSubst x v t.
+Proof.
+  introv notin.
+  induction t. simpls. rewrite* IHt.
+  simpls. rewrite* subst_twice.
+Qed.
+
 Lemma tsubst_tsubst: forall x vx y vy e,
     x <> y ->
     x \notin AFv (vx) ->
