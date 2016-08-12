@@ -10,6 +10,8 @@ Inductive Softness : ACtx -> Prop :=
   | Softness_Unsolved: forall G a, Softness G -> a # G -> Softness (G & a ~ AC_Unsolved_EVar)
   | Softness_Solved: forall G a t, Softness G -> a # G -> Softness (G & a ~ AC_Solved_EVar t).
 
+(* properties about \in *)
+
 Lemma union_left :forall {A} (x:A) E F,
     x \in E ->
     x \in (E \u F).
@@ -27,6 +29,8 @@ Proof.
   assert(subset E (F \u E)). apply subset_union_weak_r.
   apply* (H0 x).
 Qed.
+
+(* split context into certain form *)
 
 Lemma split_context : forall {A} (G:env A) x,
     x \in (dom G) ->
@@ -76,6 +80,8 @@ Proof.
   destruct H as [xeq [veq Eeq]]; subst.
   exists* G.
 Qed.
+
+(* if a context is ok *)
 
 Lemma ok_non_eq : forall {A} x vx y vy (E F G: env A),
     ok (E & x ~ vx & F & y ~ vy & G) -> x <> y.
@@ -179,6 +185,15 @@ Proof.
   apply (binds_fresh_inv H3 H1).
 Qed.
 
+(* if a context is awf *)
+
+Lemma awf_is_ok : forall G I,
+    AWf G I ->
+    ok G.
+Proof.
+  introv wf. induction wf; auto.
+Qed.
+
 Lemma AWf_left : forall G1 G2 H1,
     AWf (G1 & G2) H1 -> (exists H, AWf G1 H).
 Proof.
@@ -218,6 +233,56 @@ Proof.
   try(apply eq_push_inv in H2; destruct H2 as [eqg [eqx eqv]]; subst; simpl_dom; auto);
   try(apply eq_push_inv in H3; destruct H3 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
 Qed.
+
+Lemma awterm_bnd: forall G I x s t,
+    AWf (G & x ~ AC_Bnd s t) I ->
+    AWTerm G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Bnd s t).
+  induction wf; introv hi; try(
+  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
+  apply empty_push_inv in hi. inversion hi.
+Qed.
+
+Lemma awterm_solved_evar: forall G I x t,
+    AWf (G & x ~ AC_Solved_EVar t) I ->
+    AWTerm G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
+  induction wf; introv hi; try(
+  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
+  apply empty_push_inv in hi. inversion hi.
+Qed.
+
+(* atyping *)
+
+Lemma atyping_awterm : forall G m e t H,
+  ATyping m G e t H ->
+  AWTerm G e.
+Proof.
+  introv ty.
+  induction ty; simpl; auto.
+  apply* AWTerm_TypVar.
+  apply* AWTerm_LetVar.
+Qed.
+
+Lemma atyping_awf: forall G m e t H,
+    ATyping m G e t H ->
+    exists I, AWf G I.
+Proof.
+  introv ty.
+  induction ty; simpl; auto.
+  exists* H.
+  exists* H.
+  exists* H1.
+  destruct IHty as (I' & IHty).
+  apply* AWf_left. rewrite* concat_assoc.
+  destruct IHty as (I' & IHty).
+  apply* AWf_left.
+  exists* I.
+Qed.
+
+(* substitution *)
 
 Lemma subst_empty_env : forall a,
     ACtxSubst empty a = a.
@@ -422,6 +487,8 @@ Proof.
   simpl. case_var*. case_var*.
 Qed.
 
+(* notin *)
+
 Lemma notin_open : forall x y e n,
     x \notin (AFv (AOpenRec n y e)) ->
     x \notin (AFv e).
@@ -467,21 +534,6 @@ Proof.
   induction v; rewrite <- cons_to_push; simpl; auto.
 Qed.
 
-Lemma empty_uv : ACtxUV empty = empty.
-Proof.
-  rewrite empty_def. simpl. rewrite <- empty_def. auto.
-Qed.
-
-Lemma concat_uv: forall G H,
-    ACtxUV (G & H) = (ACtxUV G) & (ACtxUV H).
-Proof.
-  introv. gen G. induction H using env_ind; introv.
-  rewrite empty_uv. rewrite concat_empty_r.  rewrite concat_empty_r. auto.
-  rewrite concat_assoc.
-  induction v; repeat(rewrite <- cons_to_push);  simpl; auto.
-  rewrite IHenv. rewrite concat_assoc. auto.
-Qed.
-
 Lemma notin_awterm : forall G t x,
   AWTerm G t ->
   x # G ->
@@ -494,16 +546,6 @@ Proof.
   pick_fresh y. apply notin_union. split; auto. apply* notin_open. apply H0 with (x0:=y); auto_star.
 Qed.
 
-Lemma atyping_awterm : forall G m e t H,
-  ATyping m G e t H ->
-  AWTerm G e.
-Proof.
-  introv ty.
-  induction ty; simpl; auto.
-  apply* AWTerm_TypVar.
-  apply* AWTerm_LetVar.
-Qed.
-
 Lemma notin_typing: forall G m e t H x,
   ATyping m G e t H ->
   x # G ->
@@ -511,59 +553,6 @@ Lemma notin_typing: forall G m e t H x,
 Proof.
   introv ty notin. apply atyping_awterm in ty.
   apply* notin_awterm.
-Qed.
-
-Lemma atyping_awf: forall G m e t H,
-    ATyping m G e t H ->
-    exists I, AWf G I.
-Proof.
-  introv ty.
-  induction ty; simpl; auto.
-  exists* H.
-  exists* H.
-  exists* H1.
-  destruct IHty as (I' & IHty).
-  apply* AWf_left. rewrite* concat_assoc.
-  destruct IHty as (I' & IHty).
-  apply* AWf_left.
-  exists* I.
-Qed.
-
-Lemma awf_is_ok : forall G I,
-    AWf G I ->
-    ok G.
-Proof.
-  introv wf. induction wf; auto.
-Qed.
-
-Lemma awterm_bnd: forall G I x s t,
-    AWf (G & x ~ AC_Bnd s t) I ->
-    AWTerm G t.
-Proof.
-  introv wf. gen_eq H : (G & x ~ AC_Bnd s t).
-  induction wf; introv hi; try(
-  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
-  apply empty_push_inv in hi. inversion hi.
-Qed.
-
-Lemma notin_bnd: forall G I x s t,
-    AWf (G & x ~ AC_Bnd s t) I ->
-    x \notin AFv t.
-Proof.
-  introv wf.
-  apply notin_awterm with (G:=G).
-  apply* awterm_bnd.
-  apply* AWf_push_inv.
-Qed.
-
-Lemma awterm_solved_evar: forall G I x t,
-    AWf (G & x ~ AC_Solved_EVar t) I ->
-    AWTerm G t.
-Proof.
-  introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
-  induction wf; introv hi; try(
-  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
-  apply empty_push_inv in hi. inversion hi.
 Qed.
 
 Lemma notin_solved_evar:  forall G I x t,
@@ -625,6 +614,35 @@ Proof.
   apply notin_awterm with (G:=H); auto.
   apply* awterm_solved_evar.
 Qed.
+
+Lemma notin_bnd: forall G I x s t,
+    AWf (G & x ~ AC_Bnd s t) I ->
+    x \notin AFv t.
+Proof.
+  introv wf.
+  apply notin_awterm with (G:=G).
+  apply* awterm_bnd.
+  apply* AWf_push_inv.
+Qed.
+
+(* uv *)
+
+Lemma empty_uv : ACtxUV empty = empty.
+Proof.
+  rewrite empty_def. simpl. rewrite <- empty_def. auto.
+Qed.
+
+Lemma concat_uv: forall G H,
+    ACtxUV (G & H) = (ACtxUV G) & (ACtxUV H).
+Proof.
+  introv. gen G. induction H using env_ind; introv.
+  rewrite empty_uv. rewrite concat_empty_r.  rewrite concat_empty_r. auto.
+  rewrite concat_assoc.
+  induction v; repeat(rewrite <- cons_to_push);  simpl; auto.
+  rewrite IHenv. rewrite concat_assoc. auto.
+Qed.
+
+(* distributivity of context substitution *)
 
 Lemma distributivity_ctxsubst_subst : forall H x s e I,
     AWf H I ->
