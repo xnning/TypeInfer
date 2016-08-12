@@ -135,6 +135,8 @@ Definition ok_preservation_def := forall G I, ExtCtx G I -> ok I.
 
 Definition awf_context_def := forall G I, ExtCtx G I -> exists H, AWf G H.
 
+Definition awf_preservation_def := forall G H, ExtCtx G H -> exists I, AWf H I.
+
 Definition declaration_order_preservation_def := forall G I G1 G2 G3 x y xv1 yv1,
     ExtCtx G I ->
     G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3 ->
@@ -200,16 +202,20 @@ Definition extension_weakening_awterm_def := forall G H a,
     ExtCtx G H ->
     AWTerm H a.
 
-Definition extension_equality_preservation_def := forall a b G H I,
+Definition extension_equality_preservation_def := forall a b G H,
     ACtxTSubst G a = ACtxTSubst G b ->
     ExtCtx G H ->
-    AWf H I ->
     ACtxTSubst H a = ACtxTSubst H b.
 
-Definition substitution_extension_invariance_def := forall G t H I,
-    ExtCtx G H -> AWf H I ->
+Definition substitution_extension_invariance_def := forall G t H,
+    ExtCtx G H ->
     ACtxSubst H t = ACtxSubst H (ACtxSubst G t) /\
     ACtxSubst H t = ACtxSubst G (ACtxSubst H t).
+
+Definition extension_transitivity_def := forall G H I,
+    ExtCtx G H ->
+    ExtCtx H I ->
+    ExtCtx G I.
 
 (* Proofs *)
 
@@ -242,8 +248,7 @@ Proof.
   rewrite in_singleton in HX1; subst; auto_star)).
 Qed.
 
-Lemma declaration_preservation_inv : forall G I x,
-    ExtCtx G I -> x # I -> x # G.
+Lemma declaration_preservation_inv : declaration_preservation_inv_def.
 Proof.
   introv GI XI.
   induction GI; auto.
@@ -256,6 +261,18 @@ Proof.
   destruct IHExtCtx as (Hg & IH). exists* (Hg & x ~ AC_Var).
   destruct IHExtCtx as (Hg & IH). exists* (Hg & a ~ AC_Unsolved_EVar).
   destruct IHExtCtx as (Hg & IH). exists* (Hg & a ~ AC_Unsolved_EVar).
+Qed.
+
+Lemma awf_preservation: awf_preservation_def.
+Proof.
+  introv gh.
+  induction gh; auto_star.
+  destruct IHgh as (I0 & IHgh).
+  exists* (I0 & x ~ AC_Var).
+  destruct IHgh as (I0 & IHgh).
+  exists* (I0 & a ~ AC_Unsolved_EVar).
+  destruct IHgh as (I0 & IHgh).
+  exists* (I0 & a ~ AC_Unsolved_EVar).
 Qed.
 
 Lemma ok_context : ok_context_def.
@@ -1295,6 +1312,8 @@ Qed.
 Lemma extension_equality_preservation: extension_equality_preservation_def.
 Proof.
   introv EQ GH.
+  assert (WF: exists I, AWf H I). apply* awf_preservation.
+  destruct WF as (I & WF).
   gen a b I. induction GH; introv EQ WF; auto; apply AWf_left in WF; destruct WF as (HC & WF).
 
   rewrite tsubst_add_var in *.
@@ -1363,11 +1382,13 @@ Proof.
   rewrite EQ. auto.
 Qed.
 
-Lemma substitution_extension_invariance_right: forall G t H I,
-    ExtCtx G H -> AWf H I ->
+Lemma substitution_extension_invariance_right: forall G t H,
+    ExtCtx G H ->
     ACtxSubst H t = ACtxSubst G (ACtxSubst H t).
 Proof.
-  introv gh wf. gen t I. induction gh; introv wf.
+  introv gh.
+  assert (wf: exists I, AWf H I). apply* awf_preservation. destruct wf as (I & wf).
+  gen t I. induction gh; introv wf.
   rewrite* subst_empty_env.
   rewrite* subst_empty_env.
 
@@ -1427,11 +1448,13 @@ Proof.
   apply* IHgh.
 Qed.
 
-Lemma substitution_extension_invariance_left: forall G t H I,
-    ExtCtx G H -> AWf H I ->
+Lemma substitution_extension_invariance_left: forall G t H,
+    ExtCtx G H ->
     ACtxSubst H t = ACtxSubst H (ACtxSubst G t).
 Proof.
-  introv gh wf. gen t I. induction gh; introv wf.
+  introv gh.
+  assert (wf: exists I, AWf H I). apply* awf_preservation. destruct wf as (I & wf).
+  gen t I. induction gh; introv wf.
   rewrite* subst_empty_env.
   rewrite* subst_empty_env.
 
@@ -1492,11 +1515,13 @@ Proof.
   apply* substitution_extension_invariance_right.
 Qed.
 
-Lemma substitution_extension_invariance_type_left: forall G t H I,
-    ExtCtx G H -> AWf H I ->
+Lemma substitution_extension_invariance_type_left: forall G t H,
+    ExtCtx G H ->
     ACtxTSubst H t = ACtxTSubst H (ACtxTSubst G t).
 Proof.
-  introv gh wf. gen t I. induction gh; introv wf.
+  introv gh.
+  assert (wf: exists I, AWf H I). apply* awf_preservation.
+  destruct wf as (I & wf). gen t I. induction gh; introv wf.
   rewrite* tsubst_empty_env.
   rewrite* tsubst_empty_env.
 
@@ -1550,12 +1575,10 @@ Proof.
   rewrite <- IHgh with (I:=II); auto.
 Qed.
 
-Lemma extension_transitivity : forall G H I S1,
-    ExtCtx G H ->
-    ExtCtx H I -> AWf I S1 ->
-    ExtCtx G I.
+Lemma extension_transitivity : extension_transitivity_def.
 Proof.
   introv GH HI.
+  assert (WFI: exists S1, AWf I S1). apply* awf_preservation. destruct WFI as (S1 & WFI).
   assert (WFH: exists S2, AWf H S2). apply* awf_context.
   assert (WFG: exists S3, AWf G S3). apply* awf_context.
   destruct WFH as (S2 & WFH).
@@ -1563,7 +1586,7 @@ Proof.
   gen G S1 S2 S3.
 
   (* ExtCtx_Empty *)
-  induction HI; introv GH WFH WFG WFI; auto;
+  induction HI; introv GH WFI WFH WFG; auto;
   try(assert (WFI2:=WFI); apply AWf_left in WFI2; destruct WFI2 as (IC & WFI2));
   try(assert (WFH2:=WFH); apply AWf_left in WFH2; destruct WFH2 as (HC & WFH2)).
 
@@ -1585,8 +1608,8 @@ Proof.
   apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H5; auto.
   apply ExtCtx_TypVar with (I1:= I0) (I2:=S1); auto.
   assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H9.
-  rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto.
-  rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto.
+  rewrite <- substitution_extension_invariance_left in H3; auto.
+  rewrite <- substitution_extension_invariance_left in H3; auto.
   rewrite H3; auto.
 
   (* ExtCtx_LetVar *)
@@ -1599,10 +1622,10 @@ Proof.
   apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H6; auto.
   apply ExtCtx_LetVar with (I1:= I0) (I2:=S1); auto.
   assert (ACtxTSubst H (ACtxTSubst G s0) = ACtxTSubst H (ACtxTSubst G s1)). rewrite* H9.
-  repeat(rewrite <- substitution_extension_invariance_type_left with (I:= IC) in H4; auto).
+  repeat(rewrite <- substitution_extension_invariance_type_left in H4; auto).
   rewrite <- H2; auto.
   assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H11.
-  repeat(rewrite <- substitution_extension_invariance_left with (I:= IC) in H4; auto).
+  repeat(rewrite <- substitution_extension_invariance_left in H4; auto).
   rewrite H4; auto.
 
   (* ExtCtx_EVar *)
@@ -1625,7 +1648,7 @@ Proof.
   apply IHHI with (G0:=G1) (S1:=IC) (S2:=HC) (S3:=GC) in H5; auto.
   apply ExtCtx_SolvedEVar with (I1:= I0) (I2:=S1); auto.
   assert (ACtxSubst H (ACtxSubst G t0) = ACtxSubst H (ACtxSubst G t1)). rewrite* H9.
-  repeat(rewrite <- substitution_extension_invariance_left with (I:= IC) in H3; auto).
+  repeat(rewrite <- substitution_extension_invariance_left in H3; auto).
   rewrite H3; auto.
 
   subst. clear EQV.
