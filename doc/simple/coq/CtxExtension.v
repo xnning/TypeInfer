@@ -94,7 +94,9 @@ Inductive ACpltCtxTSubst : ACtx -> AType -> DType -> Prop :=
 
 Inductive ACpltCtxSubstCtx : ACtx -> ACtx -> DCtx -> Prop :=
   | ACpltCtxSubstCtx_Empty : ACpltCtxSubstCtx empty empty empty
-  (* TODO : ACpltCtxSubstCtx_Var*)
+  | ACpltCtxSubstCtx_Var : forall H G I x,
+      CompleteCtx H -> ACpltCtxSubstCtx H G I ->
+      ACpltCtxSubstCtx (H & x ~ AC_Var) (G & x ~ AC_Var) I
   | ACpltCtxSubstCtx_TypVar : forall H G I x t1 t2 t1',
       CompleteCtx H -> ACpltCtxSubstCtx H G I -> ACtxSubst H t1 =  ACtxSubst H t2 ->
       ACpltCtxSubst H t1 t1' ->

@@ -29,9 +29,9 @@ FILES=\
 	AlgoDef\
 	UtilityEnv\
 	CtxExtension\
-	Theorems\
 	DeclInfra\
-	AlgoInfra
+	AlgoInfra\
+	Theorems
 
 ALL=$(FILES)
 
