@@ -204,15 +204,15 @@ Proof.
   rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Var).
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
   induction HH using env_ind.
-  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Typ t).
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Typ t1).
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 
   induction HH using env_ind.
-  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Expr s) t).
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Expr s1) t1).
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 
   induction HH using env_ind.
-  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Forall s) t).
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Bnd (AT_Forall s1) t).
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 
   induction HH using env_ind.
@@ -220,7 +220,7 @@ Proof.
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 
   induction HH using env_ind.
-  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Solved_EVar t).
+  rewrite concat_empty_r in HI. rewrite <- HI. exists* (H & x ~ AC_Solved_EVar t1).
   rewrite concat_assoc in HI. apply eq_push_inv in HI. destruct HI as [HIx [HIv HIgh]]. apply* IHIH.
 Qed.
 

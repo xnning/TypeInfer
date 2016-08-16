@@ -468,21 +468,21 @@ Proof.
   introv OKG.
   induction OKG; auto.
   apply ExtCtx_Var with (I1:= H & x ~ AC_Var) (I2:= H & x ~ AC_Var); auto.
-  apply ExtCtx_TypVar with (I1:= H & x ~ AC_Typ t)(I2:= H & x ~ AC_Typ t); auto.
+  apply ExtCtx_TypVar with (I1:= H & x ~ AC_Typ t1)(I2:= H & x ~ AC_Typ t1); auto.
   apply AWf_TyVar with (H1:=H1); auto.
   apply AWf_TyVar with (H1:=H1); auto.
 
-  apply ExtCtx_LetVar with (I1:= H & x ~ AC_Bnd (AT_Expr s) t)(I2:= H & x ~ AC_Bnd (AT_Expr s) t); auto.
-  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s2:=s2); auto.
-  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s2:=s2); auto.
+  apply ExtCtx_LetVar with (I1:= H & x ~ AC_Bnd (AT_Expr s1) t1)(I2:= H & x ~ AC_Bnd (AT_Expr s1) t1); auto.
+  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s1:=s1) (s3:=s3); auto.
+  apply AWf_LetVar with (H1:=H1) (H2:=H2) (H:=H) (s3:=s3); auto.
 
-  apply ExtCtx_LetVar with (I1:=H & x ~ AC_Bnd (AT_Forall s) t)(I2:=H & x ~ AC_Bnd (AT_Forall s) t); auto.
+  apply ExtCtx_LetVar with (I1:=H & x ~ AC_Bnd (AT_Forall s1) t)(I2:=H & x ~ AC_Bnd (AT_Forall s1) t); auto.
   apply AWf_LetVar2 with (H1:=H1) (H2:=H2) (H:=H) (L:=L); auto.
   apply AWf_LetVar2 with (H1:=H1) (H2:=H2) (H:=H) (L:=L); auto.
 
   apply ExtCtx_EVar with (I1:= H & x ~ AC_Unsolved_EVar) (I2:= H & x ~ AC_Unsolved_EVar); auto.
 
-  apply ExtCtx_SolvedEVar with (I1:=H & x ~ AC_Solved_EVar t)(I2:=H & x ~ AC_Solved_EVar t); auto.
+  apply ExtCtx_SolvedEVar with (I1:=H & x ~ AC_Solved_EVar t1)(I2:=H & x ~ AC_Solved_EVar t1); auto.
   apply AWf_Ctx_Solved_EVar with (H1:=H1)(H:=H); auto.
   apply AWf_Ctx_Solved_EVar with (H1:=H1)(H:=H); auto.
 Qed.
