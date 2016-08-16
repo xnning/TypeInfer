@@ -445,32 +445,32 @@ with AWfTyp : ACtx -> AType -> ACtx -> Prop :=
 with AWf : ACtx -> ACtx -> Prop :=
      | AWf_Nil : AWf empty empty
      | AWf_Var : forall G H x,
-         AWf G H -> x # G ->
+         AWf G H -> x # G -> x # H ->
          AWf (G & x ~ AC_Var) (H & x ~ AC_Var)
      | AWf_TyVar : forall G H H1 x t,
          AWTerm G t ->
-         AWf G H1 -> x # G ->
+         AWf G H1 -> x # G -> x # H ->
          AWfTyp H1 (AT_Expr t) H ->
          AWf (G & x ~ AC_Typ t) (H & x ~ AC_Typ t)
      | AWf_LetVar : forall G H1 H2 H x s s2 t,
          AWTerm G s ->
          AWTerm G t ->
-         AWf G H1 -> x # G -> AWfTyp H1 (AT_Expr s) H2 ->
+         AWf G H1 -> x # G -> x # H -> AWfTyp H1 (AT_Expr s) H2 ->
          ACtxSubst H2 s = s2 ->
          ATyping Chk H2 t s2 H ->
          AWf (G & x ~ AC_Bnd (AT_Expr s) t) (H & x ~ AC_Bnd (AT_Expr s) t)
      | AWf_LetVar2 : forall L G H1 H2 H x s t,
          AWTermT G (AT_Forall s) ->
          AWTerm G t ->
-         AWf G H1 -> x # G -> AWfTyp H1 s H2 ->
+         AWf G H1 -> x # G -> x # H ->AWfTyp H1 s H2 ->
          (forall y I, y \notin L -> AWf (H2 & y ~ AC_Typ AE_Star & x ~ AC_Bnd (AOpenT (AT_Forall s) (AE_FVar y)) t) (H & y ~ AC_Typ AE_Star & I)) ->
          AWf (G & x ~ AC_Bnd (AT_Forall s) t) (H & x ~ AC_Bnd (AT_Forall s) t)
      | AWf_Ctx_Unsolved_EVar : forall G H x,
-         AWf G H -> x # G ->
+         AWf G H -> x # G -> x # H ->
          AWf (G & x ~ AC_Unsolved_EVar) (H & x ~ AC_Unsolved_EVar)
      | AWf_Ctx_Solved_EVar : forall G H1 H x t,
          AWTerm G t ->
-         AWf G H1 -> x # G ->
+         AWf G H1 -> x # G -> x # H ->
          AWfTyp H1 (AT_Expr t) H ->
          AWf (G & x ~ AC_Solved_EVar t) (H & x ~ AC_Solved_EVar t)
 .
