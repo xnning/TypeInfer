@@ -221,6 +221,12 @@ Definition extension_transitivity_def := forall G H I,
     ExtCtx H I ->
     ExtCtx G I.
 
+Definition parallel_extension_solution_def:= forall G1 G2 H1 H2 a t1 t2,
+    ExtCtx (G1 & a ~ AC_Unsolved_EVar & G2) (H1 & a ~ AC_Solved_EVar t1 & H2) ->
+    ACtxSubst H1 t1 = ACtxSubst H1 t2 ->
+    AWf (G1 & a ~ AC_Solved_EVar t2 & G2) ->
+    ExtCtx (G1 & a ~ AC_Solved_EVar t2 & G2) (H1 & a ~ AC_Solved_EVar t1 & H2).
+
 (* Proofs *)
 
 Hint Constructors ExtCtx.
@@ -1650,4 +1656,62 @@ Proof.
   apply IHHI in GH; auto.
 Qed.
 
+Lemma tail_empty: forall G1 G2 G3 a v,
+    AWf (G1 & a ~ v) ->
+    AWf (G2 & a ~ v & G3) ->
+    G1 & a ~ v = G2 & a ~ v & G3 ->
+    G3 = empty.
+Proof.
+  introv wf1 wf2 sub.
+  induction G3 using env_ind; auto.
+  assert (a # (G3 & x ~ v0)). apply awf_is_ok in wf2. apply ok_middle_inv in wf2. auto_star.
+  rewrite concat_assoc in sub.
+  apply eq_push_inv in sub.
+  destruct sub as [eqx [eqv eqg]]. subst.
+  assert (x \in dom (G3 & x ~ v0)). simpl_dom. apply union_left. apply in_singleton_self. apply H in H0. inversion H0.
+Qed.
+
+Lemma parallel_extension_solution: parallel_extension_solution_def.
+Proof.
+  introv ext sub wfg.
+  gen G2. induction H2 using env_ind; introv ext wfg.
+  rewrite concat_empty_r in *.
+
+  inversion ext;
+  try(apply eq_push_inv in H2;
+  destruct H2 as [eqx [eqv eqh]]; inversion eqv).
+  apply empty_push_inv in H; inversion H.
+  subst.
+    assert (binds a AC_Unsolved_EVar (G1 & a ~ AC_Unsolved_EVar & G2)).
+    apply binds_middle_eq. apply awf_is_ok in wfg. apply* ok_middle_inv_r.
+    rewrite <- H0 in H. apply binds_push_eq_inv in H. inversion H.
+  subst.
+    assert (G2=empty). apply tail_empty in H0; auto. apply* awf_context.
+    subst. rewrite concat_empty_r in *. apply* ExtCtx_SolvedEVar. apply eq_push_inv in H0. destruct H0 as [_ [_ eqg]]. subst. auto_star.
+
+  apply eq_push_inv in H0; destruct H0 as [_ [inv _]]; inversion inv.
+  apply eq_push_inv in H0. destruct H0 as [x1 [x2 x3]]. subst.
+  assert (a \in dom H1). apply* declaration_preservation_dom. simpl_dom. apply union_left. apply union_right. apply in_singleton_self.
+  apply AWf_push_inv in H4. apply H4 in H. false H.
+
+  inversion ext; rewrite concat_assoc in *;
+    try(apply eq_push_inv in H3; destruct H3 as [eqx [eqv eqh]]; subst);
+    try(assert (a <> x);
+        [apply awf_is_ok in H6; rewrite <- concat_empty_r in H6; apply ok_non_eq in H6; auto |]);
+    try(assert (H00:=H0);
+        try(apply tail_exists_eq in H0; auto);
+        try(destruct H0 as (G22 & H0); subst; rewrite concat_assoc in *));
+    try(apply eq_push_inv in H00; destruct H00 as [_ [_ eqg]]; subst);
+    try(apply IHenv in H4).
+
+  apply empty_push_inv in H; inversion H.
+
+  apply* ExtCtx_Var. apply* AWf_left.
+  apply* ExtCtx_TypVar. apply* AWf_left.
+  apply* ExtCtx_LetVar. apply* AWf_left.
+  apply* ExtCtx_EVar. apply* AWf_left.
+  apply* ExtCtx_SolvedEVar. apply* AWf_left.
+  apply* ExtCtx_Solve. apply* AWf_left.
+  apply* ExtCtx_Add. auto.
+Qed.
 
