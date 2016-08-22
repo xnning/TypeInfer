@@ -536,6 +536,36 @@ Proof.
   unfold ACtxTSubst. simpl. auto.
 Qed.
 
+Lemma subst_add_ctx: forall G H e,
+    ACtxSubst (G & H) e = ACtxSubst G (ACtxSubst H e).
+Proof.
+  introv.
+  gen e. induction H using env_ind; introv.
+  rewrite concat_empty_r. rewrite subst_empty_env. auto.
+  induction v; rewrite concat_assoc.
+
+  repeat(rewrite subst_add_var). auto.
+  repeat(rewrite subst_add_typvar). auto.
+  repeat(rewrite subst_add_bndvar). auto.
+  repeat(rewrite subst_add_evar). auto.
+  repeat(rewrite subst_add_solved_evar). auto.
+Qed.
+
+Lemma tsubst_add_ctx: forall G H e,
+    ACtxTSubst (G & H) e = ACtxTSubst G (ACtxTSubst H e).
+Proof.
+  introv.
+  gen e. induction H using env_ind; introv.
+  rewrite concat_empty_r. rewrite tsubst_empty_env. auto.
+  induction v; rewrite concat_assoc.
+
+  repeat(rewrite tsubst_add_var). auto.
+  repeat(rewrite tsubst_add_typvar). auto.
+  repeat(rewrite tsubst_add_bndvar). auto.
+  repeat(rewrite tsubst_add_evar). auto.
+  repeat(rewrite tsubst_add_solved_evar). auto.
+Qed.
+
 Lemma subst_notin : forall x v e,
     x \notin (AFv e) ->
     ASubst x v e = e.

@@ -227,6 +227,14 @@ Definition parallel_extension_solution_def:= forall G1 G2 H1 H2 a t1 t2,
     AWf (G1 & a ~ AC_Solved_EVar t2 & G2) ->
     ExtCtx (G1 & a ~ AC_Solved_EVar t2 & G2) (H1 & a ~ AC_Solved_EVar t1 & H2).
 
+Definition parallel_variable_update_def := forall G1 G2 H1 H2 a t0 t1 t2,
+    ExtCtx (G1 & a ~ AC_Unsolved_EVar & G2) (H1 & a ~ AC_Solved_EVar t0 & H2) ->
+    ACtxSubst H1 t0 = ACtxSubst H1 t1 ->
+    ACtxSubst H1 t1 = ACtxSubst H1 t2 ->
+    AWf (G1 & a ~ AC_Solved_EVar t1 & G2) ->
+    AWf (H1 & a ~ AC_Solved_EVar t2 & H2) ->
+    ExtCtx (G1 & a ~ AC_Solved_EVar t1 & G2) (H1 & a ~ AC_Solved_EVar t2 & H2).
+
 (* Proofs *)
 
 Hint Constructors ExtCtx.
@@ -1715,3 +1723,79 @@ Proof.
   apply* ExtCtx_Add. auto.
 Qed.
 
+Lemma parallel_variable_update: parallel_variable_update_def.
+Proof.
+  introv ext t0t1 t1t2 wfg wfh.
+  gen G2. induction H2 using env_ind; introv ext wfg.
+  rewrite concat_empty_r in *.
+
+  inversion ext;
+  try(apply eq_push_inv in H2;
+  destruct H2 as [eqx [eqv eqh]]; inversion eqv).
+  apply empty_push_inv in H; inversion H.
+  subst.
+    assert (binds a AC_Unsolved_EVar (G1 & a ~ AC_Unsolved_EVar & G2)).
+    apply binds_middle_eq. apply awf_is_ok in wfg. apply* ok_middle_inv_r.
+    rewrite <- H0 in H. apply binds_push_eq_inv in H. inversion H.
+  subst.
+    assert (G2=empty). apply tail_empty in H0; auto. apply* awf_context.
+    subst. rewrite concat_empty_r in *. apply* ExtCtx_SolvedEVar. apply eq_push_inv in H0. destruct H0 as [_ [_ eqg]]. subst. auto_star.
+
+  apply eq_push_inv in H0; destruct H0 as [_ [inv _]]; inversion inv.
+  apply eq_push_inv in H0. destruct H0 as [x1 [x2 x3]]. subst.
+  assert (a \in dom H1). apply* declaration_preservation_dom. simpl_dom. apply union_left. apply union_right. apply in_singleton_self.
+  apply AWf_push_inv in H4. apply H4 in H. false H.
+
+  inversion ext; rewrite concat_assoc in *;
+    try(apply eq_push_inv in H3; destruct H3 as [eqx [eqv eqh]]; subst);
+    try(assert (a <> x);
+        [apply awf_is_ok in H6; rewrite <- concat_empty_r in H6; apply ok_non_eq in H6; auto |]);
+    try(assert (H00:=H0);
+        try(apply tail_exists_eq in H0; auto);
+        try(destruct H0 as (G22 & H0); subst; rewrite concat_assoc in *));
+    try(apply eq_push_inv in H00; destruct H00 as [_ [_ eqg]]; subst);
+    try(apply IHenv in H4).
+
+  apply empty_push_inv in H; inversion H.
+
+  apply* ExtCtx_Var. apply* AWf_left. apply* AWf_left.
+
+  apply* ExtCtx_TypVar.
+  rewrite subst_add_ctx. pattern (ACtxSubst (H1 & a ~ AC_Solved_EVar t2 & H2) t4) at 1 ; rewrite subst_add_ctx. repeat(rewrite subst_add_solved_evar).
+  assert (AWf H1). repeat(apply* AWf_left).
+  assert (a # H1). do 2 apply AWf_left in wfh. apply AWf_push_inv in wfh; auto.
+  repeat(rewrite distributivity_ctxsubst_subst; auto). repeat(rewrite <- t1t2). repeat(rewrite<- t0t1). repeat(rewrite <- distributivity_ctxsubst_subst; auto). repeat(rewrite <- subst_add_solved_evar). repeat(rewrite <- subst_add_ctx). auto.
+    apply* AWf_left. apply* AWf_left.
+
+  apply* ExtCtx_LetVar.
+  rewrite tsubst_add_ctx. pattern (ACtxTSubst (H1 & a ~ AC_Solved_EVar t2 & H2) s2) at 1 ; rewrite tsubst_add_ctx. repeat(rewrite tsubst_add_solved_evar).
+  assert (AWf H1). repeat(apply* AWf_left).
+  assert (a # H1). do 2 apply AWf_left in wfh. apply AWf_push_inv in wfh; auto.
+  repeat(rewrite distributivity_ctxtsubst_tsubst; auto). repeat(rewrite <- t1t2). repeat(rewrite<- t0t1). repeat(rewrite <- distributivity_ctxtsubst_tsubst; auto). repeat(rewrite <- tsubst_add_solved_evar). repeat(rewrite <- tsubst_add_ctx). auto.
+
+  rewrite subst_add_ctx. pattern (ACtxSubst (H1 & a ~ AC_Solved_EVar t2 & H2) t4) at 1 ; rewrite subst_add_ctx. repeat(rewrite subst_add_solved_evar).
+  assert (AWf H1). repeat(apply* AWf_left).
+  assert (a # H1). do 2 apply AWf_left in wfh. apply AWf_push_inv in wfh; auto.
+  repeat(rewrite distributivity_ctxsubst_subst; auto). repeat(rewrite <- t1t2). repeat(rewrite<- t0t1). repeat(rewrite <- distributivity_ctxsubst_subst; auto). repeat(rewrite <- subst_add_solved_evar). repeat(rewrite <- subst_add_ctx). auto.
+    apply* AWf_left. apply* AWf_left.
+
+  apply* ExtCtx_EVar. apply* AWf_left. apply* AWf_left.
+  apply* ExtCtx_SolvedEVar.
+  rewrite subst_add_ctx. pattern (ACtxSubst (H1 & a ~ AC_Solved_EVar t2 & H2) t4) at 1 ; rewrite subst_add_ctx. repeat(rewrite subst_add_solved_evar).
+  assert (AWf H1). repeat(apply* AWf_left).
+  assert (a # H1). do 2 apply AWf_left in wfh. apply AWf_push_inv in wfh; auto.
+  repeat(rewrite distributivity_ctxsubst_subst; auto). repeat(rewrite <- t1t2). repeat(rewrite<- t0t1). repeat(rewrite <- distributivity_ctxsubst_subst; auto). repeat(rewrite <- subst_add_solved_evar). repeat(rewrite <- subst_add_ctx). auto.
+    apply* AWf_left. apply* AWf_left.
+
+  apply* ExtCtx_Solve. apply* AWf_left. apply* AWf_left.
+
+  apply eq_push_inv in H0; auto.
+  destruct H0 as [eqx [eqv eqh]]. subst.
+  apply IHenv in H3; auto.
+  apply* AWf_left.
+
+  apply eq_push_inv in H0; auto.
+  destruct H0 as [eqx [eqv eqh]]. subst.
+  apply IHenv in H3; auto.
+  apply* AWf_left.
+Qed.
