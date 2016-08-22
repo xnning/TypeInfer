@@ -5,9 +5,10 @@ Coq Plan
 
 _Ningning_, 1-2 weeks
 
-* [ ] Lemma 18
-* [ ] Lemma 21
-* [ ] Lemma 29-31
+* [x] Lemma 18
+* [x] Lemma 21
+* [ ] Lemma 29 (bug)
+* [x] Lemma 30-31
 
 ## Substitution of Context
 
@@ -28,4 +29,4 @@ __4__: 1-2 weeks
 4. [ ] typing - _Linus & Ningning_
 	* [ ] infer
 	* [ ] check
-	* [ ] application
+    * [ ] application
