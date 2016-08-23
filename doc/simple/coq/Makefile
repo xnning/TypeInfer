@@ -31,6 +31,7 @@ FILES=\
 	CtxExtension\
 	DeclInfra\
 	AlgoInfra\
+	Subst\
 	Theorems
 
 ALL=$(FILES)

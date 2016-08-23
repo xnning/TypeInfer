@@ -64,6 +64,7 @@ Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
       CompleteCtx G -> binds x v G -> ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
   | ACpltCtxSubst_EVar : forall G1 G2 a t d,
       CompleteCtx G1 -> CompleteCtx G2 ->
+      a # G1 -> a # G2 ->
       ACpltCtxSubst G1 t d -> ACpltCtxSubst (G1 & a ~ (AC_Solved_EVar t) & G2) (AE_EVar a) d
   | ACpltCtxSubst_Star : forall G, ACpltCtxSubst G AE_Star DE_Star
   | ACpltCtxSubst_App : forall G t1 t2 d1 d2,
@@ -79,7 +80,7 @@ Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
   | ACpltCtxSubst_CastUp : forall G t d,
       ACpltCtxSubst G t d -> ACpltCtxSubst G (AE_CastUp t) (DE_CastUp d)
   | ACpltCtxSubst_CastDn : forall G t d,
-      ACpltCtxSubst G t d -> ACpltCtxSubst G (AE_CastUp t) (DE_CastDn d)
+      ACpltCtxSubst G t d -> ACpltCtxSubst G (AE_CastDn t) (DE_CastDn d)
   | ACpltCtxSubst_Ann : forall G t1 t2 d1 d2,
       ACpltCtxSubst G t1 d1 -> ACpltCtxSubst G t2 d2 ->
       ACpltCtxSubst G (AE_Ann t1 t2) (DE_Ann d1 d2)
