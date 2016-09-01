@@ -4,6 +4,7 @@ Require Import AlgoDef.
 Require Import UtilityEnv.
 Require Import DeclDef.
 Require Import AlgoInfra.
+Require Import LibReflect.
 
 Set Implicit Arguments.
 
@@ -270,6 +271,46 @@ Proof.
   apply* IHExtCtx.
 Qed.
 
+Hint Constructors ACpltCtxSubst.
+
+Lemma complete_contains_unsolved: forall G a,
+    CompleteCtx G ->
+    binds a AC_Unsolved_EVar G ->
+    False.
+Proof.
+  intros. unfold CompleteCtx in H. apply H in H0. apply* H0.
+Qed.
+
+Lemma complete_empty: CompleteCtx empty.
+Proof.
+  unfold CompleteCtx. intros.
+  false (binds_empty_inv H).
+Qed.
+
+Lemma complete_part_right: forall G1 G2,
+    CompleteCtx (G1 & G2) ->
+    CompleteCtx G2.
+Proof.
+  unfold CompleteCtx.
+  introv cm bd.
+  assert (binds x v (G1 & G2)) by apply* binds_concat_right.
+  unfold not. intros.
+  false (cm x v H H0).
+Qed.
+
+Lemma complete_part_left: forall G1 G2,
+    ok (G1 & G2) ->
+    CompleteCtx (G1 & G2) ->
+    CompleteCtx G1.
+Proof.
+  unfold CompleteCtx.
+  introv ok cm bd.
+  assert (binds x v (G1 & G2)). apply* binds_concat_left_ok.
+  unfold not. intros.
+  false (cm x v H H0).
+Qed.
+
+
 Lemma eq_aexpr_dec : forall (T T' : AExpr),
   sumbool (T = T') (T <> T').
 Proof.
@@ -326,109 +367,8 @@ Proof.
   subst. auto.
 Qed.   
 
-Lemma binds_push_fresh : forall A x v (G : env A) x' v',
-    binds x v G -> x' # G ->
-    binds x v (G & x' ~ v').
-Proof.
-  intros. apply* binds_push_neq.
-  unfold not; intros. rewrite <- H1 in H0.
-  apply binds_fresh_inv with (x := x) (v := v) (E := G).
-  auto. auto.
-Qed.
 
-Lemma binds_swap : forall A (G1 G2 : env A) x v x1 v1 x2 v2,
-    x1 <> x2 ->
-    binds x v (G1 & x1 ~ v1 & x2 ~ v2 & G2) ->
-    binds x v (G1 & x2 ~ v2 & x1 ~ v1 & G2).
-Proof.
-  intros.
-  destruct (binds_concat_inv H0) as [Bnd1 | [Frsh Bnd2]].
-  apply* binds_concat_right.
-  destruct (binds_push_inv Bnd2) as [[Eq1 Eq2] | [NEeq Bnd]]; subst.
-  apply* binds_concat_left.
-  destruct (binds_push_inv Bnd) as [[Eq1' Eq2'] | [NEeq' Bnd']]; subst.
-  apply* binds_concat_left.
-  apply* binds_concat_left.
-Qed.
 
-Lemma awterm_reorder : forall G1 G2 x1 x2 v e,
-    x1 <> x2 ->
-    AWTerm (G1 & x2 ~ AC_Var & x1 ~ v & G2) e ->
-    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var & G2) e.
-Proof.
-  intros. inductions H0.
-  apply* AWTerm_Var. apply* binds_swap.
-  apply* AWTerm_TypVar. apply* binds_swap.
-  apply* AWTerm_LetVar. apply* binds_swap.
-  apply* AWTerm_EVar. apply* binds_swap.
-  apply* AWTerm_Solved_EVar. apply* binds_swap.
-  apply* AWTerm_Star.
-  apply* AWTerm_App.
-
-  apply AWTerm_Lam with (L := L); intros.
-  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
-                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
-  rewrite -> concat_assoc. auto.
-  pose (Re := H0 x H2 v x2 x1 H (G2 & x ~ AC_Var) G1 H3).
-  rewrite -> concat_assoc in Re.
-  auto.
-
-  apply AWTerm_Pi with (L := L). auto. intros.
-  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
-                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
-  rewrite -> concat_assoc. auto.
-  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
-  rewrite -> concat_assoc in Re.
-  auto.
-
-  apply AWTerm_Let with (L := L). auto. intros.
-  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
-                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
-  rewrite -> concat_assoc. auto.
-  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
-  rewrite -> concat_assoc in Re.
-  auto.
-
-  apply* AWTerm_CastUp.
-  apply* AWTerm_CastDn.
-  apply* AWTerm_Ann.
-Qed.
-
-Lemma awterm_reorder_simp : forall G1 x1 x2 v e,
-    x1 <> x2 ->
-    AWTerm (G1 & x2 ~ AC_Var & x1 ~ v) e ->
-    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var) e.
-Proof.
-  intros.
-  assert (G1 & x2 ~ AC_Var & x1 ~ v = G1 & x2 ~ AC_Var & x1 ~ v & empty).
-  rewrite* concat_empty_r.
-  assert (G1 & x1 ~ v & x2 ~ AC_Var = G1 & x1 ~ v & x2 ~ AC_Var & empty).
-  rewrite* concat_empty_r.
-  rewrite H1 in H0.
-  rewrite H2.
-  apply* awterm_reorder.
-Qed.
-
-Lemma awterm_weaken : forall G x v e,
-    AWTerm G e ->
-    x # G ->
-    AWTerm (G & x ~ v) e.
-Proof.
-  intros. inductions H.
-  apply* AWTerm_Var. apply* binds_push_fresh.
-  apply* AWTerm_TypVar. apply* binds_push_fresh.
-  apply* AWTerm_LetVar. apply* binds_push_fresh.
-  apply* AWTerm_EVar. apply* binds_push_fresh.
-  apply* AWTerm_Solved_EVar. apply* binds_push_fresh.
-  apply* AWTerm_Star.
-  apply* AWTerm_App.
-  apply AWTerm_Lam with (L := L \u \{x}); intros. apply* awterm_reorder_simp.
-  apply AWTerm_Pi with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
-  apply AWTerm_Let with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
-  apply* AWTerm_CastUp.
-  apply* AWTerm_CastDn.
-  apply* AWTerm_Ann.
-Qed.
 
 Lemma ctxsubst_fvar_eq : forall G x v,
     ok G ->
@@ -647,3 +587,415 @@ Lemma finishing_types : forall G G' t,
 Proof.
 Admitted.
 
+
+(* another form of awterm, which does not care about bound variables *)
+
+Inductive AWTermA : ACtx -> AExpr -> Prop :=
+  | AWTermA_Var : forall G x, binds x AC_Var G -> AWTermA G (AE_FVar x)
+  | AWTermA_BVar : forall G x, AWTermA G (AE_BVar x)
+  | AWTermA_TypVar : forall G x t, binds x (AC_Typ t) G -> AWTermA G (AE_FVar x)
+  | AWTermA_LetVar : forall G x t e, binds x (AC_Bnd t e) G -> AWTermA G (AE_FVar x)
+  | AWTermA_EVar : forall G a, binds a AC_Unsolved_EVar G -> AWTermA G (AE_EVar a)
+  | AWTermA_Solved_EVar : forall G a t, binds a (AC_Solved_EVar t) G -> AWTermA G (AE_EVar a)
+  | AWTermA_Star: forall G, AWTermA G AE_Star
+  | AWTermA_App: forall e1 e2 G, AWTermA G e1 -> AWTermA G e2 -> AWTermA G (AE_App e1 e2)
+  | AWTermA_Lam: forall e G , AWTermA G e  -> AWTermA G (AE_Lam e)
+  | AWTermA_Pi: forall t1 t2 G, AWTermA G t1 -> AWTermA G t2 -> AWTermA G (AE_Pi t1 t2)
+  | AWTermA_Let: forall e1 e2 G, AWTermA G e1 -> AWTermA G e2 -> AWTermA G (AE_Let e1 e2)
+  | AWTermA_CastUp : forall e G, AWTermA G e -> AWTermA G (AE_CastUp e)
+  | AWTermA_CastDn : forall e G, AWTermA G e -> AWTermA G (AE_CastDn e)
+  | AWTermA_Ann: forall e1 e2 G, AWTermA G e1 -> AWTermA G e2 -> AWTermA G (AE_Ann e1 e2)
+.
+
+(* helper lemmas *)
+Hint Constructors AWTermA ACpltCtxSubst.
+Lemma awterma_open: forall G k u e,
+    AWTermA G (AOpenRec k u e) ->
+    AWTermA G e.
+Proof.
+  introv wt. gen k u. induction e; intros; simpls; auto_star;
+  try(inversion wt; subst; auto_star).
+Qed.
+
+Lemma awterma_remove: forall G H e y v,
+    AWTermA (G & y ~ v & H) e ->
+    y \notin AFv e ->
+    AWTermA (G & H) e.
+Proof.
+  introv wt notin. gen_eq I: (G & y ~ v & H).
+  gen H. induction wt; introv hh; auto_star.
+  simpl in notin. rewrite hh in H. apply AWTermA_Var. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermA_TypVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermA_LetVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermA_EVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermA_Solved_EVar. apply* binds_subst.
+
+  simpl in notin. apply AWTermA_App. apply* IHwt1. apply* IHwt2.
+
+  simpl in notin. apply AWTermA_Pi. apply* IHwt1. apply* IHwt2.
+  simpl in notin. apply AWTermA_Let. apply* IHwt1. apply* IHwt2.
+  simpl in notin. apply AWTermA_Ann. apply* IHwt1. apply* IHwt2.
+Qed.
+
+Lemma awterma_remove_empty: forall G e y v,
+    AWTermA (G & y ~ v) e ->
+    y \notin AFv e ->
+    AWTermA G e.
+Proof.
+  intros. assert (AWTermA (G & y ~ v & empty) e). rewrite* concat_empty_r.
+  assert (AWTermA (G & empty) e). apply* awterma_remove.
+  rewrite concat_empty_r in H2. auto.
+Qed.
+
+Lemma cpltctxsubst_append: forall G1 G2 t e,
+    AWf (G1 & G2) ->
+    CompleteCtx (G1 & G2) ->
+    AWTermA G1 t ->
+    ACpltCtxSubst G1 t e ->
+    ACpltCtxSubst (G1 & G2) t e.
+Proof.
+  introv wf comp wt sub.
+  gen e. induction t; introv sub; inversion sub; subst; auto.
+  auto.
+  apply* ACpltCtxSubst_FVar. apply* binds_concat_left_ok. apply* awf_is_ok.
+  rewrite <- concat_assoc. apply* ACpltCtxSubst_EVar. rewrite <- concat_assoc in comp. apply* complete_part_right. rewrite concat_assoc. apply* awf_is_ok.
+
+  inversion wt; subst. apply* ACpltCtxSubst_App.
+  inversion wt; subst. apply* ACpltCtxSubst_Lam.
+  inversion wt; subst. apply* ACpltCtxSubst_Pi.
+  inversion wt; subst. apply* ACpltCtxSubst_Let.
+  inversion wt; subst. apply* ACpltCtxSubst_CastUp.
+  inversion wt; subst. apply* ACpltCtxSubst_CastDn.
+  inversion wt; subst. apply* ACpltCtxSubst_Ann.
+Qed.
+
+Lemma cpltctxsubst_solved_weaken: forall G1 G2 t e,
+    AWf (G1 & G2) ->
+    CompleteCtx (G1 & G2) ->
+    AWTermA G1 t ->
+    ACpltCtxSubst (G1 & G2) t e ->
+    ACpltCtxSubst G1 t e.
+Proof.
+  introv wf comp wt sub.
+  gen e. induction t; introv sub; inversion sub; subst; auto.
+  apply ACpltCtxSubst_BVar. apply* complete_part_left. apply* awf_is_ok.
+  inversion wt; subst;
+  apply* ACpltCtxSubst_FVar; apply* complete_part_left; apply* awf_is_ok.
+
+  inversion wt; subst.
+  assert (CompleteCtx G1). apply* complete_part_left. apply* awf_is_ok.
+  false complete_contains_unsolved H0 H6.
+  destruct (split_bind_context H6) as (G11 & G12 & HG).
+  subst.
+  assert (G0 & v ~ AC_Solved_EVar t & G3 = G11 & v ~ AC_Solved_EVar t0 & (G12 & G2)). rewrite* concat_assoc.
+  apply ok_middle_eq with  (I1:=G0) (I2:=G3) (G1:=G11) (G4:=(G12&G2)) (x:=v) (v1:=AC_Solved_EVar t) (v2:=AC_Solved_EVar t0) in H0; auto.
+  destruct H0 as [eqg [eqv eqg2]]. inversion eqv. subst.
+  apply ACpltCtxSubst_EVar; auto. apply* complete_part_left.
+  apply* awf_is_ok. apply* AWf_left.
+  rewrite H0 in H3.  auto.
+
+  inversion wt; subst. apply* ACpltCtxSubst_App.
+  inversion wt; subst. apply* ACpltCtxSubst_Lam.
+  inversion wt; subst. apply* ACpltCtxSubst_Pi.
+  inversion wt; subst. apply* ACpltCtxSubst_Let.
+  inversion wt; subst. apply* ACpltCtxSubst_CastUp.
+  inversion wt; subst. apply* ACpltCtxSubst_CastDn.
+  inversion wt; subst. apply* ACpltCtxSubst_Ann.
+Qed.
+
+(* one important one, changes from awterm to awterma *)
+
+Theorem awterm_is_awterma: forall G e,
+    AWTerm G e ->
+    AWTermA G e.
+Proof.
+  introv wt. induction wt; auto_star.
+  pick_fresh y. assert (AWTermA (G & y ~ AC_Var) (e @ y)).
+  apply H0. auto_star. apply awterma_open in H1. apply awterma_remove_empty in H1. constructor*. auto_star.
+  constructor*. pick_fresh y. assert (AWTermA (G & y ~ AC_Var) (t2 @ y)).
+  apply H0. auto_star. apply awterma_open in H1. apply awterma_remove_empty in H1. auto_star. auto_star.
+  constructor*. pick_fresh y. assert (AWTermA (G & y ~ AC_Var) (e2 @ y)).
+  apply H0. auto_star. apply awterma_open in H1. apply awterma_remove_empty in H1. auto_star. auto_star.
+Qed.
+
+
+(* a definition about length of a expression.
+( in order to make all the expression has length,
+( there are many meaningless definition,
+( which ends with `I` *)
+
+Inductive ALen : ACtx -> AExpr -> nat -> Prop :=
+| ALen_BVar: forall G i, ALen G (AE_BVar i) 1
+| ALen_Var: forall G x, binds x AC_Var G -> ALen G (AE_FVar x) 1
+| ALen_TypVar: forall G x t, binds x (AC_Typ t) G -> ALen G (AE_FVar x) 1
+| ALen_LetVar : forall G x t e i, binds x (AC_Bnd t e) G -> ALen G e i -> ALen G (AE_FVar x) (i + 1)
+| ALen_Var_I1 : forall G x, binds x AC_Unsolved_EVar G -> ALen G (AE_FVar x) 1
+| ALen_Var_I2 : forall G x t, binds x (AC_Solved_EVar t) G -> ALen G (AE_FVar x) 1
+| ALen_Var_I : forall G x, x # G -> ALen G (AE_FVar x) 1
+| ALen_EVar : forall G a, binds a AC_Unsolved_EVar G -> ALen G (AE_EVar a) 1
+| ALen_EVar_I1: forall G x, binds x AC_Var G -> ALen G (AE_EVar x) 1
+| ALen_EVar_I2: forall G x t, binds x (AC_Typ t) G -> ALen G (AE_EVar x) 1
+| ALen_EVar_I3: forall G x t e, binds x (AC_Bnd t e) G -> ALen G (AE_EVar x) 1
+| ALen_Solved_EVar: forall G a t i, binds a (AC_Solved_EVar t) G -> ALen G t i -> ALen G (AE_EVar a) (i + 1)
+| ALen_EVar_I : forall G a, a # G -> ALen G (AE_EVar a) 1
+| ALen_Star: forall G, ALen G (AE_Star) 1
+| ALen_App: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_App e1 e2) (i1 + i2 + 1)
+| ALen_Lam: forall e G i, ALen G e i -> ALen G (AE_Lam e) (i + 1)
+| ALen_Pi: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_Pi e1 e2) (i1 + i2 + 1)
+| ALen_Let: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_Let e1 e2) (i1 + i2 + 1)
+| ALen_CastUp:  forall e G i, ALen G e i -> ALen G (AE_CastUp e) (i + 1)
+| ALen_CastDn:  forall e G i, ALen G e i -> ALen G (AE_CastDn e) (i + 1)
+| ALen_Ann: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_Ann e1 e2) (i1 + i2 + 1).
+
+Hint Constructors ALen.
+
+(* some lemmas about alen *)
+
+Lemma alen_awterm_append: forall G H e n,
+    AWf (G & H) ->
+    AWTermA G e ->
+    ALen G e n ->
+    ALen (G & H) e n.
+Proof.
+  introv wf wt len.
+  induction len.
+  auto.
+  apply ALen_Var. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply ALen_TypVar with t. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply* ALen_LetVar. apply* binds_concat_left_ok. apply* awf_is_ok. apply* IHlen. destruct (split_bind_context H0) as (G1 & G2 & Hg). rewrite Hg in wf.
+  assert (AWTerm G1 e).
+  rewrite <- concat_assoc in wf. apply AWf_left in wf. apply* awterm_bnd.
+  rewrite Hg. rewrite <- concat_assoc. apply* awterm_is_awterma. apply* awterm_weaken_ctx.
+  rewrite concat_assoc. apply AWf_left in wf. apply* awf_is_ok.
+
+  apply* ALen_Var_I1. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply* ALen_Var_I2. apply* binds_concat_left_ok. apply* awf_is_ok.
+  inversion wt; subst; try(solve[false binds_fresh_inv H3 H0]).
+
+  apply* ALen_EVar. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply* ALen_EVar_I1. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply* ALen_EVar_I2. apply* binds_concat_left_ok. apply* awf_is_ok.
+  apply* ALen_EVar_I3. apply* binds_concat_left_ok. apply* awf_is_ok.
+
+  apply* ALen_Solved_EVar. apply* binds_concat_left_ok. apply* awf_is_ok. apply* IHlen. destruct (split_bind_context H0) as (G1 & G2 & Hg). rewrite Hg in wf.
+  assert (AWTerm G1 t).
+  rewrite <- concat_assoc in wf. apply AWf_left in wf. apply* awterm_solved_evar.
+  rewrite Hg. rewrite <- concat_assoc. apply* awterm_is_awterma. apply* awterm_weaken_ctx.
+  rewrite concat_assoc. apply AWf_left in wf. apply* awf_is_ok.
+
+  inversion wt; subst; try(solve[false binds_fresh_inv H3 H0]).
+
+  apply* ALen_Star.
+  inversion wt; subst.
+  apply* ALen_App.
+  inversion wt; subst. apply* ALen_Lam.
+  inversion wt; subst. apply* ALen_Pi.
+  inversion wt; subst. apply* ALen_Let.
+  inversion wt; subst. apply* ALen_CastUp.
+  inversion wt; subst. apply* ALen_CastDn.
+  inversion wt; subst. apply* ALen_Ann.
+Qed.
+
+
+Lemma alen_exists': forall n G e,
+    AWf G ->
+    LibList.length G < n ->
+    exists m, ALen G e m.
+Proof.
+  intro n. induction n as [|n']; introv okg len.
+  false. inversion len.
+  induction e.
+  exists* 1.
+  assert ({v \in dom G}+{v \notin dom G}). apply* decidable_sumbool. apply indom_decidable.
+  destruct H as [hin | hnotin].
+  (* in *)
+  assert (exists vx, binds v vx G) by apply* get_some.
+  destruct H as (vx & H). destruct vx; auto_star.
+  destruct (split_bind_context H) as (G1 & G2 & IG).
+  assert (exists n, ALen G1 a0 n). apply~ IHn'.
+
+  rewrite IG in okg. rewrite <- concat_assoc in okg. apply* AWf_left.
+
+  rewrite IG in len.
+  rewrite concat_def in len. repeat(rewrite LibList.length_app in len).
+  assert(LibList.length (v~ AC_Bnd a a0) = 1). rewrite single_def. rewrite LibList.length_cons. rewrite LibList.length_nil. Omega.omega.
+  Omega.omega.
+
+  destruct H0 as (n & H0). exists* (n + 1). apply ALen_LetVar with a a0; auto.
+
+  rewrite <- concat_assoc in IG. rewrite IG. apply* alen_awterm_append. rewrite* <- IG. apply awterm_is_awterma. rewrite IG in okg. rewrite concat_assoc in okg. apply AWf_left in okg. apply* awterm_bnd.
+
+  (* notin *)
+  exists* 1.
+
+  assert ({v \in dom G}+{v \notin dom G}). apply* decidable_sumbool. apply indom_decidable.
+  destruct H as [hin | hnotin].
+  (* in *)
+  assert (exists vx, binds v vx G) by apply* get_some.
+  destruct H as (vx & H). destruct vx; auto_star.
+  destruct (split_bind_context H) as (G1 & G2 & IG).
+  assert (exists n, ALen G1 a n). apply~ IHn'.
+  rewrite IG in okg. rewrite <- concat_assoc in okg. apply* AWf_left.
+
+  rewrite IG in len.
+  rewrite concat_def in len. repeat(rewrite LibList.length_app in len).
+  assert(LibList.length (v~ AC_Solved_EVar a) = 1). rewrite single_def. rewrite LibList.length_cons. rewrite LibList.length_nil. Omega.omega.
+  Omega.omega.
+  destruct H0 as (ne & H0). exists (ne + 1). apply ALen_Solved_EVar with a; auto.
+
+  rewrite <- concat_assoc in IG. rewrite IG. apply* alen_awterm_append. rewrite* <- IG. apply awterm_is_awterma. rewrite IG in okg. rewrite concat_assoc in okg. apply AWf_left in okg. apply* awterm_solved_evar.
+
+  (* notin *)
+  exists* 1.
+
+  exists* 1.
+
+  destruct IHe1 as (n1 & IHe1). destruct IHe2 as (n2 & IHe2). exists* (n1 + n2 + 1).
+  destruct IHe as (n & IHe1). exists* (n + 1).
+  destruct IHe1 as (n1 & IHe1). destruct IHe2 as (n2 & IHe2). exists* (n1 + n2 + 1).
+  destruct IHe1 as (n1 & IHe1). destruct IHe2 as (n2 & IHe2). exists* (n1 + n2 + 1).
+  destruct IHe as (n & IHe1). exists* (n + 1).
+  destruct IHe as (n & IHe1). exists* (n + 1).
+  destruct IHe1 as (n1 & IHe1). destruct IHe2 as (n2 & IHe2). exists* (n1 + n2 + 1).
+Qed.
+
+Lemma alen_exists: forall G e,
+    AWf G ->
+    exists n, ALen G e n.
+Proof.
+  introv wf.
+  apply* alen_exists'.
+Qed.
+
+Lemma alen_eq: forall G e i1 i2,
+    ALen G e i1 ->
+    ALen G e i2 ->
+    i1 = i2.
+Proof.
+  introv hy1. gen i2. induction hy1; introv hy2; inversion hy2; subst; auto;
+  try(solve[apply (binds_func H) in H1; inversion H1]);
+  try(solve[apply (binds_func H) in H2; inversion H2]).
+  lets: binds_func H H1. inversion H0; subst. lets: IHhy1 i0 H3. subst*.
+  false binds_fresh_inv H H2.
+  false binds_fresh_inv H1 H.
+  lets: binds_func H H1. inversion H0; subst. lets: IHhy1 i0 H3. subst*.
+  false binds_fresh_inv H H2.
+  false binds_fresh_inv H1 H.
+Qed.
+
+Lemma alen_evar: forall G a t m n,
+    AWf G ->
+    binds a (AC_Solved_EVar t) G ->
+    ALen G (AE_EVar a) n ->
+    ALen G t m ->
+    n = m + 1.
+Proof.
+  introv wf bd lenn lenm.
+  inversion lenn; subst.
+  apply (binds_func H1) in bd; inversion bd.
+  apply (binds_func H1) in bd; inversion bd.
+  apply (binds_func H1) in bd; inversion bd.
+  apply (binds_func H1) in bd; inversion bd.
+  apply (binds_func bd) in H0; inversion H0; subst.
+  lets: alen_eq H2 lenm. subst*.
+  false binds_fresh_inv bd H1.
+Qed.
+
+(* begin the main proofs *)
+
+Theorem cpltctxsubst_exists': forall G e n m,
+    AWf G ->
+    n < m ->
+    ALen G e n ->
+    AWTermA G e ->
+    CompleteCtx G ->
+    exists t, ACpltCtxSubst G e t
+.
+Proof.
+  intros. gen G e n. induction m; introv wt comp wf less len .
+  inversion less.
+  induction wf; simpls; auto_star.
+  false (complete_contains_unsolved comp H).
+  assert (exists e, ACpltCtxSubst G t e).
+     destruct(@alen_exists G t) as (nt & ex). auto.
+     apply IHm with nt; auto. apply awterm_is_awterma.
+     apply* awterm_evar_binds.
+     lets: alen_evar wt H len ex. rewrite H0 in less. Omega.omega.
+
+  destruct H0 as (et & H0).
+  exists et. destruct (split_bind_context H) as (G1 & G2 & HG). rewrite HG.
+  apply ACpltCtxSubst_EVar.
+  rewrite HG in comp. rewrite <- concat_assoc in comp. apply* complete_part_left. rewrite concat_assoc. rewrite HG in wt. apply* awf_is_ok.
+  rewrite HG in comp. apply* complete_part_right. rewrite HG in wt. apply* awf_is_ok.
+
+  apply* cpltctxsubst_solved_weaken. rewrite HG in wt. rewrite <- concat_assoc in wt. exact wt.
+  rewrite HG in comp. rewrite <- concat_assoc in comp. exact comp.
+  apply* awterm_is_awterma.
+  apply* awterm_solved_evar. rewrite HG in wt. apply AWf_left in wt. exact wt. rewrite concat_assoc. rewrite HG in H0. assumption.
+
+  destruct(@alen_exists G e1) as (ne1 & ex1). auto. assert (exists t1, ACpltCtxSubst G e1 t1). apply* IHm.
+  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
+  destruct H as (t1 & Ht1).
+  destruct(@alen_exists G e2) as (ne2 & ex2). auto.
+  assert (exists t2, ACpltCtxSubst G e2 t2). apply* IHm.
+  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
+  destruct H as (t2 & Ht2).
+  exists* (DE_App t1 t2).
+
+  assert (exists t, ACpltCtxSubst G e t).
+    destruct(@alen_exists G e) as (ne & ex). auto. apply IHm with ne; auto.
+  inversion len; subst. lets: alen_eq H1 ex. Omega.omega.
+  destruct H as (et & H).
+  exists* (DE_Lam et).
+
+  destruct(@alen_exists G t1) as (nt1 & ex1). auto.
+  assert (exists e1, ACpltCtxSubst G t1 e1). apply* IHm.
+  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
+  destruct H as (e1 & Ht1).
+  destruct(@alen_exists G t2) as (ne2 & ex2). auto.
+  assert (exists e2, ACpltCtxSubst G t2 e2). apply* IHm.
+  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
+  destruct H as (e2 & Ht2).
+  exists* (DE_Pi e1 e2).
+
+  destruct(@alen_exists G e1) as (ne1 & ex1). auto. assert (exists t1, ACpltCtxSubst G e1 t1). apply* IHm.
+  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
+  destruct H as (t1 & Ht1).
+  destruct(@alen_exists G e2) as (ne2 & ex2). auto.
+  assert (exists t2, ACpltCtxSubst G e2 t2). apply* IHm.
+  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
+  destruct H as (t2 & Ht2).
+  exists* (DE_Let t1 t2).
+
+  assert (exists t, ACpltCtxSubst G e t).
+    destruct(@alen_exists G e) as (ne & ex). auto. apply IHm with ne; auto.
+  inversion len; subst. lets: alen_eq H1 ex. Omega.omega.
+  destruct H as (et & H).
+  exists* (DE_CastUp et).
+
+  assert (exists t, ACpltCtxSubst G e t).
+    destruct(@alen_exists G e) as (ne & ex). auto. apply IHm with ne; auto.
+  inversion len; subst. lets: alen_eq H1 ex. Omega.omega.
+  destruct H as (et & H).
+  exists* (DE_CastDn et).
+
+  destruct(@alen_exists G e1) as (ne1 & ex1). auto. assert (exists t1, ACpltCtxSubst G e1 t1). apply* IHm.
+  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
+  destruct H as (t1 & Ht1).
+  destruct(@alen_exists G e2) as (ne2 & ex2). auto.
+  assert (exists t2, ACpltCtxSubst G e2 t2). apply* IHm.
+  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
+  destruct H as (t2 & Ht2).
+  exists* (DE_Ann t1 t2).
+Qed.
+
+Theorem cpltctxsubst_exists: forall G e,
+    AWf G ->
+    AWTerm G e ->
+    CompleteCtx G ->
+    exists t, ACpltCtxSubst G e t
+.
+Proof.
+  intros. destruct(@alen_exists G e) as (n & ex). auto. apply* cpltctxsubst_exists'.
+  apply* awterm_is_awterma.
+Qed.

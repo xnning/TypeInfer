@@ -413,6 +413,122 @@ Proof.
   inversion hi; subst. apply* atyping_awterm.
 Qed.
 
+Lemma binds_swap : forall A (G1 G2 : env A) x v x1 v1 x2 v2,
+    x1 <> x2 ->
+    binds x v (G1 & x1 ~ v1 & x2 ~ v2 & G2) ->
+    binds x v (G1 & x2 ~ v2 & x1 ~ v1 & G2).
+Proof.
+  intros.
+  destruct (binds_concat_inv H0) as [Bnd1 | [Frsh Bnd2]].
+  apply* binds_concat_right.
+  destruct (binds_push_inv Bnd2) as [[Eq1 Eq2] | [NEeq Bnd]]; subst.
+  apply* binds_concat_left.
+  destruct (binds_push_inv Bnd) as [[Eq1' Eq2'] | [NEeq' Bnd']]; subst.
+  apply* binds_concat_left.
+  apply* binds_concat_left.
+Qed.
+
+Lemma awterm_reorder : forall G1 G2 x1 x2 v e,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_Var & x1 ~ v & G2) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var & G2) e.
+Proof.
+  intros. inductions H0.
+  apply* AWTerm_Var. apply* binds_swap.
+  apply* AWTerm_TypVar. apply* binds_swap.
+  apply* AWTerm_LetVar. apply* binds_swap.
+  apply* AWTerm_EVar. apply* binds_swap.
+  apply* AWTerm_Solved_EVar. apply* binds_swap.
+  apply* AWTerm_Star.
+  apply* AWTerm_App.
+
+  apply AWTerm_Lam with (L := L); intros.
+  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
+                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
+  rewrite -> concat_assoc. auto.
+  pose (Re := H0 x H2 v x2 x1 H (G2 & x ~ AC_Var) G1 H3).
+  rewrite -> concat_assoc in Re.
+  auto.
+
+  apply AWTerm_Pi with (L := L). auto. intros.
+  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
+                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
+  rewrite -> concat_assoc. auto.
+  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
+  rewrite -> concat_assoc in Re.
+  auto.
+
+  apply AWTerm_Let with (L := L). auto. intros.
+  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
+                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
+  rewrite -> concat_assoc. auto.
+  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
+  rewrite -> concat_assoc in Re.
+  auto.
+
+  apply* AWTerm_CastUp.
+  apply* AWTerm_CastDn.
+  apply* AWTerm_Ann.
+Qed.
+
+Lemma awterm_reorder_simp : forall G1 x1 x2 v e,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_Var & x1 ~ v) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var) e.
+Proof.
+  intros.
+  assert (G1 & x2 ~ AC_Var & x1 ~ v = G1 & x2 ~ AC_Var & x1 ~ v & empty).
+  rewrite* concat_empty_r.
+  assert (G1 & x1 ~ v & x2 ~ AC_Var = G1 & x1 ~ v & x2 ~ AC_Var & empty).
+  rewrite* concat_empty_r.
+  rewrite H1 in H0.
+  rewrite H2.
+  apply* awterm_reorder.
+Qed.
+
+Lemma binds_push_fresh : forall A x v (G : env A) x' v',
+    binds x v G -> x' # G ->
+    binds x v (G & x' ~ v').
+Proof.
+  intros. apply* binds_push_neq.
+  unfold not; intros. rewrite <- H1 in H0.
+  apply binds_fresh_inv with (x := x) (v := v) (E := G).
+  auto. auto.
+Qed.
+
+Lemma awterm_weaken : forall G x v e,
+    AWTerm G e ->
+    x # G ->
+    AWTerm (G & x ~ v) e.
+Proof.
+  intros. inductions H.
+  apply* AWTerm_Var. apply* binds_push_fresh.
+  apply* AWTerm_TypVar. apply* binds_push_fresh.
+  apply* AWTerm_LetVar. apply* binds_push_fresh.
+  apply* AWTerm_EVar. apply* binds_push_fresh.
+  apply* AWTerm_Solved_EVar. apply* binds_push_fresh.
+  apply* AWTerm_Star.
+  apply* AWTerm_App.
+  apply AWTerm_Lam with (L := L \u \{x}); intros. apply* awterm_reorder_simp.
+  apply AWTerm_Pi with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
+  apply AWTerm_Let with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
+  apply* AWTerm_CastUp.
+  apply* AWTerm_CastDn.
+  apply* AWTerm_Ann.
+Qed.
+
+Lemma awterm_weaken_ctx: forall G H e,
+    ok (G & H) ->
+    AWTerm G e ->
+    AWTerm (G & H) e.
+Proof.
+  introv. induction H using env_ind; introv okg wf.
+  rewrite* concat_empty_r.
+  assert (AWTerm (G & H) e). apply* IHenv. rewrite concat_assoc in okg. apply* ok_push_inv_ok.
+  rewrite concat_assoc. apply* awterm_weaken.
+  rewrite concat_assoc in okg. apply* ok_push_inv.
+Qed.
+
 Lemma awterm_solved_evar: forall G x t,
     AWf (G & x ~ AC_Solved_EVar t) ->
     AWTerm G t.
@@ -422,6 +538,19 @@ Proof.
   apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
   apply empty_push_inv in hi. inversion hi.
   apply* awterm_awftyp.
+Qed.
+
+Lemma awterm_evar_binds: forall G a t,
+    AWf G ->
+    binds a (AC_Solved_EVar t) G ->
+    AWTerm G t.
+Proof.
+  introv wf bd. destruct (split_bind_context bd) as (G1 & G2 & HG).
+  rewrite HG.
+  assert (AWTerm G1 t). rewrite HG in wf. apply* awterm_solved_evar. apply* AWf_left.  auto.
+  rewrite HG in wf.
+  rewrite <- concat_assoc. apply* awterm_weaken_ctx. apply* awf_is_ok.
+  rewrite* concat_assoc.
 Qed.
 
 Lemma atyping_awf: forall G m e t H,
