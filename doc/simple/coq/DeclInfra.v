@@ -496,6 +496,38 @@ Proof.
   destruct~ (H x H0 H1) as [_ [_ [_ [H2 _]]]].
 Qed.
 
+Lemma open_var_inj : forall x t1 t2,
+  x \notin (DFv t1) -> x \notin (DFv t2) ->
+  (t1 ^ x = t2 ^ x) -> (t1 = t2).
+Proof.
+  intros x t1. unfold DOpen. generalize 0.
+  induction t1; intro k; destruct t2; simpl; intros; inversion H1;
+  try solve [ f_equal*
+  | do 2 try case_nat; inversions* H1; try notin_false ].
+Qed.
+
+Lemma openrec_var_inj : forall x t1 k t2,
+  x \notin (DFv t1) -> x \notin (DFv t2) ->
+  (DOpenRec k (DE_FVar x) t1 = DOpenRec k (DE_FVar x) t2) -> (t1 = t2).
+Proof.
+  intros x t1. unfold DOpenRec.
+  induction t1; intro k; destruct t2; simpl; intros; inversion H1;
+  try solve [ f_equal*
+  | do 2 try case_nat; inversions* H1; try notin_false ].
+Qed.
+
+Lemma opent_var_inj : forall x t1 t2,
+  x \notin (DTFv t1) -> x \notin (DTFv t2) ->
+  (t1 ^' x = t2 ^' x) -> (t1 = t2).
+Proof.
+  intros x t1. unfold DOpenT. generalize 0.
+  induction t1; intro k; destruct t2; simpl; intros; inversion H1;
+  try solve [ f_equal*
+  | do 2 try case_nat; inversions* H1; try notin_false ].
+
+  assert(d = d0). apply* openrec_var_inj.
+  subst*.
+Qed.
 
 Lemma regular_dinst : forall E s t, DInst E s t ->
   (DWf E /\ ok E /\ contains_terms E /\ DTermTy s /\ DTerm t).

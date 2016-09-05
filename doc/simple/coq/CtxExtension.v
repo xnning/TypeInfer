@@ -58,8 +58,6 @@ Definition CompleteCtx (ctx : ACtx) :=
   forall x v, binds x v ctx -> v <> AC_Unsolved_EVar.
 
 Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
-  | ACpltCtxSubst_BVar : forall G (x:nat),
-      CompleteCtx G -> ACpltCtxSubst G (AE_BVar x) (DE_BVar x)
   | ACpltCtxSubst_FVar : forall G x v,
       CompleteCtx G -> binds x v G -> ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
   | ACpltCtxSubst_EVar : forall G1 G2 a t d,
@@ -70,12 +68,16 @@ Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
   | ACpltCtxSubst_App : forall G t1 t2 d1 d2,
       ACpltCtxSubst G t1 d1 -> ACpltCtxSubst G t2 d2 ->
       ACpltCtxSubst G (AE_App t1 t2) (DE_App d1 d2)
-  | ACpltCtxSubst_Lam : forall G t d, ACpltCtxSubst G t d -> ACpltCtxSubst G (AE_Lam t) (DE_Lam d)
-  | ACpltCtxSubst_Pi : forall G t1 t2 d1 d2,
-      ACpltCtxSubst G t1 d1 -> ACpltCtxSubst G t2 d2 ->
+  | ACpltCtxSubst_Lam : forall G t d L,
+      (forall x, x \notin L -> ACpltCtxSubst (G & x ~ AC_Var) (t @ x) (d ^ x)) ->
+      ACpltCtxSubst G (AE_Lam t) (DE_Lam d)
+  | ACpltCtxSubst_Pi : forall G t1 t2 d1 d2 L,
+      ACpltCtxSubst G t1 d1 ->
+      (forall x, x \notin L -> ACpltCtxSubst (G & x ~ AC_Var) (t2 @ x) (d2 ^ x)) ->
       ACpltCtxSubst G (AE_Pi t1 t2) (DE_Pi d1 d2)
-  | ACpltCtxSubst_Let : forall G t1 t2 d1 d2,
-      ACpltCtxSubst G t1 d1 -> ACpltCtxSubst G t2 d2 ->
+  | ACpltCtxSubst_Let : forall G t1 t2 d1 d2 L,
+      ACpltCtxSubst G t1 d1 ->
+      (forall x, x \notin L -> ACpltCtxSubst (G & x ~ AC_Var) (t2 @ x) (d2 ^ x)) ->
       ACpltCtxSubst G (AE_Let t1 t2) (DE_Let d1 d2)
   | ACpltCtxSubst_CastUp : forall G t d,
       ACpltCtxSubst G t d -> ACpltCtxSubst G (AE_CastUp t) (DE_CastUp d)
@@ -87,8 +89,9 @@ Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
 .
 
 Inductive ACpltCtxTSubst : ACtx -> AType -> DType -> Prop :=
-  | ACpltCtxTSubst_Poly : forall G s1 s2,
-      ACpltCtxTSubst G s1 s2 -> ACpltCtxTSubst G (AT_Forall s1) (DT_Forall s2)
+  | ACpltCtxTSubst_Poly : forall G s1 s2 L,
+      (forall x, x \notin L -> ACpltCtxTSubst G (s1 @' x) (s2 ^' x)) ->
+            ACpltCtxTSubst G (AT_Forall s1) (DT_Forall s2)
   | ACpltCtxTSubst_Expr : forall G t1 t2,
       ACpltCtxSubst G t1 t2 -> ACpltCtxTSubst G (AT_Expr t1) (DT_Expr t2)
 .
