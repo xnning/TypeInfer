@@ -3,9 +3,8 @@ Require Import LibLN.
 Require Import AlgoDef.
 Require Import UtilityEnv.
 Require Import DeclDef.
-Require Import AlgoInfra.
 Require Import DeclInfra.
-Require Import LibReflect.
+Require Import AlgoInfra.
 
 Set Implicit Arguments.
 
@@ -294,6 +293,18 @@ Lemma complete_contains_unsolved: forall G a,
     False.
 Proof.
   intros. unfold CompleteCtx in H. apply H in H0. apply* H0.
+Qed.
+
+Lemma complete_add: forall G x,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Var).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
 Qed.
 
 Lemma complete_empty: CompleteCtx empty.
@@ -602,16 +613,6 @@ Lemma finishing_types : forall G G' t,
 Proof.
 Admitted.
 
-Lemma cpltctxsubst_append: forall G1 G2 t e,
-    AWf (G1 & G2) ->
-    CompleteCtx (G1 & G2) ->
-    AWTerm G1 t ->
-    ACpltCtxSubst G1 t e ->
-    ACpltCtxSubst (G1 & G2) t e.
-Proof.
-  admit.
-Qed.
-
 Lemma cpltctxsubst_solved_weaken: forall G1 G2 t e,
     AWf (G1 & G2) ->
     CompleteCtx (G1 & G2) ->
@@ -620,215 +621,4 @@ Lemma cpltctxsubst_solved_weaken: forall G1 G2 t e,
     ACpltCtxSubst G1 t e.
 Proof.
   admit.
-Qed.
-
-(* a definition about length of a expression. *)
-
-Inductive ALen : ACtx -> AExpr -> nat -> Prop :=
-| ALen_Var: forall G x, binds x AC_Var G -> ALen G (AE_FVar x) 1
-| ALen_TypVar: forall G x t, binds x (AC_Typ t) G -> ALen G (AE_FVar x) 1
-| ALen_LetVar : forall G x t e i, binds x (AC_Bnd t e) G -> ALen G e i -> ALen G (AE_FVar x) (i + 1)
-| ALen_EVar : forall G a, binds a AC_Unsolved_EVar G -> ALen G (AE_EVar a) 1
-| ALen_Solved_EVar: forall G a t i, binds a (AC_Solved_EVar t) G -> ALen G t i -> ALen G (AE_EVar a) (i + 1)
-| ALen_Star: forall G, ALen G (AE_Star) 1
-| ALen_App: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_App e1 e2) (i1 + i2 + 1)
-| ALen_Lam: forall e G i L,
-    (forall x, x \notin L -> ALen (G & x ~ AC_Var) (e @ x) i) -> ALen G (AE_Lam e) (i + 1)
-| ALen_Pi: forall e1 e2 G i1 i2 L, ALen G e1 i1 ->
-    (forall x, x \notin L -> ALen (G & x ~ AC_Var) (e2 @ x) i2) ->
-    ALen G (AE_Pi e1 e2) (i1 + i2 + 1)
-| ALen_Let: forall e1 e2 G i1 i2 L, ALen G e1 i1 ->
-    (forall x, x \notin L -> ALen (G & x ~ AC_Var) (e2 @ x) i2) ->
-    ALen G (AE_Let e1 e2) (i1 + i2 + 1)
-| ALen_CastUp:  forall e G i, ALen G e i -> ALen G (AE_CastUp e) (i + 1)
-| ALen_CastDn:  forall e G i, ALen G e i -> ALen G (AE_CastDn e) (i + 1)
-| ALen_Ann: forall e1 e2 G i1 i2, ALen G e1 i1 -> ALen G e2 i2 -> ALen G (AE_Ann e1 e2) (i1 + i2 + 1).
-
-Hint Constructors ALen.
-
-(* some lemmas about alen *)
-
-Lemma alen_awterm_append: forall G H e n,
-    AWf (G & H) ->
-    AWTerm G e ->
-    ALen G e n ->
-    ALen (G & H) e n.
-Proof.
-  admit.
-Qed.
-
-
-Lemma alen_exists': forall n G e,
-    AWf G ->
-    AWTerm G e ->
-    LibList.length G < n ->
-    exists m, ALen G e m.
-Proof.
-  intro n. induction n as [|n']; introv okg wt len.
-  false. inversion len.
-  induction wt.
-  exists* 1. exists* 1.
-
-  destruct (split_bind_context H) as (G1 & G2 & IG).
-  assert (AWf G1). rewrite IG in okg. do 2 apply* AWf_left.
-  assert (AWTerm G1 e). apply* awterm_bnd. rewrite IG in okg. apply* AWf_left.
-  assert (exists n, ALen G1 e n). apply~ IHn'. rewrite IG in okg.
-
-  rewrite IG in len.
-  rewrite concat_def in len. repeat(rewrite LibList.length_app in len).
-  assert(LibList.length (x~ AC_Bnd t e) = 1). rewrite single_def. rewrite LibList.length_cons. rewrite LibList.length_nil. Omega.omega.
-  Omega.omega.
-  destruct H2 as (ne & H2). exists (ne + 1). apply ALen_LetVar with t e; auto. rewrite IG. rewrite <- concat_assoc. apply* alen_awterm_append.
-  rewrite IG in okg. rewrite* concat_assoc.
-
-  exists* 1.
-
-  destruct (split_bind_context H) as (G1 & G2 & IG).
-  assert (AWf G1). rewrite IG in okg. do 2 apply* AWf_left.
-  assert (AWTerm G1 t). apply* awterm_solved_evar. rewrite IG in okg. apply* AWf_left.
-  assert (exists n, ALen G1 t n). apply~ IHn'. rewrite IG in okg.
-
-  rewrite IG in len.
-  rewrite concat_def in len. repeat(rewrite LibList.length_app in len).
-  assert(LibList.length (a~ AC_Solved_EVar t) = 1). rewrite single_def. rewrite LibList.length_cons. rewrite LibList.length_nil. Omega.omega.
-  Omega.omega.
-  destruct H2 as (ne & H2). exists (ne + 1). apply ALen_Solved_EVar with t; auto. rewrite IG. rewrite <- concat_assoc. apply* alen_awterm_append.
-  rewrite IG in okg. rewrite* concat_assoc.
-
-  exists* 1.
-
-  lets: IHwt1 okg len. destruct H as (n1 & IHe1).
-  lets: IHwt2 okg len. destruct H as (n2 & IHe2).
-  exists* (n1 + n2 + 1).
-
-  admit.
-  admit.
-  admit.
-
-  lets: IHwt okg len. destruct H as (n1 & IHe1). exists* (n1 + 1).
-  lets: IHwt okg len. destruct H as (n1 & IHe1). exists* (n1 + 1).
-
-  lets: IHwt1 okg len. destruct H as (n1 & IHe1).
-  lets: IHwt2 okg len. destruct H as (n2 & IHe2).
-  exists* (n1 + n2 + 1).
-Qed.
-
-Lemma alen_exists: forall G e,
-    AWf G ->
-    AWTerm G e ->
-    exists n, ALen G e n.
-Proof.
-  introv wf wt.
-  apply* alen_exists'.
-Qed.
-
-Lemma alen_eq: forall G e i1 i2,
-    ALen G e i1 ->
-    ALen G e i2 ->
-    i1 = i2.
-Proof.
-  introv hy1. gen i2. induction hy1; introv hy2; inversion hy2; subst; auto;
-  try(solve[apply (binds_func H) in H1; inversion H1]);
-  try(solve[apply (binds_func H) in H2; inversion H2]).
-  lets: binds_func H H1. inversion H0; subst. lets: IHhy1 i0 H3. subst*.
-  lets: binds_func H H1. inversion H0; subst. lets: IHhy1 i0 H3. subst*.
-
-  pick_fresh y. assert (i = i0). apply* H0. subst*.
-  assert (i1 = i3). apply* IHhy1.
-  pick_fresh y. assert (i2 = i4). apply* H0. subst*.
-  pick_fresh y. assert (i2 = i4). apply* H0. subst*.
-Qed.
-
-Lemma alen_evar: forall G a t m n,
-    AWf G ->
-    binds a (AC_Solved_EVar t) G ->
-    ALen G (AE_EVar a) n ->
-    ALen G t m ->
-    n = m + 1.
-Proof.
-  introv wf bd lenn lenm.
-  inversion lenn; subst.
-  apply (binds_func H1) in bd; inversion bd.
-  apply (binds_func bd) in H0; inversion H0; subst.
-  lets: alen_eq H2 lenm. subst*.
-Qed.
-
-(* begin the main proofs *)
-
-Theorem cpltctxsubst_exists': forall G e n m,
-    AWf G ->
-    AWTerm G e ->
-    n < m ->
-    ALen G e n ->
-    CompleteCtx G ->
-    exists t, ACpltCtxSubst G e t
-.
-Proof.
-  intros. gen G e n. induction m; introv wf comp wt less len.
-  inversion less.
-
-  induction wt; simpls; auto_star.
-  false (complete_contains_unsolved comp H).
-
-  assert (exists e, ACpltCtxSubst G t e).
-     destruct(@alen_exists G t) as (nt & ex). auto.
-     apply* awterm_evar_binds.
-     apply IHm with nt; auto. apply* awterm_evar_binds.
-     lets: alen_evar wf H len ex. rewrite H0 in less. Omega.omega.
-
-  destruct H0 as (et & H0).
-  exists et. destruct (split_bind_context H) as (G1 & G2 & HG). rewrite HG.
-  apply ACpltCtxSubst_EVar.
-  rewrite HG in comp. rewrite <- concat_assoc in comp. apply* complete_part_left. rewrite concat_assoc. rewrite HG in wf. apply* awf_is_ok.
-  rewrite HG in comp. apply* complete_part_right. rewrite HG in wf. apply* awf_is_ok.
-
-  apply* cpltctxsubst_solved_weaken. rewrite HG in wf. rewrite <- concat_assoc in wf. exact wf.
-  rewrite HG in comp. rewrite <- concat_assoc in comp. exact comp.
-  apply* awterm_solved_evar. rewrite HG in wf. apply AWf_left in wf. exact wf. rewrite concat_assoc. rewrite HG in H0. assumption.
-
-  destruct(@alen_exists G e1) as (ne1 & ex1). auto. auto. assert (exists t1, ACpltCtxSubst G e1 t1). apply* IHm.
-  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
-  destruct H as (t1 & Ht1).
-  destruct(@alen_exists G e2) as (ne2 & ex2). auto. auto.
-  assert (exists t2, ACpltCtxSubst G e2 t2). apply* IHm.
-  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
-  destruct H as (t2 & Ht2).
-  exists* (DE_App t1 t2).
-
-  admit.
-
-  admit.
-
-  admit.
-
-  assert (exists t, ACpltCtxSubst G e t).
-    destruct(@alen_exists G e) as (ne & ex). auto. auto. apply IHm with ne; auto.
-  inversion len; subst. lets: alen_eq H1 ex. Omega.omega.
-  destruct H as (et & H).
-  exists* (DE_CastUp et).
-
-  assert (exists t, ACpltCtxSubst G e t).
-    destruct(@alen_exists G e) as (ne & ex). auto. auto. apply IHm with ne; auto.
-  inversion len; subst. lets: alen_eq H1 ex. Omega.omega.
-  destruct H as (et & H).
-  exists* (DE_CastDn et).
-
-  destruct(@alen_exists G e1) as (ne1 & ex1). auto. auto. assert (exists t1, ACpltCtxSubst G e1 t1). apply* IHm.
-  inversion len; subst. lets: alen_eq H2 ex1. Omega.omega.
-  destruct H as (t1 & Ht1).
-  destruct(@alen_exists G e2) as (ne2 & ex2). auto. auto.
-  assert (exists t2, ACpltCtxSubst G e2 t2). apply* IHm.
-  inversion len; subst. lets: alen_eq H4 ex2. Omega.omega.
-  destruct H as (t2 & Ht2).
-  exists* (DE_Ann t1 t2).
-Qed.
-
-Theorem cpltctxsubst_exists: forall G e,
-    AWf G ->
-    AWTerm G e ->
-    CompleteCtx G ->
-    exists t, ACpltCtxSubst G e t
-.
-Proof.
-  intros. destruct(@alen_exists G e) as (n & ex). auto. auto. apply* cpltctxsubst_exists'.
 Qed.
