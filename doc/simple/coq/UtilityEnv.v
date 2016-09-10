@@ -160,6 +160,16 @@ Proof.
   destruct H as [H1 [H2 H3]]. subst. auto.
 Qed.
 
+Lemma ok_middle_eq2: forall {A} (I1 I2 G1 G2: env A) x v1 v2,
+    ok (I1 & x ~ v1 & I2) ->
+    ok (G1 & x ~ v2 & G2) ->
+    I1 & x ~ v1 & I2 = G1 & x ~ v2 & G2 ->
+    I1 = G1 /\ v1 = v2 /\ I2 = G2.
+Proof.
+  introv oki okg eqig.
+  apply ok_middle_eq with (I:= (I1 & x ~ v1 & I2)) (G:=(G1 & x ~ v2 & G2)) (x0:=x); auto.
+Qed.
+
 Lemma reverse_order_inv : forall A (G1 G2 G3 : env A) I1 I2 I3 x vx1 vx2 y vy1 vy2,
     ok (G1 & x ~ vx1 & G2 & y ~ vy1 & G3) ->
     ok (I1 & y ~ vy2 & I2 & x ~ vx2 & I3) ->

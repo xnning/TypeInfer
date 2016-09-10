@@ -72,16 +72,6 @@ Inductive AWTermA : ACtx -> AExpr -> Prop :=
 (* helper lemmas *)
 Hint Constructors AWTermA ACpltCtxSubst.
 Hint Resolve awf_is_ok AWf_left complete_part_left complete_part_right.
-Lemma ok_middle_eq2: forall {A} (I1 I2 G1 G2: env A) x v1 v2,
-    ok (I1 & x ~ v1 & I2) ->
-    ok (G1 & x ~ v2 & G2) ->
-    I1 & x ~ v1 & I2 = G1 & x ~ v2 & G2 ->
-    I1 = G1 /\ v1 = v2 /\ I2 = G2.
-Proof.
-  introv oki okg eqig.
-  apply ok_middle_eq with (I:= (I1 & x ~ v1 & I2)) (G:=(G1 & x ~ v2 & G2)) (x0:=x); auto.
-Qed.
-
 Lemma awterma_open: forall G k u e,
     AWTermA G (AOpenRec k u e) ->
     AWTermA G e.
