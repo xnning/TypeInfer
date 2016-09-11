@@ -15,15 +15,15 @@ Definition Soundness_Unification := forall G H I t1 t2 H' t1' t2',
     ACpltCtxSubst I t2 t2' ->
     (DWfTyp H' (DT_Expr t1') /\ DWfTyp H' (DT_Expr t2') /\ t1' = t2').
 
-Definition  Soundness_Instantiation := forall G H I s t H' s' t',
+Definition  Soundness_Instantiation := forall G H I s t G' s' t',
     AInst G s t H ->
-    AWfTyp G s -> AWfTyp G (AT_Expr t) ->
+    AWfTyp G s ->
     ExtCtx H I ->
     CompleteCtx I ->
-    ACpltCtxSubstCtx I H H' ->
+    ACpltCtxSubstCtx I G G' ->
     ACpltCtxTSubst I s s' ->
     ACpltCtxSubst I t t' ->
-    DInst H' s' t'.
+    DInst G' s' t'.
 
 Definition Soundness_Generalization := forall G H I e s t H' e' s',
     ATypingI G e t H ->

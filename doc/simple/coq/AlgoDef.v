@@ -243,9 +243,9 @@ Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
   | AInst_Expr : forall G t,
       AInst G (AT_Expr t) t G
   | AInst_Poly : forall L G H a s t,
-      (forall x, x \notin L ->
-                 AInst (G & x ~ AC_Typ AE_Star) (AOpenT (AT_Forall s) (AE_FVar x)) (t @ x) H) ->
-      a \notin L ->
+      (forall x I, x \notin L ->
+                 AInst (G & x ~ AC_Typ AE_Star) (s @' x) (t @ x) (H & x ~ AC_Typ AE_Star & I)) ->
+      a # H ->
       AInst G (AT_Forall s) (t @@ (AE_EVar a)) (H & a ~ AC_Unsolved_EVar).
 
 Inductive AWTerm : ACtx -> AExpr -> Prop :=
