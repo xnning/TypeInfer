@@ -58,8 +58,15 @@ Definition CompleteCtx (ctx : ACtx) :=
   forall x v, binds x v ctx -> v <> AC_Unsolved_EVar.
 
 Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
-  | ACpltCtxSubst_FVar : forall G x v,
-      CompleteCtx G -> binds x v G -> ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
+  | ACpltCtxSubst_Var : forall G x,
+      CompleteCtx G -> binds x AC_Var G ->
+      ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
+  | ACpltCtxSubst_TyVar : forall G x t,
+      CompleteCtx G -> binds x (AC_Typ t) G ->
+      ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
+  | ACpltCtxSubst_BndVar : forall G x t e,
+      CompleteCtx G -> binds x (AC_Bnd t e) G ->
+      ACpltCtxSubst G (AE_FVar x) (DE_FVar x)
   | ACpltCtxSubst_EVar : forall G1 G2 a t d,
       CompleteCtx G1 -> CompleteCtx G2 ->
       ok (G1 & a ~ (AC_Solved_EVar t) & G2) ->
@@ -120,7 +127,7 @@ Inductive ACpltCtxSubstCtx : ACtx -> ACtx -> DCtx -> Prop :=
       ACtxSubst H t1 = ACtxSubst H t2 ->
       ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t1) (G & a ~ AC_Solved_EVar t2) I
   | ACpltCtxSubstCtx_Solved_EVar: forall H G I t a,
-      CompleteCtx H -> ACpltCtxSubstCtx H G I -> a # G ->
+      CompleteCtx H -> ACpltCtxSubstCtx H G I -> a # H ->
       ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t) G I
 .
 

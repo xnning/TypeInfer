@@ -86,6 +86,51 @@ Proof.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
 Qed.
 
+Lemma ctxsubst_declaration_preservation_inv: forall H G I x v,
+    ACpltCtxSubstCtx H G I ->
+    binds x v G ->
+    exists v2, binds x v2 H.
+Proof.
+  introv sub bd.
+  induction sub.
+  false binds_empty_inv bd.
+
+  destruct (eq_var_dec x x0).
+  subst. exists~ AC_Var.
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H1.
+  destruct H2 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x x0).
+  subst. exists~ (AC_Typ t1).
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H3.
+  destruct H4 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x x0).
+  subst. exists~ (AC_Bnd s1 t1).
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H5.
+  destruct H6 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x a).
+  subst. exists~ (AC_Solved_EVar t).
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H1.
+  destruct H2 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x a).
+  subst. exists~ (AC_Solved_EVar t1).
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H2.
+  destruct H3 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x a).
+  subst. exists~ (AC_Solved_EVar t).
+  lets: IHsub bd.
+  destruct H2 as (v2 & bd2). exists~ v2.
+Qed.
+
 Lemma ctxsubst_inv_suevar : forall H G I a t,
     ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t) (G & a ~ AC_Unsolved_EVar) I ->
     CompleteCtx H /\
@@ -104,12 +149,12 @@ Proof.
   destruct (eq_push_inv H3) as [? [? ?]].
   false.
   destruct (eq_push_inv H2) as [? [? ?]]; subst.
-  auto.
-  false.
+  split; auto.
   assert (binds a AC_Unsolved_EVar (G & a ~ AC_Unsolved_EVar)).
   apply* binds_tail.
-  apply binds_fresh_inv with (A := ACtxT) (x := a) (v := AC_Unsolved_EVar) (E := G & a ~ AC_Unsolved_EVar).
-  auto. auto.
+  lets: ctxsubst_declaration_preservation_inv H4 H0.
+  destruct H1 as (v2 & bd).
+  false binds_fresh_inv bd H5.
 Qed.
 
 Lemma ctxsubst_inv_ssevar : forall H G I t1 t2 a,
@@ -131,12 +176,13 @@ Proof.
   inversions H1; inversions H7.
   auto.
   destruct (eq_push_inv H2) as [? [? ?]]; subst.
-  auto.
+  split; auto.
   false.
-  assert (binds a AC_Unsolved_EVar (G & a ~ AC_Unsolved_EVar)).
+  assert (binds a (AC_Solved_EVar t2) (G & a ~ AC_Solved_EVar t2)).
   apply* binds_tail.
-  apply binds_fresh_inv with (A := ACtxT) (x := a) (v := AC_Unsolved_EVar) (E := G & a ~ AC_Unsolved_EVar).
-  auto. auto.
+  lets: ctxsubst_declaration_preservation_inv H4 H0.
+  destruct H1 as (v2 & H1).
+  false binds_fresh_inv H1 H5.
 Qed.
 
 Lemma ctxsubst_inv_sevar : forall H G I t a,
