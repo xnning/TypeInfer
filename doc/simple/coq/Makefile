@@ -32,6 +32,8 @@ FILES=\
 	DeclInfra\
 	AlgoInfra\
 	Subst\
+	Exists\
+	UtilityMore\
 	Theorems
 
 ALL=$(FILES)

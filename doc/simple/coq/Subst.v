@@ -382,6 +382,81 @@ Proof.
   false (cm x v H H0).
 Qed.
 
+Lemma complete_add_typ: forall G x t,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Typ t).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
+Qed.
+
+Lemma complete_add_bnd: forall G x t e,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Bnd t e).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
+Qed.
+
+Lemma complete_add_solved: forall G x e,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Solved_EVar e).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
+Qed.
+
+Lemma complete_append: forall G H,
+    CompleteCtx G ->
+    CompleteCtx H ->
+    ok (G & H) ->
+    CompleteCtx (G & H).
+Proof.
+  introv comp_g comp_h okgh.
+  induction H using env_ind.
+  rewrite~ concat_empty_r.
+
+  induction v.
+  rewrite concat_assoc.
+  apply~ complete_add.
+  apply~ IHenv.
+  apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
+  rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
+
+  rewrite concat_assoc.
+  apply~ complete_add_typ.
+  apply~ IHenv.
+  apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
+  rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
+
+  rewrite concat_assoc.
+  apply~ complete_add_bnd.
+  apply~ IHenv.
+  apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
+  rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
+
+  assert (binds x AC_Unsolved_EVar (H & x ~ AC_Unsolved_EVar)). apply binds_tail.
+  false complete_contains_unsolved comp_h H0.
+
+  rewrite concat_assoc.
+  apply~ complete_add_solved.
+  apply~ IHenv.
+  apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
+  rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
+Qed.
+
 
 Lemma eq_aexpr_dec : forall (T T' : AExpr),
   sumbool (T = T') (T <> T').
@@ -658,13 +733,3 @@ Lemma finishing_types : forall G G' t,
     ACtxSubst G t = ACtxSubst G' t.
 Proof.
 Admitted.
-
-Lemma cpltctxsubst_solved_weaken: forall G1 G2 t e,
-    AWf (G1 & G2) ->
-    CompleteCtx (G1 & G2) ->
-    AWTerm G1 t ->
-    ACpltCtxSubst (G1 & G2) t e ->
-    ACpltCtxSubst G1 t e.
-Proof.
-  admit.
-Qed.

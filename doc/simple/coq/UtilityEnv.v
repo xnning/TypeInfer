@@ -10,6 +10,58 @@ Inductive Softness : ACtx -> Prop :=
   | Softness_Unsolved: forall G a, Softness G -> a # G -> Softness (G & a ~ AC_Unsolved_EVar)
   | Softness_Solved: forall G a t, Softness G -> a # G -> Softness (G & a ~ AC_Solved_EVar t).
 
+Lemma soft_append: forall G H,
+    Softness G -> Softness H ->
+    ok (G & H) ->
+    Softness (G & H).
+Proof.
+  introv sg sh okg. induction H using env_ind.
+  rewrite~ concat_empty_r.
+  inversion sh.
+  rewrite~ concat_empty_r.
+
+  apply eq_push_inv in H0; destruct H0 as [eqx [eqv eqg2]]. subst.
+  rewrite concat_assoc. apply~ Softness_Unsolved.
+  apply~ IHenv. rewrite concat_assoc in okg. apply* ok_concat_inv_l.
+  rewrite concat_assoc in okg. apply ok_push_inv in okg. destruct okg as [_ okg]. assumption.
+
+  apply eq_push_inv in H0; destruct H0 as [eqx [eqv eqg2]]. subst.
+  rewrite concat_assoc. apply~ Softness_Solved.
+  apply~ IHenv. rewrite concat_assoc in okg. apply* ok_concat_inv_l.
+  rewrite concat_assoc in okg. apply ok_push_inv in okg. destruct okg as [_ okg]. assumption.
+Qed.
+
+Lemma soft_single_unsolved: forall a,
+    Softness (a ~ AC_Unsolved_EVar).
+Proof.
+  introv.
+  rewrite <- concat_empty_l.
+  apply~ Softness_Unsolved.
+  apply~ Softness_Empty.
+Qed.
+
+Lemma soft_single_solved: forall a t,
+    Softness (a ~ AC_Solved_EVar t).
+Proof.
+  introv.
+  rewrite <- concat_empty_l.
+  apply~ Softness_Solved.
+  apply~ Softness_Empty.
+Qed.
+
+Lemma soft_left: forall G H,
+    Softness (G & H) ->
+    Softness G.
+Proof.
+  introv sf. induction H using env_ind.
+  rewrite concat_empty_r in sf. auto.
+  rewrite concat_assoc in sf.
+  inversion sf.
+  false empty_push_inv H1.
+  apply eq_push_inv in H0. destruct H0 as [eqx [eqv eqg]]. subst. apply~ IHenv.
+  apply eq_push_inv in H0. destruct H0 as [eqx [eqv eqg]]. subst. apply~ IHenv.
+Qed.
+
 (* properties about \in *)
 
 Lemma union_left :forall {A} (x:A) E F,
@@ -114,6 +166,16 @@ Proof.
   rewrite <- concat_empty_r in HIOK.
   apply ok_non_eq in HIOK.
   assert False. apply* HIOK. inversion H.
+Qed.
+
+Lemma tail_empty_eq2: forall {A} (I1 I2 G1: env A) x vx vy,
+    ok (I1 & x ~ vy & I2) ->
+    ok (G1 & x ~ vx) ->
+    (I1 & x ~ vy & I2) = (G1 & x ~ vx) ->
+    G1 = I1 /\ vx = vy /\ I2 = empty.
+Proof.
+  introv oki okg eq.
+  apply tail_empty_eq with (x0:=x) (G:=(G1 & x ~ vx)) (I:=(I1 & x ~ vy & I2)); auto.
 Qed.
 
 Lemma ok_middle_eq : forall {A} (I I1 I2 G G1 G2: env A) x v1 v2,
@@ -603,6 +665,18 @@ Proof.
   unfold ACtxSubst. auto.
   unfold ACtxSubst. destruct a. simpl.
   destruct a; auto.
+Qed.
+
+Lemma awftyp_star: forall G,
+    AWf G ->
+    AWfTyp G (AT_Expr AE_Star).
+Proof.
+  introv wf.
+  apply AWf_Expr with empty.
+  rewrite concat_empty_r.
+  apply~ ATC_Sub.
+  rewrite subst_star.
+  apply AUnify_Star.
 Qed.
 
 Lemma subst_add_var : forall G e x,
