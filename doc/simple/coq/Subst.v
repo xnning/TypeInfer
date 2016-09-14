@@ -727,9 +727,3 @@ Proof.
   rewrite~ subst_star.
 Admitted.
 
-Lemma finishing_types : forall G G' t,
-    AWTerm G t ->
-    ExtCtx G G' ->
-    ACtxSubst G t = ACtxSubst G' t.
-Proof.
-Admitted.

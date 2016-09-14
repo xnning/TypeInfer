@@ -271,7 +271,7 @@ Inductive AWTerm : ACtx -> AExpr -> Prop :=
 
 Inductive AWTermT : ACtx -> AType -> Prop :=
   | AWTermT_Forall : forall G s L,
-      (forall x, x \notin L -> AWTermT (G & x ~ AC_Var) (s @' x)) -> AWTermT G (AT_Forall s)
+      (forall x, x \notin L -> AWTermT (G & x ~ AC_Typ AE_Star) (AT_Forall s @' x)) -> AWTermT G (AT_Forall s)
   | AWTermT_Expr: forall G e,
       AWTerm G e -> AWTermT G (AT_Expr e).
 

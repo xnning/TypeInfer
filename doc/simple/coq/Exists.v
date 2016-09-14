@@ -46,7 +46,7 @@ Admitted.
 
 Lemma forall_solve: forall G x e t,
     AWf (G & x ~ AC_Var) ->
-    ACpltCtxTSubst (G & x ~ AC_Var) (e @' x) t ->
+    ACpltCtxTSubst (G & x ~ AC_Typ AE_Star) (AT_Forall e @' x) t ->
     exists d, ACpltCtxTSubst G (AT_Forall e) d.
 Admitted.
 
@@ -545,6 +545,18 @@ Proof.
   apply* cpltctxsubst_exists'.
 Qed.
 
+Lemma complete_add_star: forall G x,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Typ AE_Star).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
+Qed.
+
 Theorem cpltctxtsubst_exists: cpltctxtsubst_exists_def.
 Proof.
   introv wf wt comp.
@@ -552,8 +564,10 @@ Proof.
 
   pick_fresh y.
   assert (IH1: y \notin L) by auto_star.
-  assert (IH2: AWf (G & y ~ AC_Var)). apply* AWf_Var.
-  assert (IH3: CompleteCtx (G & y ~ AC_Var)). apply* complete_add.
+  assert (IH2: AWf (G & y ~ AC_Typ AE_Star)). apply* AWf_TyVar.
+  apply AWf_Expr with (H := empty). apply* ATC_Sub.
+  rewrite subst_star. rewrite concat_empty_r. apply* AUnify_Star.
+  assert (IH3: CompleteCtx (G & y ~ AC_Typ AE_Star)). apply* complete_add_star.
   lets: H0 IH1 IH2 IH3.
   destruct H1 as (nt & H1).
   apply* forall_solve.
