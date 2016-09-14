@@ -1,0 +1,86 @@
+% SIGPLAN format
+% \documentclass[preprint, numbers,nocopyrightspace]{sigplanconf}
+\documentclass[a4paper,runningheads]{llncs}
+
+% AMS packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+% \usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{mdwlist}
+% \newtheorem{theorem}{Theorem}[section]
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{corollary}[theorem]{Corollary}
+% \newtheorem{definition}[theorem]{Definition}
+
+% Hyper links
+\usepackage{url}
+\usepackage{hyperref}
+\hypersetup{
+   colorlinks,
+   citecolor=black,
+   filecolor=black,
+   linkcolor=black,
+   urlcolor=black
+}
+
+% Miscellaneous
+\usepackage{paralist}
+\usepackage{graphicx}
+\usepackage{float}
+% \usepackage{balance} % Equalize column in the last page
+
+% Revision tools
+\usepackage{xspace}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{comment}
+
+\newcommand{\hltext}[2][gray!40]{\colorbox{#1}{#2}}
+\newcommand{\hl}[2][gray!40]{%
+  \colorbox{#1}{$\displaystyle#2$}}
+
+\newcommand{\authornote}[3]{{\color{#2} {\sc #1}: #3}}
+\newcommand\bruno[1]{\authornote{bruno}{red}{#1}}
+\newcommand\ningning[1]{\authornote{ningning}{blue}{#1}}
+\newcommand\linus[1]{\authornote{linus}{ForestGreen}{#1}}
+
+% Literal programming support
+\input{paper_utility.tex}
+
+\begin{document}
+
+% Paper size, US Letter
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\title{Bidirectional Typechecking for Dependently Typed Calculus}
+% \authorinfo{Name1}
+%            {Affiliation1}
+%            {Email1}
+\author{Name1}
+\institute{Affiliation1\\
+\email{Email1}}
+\maketitle
+
+\input{sections/formal.tex}
+
+\input{sections/introduction.tex}
+\input{sections/language.tex}
+\input{sections/declarative.tex}
+\input{sections/typesystem.tex}
+\input{sections/completesound.tex}
+%\input{sections/translation.tex}
+
+%% -- Appendix --
+\bibliographystyle{splncs03}
+\appendix
+
+%% -- The end --
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
