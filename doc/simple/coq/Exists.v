@@ -46,7 +46,7 @@ Admitted.
 
 Lemma forall_solve: forall G x e t,
     AWf (G & x ~ AC_Var) ->
-    ACpltCtxTSubst (G & x ~ AC_Typ AE_Star) (AT_Forall e @' x) t ->
+    ACpltCtxTSubst (G & x ~ AC_Typ AE_Star) (e @' x) t ->
     exists d, ACpltCtxTSubst G (AT_Forall e) d.
 Admitted.
 
