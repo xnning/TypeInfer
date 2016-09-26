@@ -97,7 +97,7 @@ Inductive ACpltCtxSubst : ACtx -> AExpr -> DExpr -> Prop :=
 
 Inductive ACpltCtxTSubst : ACtx -> AType -> DType -> Prop :=
   | ACpltCtxTSubst_Poly : forall G s1 s2 L,
-      (forall x, x \notin L -> ACpltCtxTSubst (G & x ~ AC_Var) (s1 @' x) (s2 ^' x)) ->
+      (forall x, x \notin L -> ACpltCtxTSubst (G & x ~ AC_Typ AE_Star) (s1 @' x) (s2 ^' x)) ->
             ACpltCtxTSubst G (AT_Forall s1) (DT_Forall s2)
   | ACpltCtxTSubst_Expr : forall G t1 t2,
       ACpltCtxSubst G t1 t2 -> ACpltCtxTSubst G (AT_Expr t1) (DT_Expr t2)

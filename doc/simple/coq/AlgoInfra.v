@@ -84,6 +84,51 @@ Proof.
   | do 2 try case_nat; inversions* H1; try notin_false ].
 Qed.
 
+Lemma open_reorder: forall e1 e2 i j e,
+    ATerm e1 ->
+    ATerm e2 ->
+    i <> j ->
+    AOpenRec i e1 (AOpenRec j e2 e) = AOpenRec j e2 (AOpenRec i e1 e).
+Proof.
+  introv te1 te2 neq.
+  gen i j. induction e; introv neq; simpls; auto; try(solve[f_equal ~]).
+  case_nat~. case_nat~. simpls. case_if~. symmetry. apply~ aopen_rec_term.
+  case_nat~. simpls. case_if~. apply~ aopen_rec_term.
+  simpls. case_if~. case_if~.
+Qed.
+
+Lemma notin_open_inv : forall x y n e,
+    x \notin AFv e ->
+    x \notin AFv y ->
+    x \notin AFv (AOpenRec n y e).
+Proof.
+  introv notin neq.
+  gen n. induction e; introv; simpls; auto.
+  case_if. auto. simpl.  auto.
+Qed.
+
+
+Lemma opent_reorder: forall e1 e2 i j e,
+    ATerm e1 ->
+    ATerm e2 ->
+    i <> j ->
+    AOpenTypRec i e1 (AOpenTypRec j e2 e) = AOpenTypRec j e2 (AOpenTypRec i e1 e).
+Proof.
+  introv te1 te2 neq.
+  gen i j. induction e; introv neq; simpls; auto; try(solve[f_equal ~]).
+  f_equal. apply~ open_reorder.
+Qed.
+
+Lemma notin_opent_inv : forall x y n e,
+    x \notin ATFv e ->
+    x \notin AFv y ->
+    x \notin ATFv (AOpenTypRec n y e).
+Proof.
+  introv notin neq.
+  gen n. induction e; introv; simpls; auto.
+  apply~ notin_open_inv.
+Qed.
+
 (* Substitution for a fresh name is identity. *)
 
 Lemma asubst_fresh : forall x t u, 

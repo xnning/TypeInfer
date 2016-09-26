@@ -85,6 +85,123 @@ Proof.
   | do 2 try case_nat; inversions* H1; try notin_false ].
 Qed.
 
+Lemma notin_dopen_inv : forall x y n e,
+    x \notin DFv e ->
+    x \notin DFv y ->
+    x \notin DFv (DOpenRec n y e).
+Proof.
+  introv notin neq.
+  gen n. induction e; introv; simpls; auto.
+  case_if. auto. simpl.  auto.
+Qed.
+
+Lemma notin_dopen : forall x y e n,
+    x \notin (DFv (DOpenRec n y e)) ->
+    x \notin (DFv e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin; try(simpl in *; auto);
+    try(
+  apply notin_union in notin;
+  destruct notin as [notin1 notin2];
+  apply IHe1 in notin1;
+  apply IHe2 in notin2;
+  auto);
+    try(apply IHe in notin; auto).
+Qed.
+
+Lemma dopen_reorder: forall e1 e2 i j e,
+    DTerm e1 ->
+    DTerm e2 ->
+    i <> j ->
+    DOpenRec i e1 (DOpenRec j e2 e) = DOpenRec j e2 (DOpenRec i e1 e).
+Proof.
+  introv te1 te2 neq.
+  gen i j. induction e; introv neq; simpls; auto; try(solve[f_equal ~]).
+  case_nat~. case_nat~. simpls. case_if~. symmetry. apply~ dopen_rec_term.
+  case_nat~. simpls. case_if~. apply~ dopen_rec_term.
+  simpls. case_if~. case_if~.
+Qed.
+
+Lemma dopent_reorder: forall e1 e2 i j e,
+    DTerm e1 ->
+    DTerm e2 ->
+    i <> j ->
+    DOpenTypRec i e1 (DOpenTypRec j e2 e) = DOpenTypRec j e2 (DOpenTypRec i e1 e).
+Proof.
+  introv te1 te2 neq.
+  gen i j. induction e; introv neq; simpls; auto; try(solve[f_equal ~]).
+  f_equal. apply~ dopen_reorder.
+Qed.
+
+Lemma dopen_fv: forall n s y,
+    DTerm (DOpenRec n (DE_FVar y) s) ->
+    y \notin DFv (DOpenRec n (DE_FVar y) s) ->
+    DTerm s.
+Proof.
+  unfold DOpen.
+  introv dt.
+  gen_eq s2 : (DOpenRec n (DE_FVar y) s).
+  gen s n. induction dt; introv eq notin; simpls.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*. inversion eq;  subst. false notin_same notin0.
+  apply DTerm_Var.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  apply DTerm_Star.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_App; f_equal *.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_Lam with (L \u \{y}).
+  intros z notin_z. apply H0 with z (S n); auto. apply~ dopen_reorder.
+  apply~ notin_dopen_inv.
+  simpls. apply notin_singleton. auto_star.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_Pi with (L \u \{y}).
+  apply~ IHdt.
+  intros z notin_z. apply H0 with z (S n); auto. apply~ dopen_reorder.
+  apply~ notin_dopen_inv.
+  simpls. apply notin_singleton. auto_star.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_Let with (L \u \{y}).
+  apply~ IHdt.
+  intros z notin_z. apply H0 with z (S n); auto. apply~ dopen_reorder.
+  apply~ notin_dopen_inv.
+  simpls. apply notin_singleton. auto_star.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_CastUp; f_equal *.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_CastDn; f_equal *.
+
+  induction s; simpls; try(solve[inversion eq]).
+  case_nat*.
+  inversion eq; subst.  apply DTerm_Ann; f_equal *.
+Qed.
+
+Lemma notin_dopent_inv : forall x y n e,
+    x \notin DTFv e ->
+    x \notin DFv y ->
+    x \notin DTFv (DOpenTypRec n y e).
+Proof.
+  introv notin neq.
+  gen n. induction e; introv; simpls; auto.
+  apply~ notin_dopen_inv.
+Qed.
+
 (* Substitution for a fresh name is identity. *)
 
 Lemma dsubst_fresh : forall x t u, 

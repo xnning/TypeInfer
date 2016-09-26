@@ -1,5 +1,6 @@
 Require Import LibLN.
 Require Import DeclDef.
+Require Import DeclInfra.
 Require Import AlgoDef.
 Require Import AlgoInfra.
 Require Import CtxExtension.
@@ -77,6 +78,73 @@ Proof.
   apply AWTerm_CastDn. apply~ IHsub.
   apply AWTerm_Ann; f_equal~.
 Qed.
+
+Lemma cpltctxsubst_awterm: forall G t d,
+      ACpltCtxSubst G t d ->
+      AWTerm G t.
+Proof.
+  introv sub.
+  induction sub; simpls; f_equal ~.
+  apply AWTerm_TypVar with t; auto.
+  apply AWTerm_LetVar with t e; auto.
+  apply AWTerm_Solved_EVar with t; auto. apply binds_middle_eq. apply* ok_middle_inv.
+  apply AWTerm_Lam with L. intros y notin. apply (H0 y notin).
+  apply AWTerm_Pi with L. auto. intros y notin. apply (H0 y notin).
+  apply AWTerm_Let with L. auto. intros y notin. apply (H0 y notin).
+Qed.
+
+Lemma cpltctxtsubst_awtermt: forall G s t,
+    AWf G ->
+    ACpltCtxTSubst G s t ->
+    AWTermT G s.
+Proof.
+  introv wf sub.
+  induction sub.
+  apply AWTermT_Forall with (L \u dom G). intros y notin. apply~ H0. apply~ AWf_TyVar.
+  apply~ awftyp_star.
+  apply AWTermT_Expr. apply* cpltctxsubst_awterm.
+Qed.
+
+Lemma cpltctxsubst_dterm: forall G t d,
+      ACpltCtxSubst G t d ->
+      DTerm d.
+Proof.
+  introv sub.
+  induction sub; simpls; f_equal ~.
+Qed.
+
+Lemma cpltctxsubst_notin: forall G t d y,
+    ACpltCtxSubst G t d ->
+    y # G ->
+    y \notin DFv d.
+Proof.
+  introv sub notin.
+  induction sub; simpls; try(solve[f_equal *]).
+  apply notin_singleton. introv xyeq. subst. false binds_fresh_inv H0 notin0.
+  apply notin_singleton. introv xyeq. subst. false binds_fresh_inv H0 notin0.
+  apply notin_singleton. introv xyeq. subst. false binds_fresh_inv H0 notin0.
+
+  pick_fresh z.
+  assert (z \notin L) by auto_star.
+  assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
+  lets: H0 H1 H2.
+  apply notin_dopen in H3. auto.
+
+  pick_fresh z.
+  assert (z \notin L) by auto_star.
+  assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
+  lets: IHsub notin.
+  lets: H0 H1 H2. apply notin_dopen in H4.
+  auto_star.
+
+  pick_fresh z.
+  assert (z \notin L) by auto_star.
+  assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
+  lets: IHsub notin.
+  lets: H0 H1 H2. apply notin_dopen in H4.
+  auto_star.
+Qed.
+
 
 Lemma cpltctxsubstctx_remove_soft: forall G H I G',
     ExtCtx G H ->
@@ -273,7 +341,7 @@ Proof.
   inversion~ wf.
 Qed.
 
-Lemma cpltctxtsubst_remove': forall m n I1 I2 t d x v,
+Lemma cpltctxsubst_remove': forall m n I1 I2 t d x v,
    AWf (I1 & x ~ v & I2) ->
    AWf (I1 & I2) ->
    CompleteCtx (I1 & x ~ v & I2) ->
@@ -445,7 +513,7 @@ Proof.
   apply IHsub2 with i2; auto. Omega.omega.
 Qed.
 
-Lemma cpltctxtsubst_remove: forall I1 I2 t d x v,
+Lemma cpltctxsubst_remove: forall I1 I2 t d x v,
    AWf (I1 & x ~ v & I2) ->
    AWf (I1 & I2) ->
    CompleteCtx (I1 & x ~ v & I2) ->
@@ -455,7 +523,7 @@ Lemma cpltctxtsubst_remove: forall I1 I2 t d x v,
 Proof.
   introv. intros.
   destruct(@alen_exists (I1 & x ~ v & I2) t) as (n & ex). auto.
-  apply* cpltctxtsubst_remove'.
+  apply* cpltctxsubst_remove'.
 Qed.
 
 Lemma cpltctxsubst_weaken: forall I1 t d x v,
@@ -467,12 +535,12 @@ Lemma cpltctxsubst_weaken: forall I1 t d x v,
 Proof.
   intros.
   assert (ACpltCtxSubst (I1 & empty) t d).
-  apply cpltctxtsubst_remove with (I2:=empty) (x:=x) (v:=v); repeat(rewrite concat_empty_r); auto.
+  apply cpltctxsubst_remove with (I2:=empty) (x:=x) (v:=v); repeat(rewrite concat_empty_r); auto.
   apply* AWf_left.
   rewrite concat_empty_r in H3. auto.
 Qed.
 
-Lemma cpltctxtsubst_weaken_append: forall I1 I2 t d,
+Lemma cpltctxsubst_weaken_append: forall I1 I2 t d,
    AWf (I1 & I2) ->
    CompleteCtx (I1 & I2) ->
    ACpltCtxSubst (I1 & I2) t d ->
@@ -486,6 +554,70 @@ Proof.
   lets: notin_awterm wt H.
   rewrite concat_assoc in *.
   lets: cpltctxsubst_weaken (I1 & I2) t d x.
+  lets: H1 wf comp sub H0.
+  apply~ IHI2.
+  apply* AWf_left.
+  apply* complete_part_left.
+Qed.
+
+Lemma cpltctxtsubst_remove: forall I1 I2 t d x v,
+   AWf (I1 & x ~ v & I2) ->
+   AWf (I1 & I2) ->
+   CompleteCtx (I1 & x ~ v & I2) ->
+   ACpltCtxTSubst (I1 & x ~ v & I2) t d ->
+   x \notin ATFv t ->
+   ACpltCtxTSubst (I1 & I2) t d.
+Proof.
+  introv wfx wf comp sub notin.
+  gen_eq I : (I1 & x ~ v & I2).
+  gen I2.
+  induction sub; introv wf ginfo.
+
+  apply ACpltCtxTSubst_Poly with (L \u dom G \u ATFv s1 \u \{x}).
+  intros y notiny.
+  subst.
+  assert (IH1: y \notin L) by auto_star.
+  assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_Typ AE_Star)). apply~ AWf_TyVar. apply~ awftyp_star.
+  assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_Typ AE_Star)) by apply~ complete_add_typ.
+  assert (IH4: x\notin ATFv (s1 @' y)). apply~ notin_opent_inv. simpls. apply notin_singleton. auto_star.
+  assert (IH5: AWf (I1 & (I2 & y ~ AC_Typ AE_Star))). rewrite concat_assoc. apply~ AWf_TyVar. apply~ awftyp_star.
+  assert (IH8: I1 & x ~ v & I2 & y ~ AC_Typ AE_Star = I1 & x ~ v & (I2 & y ~ AC_Typ AE_Star)) by rewrite~ concat_assoc.
+  lets: H0 y IH1 IH2 IH3 IH4.
+  lets: H1 (I2 & y ~ AC_Typ AE_Star) IH5 IH8.
+  rewrite concat_assoc in H2. assumption.
+
+  apply ACpltCtxTSubst_Expr. subst.
+  apply* cpltctxsubst_remove.
+Qed.
+
+Lemma cpltctxtsubst_weaken: forall I1 t d x v,
+   AWf (I1 & x ~ v) ->
+   CompleteCtx (I1 & x ~ v) ->
+   ACpltCtxTSubst (I1 & x ~ v) t d ->
+   x \notin ATFv t ->
+   ACpltCtxTSubst I1 t d.
+Proof.
+  intros.
+  assert (ACpltCtxTSubst (I1 & empty) t d).
+  apply cpltctxtsubst_remove with (I2:=empty) (x:=x) (v:=v); repeat(rewrite concat_empty_r); auto.
+  apply* AWf_left.
+  rewrite concat_empty_r in H3. auto.
+Qed.
+
+Lemma cpltctxtsubst_weaken_append: forall I1 I2 t d,
+   AWf (I1 & I2) ->
+   CompleteCtx (I1 & I2) ->
+   ACpltCtxTSubst (I1 & I2) t d ->
+   AWTermT I1 t ->
+   ACpltCtxTSubst I1 t d.
+Proof.
+  introv wf comp sub wt.
+  induction I2 using env_ind.
+  rewrite concat_empty_r in sub. auto.
+  assert (x # I1). rewrite concat_assoc in wf. apply awf_is_ok in wf. destruct (ok_push_inv wf) as [_ notin]. auto_star.
+  lets: notin_awtermt wt H.
+  rewrite concat_assoc in *.
+  lets: cpltctxtsubst_weaken (I1 & I2) t d x.
   lets: H1 wf comp sub H0.
   apply~ IHI2.
   apply* AWf_left.

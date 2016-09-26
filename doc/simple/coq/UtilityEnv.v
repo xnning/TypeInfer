@@ -317,16 +317,6 @@ Proof.
     try(apply IHe in notin; auto).
 Qed.
 
-Lemma notin_topen : forall x y e n,
-    x \notin (ATFv (AOpenTypRec n y e)) ->
-    x \notin (ATFv e).
-Proof.
-  introv notin. gen n.
-  induction e; introv notin.
-    simpl in *; auto_star.
-    simpl in *. apply* notin_open.
-Qed.
-
 Lemma notin_awterm : forall G t x,
   AWTerm G t ->
   x # G ->
@@ -348,14 +338,24 @@ Proof.
   apply* notin_awterm.
 Qed.
 
-Lemma notin_open_inv : forall x y n e,
-    x \notin AFv e ->
-    x \notin AFv y ->
-    x \notin AFv (AOpenRec n y e).
+Lemma notin_topen : forall x y e n,
+    x \notin (ATFv (AOpenTypRec n y e)) ->
+    x \notin (ATFv e).
 Proof.
-  introv notin neq.
-  gen n. induction e; introv; simpls; auto.
-  case_if. auto. simpl.  auto.
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. apply* notin_open.
+Qed.
+
+Lemma notin_awtermt : forall G t x,
+  AWTermT G t ->
+  x # G ->
+  x \notin ATFv t.
+Proof.
+  introv wt notin. induction wt; simpl; auto.
+  pick_fresh y. apply* notin_topen. apply H0 with (x0:=y); auto_star.
+  apply* notin_awterm.
 Qed.
 
 Lemma awterm_remove: forall G H x v t,
@@ -557,6 +557,35 @@ Proof.
   rewrite H2.
   apply* awterm_reorder.
 Qed.
+
+Lemma awtermt_replace: forall G H x t e,
+    AWTermT (G & x ~ AC_Typ t & H) e ->
+    AWTermT (G & x ~ AC_Var & H) e.
+Proof.
+  introv wt. gen_eq I: (G & x ~ AC_Typ t & H).
+  gen H. induction wt; introv hg; subst.
+
+  apply AWTermT_Forall with L. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
+  apply AWTermT_Expr. apply* awterm_replace.
+Qed.
+
+Lemma awtermt_remove: forall G H x v t,
+    AWTermT (G & x ~ v & H) t ->
+    x \notin ATFv t ->
+    AWTermT (G & H) t.
+Proof.
+  introv wt notin. gen_eq I: (G & x ~ v & H).
+  gen H. induction wt; introv hh.
+  apply AWTermT_Forall with (L \u \{x}). intros y notin_y.
+  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x]. apply H0 with (H:=H1 & y ~ AC_Typ AE_Star) in notin_y.  rewrite concat_assoc in notin_y. auto.
+  simpl in notin. apply* notin_opent_inv. simpl. apply* notin_singleton.
+  rewrite hh. rewrite* concat_assoc.
+
+  subst.
+  apply AWTermT_Expr.
+  apply* awterm_remove.
+Qed.
+
 
 Lemma binds_push_fresh : forall A x v (G : env A) x' v',
     binds x v G -> x' # G ->
