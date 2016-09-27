@@ -823,7 +823,7 @@ Proof.
 Qed.
 
 Lemma regular_dwftyp : forall E t, DWfTyp E t ->
-  (DWf E /\ ok E /\ contains_terms E).
+  (DWf E /\ ok E /\ contains_terms E /\ DTermTy t).
 Proof.
   apply dwftyp_induct with
   (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
@@ -842,13 +842,12 @@ Proof.
   pick_fresh x. assert (x \notin L) by auto.
   destruct~ (H x H0) as [_ [H1 [_ _]]].
 
-  intros.
+  split; intros.
   pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as (_ & _ & H2 & _).
+  destruct~ (H y H1) as (_ & _ & (H2 & _) & _).
   apply* (H2 x U).
-  intros.
   pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as (_ & _ & _ & H2).
+  destruct~ (H y H1) as (_ & _ & (_ & H2) & _).
   apply* (H2 x T U). 
   
   intros. false* binds_empty_inv.
@@ -878,12 +877,9 @@ Proof.
 
   intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
   injection H4; intros. subst*.
-  split. apply DTermTy_Forall with (L := L). intros.
-  destruct (H1 x0 H3) as [_ [_ H6]].
-  destruct (H6 x (s ^' x0) t). auto. auto.
   pick_fresh y. assert (y \notin L) by auto.
   destruct (H1 y H3) as [_ [_ H5]].
-  destruct (H5 x (s ^' y) t). auto. auto.
+  destruct (H5 x (s ^' y) t). auto. split*.
   destruct H as [_ [_ H5]].
   apply H5 with (x := x0). auto.
 
@@ -923,6 +919,7 @@ Hint Extern 1 (DTerm ?t) => match goal with
 
 Hint Extern 1 (DTermTy ?s) => match goal with
   | H: DGen _ _ s  |- _ => apply (proj33 (proj33 (regular_dgen H)))
+  | H: DWfTyp _ s  |- _ => apply (proj44 (regular_dwftyp H))
   end.
 
 Lemma dok_from_wf : forall E, DWf E -> ok E.
