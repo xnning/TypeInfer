@@ -242,11 +242,10 @@ Inductive AGen : ACtx -> AExpr -> AType -> Prop :=
 Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
   | AInst_Expr : forall G t,
       AInst G (AT_Expr t) t G
-  | AInst_Poly : forall L G H a s t,
-      (forall x I, x \notin L ->
-                 AInst (G & x ~ AC_Typ AE_Star) (s @' x) (t @ x) (H & x ~ AC_Typ AE_Star & I)) ->
-      a # H ->
-      AInst G (AT_Forall s) (t @@ (AE_EVar a)) (H & a ~ AC_Unsolved_EVar).
+  | AInst_Poly : forall G H a s t,
+      a # G ->
+      AInst (G & a ~ AC_Unsolved_EVar) (s @@' (AE_EVar a)) t H ->
+      AInst G (AT_Forall s) t H.
 
 Inductive AWTerm : ACtx -> AExpr -> Prop :=
   | AWTerm_Var : forall G x, binds x AC_Var G -> AWTerm G (AE_FVar x)
@@ -436,7 +435,7 @@ with AWfTyp : ACtx -> AType -> Prop :=
          (forall x, x \notin L -> AWfTyp (G & x ~ AC_Typ t1) (AT_Expr (t2 @ x))) ->
          AWfTyp G (AT_Expr (AE_Pi t1 t2))
      | AWf_Poly : forall L G s,
-         (forall x, x \notin L -> AWfTyp (G & x ~ AC_Typ AE_Star) (AOpenT s (AE_FVar x))) ->
+         (forall x, x \notin L -> AWfTyp (G & x ~ AC_Unsolved_EVar) (AOpenT s (AE_EVar x))) ->
          AWfTyp G (AT_Forall s)
      | AWf_Expr : forall G H t,
          ATyping Chk G t AE_Star (G & H) ->
