@@ -259,13 +259,11 @@ with DWf : DCtx -> Prop :=
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
   | DInst_Expr : forall G t1,
-      DTyping Chk G t1 DE_Star ->
       DInst G (DT_Expr t1) t1
-  | DInst_Poly : forall L G t s t1,
+  | DInst_Poly : forall G t s t1,
       DTyping Chk G t DE_Star ->
-      (forall x, x \notin L ->
-                 DInst (G & x ~ DC_Typ DE_Star) (s ^' x) (t1 ^ x)) ->
-      DInst G (DT_Forall s) (t1 ^^ t)
+      DInst G (s ^^' t) t1  ->
+      DInst G (DT_Forall s) t1
 
 with DGen : DCtx -> DExpr -> DType -> Prop :=
   | DGen_Expr : forall G e t,
