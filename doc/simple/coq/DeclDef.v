@@ -259,6 +259,7 @@ with DWf : DCtx -> Prop :=
 
 with DInst : DCtx -> DType -> DExpr -> Prop :=
   | DInst_Expr : forall G t1,
+      DTyping Chk G t1 DE_Star ->
       DInst G (DT_Expr t1) t1
   | DInst_Poly : forall G t s t1,
       DTyping Chk G t DE_Star ->

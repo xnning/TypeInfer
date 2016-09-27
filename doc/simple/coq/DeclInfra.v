@@ -531,7 +531,7 @@ Proof.
   apply dtyping_induct with
   (P0 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
   (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm T)
   (P3 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
     unfolds contains_terms; intros; splits*.
   
@@ -647,7 +647,7 @@ Proof.
 Qed.
 
 Lemma regular_dinst : forall E s t, DInst E s t ->
-  (DWf E /\ ok E /\ contains_terms E /\ DTermTy s /\ DTerm t).
+  (DWf E /\ ok E /\ contains_terms E /\ DTerm t).
 Proof.
   apply dinst_induct with
   (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
@@ -741,7 +741,7 @@ Proof.
   (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
   (P0 := fun E t (_ : DWfTyp E t) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t)
   (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T);
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm T);
     unfolds contains_terms; intros; splits*.
   
   pick_fresh x. assert (x \notin L) by auto.
@@ -823,12 +823,12 @@ Proof.
 Qed.
 
 Lemma regular_dwftyp : forall E t, DWfTyp E t ->
-  (DWf E /\ ok E /\ contains_terms E /\ DTermTy t).
+  (DWf E /\ ok E /\ contains_terms E).
 Proof.
   apply dwftyp_induct with
   (P := fun m E t T (_ : DTyping m E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTerm T)
   (P1 := fun E (_ : DWf E) => ok E /\ contains_terms E)
-  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTermTy t /\ DTerm T)
+  (P2 := fun E t T (_ : DInst E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm T)
   (P3 := fun E t T(_ : DGen E t T) => DWf E /\ ok E /\ contains_terms E /\ DTerm t /\ DTermTy T); 
     unfolds contains_terms; intros; splits*.
   
@@ -842,13 +842,14 @@ Proof.
   pick_fresh x. assert (x \notin L) by auto.
   destruct~ (H x H0) as [_ [H1 [_ _]]].
 
-  split; intros.
+  intros.
   pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as [_ [_ [[H2 _] _]]].
+  destruct~ (H y H1) as (_ & _ & H2 & _).
   apply* (H2 x U).
+  intros.
   pick_fresh y. assert (y \notin L) by auto.
-  destruct~ (H y H1) as [_ [_ [[_ H2] _]]].
-  apply* (H2 x T U).
+  destruct~ (H y H1) as (_ & _ & _ & H2).
+  apply* (H2 x T U). 
   
   intros. false* binds_empty_inv.
   intros. false* binds_empty_inv.
@@ -877,9 +878,12 @@ Proof.
 
   intros. destruct (binds_push_inv H2) as [[? ?]|[? ?]].
   injection H4; intros. subst*.
+  split. apply DTermTy_Forall with (L := L). intros.
+  destruct (H1 x0 H3) as [_ [_ H6]].
+  destruct (H6 x (s ^' x0) t). auto. auto.
   pick_fresh y. assert (y \notin L) by auto.
   destruct (H1 y H3) as [_ [_ H5]].
-  destruct (H5 x (s ^' y) t). auto. split*.
+  destruct (H5 x (s ^' y) t). auto. auto.
   destruct H as [_ [_ H5]].
   apply H5 with (x := x0). auto.
 
@@ -913,14 +917,12 @@ Qed.
 Hint Extern 1 (DTerm ?t) => match goal with
   | H: DTyping _ _ t _ |- _ => apply (proj32 (proj33 (regular_dtyping H)))
   | H: DTyping _ _ _ t |- _ => apply (proj33 (proj33 (regular_dtyping H)))
-  | H: DInst _ _ t    |- _ => apply (proj33 (proj33 (regular_dinst H)))
+  | H: DInst _ _ t    |- _ => apply (proj44 (regular_dinst H))
   | H: DGen _ t _     |- _ => apply (proj32 (proj33 (regular_dgen H)))
   end.
 
 Hint Extern 1 (DTermTy ?s) => match goal with
-  | H: DInst _ s _ |- _ => apply (proj32 (proj33 (regular_dinst H)))
   | H: DGen _ _ s  |- _ => apply (proj33 (proj33 (regular_dgen H)))
-  | H: DWfTyp _ s  |- _ => apply (proj44 (regular_dwftyp H))
   end.
 
 Lemma dok_from_wf : forall E, DWf E -> ok E.
