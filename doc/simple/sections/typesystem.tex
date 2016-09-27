@@ -1,5 +1,9 @@
 \section{Algorithmic Typing}
 
+Declarative system servers well as a specification. However, in order to make type system practical, we cannot keep guessing types: as an example notice the $\tau_1$ in rule \rul{D-Lam$\Chk$} comes from nowhere.
+
+One of main contributions of our work is a simple and deterministic algorithmic system, which could work as an algorithm for solving unknown types. We adopt the same notation as in Dunfield's work, the existential variable that represents types to be solved later. It brings more subtlety in a dependently typed calculus, but as we will see, things are not getting that complex.
+
 \subsection{Language}
 
 \begin{figure}[h]
@@ -28,11 +32,11 @@ Figure \ref{fig:algo-syntax} gives the syntax of type and expression, and the de
 
 There are two forms of existential variables in context: unsolved form $\genA$ and solved form $\genA=\tau$. Once an existential vairable is solved, its solution will never be changed.
 
-The change of corresponding well formedness for existential variables and context are given in Figure \ref{fig:existwellform}. There is a new notation well-termedness $\tctx \bywt \sigma$, which means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. On the other hand, $\tctx \bywf \sigma$ checks the types.
+The change of corresponding well formedness for existential variables and context, with a new notation well-termedness are given in Figure \ref{fig:existwellform}. Well-termedness $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. The usage of well-termedness will become clear when we get info unification rules. Well formedness of a type now take existential variables into consideration. Existential variable is a well-formed type if it is contained in the context. \ningning{will explain more about well formedness.}
 
-Now we could extend the definition of context subsitution as shown in Figure \ref{fig:applyctx}. Intuitively, Existential variables in solved form could be substituted by its solution.
+Context substitution is extended smoothly with existential variables, as shown in Figure \ref{fig:applyctx}. Intuitively, once an existential variables is solved, we could substitute it with its solution. Different from declarative system, context substitution plays a more important role in algorithmic system, since some procedures only accept fully substituted expressions.
 
-In algorithmic system, we will use FEV to stands for free existential variables in a type. The definition is given in Figure \ref{fig:algo-free-variables}.
+In algorithmic system, we will use FEV to stands for free existential variables in a type. The definition is given in Figure \ref{fig:algo-free-variables}. FEV of a context collects all FEV in type annotations, and does not include let binding and existential solutions.
 
 \begin{figure}[h]
     \headercapm{\tctx \bywt \sigma}{Well Term of type $\sigma$ under context $\tctx$}
@@ -107,11 +111,11 @@ In algorithmic system, we will use FEV to stands for free existential variables 
     \label{fig:algo-free-variables}
 \end{figure}
 
-\paragraph{Hole notation.} We use notations like $\tctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\tctx_1, x, \tctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and use conclusion $\tctx[\genA] \bywf \genA$.
+\paragraph{Hole notation.} We keep the same hole notations like $\tctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\tctx_1, x, \tctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and the conclusion is replaced by $\tctx[\genA] \bywf \genA$.
 
-Multiple holes also require the order. For example, $\tctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also require $x$ appear before $\genA$.
+Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also $x$ appear before $\genA$.
 
-Hole notation is also used for replace and modification. After an unification, $\tctx[\genA]$ could become $\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
+Hole notation is also used for replace and modification. Later in the unification rules, we will see situations where $\tctx[\genA]$ could become $\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
 
 \subsection{Typing Rules}
 
