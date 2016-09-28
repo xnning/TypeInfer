@@ -299,6 +299,7 @@ Proof.
   introv ty.
   induction ty; simpl; auto.
   apply* AWTerm_TypVar.
+  apply* AWTerm_Solved_EVar.
   apply* AWTerm_LetVar.
 Qed.
 
@@ -469,18 +470,7 @@ Proof.
   introv wt.
   gen_eq s:(AT_Expr t).
   gen t. induction wt; introv hi.
-  inversion hi; subst. apply* AWTerm_EVar.
-  inversion hi; subst. apply* AWTerm_Solved_EVar.
-  inversion hi; subst. clear hi.
-  apply AWTerm_Pi with L.
-  apply*  IHwt.
-  intros y notin_y.
-  apply H0 with (t:=t2 @ y) in notin_y; auto.
-  rewrite <- concat_empty_r with (E:= G & y ~ AC_Var).
-  rewrite <- concat_empty_r with (E:= G & y ~ AC_Typ t1) in notin_y.
-  apply* awterm_replace.
-
-  inversion hi.
+  inversion hi; subst.
 
   inversion hi; subst. apply* atyping_awterm.
 Qed.

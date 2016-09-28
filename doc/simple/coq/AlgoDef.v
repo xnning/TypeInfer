@@ -344,6 +344,10 @@ Inductive ATyping : AMode -> ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
   | ATI_Ax : forall G, AWf G -> ATyping Inf G AE_Star AE_Star G
   | ATI_Var : forall G x t, AWf G -> binds x (AC_Typ t) G ->
                             ATyping Inf G (AE_FVar x) t G
+  | ATI_EVar : forall G x, AWf G -> binds x AC_Unsolved_EVar G ->
+                            ATyping Inf G (AE_EVar x) AE_Star G
+  | ATI_Solved_EVar : forall G x t, AWf G -> binds x (AC_Solved_EVar t) G ->
+                            ATyping Inf G (AE_EVar x) AE_Star G
   | ATI_LetVar : forall G H x s t t2,
       AWf G -> binds x (AC_Bnd s t) G ->
       AInst G s t2 H ->
@@ -426,16 +430,8 @@ Inductive ATyping : AMode -> ACtx -> AExpr -> AExpr -> ACtx -> Prop :=
       ATyping App (G1 & a ~ AC_Unsolved_EVar & G2) (AE_App (AE_EVar a) e) (AE_EVar a2) H
 
 with AWfTyp : ACtx -> AType -> Prop :=
-     | AWf_Unsolve_EVar : forall G x,
-         binds x AC_Unsolved_EVar G -> AWfTyp G (AT_Expr (AE_EVar x))
-     | AWf_Solved_EVar : forall G x s,
-         binds x (AC_Solved_EVar s) G -> AWfTyp G (AT_Expr (AE_EVar x))
-     | AWf_Pi : forall L G t1 t2,
-         AWfTyp G (AT_Expr t1) ->
-         (forall x, x \notin L -> AWfTyp (G & x ~ AC_Typ t1) (AT_Expr (t2 @ x))) ->
-         AWfTyp G (AT_Expr (AE_Pi t1 t2))
      | AWf_Poly : forall L G s,
-         (forall x, x \notin L -> AWfTyp (G & x ~ AC_Unsolved_EVar) (AOpenT s (AE_EVar x))) ->
+         (forall x, x \notin L -> AWfTyp (G & x ~ AC_Typ AE_Star) (s @' x)) ->
          AWfTyp G (AT_Forall s)
      | AWf_Expr : forall G H t,
          ATyping Chk G t AE_Star (G & H) ->

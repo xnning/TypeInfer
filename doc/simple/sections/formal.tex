@@ -8,6 +8,8 @@
 \newcommand*{\TAx}{\inferrule{\tctx \wc }{\tpreinf \star:\star \toctxo}\rname{T-Ax}}
 \newcommand*{\TVar}{\inferrule{x:\tau \in \tctx \\ \tctx \wc}{\tpreinf x:\tau \toctxo
   }\rname{T-Var}}
+\newcommand*{\TEVar}{\inferrule{\genA \in \tctx \\ \tctx \wc}{\tpreinf \genA:\star \toctxo
+  }\rname{T-EVar}}
 \newcommand*{\TLetVar}{\inferrule{x:\sigma = \tau \in \tctx \\ \tctx \wc\\
     \tctx \byinst \sigma \lt \tau_2 \toctx}{\tpreinf x:\tau_2 \toctx
   }\rname{T-LetVar}}
