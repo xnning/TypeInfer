@@ -32,12 +32,6 @@ Figure \ref{fig:algo-syntax} gives the syntax of type and expression, and the de
 
 There are two forms of existential variables in context: unsolved form $\genA$ and solved form $\genA=\tau$. Once an existential vairable is solved, its solution will never be changed.
 
-The change of corresponding well formedness for existential variables and context, with a new notation well-termedness are given in Figure \ref{fig:existwellform}. Well-termedness $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. The usage of well-termedness will become clear when we get info unification rules. Well formedness of a type now take existential variables into consideration. Existential variable is a well-formed type if it is contained in the context. \ningning{will explain more about well formedness.}
-
-Context substitution is extended smoothly with existential variables, as shown in Figure \ref{fig:applyctx}. Intuitively, once an existential variables is solved, we could substitute it with its solution. Different from declarative system, context substitution plays a more important role in algorithmic system, since some procedures only accept fully substituted expressions.
-
-In algorithmic system, we will use FEV to stands for free existential variables in a type. The definition is given in Figure \ref{fig:algo-free-variables}. FEV of a context collects all FEV in type annotations, and does not include let binding and existential solutions.
-
 \begin{figure}[h]
     \headercapm{\tctx \bywt \sigma}{Well Term of type $\sigma$ under context $\tctx$}
     \[\TWTVar \quad \TWTEVar \quad \TWTStar\]
@@ -61,6 +55,12 @@ In algorithmic system, we will use FEV to stands for free existential variables 
     \caption{Well formedness with existential variables.}
     \label{fig:existwellform}
 \end{figure}
+
+The change of corresponding well formedness for existential variables and context, with a new notation well-termedness are given in Figure \ref{fig:existwellform}. Well-termedness $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. The usage of well-termedness will become clear when we get into unification rules. Well formedness of a type now take existential variables into consideration. Existential variable is a well-formed type if it is contained in the context. An expression which is not a Pi type or a type scheme, is well-formed if it can be checked with $\star$.
+
+Context substitution is extended smoothly with existential variables, as shown in Figure \ref{fig:applyctx}. Intuitively, once an existential variables is solved, we could substitute it with its solution. Different from declarative system, context substitution plays a more important role in algorithmic system, since some procedures only accept fully substituted expressions.
+
+In algorithmic system, we will use FEV to stands for free existential variables in a type. The definition is given in Figure \ref{fig:algo-free-variables}. FEV of a context collects all FEV in type annotations, and does not include let binding and existential solutions.
 
 \begin{figure}[t]
     \headercapm{[\tctx]e_1 = e_2}{Apply context to a type}
@@ -115,9 +115,9 @@ In algorithmic system, we will use FEV to stands for free existential variables 
 
 Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also $x$ appear before $\genA$.
 
-Hole notation is also used for replace and modification. Later in the unification rules, we will see situations where $\tctx[\genA]$ could become $\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
+Hole notation is also used for replacement and modification. Later in the unification rules, we will see situations where $\tctx[\genA]$ could become $\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$ now is solved.
 
-\subsection{Typing Rules}
+\subsection{Algorithmic Typing}
 
 \begin{figure*}[h]
     \headercapm{\tpreall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
@@ -152,15 +152,27 @@ Hole notation is also used for replace and modification. Later in the unificatio
     \label{fig:algo-unification}
 \end{figure*}
 
-Figure \ref{fig:algo-typing-rules} gives the algorithmic bidirectional typing rules.
+Algorithmic bidirectional typing rules directly follow declarative rules, with existential variables representing unknown types, and a output context. Figure \ref{fig:algo-typing-rules} gives the algorithmic bidirectional typing rules. The interpretation of judgement $\tpreall e:\tau \toctx \trto t$ is, under context $\tctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
 
 \paragraph{Output context.}
-The judgement $\tpreall e:\tau \toctx \trto t$ is now with output context, which is used mainly for existance records and solutions of existential variables. The interpretation of judgement is, under context $\tctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
+Given a input context, during typing process, new existential variables could be created, useless existential variables could be removed, unsolved existential variables could get solved. The output context of typing is to keep those updates. For example, in the preconditions of rule \rul{Ann}, the first output context will become the input context for next typing.
 
-First four typing rules remain stardard as natural extensions of the declarative rules.
+Before we dive into typing rules, we discuss instantiation and generalization rules first, since typing rules rely on them and they are just natural extension of declarative rules.
+
+\subsubsection{Instantiation and Generalization}
+
+Instantiation turns a type scheme into a monotype by instantiating forall bounds. Unlike declarative system where we guess the types to instantiate, we use existential variables. As shown in the bottom of Figure \ref{fig:algo-typing-rules}, \rul{Inst} substitute the bounds variables with created new existential variables and put them into output context so further typing could refer to those vairables.
+
+In, generalization, \rul{Gen} firstly substitutes the context, and extract the free variables to make a polymorphic type. It is very Hindley-Milner way and does not modify the context.
+
+\subsubsection{Typing rules}
+
+We now go through the typing rules.
+
+\rul{T-Ax} and \rul{T-Var} remain standard, where the context has no change. \rul{T-LetVar} relies on the instantiation, and takes the output context of instantiation as output context. \rul{T-Ann} is a natural extensions of the declarative rules with extra interaction with contexts.
 
 \paragraph{Throw out context.}
-In \rul{T-Pi}, the context $\ctxr$ after $x$ because all those variables are out of scope, and all the existential variables in $\ctxr$ will not be refered again when this rule ends. It is safe to throw existential variables because we could assume all unsolved existential variables are solved by $\star$ which satisfys $\star:\star$.
+In \rul{T-Pi}, the context $\ctxr$ after $x$ is thrown because all those variables are out of scope, and all the existential variables in $\ctxr$ will not be refered again when this rule ends. It is safe to throw existential variables because we could assume all unsolved existential variables are solved by $\star$ which satisfys $\star:\star$.
 
 \rul{T-Lam$\Chk$} could be interpreted in the same way.
 
@@ -201,8 +213,6 @@ In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. 
 \rul{T-CastUp} and \rul{T-CastDn} will apply the context before reduction.
 
 \rul{T-Sub} requests the two types to be alpha-equal by using unification.
-
-At last, \rul{Inst} turns a polymorphic type into a monotype by instantiating all the variables bound by forall to new existential variables. \rul{Gen} substitutes the context before generalization, and extract the free variables to make a polymorphic type.
 
 \subsection{Unification}
 

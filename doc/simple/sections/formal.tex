@@ -224,7 +224,7 @@
 \newcommand*{\TWFEVar}{\inferrule{\genA \in \tctx }{\tprewf \genA}\rname{WF-EVar}}
 \newcommand*{\TWFPi}{\inferrule{\tprewf \tau_1\\ \tctx, x:\tau_1
     \bywf \tau_2}{\tprewf \bpi x {\tau_1} {\tau_2}}\rname{WF-Pi}}
-\newcommand*{\TWFPoly}{\inferrule{\tprewf[, \genA] \sigma \subst x \genA
+\newcommand*{\TWFPoly}{\inferrule{\tprewf[, x: \star] \sigma
     }{ \tprewf \forall x: \star. \sigma}\rname{WF-Poly}}
 \newcommand*{\TWFOther}{\inferrule{ \tprechk \tau : \star \toctxo, \ctxr}{ \tprewf \tau}\rname{WF-Other}}
 
