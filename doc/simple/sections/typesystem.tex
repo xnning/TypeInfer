@@ -137,6 +137,14 @@ Hole notation is also used for replacement and modification. Later in the unific
 \end{figure*}
 
 \begin{figure*}[h]
+\headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Under context $\tctx$, sanitize $\tau_1$ to $\tau_2$ so it contains no existential variables out of the scope of $\genA$}
+    \[\IEVarB\]
+    \[\IOthersNew\]
+    \caption{Type Sanitization}
+    \label{fig:algo-resolve}
+\end{figure*}
+
+\begin{figure*}[h]
 \headercapm{\tpreuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
     \[\UVar \quad \UEVarId \quad \UStar\]
     \[\UApp \quad \ULet\]
@@ -144,9 +152,6 @@ Hole notation is also used for replacement and modification. Later in the unific
     \[\UPi \quad \UAnn\]
     \[\UEVarTy\]
     \[\UTyEVar\]
-\headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Resolve existential variables in $\tau_1$}
-    \[\IEVarB\]
-    \[\IPi \quad \IOthers\]
     \caption{Unification rules}
     \label{fig:algo-unification}
 \end{figure*}
@@ -211,18 +216,41 @@ In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$. 
 
 \rul{T-CastUp} and \rul{T-CastDn} apply the context before reduction because solutions and let definitions influence reduction, then do one-step reduction according to semantic operations.
 
-\rul{T-Sub} shifts the mode, by requesting the inferred type and checked type to be alpha-equal by using unification, which is discussed in next section.
+\rul{T-Sub} shifts the mode, by requesting the inferred type and checked type to be alpha-equal by using unification, which is discussed in following sections.
+
+\subsubsection{Type Sanitization}
+
+As we mentioned before, our unification is based on alpha-equality, since beta reduction needs to be explicit by using cases. So in most cases, the unification rule will be just recursive calls to components. The most difficult one which is also the most essential one, is how to unify a existential variable with another type. We discuss those cases first.
+
+While unifying existential variable $\genA$ and type $\tau$, We know that existential variables can only be solved as a monotype, and all the types in unification are monotype, so we tends to directly derive that $\genA = \tau$. But the orders in the context are important. Consider a unification example (the notation $\lt$ is discussed in later section):
+
+$\tctx, \genA, \genB, \ctxr \byuni \genA \lt \bpi x \genB x$
+
+Here because $\genB$ appears after $\genA$, so we cannot directly solve $\genA$ by $\bpi x \genB x$ which is ill typed. But this unification do have a solution context if we could somehow sanitize the appearance of $\genB$ by solving it:
+
+$\tctx, \genA_1, \genA, \genB = \genA_1, \ctxr \byuni \genA \lt \bpi x {\genA_1} x$
+
+Now we have a happy solution context: $\tctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1, \ctxr$.
+
+The definition of type sanitization is given in Figure \ref{fig:algo-resolve}.
+
+Rule \rul{I-EVar} does the most interesting one and is one actually doing sanitization: if the existential variable $\genB$ appear behing $\genA$ in context, which means it cannot be assigned as solution of $\genA$, we will generate a new fresh existential variable $\genA_1$ before $\genA$, and replace the appearance of $\genB$ to $\genA_1$.
+
+For the sake of clarity, we represent other expressions by their explicit constructor head and components so all the cases could be combined into one rule \rul{I-Other}. Here gives some examples:
+
+\begin{mathpar}
+    \begin{tabular}{r c l l}
+        $e_1 e_2$ & = & $App~e_1~e_2$ \\
+        $\kw{let} x = e_1 \kw{in} e_2$ & = & $Let_x~e_1~e_2$ \\
+        $\blam x {\tau_1} {\tau_2} $ & = & $Lam_x~\tau_1~\tau_2$
+    \end{tabular}
+\end{mathpar}
+
+We could easily convert between the syntax and their explicit representation. Also these notations are used in unification.
+
+If you are familiar with Dunfield and Krishnaswami's work, you can check that type sanitization here is actually generalizing the work of original rule \rul{InstLArr} and rule \rul{InstLReach}, whose job is to work for cases that some existential variables in the right hand side appear after $\genA$ in context.
 
 \subsubsection{Unification}
-
-\begin{figure}[h]
-    \headercapm{\tctx \byuni \genA \lt A \toctx}{Under input context $\tctx$, instantiate $\genA$ such that $\genA \lt A$, with output context $\ctxl$}
-    \[\OInstLSolve\]
-    \[\OInstLArr\]
-    \[\OInstLReach\]
-    \caption{Unification in Dunfield and Krishnaswami's system.}
-    \label{fig:origin-unification}
-\end{figure}
 
 Figure \ref{fig:algo-unification} defines the unification procedure used in \rul{T-Sub} rule. The judgement $\tpreuni \tau_1 \lt \tau_2 \toctx$ is interpreted as, under context $\tctx$, unify two types $\tau_1$ and $\tau_2$, which gives output context $\ctxl$. One feature of the unification is like Hindley-Milner system: there is no forall in unification procedure, which simplifies unification a lot.
 

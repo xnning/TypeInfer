@@ -215,6 +215,7 @@
 \newcommand*{\IPi}{\inferrule{\tctx \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }
 {\tctx \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{I-Pi}}
 \newcommand*{\IOthers}{\inferrule{  } {\tctx \bycg \tau \cgto \tau \toctxo}\rname{I-Other}}
+\newcommand*{\IOthersNew}{\inferrule{i \in [0..n) \\ \tctx_i \bycg e_i \cgto e_i' \toctxo_{i+1} } {\tctx_0 \bycg D~\overbar {e_n} \cgto D~\overbar {e'_n} \toctxo_n }\rname{I-Other}}
 
 % ------------------------------------------------------------------------
 % WELL FORM
