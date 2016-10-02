@@ -168,6 +168,7 @@
     \ctxl_1 \byuni [\ctxl_1]e \lt [\ctxl_1]e'
     \toctx}{\tpreuni e:\tau \lt e':\tau'
     \toctx}\rname{U-Ann}}
+\newcommand*{\UOthers}{\inferrule{i \in [0..n) \\ \tctx_i [,x] \byuni e_i \lt e_i' \toctxo_{i+1} [,x] } {\tctx_0 \byuni D~\overbar {e_n} \lt D~\overbar {e'_n} \toctxo_n }\rname{U-Other}}
 
 % ------------------------------------------------------------------------
 % APPLICATION RULES
@@ -210,8 +211,10 @@
 % UNIFY TVAR
 % ------------------------------------------------------------------------
 
-\newcommand*{\IEVarA}{\inferrule{ }{\tctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar1}}
+\newcommand*{\IEVarA}{\inferrule{ }{\tctx[\genB][\genA] \bycg \genB \cgto \genB \toctxo[\genB][\genA]}\rname{I-EVar2}}
 \newcommand*{\IEVarB}{\inferrule{ }{\tctx[\genA][\genB] \bycg \genB \cgto \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]}\rname{I-EVar}}
+\newcommand*{\IVar}{\inferrule{  }{\tctx \bycg x \cgto x \toctxo}\rname{I-Var}}
+\newcommand*{\IStar}{\inferrule{ }{\tctx \bycg \star \cgto \star \toctxo}\rname{I-Star}}
 \newcommand*{\IPi}{\inferrule{\tctx \bycg \tau_1 \cgto \tau_3 \toctx_1 \\ \ctxl_1 \bycg [\ctxl_1]\tau_2 \cgto \tau_4 \toctx }
 {\tctx \bycg \bpi x {\tau_1} {\tau_2} \cgto \bpi x {\tau_3} {\tau_4} \toctx}\rname{I-Pi}}
 \newcommand*{\IOthers}{\inferrule{  } {\tctx \bycg \tau \cgto \tau \toctxo}\rname{I-Other}}
