@@ -113,7 +113,7 @@
 \newcommand*{\DCastDn}{\inferrule{\dpreinf e : \tau_1\trto t \\
     \tau_1 \redto \tau_2}{\dpreinf \castdn e : \tau_2
     \trto {\castdn t}}\rname{D-CastDn}}
-\newcommand*{\DConv}{\inferrule{\dpreinf e_1 : \tau_1 \trto t \\ [\dctx]\tau_1 = [\dctx]\tau_2}
+\newcommand*{\DConv}{\inferrule{\dpreinf e_1 : \tau_1 \trto t \\ [\dctx]\tau_1 =_{\alpha} [\dctx]\tau_2}
     {\dpreinf e_1 : \tau_2 \trto t}\rname{D-Conv}}
 
 \newcommand*{\DPoly}{\inferrule{\dprechk[x:\star] \sigma : \star \trto {t}}

@@ -153,6 +153,13 @@ Hole notation is also used for replacement and modification. Later in the unific
     \label{fig:algo-unification}
 \end{figure*}
 
+\begin{figure*}[h]
+    $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1,\ctxr$
+    \[\ExUni\]
+    \caption{Solve unification problem.}
+    \label{fig:algo-solve-unify}
+\end{figure*}
+
 Algorithmic bidirectional typing rules directly follow declarative rules, with existential variables representing unknown types, and a output context. Figure \ref{fig:algo-typing-rules} gives the algorithmic bidirectional typing rules. The interpretation of judgement $\tpreall e:\tau \toctx \trto t$ is, under context $\tctx$, infer expression $e$ (if $\delta = \Inf$), which gives output type $\tau$ and output context $\ctxl$; or check $e$ with type $\tau$ (if $\delta = \Chk$), which gives output context $\ctxl$.
 
 \paragraph{Output context.}
@@ -259,9 +266,3 @@ Two most subtle ones are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which correspon
 
 \paragraph{Example.} Now we could solve the unification problem brought up at the beginning of last section, shown in Figure \ref{fig:algo-solve-unify}.
 
-\begin{figure*}[h]
-    $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1,\ctxr$
-    \[\ExUni\]
-    \caption{Solve unification problem.}
-    \label{fig:algo-solve-unify}
-\end{figure*}

@@ -1,5 +1,7 @@
 \section{Declarative System}
 
+Before we talk about the algorithm, we first give a declarative system and later on, we show that our algorithm is complete and sound with respect to it. The typing rules are shown in figure \ref{fig:decl-typing}.
+
 \begin{figure*}[h]
     \headercapm{\dpreall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
     \[\DAx \quad \DVar \quad \DLetVar \quad \DAnn \]
@@ -45,7 +47,6 @@
     \label{fig:decl-free-variables}
 \end{figure}
 
-The typing rule for declarative system are shown in figure \ref{fig:decl-typing}.
 
 \paragraph{Bidirectional typing.} The judgement $\dpreall e:\sigma \trto t$ is interpreted as, under context $\dctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.
 
@@ -65,6 +66,8 @@ The typing rule for declarative system are shown in figure \ref{fig:decl-typing}
 Using context as a substitution is defined in Figure \ref{fig:decl-apply-ctx}, where let binding is the only form that will be applied. But as we will see soon, this notation extends smoothly in the algorithmic system. If two types are alpha-equal under context substitution of $\dctx$, we regard these two types contextual equivalence under $\dctx$.
 
 Having these notations, we could see in the precondition of \rul{D-Conv}, the type of $e$ could be replaced with another type only if these two types are contextual equivalence under current context.
+
+If you have seen some other type systems involving type-level computation, there might be some equivalence over reduction. Here, things are much easier.
 
 \paragraph{Polymorphism.} \rul{D-Inst} and \rul{D-Gen} are specialized forms of the ones in Implicit Calculus of Constructions (ICC), as types are just stars. One advantage of using this form of generalization instead of Hindley-Milner way is this rule helps get rid of type variables.
 
