@@ -132,25 +132,31 @@ Fixpoint AFv (e : AExpr) {struct e} : vars :=
   | AE_Ann e t   => (AFv e) \u (AFv t)
   end.
 
-Fixpoint AEFv (e : AExpr) {struct e} : vars :=
+Fixpoint AFEv (e : AExpr) {struct e} : vars :=
   match e with
   | AE_BVar i    => \{}
   | AE_FVar x    => \{}
   | AE_EVar x    => \{x}
   | AE_Star      => \{}
-  | AE_App e1 e2 => (AEFv e1) \u (AEFv e2)
-  | AE_Lam e     => AEFv e
-  | AE_Pi t1 t2  => (AEFv t1) \u (AEFv t2)
-  | AE_Let e1 e2 => (AEFv e1) \u (AEFv e2)
-  | AE_CastUp e  => AEFv e
-  | AE_CastDn e  => AEFv e
-  | AE_Ann e t   => (AEFv e) \u (AEFv t)
+  | AE_App e1 e2 => (AFEv e1) \u (AFEv e2)
+  | AE_Lam e     => AFEv e
+  | AE_Pi t1 t2  => (AFEv t1) \u (AFEv t2)
+  | AE_Let e1 e2 => (AFEv e1) \u (AFEv e2)
+  | AE_CastUp e  => AFEv e
+  | AE_CastDn e  => AFEv e
+  | AE_Ann e t   => (AFEv e) \u (AFEv t)
   end.
 
 Fixpoint ATFv (e : AType) {struct e} : vars :=
   match e with
   | AT_Forall s => ATFv s
   | AT_Expr t   => AFv t
+  end.
+
+Fixpoint ATFEv (e : AType) {struct e} : vars :=
+  match e with
+  | AT_Forall s => ATFEv s
+  | AT_Expr t   => AFEv t
   end.
 
 (** Context *)
@@ -172,6 +178,17 @@ Fixpoint ACtxFv (G : ACtx) : vars :=
     | AC_Typ ty => (AFv ty) \u (ACtxFv t)
     | AC_Bnd s e => (ATFv s) \u (ACtxFv t)
     | _ => ACtxFv t
+    end
+  end.
+
+Fixpoint ACtxFEv (G : ACtx) : vars :=
+  match G with
+  | nil => \{}
+  | cons (x, p) t =>
+    match p with
+    | AC_Typ ty => (AFEv ty) \u (ACtxFEv t)
+    | AC_Bnd s e => (ATFEv s) \u (ACtxFEv t)
+    | _ => ACtxFEv t
     end
   end.
 
@@ -231,13 +248,13 @@ Inductive ARed : AExpr -> AExpr -> Prop :=
 
 Inductive AGen : ACtx -> AExpr -> AType -> Prop :=
   | AGen_Expr : forall G t,
-      ((AFv t) \- (ACtxFv G) = \{}) ->
+      ((AFEv t) \- (ACtxFEv G) = \{}) ->
       AGen G t (AT_Expr (ACtxSubst G t))
   | AGen_Poly : forall L G a t s,
-      (a \in ((AFv t) \- (ACtxFv G))) ->
-      (forall x, x \notin L -> x \notin (ATFv s) ->
-                 AGen (G & x ~ AC_Typ AE_Star) (ASubst a (AE_FVar x) t) (AOpenT s (AE_FVar x))) ->
-      AGen G t (AT_Forall (ATSubst a (AE_BVar 0) s)).
+      a \in (AFEv t \- ACtxFEv G) ->
+     (forall x, x \notin L ->
+           AGen (G & x ~ AC_Typ AE_Star) (ASubst a (AE_FVar x) t) (s @@' (AE_FVar x))) ->
+      AGen G t (AT_Forall s).
 
 Inductive AInst : ACtx -> AType -> AExpr -> ACtx -> Prop :=
   | AInst_Expr : forall G t,
