@@ -35,11 +35,10 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
 
 \begin{figure}[h]
     \headercapm{\tctx \bywt \sigma}{Well Term of type $\sigma$ under context $\tctx$}
-    \[\TWTVar \quad \TWTEVar \quad \TWTStar\]
-    \[\TWTPoly \quad \TWTApp\]
-    \[\TWTLam \quad \TWTPi\]
-    \[\TWTLet \quad \TWTCastUp\]
-    \[\TWTCastDn \quad \TWTAnn\]
+    \[\TWTVar \quad \TWTEVar \quad \TWTTVar\]
+    \[\TWTStar \quad \TWTPoly \quad \TWTApp\]
+    \[\TWTLam \quad \TWTCastUp \quad \TWTCastDn\]
+    \[\TWTPi \quad \TWTAnn\]
 
     \headercapm{\tctx \bywf \sigma}{Well Form of type $\sigma$ under context $\tctx$}
 
@@ -63,7 +62,7 @@ Context substitution is extended smoothly with existential variables, as shown i
 In algorithmic system, we will use FEV to stands for free existential variables in a type. The definition is given in Figure \ref{fig:algo-free-variables}. FEV of a context collects all FEV in type annotations, and does not include let binding and existential solutions.
 
 \begin{figure}[t]
-    \headercapm{[\tctx]e_1 = e_2}{Apply context to a type}
+    \headercapm{[\tctx]\sigma_1 = \sigma_2}{Apply context to a type}
 
     \begin{mathpar}
     \begin{tabular}{r c l l}
@@ -130,17 +129,17 @@ Hole notation is also used for replacement and modification. Later in the unific
 
 \begin{figure*}[h]
     \headercapm{\tctx[\genA] \byrf^s \sigma \rfto \tau \toctx}{sanitize $\sigma$ to $\tau$ so it becomes monotype. $s = + | -$}
-    \[\IPoly \quad \IPi \quad \ITau\]
+    \[\IPoly \quad \IPi \quad \IMono\]
 
      \headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Under context $\tctx$, sanitize $\tau_1$ to $\tau_2$ so it contains no existential variables out of the scope of $\genA$}
-    \[\IEVarB \quad \IEVarA\]
-    \[\IVar \quad \IStar \quad \IOthersNew\]
+    \[\IEVarB \quad \IEVarA \quad \IVar\]
+    \[\ITVar \quad \IStar \quad \IOthersNew\]
     \caption{Type Sanitization}
     \label{fig:algo-resolve}
 \end{figure*}
 
 \begin{figure*}[h]
-\headercapm{\tpreuni \sigma_1 \aeq \sigma_2 \toctx}{Unification of Types}
+\headercapm{\tpreuni \sigma_1 \uni \sigma_2 \toctx}{Unification of Types}
     \[\UAEq \quad \UEVarTy\]
     \[\UTyEVar \quad \UOthers\]
     \caption{Unification rules}

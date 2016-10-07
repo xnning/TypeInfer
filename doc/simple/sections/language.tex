@@ -11,19 +11,19 @@
         && \synor & $\forall \typA: \star. \sigma$ \\
         Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
         Contexts &
-        $\dctx$ & \syndef & $\ctxinit \mid \dctx, \typA \mid \dctx, x \mid \dctx,x:\sigma$ \\
+        $\dctx$ & \syndef & $\ctxinit \mid \dctx, \typA \mid \dctx,x:\sigma$ \\
     \end{tabular}
     \caption{Declarative syntax.}
     \label{fig:declsyntax}
 \end{figure}
 
 \begin{figure}[h]
+    \headercapm{e_1 \redto e_2}{Operational semantics}
     \[\SBetaA\]
     \[\SCastDownUp\]
     \[\SApp\]
     \[\SCastDown\]
     \[\SAnn\]
-    \[\SLet\]
     \caption{Operational semantics (Call by name).}
     \label{fig:operational}
 \end{figure}
