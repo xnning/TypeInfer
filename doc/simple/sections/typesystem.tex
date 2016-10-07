@@ -8,20 +8,21 @@ One of main contributions of our work is a simple and deterministic algorithmic 
 
 \begin{figure}[h]
     \begin{tabular}{lrcl}
-        Type Scheme & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
+        Type Scheme & $\sigma$ & \syndef & $\typA \mid \genA \mid e$ \\
 
-        Expr & $e,\tau$ & \syndef & $x \mid \genA \mid \star \mid e_1~e_2$ \\
-        && \synor & $\erlam x e \mid \bpi x {\tau_1} \tau_2$ \\
-        && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
+        Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2$ \\
+        && \synor & $\erlam x e \mid \bpi x {\sigma_1} \sigma_2$ \\
         && \synor & $\ercastup e \mid \castdn e$ \\
-        && \synor & $e : \tau$ \\
+        && \synor & $e : \sigma$ \\
+        && \synor & $\forall \typA: \star. \sigma$ \\
+        Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
         Contexts &
         $\tctx,\ctxl,\ctxr$ & \syndef & $\ctxinit$ \\
-        && \synor & $\tctx,x \mid \tctx,x:\tau \mid \tctx,x:\sigma=e$ \\
+        && \synor & $\tctx, \typA \mid \tctx,x \mid \tctx,x:\sigma$ \\
         && \synor & $\tctx,\genA \mid \tctx,\genA=\tau$ \\
         Complete Ctx &
         $\cctx$ & \syndef & $\ctxinit$ \\
-        && \synor & $\cctx,x \mid \cctx,x:\tau \mid \cctx,x:\sigma=e$ \\
+        && \synor & $\cctx, \typA \mid \cctx,x \mid \cctx,x:\sigma$ \\
         && \synor & $\cctx,\genA=\tau$ \\
     \end{tabular}
     \caption{syntax.}
@@ -42,13 +43,13 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
 
     \headercapm{\tctx \bywf \sigma}{Well Form of type $\sigma$ under context $\tctx$}
 
-    \[\TWFPoly \quad \TWFOther \]
+    \[\TWFOther \]
 
     \headercapm{\tctx\wc}{Context $\tctx$ is well formed}
 
     \[\TWCEmpty \quad \TWCVar\]
     \[\TWCTypedVar\]
-    \[\TWCLetVar\]
+    \[\TWCTVar\]
     \[\TWCEVar\]
     \[\TWCSolvedEVar\]
     \caption{Well formedness with existential variables.}
@@ -69,7 +70,7 @@ In algorithmic system, we will use FEV to stands for free existential variables 
         $[\ctxinit]e$   & = & $e$       \\
         $[\tctx,x]e$      & = & $[\tctx]e$ \\
         $[\tctx,x:\tau]e$ & = & $[\tctx]e$ \\
-        $[\tctx,x:\sigma = \tau]e$ & = & $[\tctx](e[x\mapsto \tau])$ \\
+        $[\tctx,\typA]e$ & = & $[\tctx]e$ \\
         $[\tctx, \genA]e$ & = & $[\tctx]e$ \\
         $[\tctx, \genA=\tau]e$ & = & $[\tctx](e[\genA \mapsto \tau])$
     \end{tabular}
@@ -95,21 +96,9 @@ In algorithmic system, we will use FEV to stands for free existential variables 
             $FEV(\forall x:\star. \sigma)$     & = & $FEV(\sigma)$            \\
         \end{tabular}
         \end{mathpar}
-
-    \headercapm{FEV(\tctx)}{free existential variables of context}
-        \begin{mathpar}
-        \begin{tabular}{r c l}
-            $FEV(\tctx, x)$        & = & $FEV(\tctx)$       \\
-            $FEV(\tctx, x:\tau)$   & = & $FEV(\tctx) \cup FEV(\tau)$       \\
-            $FEV(\tctx, x:\sigma = \tau)$     & = & $FEV(\tctx) \cup FEV(\sigma) $       \\
-            $FEV(\tctx, \genA)$        & = & $FEV(\tctx)$       \\
-            $FEV(\tctx, \genA=\tau)$   & = & $FEV(\tctx)$       \\
-        \end{tabular}
-        \end{mathpar}
     \caption{Free existential variables.}
     \label{fig:algo-free-variables}
 \end{figure}
-
 \paragraph{Hole notation.} We keep the same hole notations like $\tctx[x]$ to require the variable $x$ appear in the context, sometimes also written as $\tctx_1, x, \tctx_2$. According to this definition, the precondition of \rul{WF-EVar} could be removed and the conclusion is replaced by $\tctx[\genA] \bywf \genA$.
 
 Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only require the existance of both variable $x$ and $\genA$, and also $x$ appear before $\genA$.
@@ -118,26 +107,32 @@ Hole notation is also used for replacement and modification. Later in the unific
 
 \subsection{Algorithmic Typing}
 
+
 \begin{figure*}[h]
-    \headercapm{\tpreall e:\tau \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
-    \[\TAx \quad \TVar \quad \TLetVar \quad \TEVar\]
-    \[\TAnn \quad \TPi\]
-    \[\TLamInf \quad \TLamChk\]
-    \[\TLet\]
-    \[\TCastUp \quad \TCastDn\]
-    \[\TApp \quad \TSub\]
+    \headercapm{\tpreall e:\sigma \toctx \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \[\TVar \quad \TAnn \quad \TPi\]
+    \[\TAx \quad \TTVar \quad \TLamInf \quad \TLamChk\]
+    \[\TCastUp \quad \TCastDn \quad \TPoly\]
+    \[\TEVar \quad \TApp \quad \TSub\]
+    \[\APi \quad \AEVar \quad \APoly\]
     \\
-    \headercapm{\tpreapp \tau_1~e:\tau_2 \toctx \trto t}{Application Typing}
-    \[\APi \quad \AEVar\]
-    \\
-    \headercapm{\tpreinst \sigma \lt \tau \toctx}{Instantiation} \quad \headercapm{\tpregen \tau \lt \sigma}{Generalization}
-    \[\Instantiation \quad \Generalization\]
     \caption{Typing rules}
     \label{fig:algo-typing-rules}
 \end{figure*}
 
 \begin{figure*}[h]
-\headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Under context $\tctx$, sanitize $\tau_1$ to $\tau_2$ so it contains no existential variables out of the scope of $\genA$}
+    \headercapm{\tpresub \sigma_1 \lt \sigma_2 \toctx}{Subtyping}
+    \[\SPolyR \quad \SPolyL \quad \SPi\]
+    \[\SEVarL \quad \SEVarR \quad \SUnify\]
+    \caption{Subtyping}
+    \label{fig:subtyping}
+\end{figure*}
+
+\begin{figure*}[h]
+    \headercapm{\tctx[\genA] \byrf^s \sigma \rfto \tau \toctx}{sanitize $\sigma$ to $\tau$ so it becomes monotype. $s = + | -$}
+    \[\IPoly \quad \IPi \quad \ITau\]
+
+     \headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{Under context $\tctx$, sanitize $\tau_1$ to $\tau_2$ so it contains no existential variables out of the scope of $\genA$}
     \[\IEVarB \quad \IEVarA\]
     \[\IVar \quad \IStar \quad \IOthersNew\]
     \caption{Type Sanitization}
@@ -145,10 +140,9 @@ Hole notation is also used for replacement and modification. Later in the unific
 \end{figure*}
 
 \begin{figure*}[h]
-\headercapm{\tpreuni \tau_1 \lt \tau_2 \toctx}{Unification of Types}
-    \[\UVar \quad \UEVarId \quad \UStar \quad \UOthers\]
-    \[\UEVarTy\]
-    \[\UTyEVar\]
+\headercapm{\tpreuni \sigma_1 \aeq \sigma_2 \toctx}{Unification of Types}
+    \[\UAEq \quad \UEVarTy\]
+    \[\UTyEVar \quad \UOthers\]
     \caption{Unification rules}
     \label{fig:algo-unification}
 \end{figure*}

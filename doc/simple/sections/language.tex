@@ -2,15 +2,16 @@
 
 \begin{figure}[h]
     \begin{tabular}{lrcl}
-        Type Scheme & $\sigma$ & \syndef & $\forall x:\star. \sigma \mid \tau$ \\
+        Type & $\sigma$ & \syndef & $\typA \mid e$ \\
 
-        Expr & $e,\tau$ & \syndef & $x \mid \star \mid e_1~e_2$ \\
-        && \synor & $\erlam x e \mid \bpi x {\tau_1} \tau_2$ \\
-        && \synor & $\kw{let} x=e_1 \kw{in} e_2$ \\
+        Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2$ \\
+        && \synor & $\erlam x e \mid \bpi x {\sigma_1} \sigma_2$ \\
         && \synor & $\ercastup e \mid \castdn e$ \\
-        && \synor & $e : \tau$ \\
+        && \synor & $e : \sigma$ \\
+        && \synor & $\forall \typA: \star. \sigma$ \\
+        Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
         Contexts &
-        $\dctx$ & \syndef & $\ctxinit \mid \dctx, x \mid \dctx,x:\tau \mid \dctx,x:\sigma=e$ \\
+        $\dctx$ & \syndef & $\ctxinit \mid \dctx, \typA \mid \dctx, x \mid \dctx,x:\sigma$ \\
     \end{tabular}
     \caption{Declarative syntax.}
     \label{fig:declsyntax}
@@ -71,15 +72,11 @@ Having the order, we easily know that $x$ cannot be of type $y$ because $y$ is a
 Figure \ref{fig:wellform} gives the definition of well formedness of a context and a type under context, which refers to typing rules that will be introduced later.
 
 \begin{figure}[h]
-    \headercapm{\dctx \bywf \sigma}{Well Form of type $\sigma$ under context $\dctx$}
-
-    \[\WFPoly \quad \WFOther\]
-
     \headercapm{\dctx\wc}{Context $\dctx$ is well formed}
 
     \[\WCEmpty\]
+    \[\WCTVar\]
     \[\WCTypedVar\]
-    \[\WCLetVar\]
     \caption{Well formedness}
     \label{fig:wellform}
 \end{figure}

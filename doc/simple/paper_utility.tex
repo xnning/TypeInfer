@@ -149,6 +149,8 @@
 \newcommand{\genvar}{\widehat}
 \newcommand{\genA}{\genvar{\alpha}}
 \newcommand{\genB}{\genvar{\beta}}
+\newcommand{\typA} {\alpha}
+\newcommand{\typB} {\beta}
 \newcommand{\varA}{\alpha}
 \newcommand{\varB}{\beta}
 
@@ -167,7 +169,10 @@
 \newcommand{\bytar}{\vdash}
 \newcommand{\byinst}{\vdash_\Inst}
 \newcommand{\bygen}{\vdash_\Gen}
+\newcommand{\bysub}{\vdash}
+\newcommand{\bydsub}{\vdash}
 \newcommand{\bycg}{\vdash}
+\newcommand{\byrf}{\vdash}
 \newcommand{\bywf}{\vdash}
 \newcommand{\bywt}{\vDash}
 \newcommand{\toctx}{\dashv \ctxl}
@@ -195,9 +200,15 @@
 \newcommand{\tprecg}[1][]{\tctx {#1} \bycg}
 \newcommand{\tprewf}[1][]{\tctx {#1} \bywf}
 \newcommand{\tprewt}[1][]{\tctx {#1} \bywt}
+\newcommand{\tpresub}[1][]{\tctx {#1} \bysub}
+\newcommand{\dpresub}[1][]{\dctx {#1} \bydsub}
 \newcommand{\wc}{\ \var{ctx}\ }
 \newcommand{\exto}{\longrightarrow}
 \newcommand{\cgto}{\longmapsto}
+\newcommand{\rfto}{\rightsquigarrow}
+\newcommand{\aeq}{\equiv_\alpha}
+\newcommand{\uni}{\leqq}
+\newcommand{\dsub}{\leq}
 
 % Primitives
 \newcommand{\Int}{\var{Int}}

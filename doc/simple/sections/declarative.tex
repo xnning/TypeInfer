@@ -3,50 +3,24 @@
 Before we talk about the algorithm, we first give a declarative system and later on, we show that our algorithm is complete and sound with respect to it. The typing rules are shown in figure \ref{fig:decl-typing}.
 
 \begin{figure*}[h]
-    \headercapm{\dpreall e:\tau \trto t}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
-    \[\DAx \quad \DVar \quad \DLetVar \quad \DAnn \]
-    \[\DLamInf \quad \DLamChk \quad \DApp \]
-    \[\DPi \quad \DLet \quad \DCastUp\]
-    \[\DCastDn \quad \DSub \quad \DConv\]
+    \headercapm{\dpreall \sigma_1 \dsub \sigma_2}{Subtype: $\sigma_1$ is more polymorphic than $\sigma_2$}
+    \[\DSPolyR \quad \DSPolyL\]
+    \[\DSPi \quad \DSAEq \]
     \\
-    \headercapm{\dpreinst \sigma \lt \tau}{Instantiation} \quad \headercapm{\dpregen e : \sigma}{Generalization}
-    \[\DInstantiation \quad \DGeneralization\]
+    \caption{Subtype}
+    \label{fig:decl-subtyp}
+\end{figure*}
+\begin{figure*}[h]
+    \headercapm{\dpreall e:\sigma}{Expression Typing ($\delta ::= \Inf\mid \Chk$)}
+    \[\DAx \quad \DVar \quad \DTVar \quad \DAnn \]
+    \[\DLamInf \quad \DLamChk \quad \DPi \]
+    \[\DCastUp \quad \DCastDn \quad \DPoly\]
+    \[\DApp \quad \DAPi \quad \DAPoly\]
+    \[\DInst \quad \DSub\]
+    \\
     \caption{Declarative typing rules}
     \label{fig:decl-typing}
 \end{figure*}
-
-\begin{figure}[t]
-    \headercapm{[\dctx]e_1 = e_2}{Apply context to a type}
-
-    \begin{mathpar}
-    \begin{tabular}{r c l}
-        $[\ctxinit]e$   & = & $e$       \\
-        $[\dctx,x:\tau]e$ & = & $[\dctx]e$ \\
-        $[\dctx,x:\sigma = \tau]e$ & = & $[\dctx](e[x\mapsto \tau])$ \\
-    \end{tabular}
-    \end{mathpar}
-    \caption{Applying a context}
-    \label{fig:decl-apply-ctx}
-\end{figure}
-
-\begin{figure}[t]
-    \begin{mathpar}
-    \begin{tabular}{r c l}
-        $FV(x)$   & = & $\{x\}$       \\
-        $FV(\star)$    & = & $\varnothing$            \\
-        $FV(e_1 ~ e_2)$    & = & $FV(e_1) \cup FV(e_2)$            \\
-        $FV(\erlam x e)$   & = & $FV(e) - \{x\}$            \\
-        $FV(\bpi x t e)$   & = & $FV(t) \cup FV(e) - \{x\}$            \\
-        $FV(\kw{let} x = e_1 \kw{in} e_2)$  & = & $FV(e_1) \cup FV(e_2) - \{x\}$            \\
-        $FV(\castupz e)$   & = & $FV(e)$            \\
-        $FV(\castdn e)$    & = & $FV(e)$            \\
-        $FV(e:t)$          & = & $FV(e) \cup FV(t)$            \\
-    \end{tabular}
-    \end{mathpar}
-    \caption{Free variables}
-    \label{fig:decl-free-variables}
-\end{figure}
-
 
 \paragraph{Bidirectional typing.} The judgement $\dpreall e:\sigma \trto t$ is interpreted as, under context $\dctx$, infer the type of the expression (with $\delta=\Inf$), which gives type $\tau$; or check the expression with type $\tau$ (if $\delta = \Chk$). Most typing rules are standard with respect to $\lambda C$ and bidirectional type checking.
 
