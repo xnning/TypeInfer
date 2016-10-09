@@ -277,8 +277,6 @@ Proof.
   rewrite <- HI; constructor; auto);
   try(rewrite concat_assoc in HI;
   apply eq_push_inv in HI; destruct HI as [HIx [HIv HIgh]]; apply* IHIH)).
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar with (H:=H); auto.
-  rewrite concat_empty_r in HI. rewrite <- HI. apply AWf_LetVar2 with (L:=L); auto.
 Qed.
 
 Lemma AWf_push_inv : forall G x v,
@@ -287,90 +285,126 @@ Proof.
   introv WF. inversion WF;
   try(apply empty_push_inv in H0; inversion H0);
   try(apply eq_push_inv in H; destruct H as [eqg [eqx eqv]]; subst; simpl_dom; auto).
-  try(apply eq_push_inv in H0; destruct H0 as [eqg [eqx eqv]]; subst; simpl_dom; auto).
 Qed.
 
 (* atyping *)
 
 Lemma atyping_awterm : forall G m e t H,
   ATyping m G e t H ->
-  AWTerm G e.
+  AWTermT G e.
 Proof.
   introv ty.
   induction ty; simpl; auto.
-  apply* AWTerm_TypVar.
-  apply* AWTerm_Solved_EVar.
-  apply* AWTerm_LetVar.
+  apply AWTermT_Expr. apply* AWTerm_TypVar.
+  apply* AWTermT_Solved_EVar.
 Qed.
 
 Lemma notin_open : forall x y e n,
     x \notin (AFv (AOpenRec n y e)) ->
-    x \notin (AFv e).
+    x \notin (AFv e)
+with
+notin_opent : forall x y e n,
+    x \notin (ATFv (AOpenTypRec n y e)) ->
+    x \notin (ATFv e).
 Proof.
   introv notin. gen n.
   induction e; introv notin; try(simpl in *; auto);
-    try(
-  apply notin_union in notin;
-  destruct notin as [notin1 notin2];
-  apply IHe1 in notin1;
-  apply IHe2 in notin2;
-  auto);
-    try(apply IHe in notin; auto).
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      apply IHe1 in notin1;
+      apply IHe2 in notin2; auto);
+  try(apply IHe in notin; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      try(lets: notin_opent notin1);
+      try(lets: notin_opent notin2);
+      auto_star).
+  apply* notin_opent.
+
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. auto.
+    simpl in *. auto.
+    simpl in *. apply*  notin_open.
+Qed.
+
+Lemma notin_topen : forall x y e n,
+    x \notin (AFv (ATOpenRec n y e)) ->
+    x \notin (AFv e)
+with
+notin_topent : forall x y e n,
+    x \notin (ATFv (ATOpenTypRec n y e)) ->
+    x \notin (ATFv e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin; try(simpl in *; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      apply IHe1 in notin1;
+      apply IHe2 in notin2; auto);
+  try(apply IHe in notin; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      try(lets: notin_topen notin1);
+      try(lets: notin_topen notin2);
+      auto_star).
+  apply* notin_topent.
+
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. auto.
+    simpl in *. auto.
+    simpl in *. apply*  notin_topen.
 Qed.
 
 Lemma notin_awterm : forall G t x,
   AWTerm G t ->
   x # G ->
-  x \notin AFv t.
+  x \notin AFv t
+with notin_awtermt : forall G t x,
+  AWTermT G t ->
+  x # G ->
+  x \notin ATFv t.
 Proof.
   introv wt notin. induction wt; simpl; auto;
       try(apply notin_singleton; unfold not; introv neq; subst; apply (binds_fresh_inv H notin0)).
   pick_fresh y. apply* notin_open. apply H0 with (x0:=y); auto_star.
-  pick_fresh y. apply notin_union. split; auto. apply* notin_open. apply H0 with (x0:=y); auto_star.
-  pick_fresh y. apply notin_union. split; auto. apply* notin_open. apply H0 with (x0:=y); auto_star.
+  pick_fresh y. apply notin_union. split; auto. apply* notin_awtermt. apply* notin_opent. apply notin_awtermt with (G & y ~ AC_Var); auto. apply H0 with (x:=y). auto.
+  pick_fresh y. apply notin_union. split; auto. apply* notin_awtermt.
+  pick_fresh y. apply* notin_topent. apply notin_awtermt with (G & y ~ AC_TVar); auto. apply H with (x:=y); auto_star.
+Proof.
+  introv wt notin. induction wt; simpl; auto.
+  intros not. rewrite in_singleton in not; subst. lets: binds_fresh_inv H notin0. auto.
+  intros not. rewrite in_singleton in not; subst. lets: binds_fresh_inv H notin0. auto.
+  intros not. rewrite in_singleton in not; subst. lets: binds_fresh_inv H notin0. auto.
+  apply* notin_awterm.
 Qed.
 
 Lemma notin_typing: forall G m e t H x,
   ATyping m G e t H ->
   x # G ->
-  x \notin AFv e.
+  x \notin ATFv e.
 Proof.
   introv ty notin. apply atyping_awterm in ty.
-  apply* notin_awterm.
-Qed.
-
-Lemma notin_topen : forall x y e n,
-    x \notin (ATFv (AOpenTypRec n y e)) ->
-    x \notin (ATFv e).
-Proof.
-  introv notin. gen n.
-  induction e; introv notin.
-    simpl in *; auto_star.
-    simpl in *. apply* notin_open.
-Qed.
-
-Lemma notin_awtermt : forall G t x,
-  AWTermT G t ->
-  x # G ->
-  x \notin ATFv t.
-Proof.
-  introv wt notin. induction wt; simpl; auto.
-  pick_fresh y. apply* notin_topen. apply H0 with (x0:=y); auto_star.
-  apply* notin_awterm.
+  apply* notin_awtermt.
 Qed.
 
 Lemma awterm_remove: forall G H x v t,
     AWTerm (G & x ~ v & H) t ->
     x \notin AFv t ->
-    AWTerm (G & H) t.
+    AWTerm (G & H) t
+with
+awtermt_remove: forall G H x v t,
+    AWTermT (G & x ~ v & H) t ->
+    x \notin ATFv t ->
+    AWTermT (G & H) t.
 Proof.
   introv wt notin. gen_eq I: (G & x ~ v & H).
   gen H. induction wt; introv hh.
   simpl in notin. rewrite hh in H. apply AWTerm_Var. apply* binds_subst.
   simpl in notin. rewrite hh in H. apply* AWTerm_TypVar. apply* binds_subst.
-  simpl in notin. rewrite hh in H. apply* AWTerm_LetVar. apply* binds_subst.
-  simpl in notin. rewrite hh in H. apply* AWTerm_EVar. apply* binds_subst.
-  simpl in notin. rewrite hh in H. apply* AWTerm_Solved_EVar. apply* binds_subst.
   constructor*.
 
   simpl in notin. apply AWTerm_App. apply* IHwt1. apply* IHwt2.
@@ -380,43 +414,38 @@ Proof.
   simpl in notin. apply* notin_open_inv. simpl. apply* notin_singleton.
   rewrite hh. rewrite* concat_assoc.
 
-  simpl in notin. apply AWTerm_Pi with (L \u \{x}). apply* IHwt. intros y notin_y.
-  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x]. apply H0 with (H:=H1 & y ~ AC_Var) in notin_y. rewrite concat_assoc in notin_y. auto.
-  apply* notin_open_inv. simpl. apply* notin_singleton.
-  rewrite hh. rewrite* concat_assoc.
-
-  simpl in notin. apply AWTerm_Let with (L \u \{x}). apply* IHwt. intros y notin_y.
-  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x]. apply H0 with (H:=H1 & y ~ AC_Var) in notin_y.  rewrite concat_assoc in notin_y. auto.
-  apply* notin_open_inv. simpl. apply* notin_singleton.
-  rewrite hh. rewrite* concat_assoc.
+  simpl in notin. apply AWTerm_Pi with (L \u \{x}). subst. apply* awtermt_remove.
+  intros y notin_y.
+  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x]. subst.
+  lets: H0 notin_y. rewrite <- concat_assoc in H2. rewrite <- concat_assoc. apply* awtermt_remove.
+  apply* notin_opent_inv. simpl. apply* notin_singleton.
 
   apply* AWTerm_CastUp.
   apply* AWTerm_CastDn.
 
   simpl in notin. apply* AWTerm_Ann.
-Qed.
+  subst. apply* awtermt_remove.
 
-Lemma awterm_bnd: forall G x s t,
-    AWf (G & x ~ AC_Bnd s t) ->
-    AWTerm G t.
+  simpl in notin. apply AWTerm_Forall with (L \u \{x}). subst. intros y notin_y.
+  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x].
+  lets: H notin_y. rewrite <- concat_assoc in H1. rewrite <- concat_assoc. apply* awtermt_remove.
+  apply* notin_topent_inv. simpl. apply* notin_singleton.
 Proof.
-  introv wf. gen_eq H : (G & x ~ AC_Bnd s t).
-  gen G s. induction wf; introv hi; try(
-  solve[apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv]); subst; auto.
-  apply empty_push_inv in hi. inversion hi.
-  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv. subst. apply* atyping_awterm.
-
-  apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]. inversion eqv. subst.
-  pick_fresh y.
-  assert (AWTerm (G0 & y ~ AC_Typ AE_Star) t). apply* H2.
-  rewrite <- concat_empty_r with (E:=G0).
-  rewrite <- concat_empty_r with (E:=G0 & y ~ AC_Typ AE_Star) in H3.
-  apply* awterm_remove.
-Qed.
+  introv wt notin. gen_eq I: (G & x ~ v & H).
+  gen H. induction wt; introv hh.
+  simpl in notin. rewrite hh in H. apply AWTermT_TFVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermT_Unsolved_EVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply* AWTermT_Solved_EVar. apply* binds_subst.
+  simpl in notin. rewrite hh in H. apply AWTermT_Expr. apply* awterm_remove.
+Admitted.
 
 Lemma awterm_replace: forall G H x t e,
     AWTerm (G & x ~ AC_Typ t & H) e ->
-    AWTerm (G & x ~ AC_Var & H) e.
+    AWTerm (G & x ~ AC_Var & H) e
+with
+awtermt_replace: forall G H x t e,
+    AWTermT (G & x ~ AC_Typ t & H) e ->
+    AWTermT (G & x ~ AC_Var & H) e.
 Proof.
   introv wt. gen_eq I: (G & x ~ AC_Typ t & H).
   gen H. induction wt; introv hg; subst.
@@ -435,32 +464,56 @@ Proof.
   apply binds_subst in H; auto.
   apply* AWTerm_TypVar. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
 
-  destruct (eq_var_dec x x0). subst.
-  apply binds_middle_inv in H. destruct H as [h1 | [h2 | h3]]. apply* AWTerm_LetVar.
-  apply AWTerm_Var. apply* binds_middle_eq.
-  destruct h3 as [_ [inv _]]. false inv. reflexivity.
-  apply* AWTerm_LetVar. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left. destruct h2 as [_ h2]. apply binds_concat_left_inv in h2. apply* binds_concat_left. auto_star.
-
-  destruct (eq_var_dec x a). subst.
-  apply binds_middle_inv in H. destruct H as [h1 | [h2 | h3]]. apply AWTerm_EVar. apply binds_concat_right. auto.
-  destruct h2 as [_ [_ inv]]. false inv.
-  apply AWTerm_EVar.  apply* binds_concat_left.
-  apply* AWTerm_EVar. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left. destruct h2 as [_ h2]. apply binds_concat_left_inv in h2. apply* binds_concat_left. auto_star.
-
-  destruct (eq_var_dec x a). subst.
-  apply binds_middle_inv in H. destruct H as [h1 | [h2 | h3]]. apply* AWTerm_Solved_EVar.
-  destruct h2 as [_ [_ inv]]. false inv.
-  apply AWTerm_Solved_EVar with t0. apply* binds_concat_left.
-  apply* AWTerm_Solved_EVar. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left. destruct h2 as [_ h2]. apply binds_concat_left_inv in h2. apply* binds_concat_left. auto_star.
-
   constructor.
   apply AWTerm_App. apply* IHwt1. apply* IHwt2.
   apply AWTerm_Lam with L. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
-  apply AWTerm_Pi with L. apply* IHwt. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
-  apply AWTerm_Let with L. apply* IHwt. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
+  apply AWTerm_Pi with L. apply* awtermt_replace. intros y notin_y. rewrite <- concat_assoc. apply* awtermt_replace. lets: H0 notin_y. rewrite* concat_assoc.
   apply* AWTerm_CastUp.
   apply* AWTerm_CastDn.
-  apply AWTerm_Ann. apply* IHwt1. apply* IHwt2.
+  apply AWTerm_Ann. apply* IHwt. apply* awtermt_replace.
+  apply AWTerm_Forall with L. intros y notin_y. rewrite <- concat_assoc. apply* awtermt_replace. lets: H notin_y. rewrite* concat_assoc.
+Proof.
+  introv wt. gen_eq I: (G & x ~ AC_Typ t & H).
+  gen H. inversion wt; subst; introv hg; subst.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_TFVar. apply* binds_concat_right.
+  apply binds_push_eq_inv in H2. inversion H2.
+  apply AWTermT_TFVar.
+  apply binds_subst in H; auto.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_Unsolved_EVar. apply* binds_concat_right.
+  apply binds_push_eq_inv in H2. inversion H2.
+  apply AWTermT_Unsolved_EVar.
+  apply binds_subst in H; auto.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_Solved_EVar with t0. apply* binds_concat_right.
+  apply binds_push_eq_inv in H2. inversion H2.
+  apply AWTermT_Solved_EVar with t0.
+  apply binds_subst in H; auto.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  apply AWTermT_Expr. inversion wt; subst. apply* awterm_replace.
+Admitted.
+
+Lemma awtermt_awftyp: forall G t,
+    AWfTyp G t ->
+    AWTermT G t.
+Proof.
+  introv wt.
+  induction wt.
+
+  apply atyping_awterm in H0. auto.
 Qed.
 
 Lemma awterm_awftyp: forall G t,
@@ -472,7 +525,7 @@ Proof.
   gen t. induction wt; introv hi.
   inversion hi; subst.
 
-  inversion hi; subst. apply* atyping_awterm.
+  apply atyping_awterm in H0. inversion~  H0.
 Qed.
 
 Lemma binds_swap : forall A (G1 G2 : env A) x v x1 v1 x2 v2,
@@ -493,14 +546,16 @@ Qed.
 Lemma awterm_reorder : forall G1 G2 x1 x2 v e,
     x1 <> x2 ->
     AWTerm (G1 & x2 ~ AC_Var & x1 ~ v & G2) e ->
-    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var & G2) e.
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_Var & G2) e
+with
+awtermt_reorder : forall G1 G2 x1 x2 v e,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_Var & x1 ~ v & G2) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_Var & G2) e.
 Proof.
   intros. inductions H0.
   apply* AWTerm_Var. apply* binds_swap.
   apply* AWTerm_TypVar. apply* binds_swap.
-  apply* AWTerm_LetVar. apply* binds_swap.
-  apply* AWTerm_EVar. apply* binds_swap.
-  apply* AWTerm_Solved_EVar. apply* binds_swap.
   apply* AWTerm_Star.
   apply* AWTerm_App.
 
@@ -513,25 +568,74 @@ Proof.
   auto.
 
   apply AWTerm_Pi with (L := L). auto. intros.
-  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
-                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
-  rewrite -> concat_assoc. auto.
-  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
-  rewrite -> concat_assoc in Re.
-  auto.
-
-  apply AWTerm_Let with (L := L). auto. intros.
-  assert (JMeq.JMeq (G1 & x2 ~ AC_Var & x1 ~ v & G2 & x ~ AC_Var)
-                    (G1 & x2 ~ AC_Var & x1 ~ v & (G2 & x ~ AC_Var))).
-  rewrite -> concat_assoc. auto.
-  pose (Re := H1 x H3 v x2 x1 H (G2 & x ~ AC_Var) G1 H4).
-  rewrite -> concat_assoc in Re.
-  auto.
+  lets: H0 H2.
+  rewrite <- concat_assoc in H3.
+  rewrite <- concat_assoc.
+  apply* awtermt_reorder.
 
   apply* AWTerm_CastUp.
   apply* AWTerm_CastDn.
   apply* AWTerm_Ann.
-Qed.
+
+  apply AWTerm_Forall with (L := L). intros.
+  lets: H0 H1.
+  rewrite <- concat_assoc in H2.
+  rewrite <- concat_assoc.
+  apply* awtermt_reorder.
+Proof.
+  intros. inductions H0.
+  apply* AWTermT_TFVar. apply* binds_swap.
+  apply* AWTermT_Unsolved_EVar. apply* binds_swap.
+  apply* AWTermT_Solved_EVar. apply* binds_swap.
+  apply* AWTermT_Expr.
+Admitted.
+
+Lemma awterm_reorder_tvar : forall G1 G2 x1 x2 v e,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_TVar & x1 ~ v & G2) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_TVar & G2) e
+with
+awtermt_reorder_tvar : forall G1 G2 x1 x2 v e,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_TVar & x1 ~ v & G2) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_TVar & G2) e.
+Proof.
+  intros. inductions H0.
+  apply* AWTerm_Var. apply* binds_swap.
+  apply* AWTerm_TypVar. apply* binds_swap.
+  apply* AWTerm_Star.
+  apply* AWTerm_App.
+
+  apply AWTerm_Lam with (L := L); intros.
+  assert (JMeq.JMeq (G1 & x2 ~ AC_TVar & x1 ~ v & G2 & x ~ AC_Var)
+                    (G1 & x2 ~ AC_TVar & x1 ~ v & (G2 & x ~ AC_Var))).
+  rewrite -> concat_assoc. auto.
+  pose (Re := H0 x H2 v x2 x1 H (G2 & x ~ AC_Var) G1 H3).
+  rewrite -> concat_assoc in Re.
+  auto.
+
+  apply AWTerm_Pi with (L := L). auto. intros.
+  lets: H0 H2.
+  rewrite <- concat_assoc in H3.
+  rewrite <- concat_assoc.
+  apply* awtermt_reorder_tvar.
+
+  apply* AWTerm_CastUp.
+  apply* AWTerm_CastDn.
+  apply* AWTerm_Ann.
+
+  apply AWTerm_Forall with (L := L). intros.
+  lets: H0 H1.
+  rewrite <- concat_assoc in H2.
+  rewrite <- concat_assoc.
+  apply* awtermt_reorder_tvar.
+Proof.
+  intros. inductions H0.
+  apply* AWTermT_TFVar. apply* binds_swap.
+  apply* AWTermT_Unsolved_EVar. apply* binds_swap.
+  apply* AWTermT_Solved_EVar. apply* binds_swap.
+  apply* AWTermT_Expr.
+Admitted.
 
 Lemma awterm_reorder_simp : forall G1 x1 x2 v e,
     x1 <> x2 ->
@@ -548,34 +652,50 @@ Proof.
   apply* awterm_reorder.
 Qed.
 
-Lemma awtermt_replace: forall G H x t e,
-    AWTermT (G & x ~ AC_Typ t & H) e ->
-    AWTermT (G & x ~ AC_Var & H) e.
+Lemma awtermt_reorder_simp : forall G1 x1 x2 v e,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_Var & x1 ~ v) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_Var) e.
 Proof.
-  introv wt. gen_eq I: (G & x ~ AC_Typ t & H).
-  gen H. induction wt; introv hg; subst.
-
-  apply AWTermT_Forall with L. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
-  apply AWTermT_Expr. apply* awterm_replace.
+  intros.
+  assert (G1 & x2 ~ AC_Var & x1 ~ v = G1 & x2 ~ AC_Var & x1 ~ v & empty).
+  rewrite* concat_empty_r.
+  assert (G1 & x1 ~ v & x2 ~ AC_Var = G1 & x1 ~ v & x2 ~ AC_Var & empty).
+  rewrite* concat_empty_r.
+  rewrite H1 in H0.
+  rewrite H2.
+  apply* awtermt_reorder.
 Qed.
 
-Lemma awtermt_remove: forall G H x v t,
-    AWTermT (G & x ~ v & H) t ->
-    x \notin ATFv t ->
-    AWTermT (G & H) t.
+Lemma awterm_reorder_tvar_simp : forall G1 x1 x2 v e,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_TVar & x1 ~ v) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_TVar) e.
 Proof.
-  introv wt notin. gen_eq I: (G & x ~ v & H).
-  gen H. induction wt; introv hh.
-  apply AWTermT_Forall with (L \u \{x}). intros y notin_y.
-  apply notin_union in notin_y. destruct notin_y as [notin_y notin_x]. apply H0 with (H:=H1 & y ~ AC_Typ AE_Star) in notin_y.  rewrite concat_assoc in notin_y. auto.
-  simpl in notin. apply* notin_opent_inv. simpl. apply* notin_singleton.
-  rewrite hh. rewrite* concat_assoc.
-
-  subst.
-  apply AWTermT_Expr.
-  apply* awterm_remove.
+  intros.
+  assert (G1 & x2 ~ AC_TVar & x1 ~ v = G1 & x2 ~ AC_TVar & x1 ~ v & empty).
+  rewrite* concat_empty_r.
+  assert (G1 & x1 ~ v & x2 ~ AC_TVar = G1 & x1 ~ v & x2 ~ AC_TVar & empty).
+  rewrite* concat_empty_r.
+  rewrite H1 in H0.
+  rewrite H2.
+  apply* awterm_reorder_tvar.
 Qed.
 
+Lemma awtermt_reorder_tvar_simp : forall G1 x1 x2 v e,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_TVar & x1 ~ v) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_TVar) e.
+Proof.
+  intros.
+  assert (G1 & x2 ~ AC_TVar & x1 ~ v = G1 & x2 ~ AC_TVar & x1 ~ v & empty).
+  rewrite* concat_empty_r.
+  assert (G1 & x1 ~ v & x2 ~ AC_TVar = G1 & x1 ~ v & x2 ~ AC_TVar & empty).
+  rewrite* concat_empty_r.
+  rewrite H1 in H0.
+  rewrite H2.
+  apply* awtermt_reorder_tvar.
+Qed.
 
 Lemma binds_push_fresh : forall A x v (G : env A) x' v',
     binds x v G -> x' # G ->
@@ -590,22 +710,30 @@ Qed.
 Lemma awterm_weaken : forall G x v e,
     AWTerm G e ->
     x # G ->
-    AWTerm (G & x ~ v) e.
+    AWTerm (G & x ~ v) e
+with
+awtermt_weaken : forall G x v e,
+    AWTermT G e ->
+    x # G ->
+    AWTermT (G & x ~ v) e.
 Proof.
   intros. inductions H.
   apply* AWTerm_Var. apply* binds_push_fresh.
   apply* AWTerm_TypVar. apply* binds_push_fresh.
-  apply* AWTerm_LetVar. apply* binds_push_fresh.
-  apply* AWTerm_EVar. apply* binds_push_fresh.
-  apply* AWTerm_Solved_EVar. apply* binds_push_fresh.
   apply* AWTerm_Star.
   apply* AWTerm_App.
   apply AWTerm_Lam with (L := L \u \{x}); intros. apply* awterm_reorder_simp.
-  apply AWTerm_Pi with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
-  apply AWTerm_Let with (L := L \u \{x}); intros. apply* IHAWTerm. apply* awterm_reorder_simp.
+  apply AWTerm_Pi with (L := L \u \{x}); intros. apply* awtermt_weaken. apply* awtermt_reorder_simp.
   apply* AWTerm_CastUp.
   apply* AWTerm_CastDn.
   apply* AWTerm_Ann.
+  apply AWTerm_Forall with (L := L \u \{x}); intros. apply* awtermt_reorder_tvar_simp.
+Proof.
+  intros. inductions H.
+  apply* AWTermT_TFVar. apply* binds_push_fresh.
+  apply* AWTermT_Unsolved_EVar. apply* binds_push_fresh.
+  apply* AWTermT_Solved_EVar. apply* binds_push_fresh.
+  apply* AWTermT_Expr.
 Qed.
 
 Lemma awterm_weaken_ctx: forall G H e,
@@ -620,27 +748,39 @@ Proof.
   rewrite concat_assoc in okg. apply* ok_push_inv.
 Qed.
 
+Lemma awtermt_weaken_ctx: forall G H e,
+    ok (G & H) ->
+    AWTermT G e ->
+    AWTermT (G & H) e.
+Proof.
+  introv. induction H using env_ind; introv okg wf.
+  rewrite* concat_empty_r.
+  assert (AWTermT (G & H) e). apply* IHenv. rewrite concat_assoc in okg. apply* ok_push_inv_ok.
+  rewrite concat_assoc. apply* awtermt_weaken.
+  rewrite concat_assoc in okg. apply* ok_push_inv.
+Qed.
+
 Lemma awterm_solved_evar: forall G x t,
     AWf (G & x ~ AC_Solved_EVar t) ->
-    AWTerm G t.
+    AWTermT G t.
 Proof.
   introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
   induction wf; introv hi; try(
   apply eq_push_inv in hi; destruct hi as [eqx [eqv eqg]]; inversion eqv); subst; auto.
   apply empty_push_inv in hi. inversion hi.
-  apply* awterm_awftyp.
+  apply* awtermt_awftyp.
 Qed.
 
 Lemma awterm_evar_binds: forall G a t,
     AWf G ->
     binds a (AC_Solved_EVar t) G ->
-    AWTerm G t.
+    AWTermT G t.
 Proof.
   introv wf bd. destruct (split_bind_context bd) as (G1 & G2 & HG).
   rewrite HG.
-  assert (AWTerm G1 t). rewrite HG in wf. apply* awterm_solved_evar. apply* AWf_left.  auto.
+  assert (AWTermT G1 t). rewrite HG in wf. apply* awterm_solved_evar. apply* AWf_left.  auto.
   rewrite HG in wf.
-  rewrite <- concat_assoc. apply* awterm_weaken_ctx. apply* awf_is_ok.
+  rewrite <- concat_assoc. apply* awtermt_weaken_ctx. apply* awf_is_ok.
   rewrite* concat_assoc.
 Qed.
 
@@ -649,9 +789,8 @@ Lemma atyping_awf: forall G m e t H,
     AWf G.
 Proof.
   introv ty.
-  induction ty; simpl; auto.
+  induction ty; simpl; auto; try(solve[apply* AWf_left]).
   apply* AWf_left. rewrite* concat_assoc.
-  apply* AWf_left.
 Qed.
 
 (* substitution *)
@@ -686,6 +825,16 @@ Proof.
   destruct a; auto.
 Qed.
 
+Lemma tsubst_star : forall G,
+    ACtxTSubst G (AT_Expr AE_Star) = AT_Expr AE_Star.
+Proof.
+  intro G.
+  induction G.
+  unfold ACtxSubst. auto.
+  unfold ACtxSubst. destruct a. simpl.
+  destruct a; auto.
+Qed.
+
 Lemma awftyp_star: forall G,
     AWf G ->
     AWfTyp G (AT_Expr AE_Star).
@@ -694,7 +843,8 @@ Proof.
   apply AWf_Expr with empty.
   rewrite concat_empty_r.
   apply~ ATC_Sub.
-  rewrite subst_star.
+  rewrite tsubst_star.
+  apply ASub_Unify.
   apply AUnify_Star.
 Qed.
 
@@ -726,6 +876,20 @@ Proof.
   unfold ACtxTSubst. simpl. auto.
 Qed.
 
+Lemma subst_add_tvar : forall G e x,
+     ACtxSubst (G & x ~ AC_TVar) e = ACtxSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_tvar : forall G e x,
+     ACtxTSubst (G & x ~ AC_TVar) e = ACtxTSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
 Lemma subst_add_evar : forall G e x,
      ACtxSubst (G & x ~ AC_Unsolved_EVar) e = ACtxSubst G e.
 Proof.
@@ -740,29 +904,15 @@ Proof.
   unfold ACtxTSubst. simpl. auto.
 Qed.
 
-Lemma tsubst_add_bndvar: forall H x s t e,
-    ACtxTSubst (H & x ~ AC_Bnd s t) e = ACtxTSubst H (ATSubst x t e).
-Proof.
-  introv. rewrite <- cons_to_push in *.
-  unfold ACtxTSubst. simpl. auto.
-Qed.
-
-Lemma subst_add_bndvar: forall H x s t e,
-    ACtxSubst (H & x ~ AC_Bnd s t) e = ACtxSubst H (ASubst x t e).
-Proof.
-  introv. rewrite <- cons_to_push in *.
-  unfold ACtxTSubst. simpl. auto.
-Qed.
-
 Lemma tsubst_add_solved_evar: forall H x t e,
-    ACtxTSubst (H & x ~ AC_Solved_EVar t) e = ACtxTSubst H (ATSubst x t e).
+    ACtxTSubst (H & x ~ AC_Solved_EVar t) e = ACtxTSubst H (ATSubstT x t e).
 Proof.
   introv. rewrite <- cons_to_push in *.
   unfold ACtxTSubst. simpl. auto.
 Qed.
 
 Lemma subst_add_solved_evar: forall H x t e,
-    ACtxSubst (H & x ~ AC_Solved_EVar t) e = ACtxSubst H (ASubst x t e).
+    ACtxSubst (H & x ~ AC_Solved_EVar t) e = ACtxSubst H (ASubstT x t e).
 Proof.
   introv. rewrite <- cons_to_push in *.
   unfold ACtxTSubst. simpl. auto.
@@ -778,7 +928,7 @@ Proof.
 
   repeat(rewrite subst_add_var). auto.
   repeat(rewrite subst_add_typvar). auto.
-  repeat(rewrite subst_add_bndvar). auto.
+  repeat(rewrite subst_add_tvar). auto.
   repeat(rewrite subst_add_evar). auto.
   repeat(rewrite subst_add_solved_evar). auto.
 Qed.
@@ -793,90 +943,106 @@ Proof.
 
   repeat(rewrite tsubst_add_var). auto.
   repeat(rewrite tsubst_add_typvar). auto.
-  repeat(rewrite tsubst_add_bndvar). auto.
+  repeat(rewrite tsubst_add_tvar). auto.
   repeat(rewrite tsubst_add_evar). auto.
   repeat(rewrite tsubst_add_solved_evar). auto.
 Qed.
 
 Lemma subst_notin : forall x v e,
     x \notin (AFv e) ->
-    ASubst x v e = e.
+    ASubst x v e = e
+with tsubst_notin : forall x v e,
+    x \notin (ATFv e) ->
+    ATSubst x v e = e.
 Proof.
   introv notin.
   induction e; simpls; auto; fequals*.
   case_var*.
-  case_var*.
+Proof.
+  introv notin.
+  induction e; simpls; auto; fequals*.
+Qed.
+
+Lemma substt_notin : forall x v e,
+    x \notin (AFv e) ->
+    ASubstT x v e = e
+with tsubstt_notin : forall x v e,
+    x \notin (ATFv e) ->
+    ATSubstT x v e = e.
+Proof.
+  introv notin.
+  induction e; simpls; auto; fequals*.
+Proof.
+  introv notin.
+  induction e; simpls; auto; fequals*.
+  case_var*. case_var*.
 Qed.
 
 Lemma subst_twice : forall x v e,
     x \notin (AFv v) ->
-    ASubst x v (ASubst x v e) = ASubst x v e.
-Proof.
-  introv notin.
-  induction e; simpl; auto;
-    try(rewrite* IHe1; rewrite* IHe2);
-    try(rewrite* IHe).
-  destruct (eq_var_dec v0 x).
-  case_var*. rewrite* subst_notin.
-  case_var*. simpl. case_var*.
-  case_var*. rewrite* asubst_fresh. simpl. case_var*.
-Qed.
-
-Lemma tsubst_twice: forall x v t,
+    ASubst x v (ASubst x v e) = ASubst x v e
+with tsubst_twice: forall x v t,
     x \notin (AFv v) ->
     ATSubst x v (ATSubst x v t) = ATSubst x v t.
 Proof.
   introv notin.
-  induction t. simpls. rewrite* IHt.
-  simpls. rewrite* subst_twice.
+  induction e; simpl; auto; f_equal *.
+  case_var*. rewrite* subst_notin.
+  simpl. case_var*.
+Proof.
+  introv notin.
+  induction t; simpls; f_equal *.
+Qed.
+
+Lemma substt_twice : forall x v e,
+    x \notin (ATFv v) ->
+    ASubstT x v (ASubstT x v e) = ASubstT x v e
+with tsubstt_twice: forall x v t,
+    x \notin (ATFv v) ->
+    ATSubstT x v (ATSubstT x v t) = ATSubstT x v t.
+Proof.
+  introv notin.
+  induction e; simpl; auto; f_equal *.
+Proof.
+  introv notin.
+  induction t; simpls; f_equal *.
+  case_var*. rewrite* tsubstt_notin.
+  simpl. case_var*. case_var*. rewrite* tsubstt_notin.
+  simpl. case_var*.
 Qed.
 
 Lemma tsubst_tsubst: forall x vx y vy e,
     x <> y ->
     x \notin AFv (vx) ->
     ATSubst x vx (ATSubst y vy e) =
-    ATSubst x vx (ATSubst y (ASubst x vx vy) e) .
+    ATSubst x vx (ATSubst y (ASubst x vx vy) e)
+with tsubstt_tsubstt: forall x vx y vy e,
+    x <> y ->
+    x \notin ATFv (vx) ->
+    ATSubstT x vx (ATSubst y vy e) =
+    ATSubstT x vx (ATSubst y (ASubstT x vx vy) e) .
 Proof.
  introv.
- induction e; introv neq notin.
- simpl.
- rewrite* IHe.
+ induction e; introv neq notin; simpl; auto.
 
  induction a; simpl; auto;
    try(simpl in IHa1; inversion IHa1; rewrite H0;
        simpl in IHa2; inversion IHa2; rewrite H1);
-   try(simpl in IHa; inversion IHa; rewrite H0); auto.
+   try(simpl in IHa; inversion IHa; rewrite H0); f_equal *.
 
- destruct (eq_var_dec v y).
-  case_var*. rewrite* subst_twice.
-  case_var*.
-  case_var*. rewrite* subst_twice.
-Qed.
-
-Lemma tsubst_tsubst_distr: forall x vx y vy e,
-    x <> y ->
-    x \notin AFv (vx) ->
-    y \notin AFv (vx) ->
-    ATSubst x vx (ATSubst y vy e) =
-    ATSubst y (ASubst x vx vy) (ATSubst x vx e).
+   case_var*. rewrite* subst_twice.
+   f_equal *. f_equal *. f_equal *.
 Proof.
-  introv.
-  induction e; introv neq notinx notiny.
-  simpl.
-  rewrite* IHe.
+ introv.
+ induction e; introv neq notin; simpl; auto.
 
-  induction a; simpl; auto;
+ induction a; simpl; auto;
    try(simpl in IHa1; inversion IHa1; rewrite H0;
        simpl in IHa2; inversion IHa2; rewrite H1);
-   try(simpl in IHa; inversion IHa; rewrite H0); auto.
-  destruct (eq_var_dec v y).
-  case_var*.  case_var*. simpl. case_var*.
-  destruct (eq_var_dec v x).
-  case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
-  case_var*. case_var*. simpl. case_var*. case_var*.
-  case_var*. case_var*. simpl. case_var*. case_var*.
-  simpl. case_var*. rewrite asubst_fresh with (x:=y); auto.
-  simpl. case_var*. case_var*.
+   try(simpl in IHa; inversion IHa; rewrite H0); f_equal *.
+
+   case_var*. rewrite* substt_twice.
+   f_equal *. f_equal *. f_equal *.
 Qed.
 
 Lemma subst_subst_distr: forall x vx y vy e,
@@ -884,29 +1050,60 @@ Lemma subst_subst_distr: forall x vx y vy e,
     x \notin AFv (vx) ->
     y \notin AFv (vx) ->
     ASubst x vx (ASubst y vy e) =
-    ASubst y (ASubst x vx vy) (ASubst x vx e).
+    ASubst y (ASubst x vx vy) (ASubst x vx e)
+with tsubst_tsubst_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin AFv (vx) ->
+    y \notin AFv (vx) ->
+    ATSubst x vx (ATSubst y vy e) =
+    ATSubst y (ASubst x vx vy) (ATSubst x vx e).
 Proof.
   introv.
-  induction e; introv neq notinx notiny; simpl; auto;
-    try(rewrite <- IHe; auto);
-    try(rewrite <- IHe1; auto);
-    try(rewrite <- IHe2; auto).
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
   destruct (eq_var_dec v y).
   case_var*.  case_var*. simpl. case_var*.
   destruct (eq_var_dec v x).
   case_var*. case_var*. simpl. case_var*. rewrite* subst_notin.
   case_var*. case_var*. simpl. case_var*. case_var*.
-  case_var*. case_var*. simpl. case_var*. case_var*.
-  simpl. case_var*. rewrite asubst_fresh with (x:=y); auto.
-  simpl. case_var*. case_var*.
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
+Qed.
+
+Lemma substt_subst_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin ATFv (vx) ->
+    y \notin ATFv (vx) ->
+    ASubstT x vx (ASubst y vy e) =
+    ASubst y (ASubstT x vx vy) (ASubstT x vx e)
+with tsubstt_tsubst_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin ATFv (vx) ->
+    y \notin ATFv (vx) ->
+    ATSubstT x vx (ATSubst y vy e) =
+    ATSubst y (ASubstT x vx vy) (ATSubstT x vx e).
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
+  destruct (eq_var_dec v y).
+  case_var*.  case_var*.
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
+  case_var*. rewrite* tsubst_notin.
+  destruct (eq_var_dec v x).
+  case_var*. rewrite* tsubst_notin.
+  case_var*.
 Qed.
 
 (* notin *)
 
-
 Lemma in_open: forall x y e n,
     x \in AFv e ->
-    x \in AFv (AOpenRec n y e).
+    x \in AFv (AOpenRec n y e)
+with in_opent: forall x y e n,
+    x \in ATFv e ->
+    x \in ATFv (AOpenTypRec n y e).
 Proof.
   introv hi. gen n.
   induction e; introv; simpl in *; auto_star;
@@ -914,6 +1111,18 @@ Proof.
    apply union_left; apply* IHe1|
    apply union_right; apply* IHe2]).
   rewrite in_empty in hi; inversion hi.
+  rewrite in_union in hi. destruct hi as [hi1 | hi2].
+   apply union_left. apply* in_opent.
+   apply union_right; apply* in_opent.
+  rewrite in_union in hi. destruct hi as [hi1 | hi2].
+   apply union_left. apply* IHe.
+   apply union_right; apply* in_opent.
+Proof.
+  introv hi. gen n.
+  induction e; introv; simpl in *; auto_star;
+  try(rewrite in_union in hi; destruct hi as [hi1 | hi2]; [
+   apply union_left; apply* IHe1|
+   apply union_right; apply* IHe2]).
 Qed.
 
 Lemma notin_uv : forall G x, x # G -> x # (ACtxUV G).
@@ -924,76 +1133,72 @@ Proof.
   induction v; rewrite <- cons_to_push; simpl; auto.
 Qed.
 
-
 Lemma notin_solved_evar:  forall G x t,
     AWf (G & x ~ AC_Solved_EVar t) ->
-    x \notin AFv t.
+    x \notin ATFv t.
 Proof.
   introv wf.
-  apply notin_awterm with (G:=G).
+  apply notin_awtermt with (G:=G).
   apply* awterm_solved_evar.
   apply* AWf_push_inv.
 Qed.
 
-Lemma notin_subst: forall x t e,
-  x \notin AFv t ->
-  x \notin AFv (ASubst x t e).
-Proof.
-  introv notin.
-  induction e; simpl; auto.
-  case_if * . simpl. apply* notin_singleton.
-  case_if * . simpl. apply* notin_singleton.
-Qed.
+(* Lemma notin_subst: forall x t e, *)
+(*   x \notin AFv t -> *)
+(*   x \notin AFv (ASubst x t e) *)
+(* with notin_tsubst: forall x t e, *)
+(*   x \notin AFv t -> *)
+(*   x \notin ATFv (ATSubst x t e). *)
+(* Proof. *)
+(*   introv notin. *)
+(*   induction e; simpl; auto. *)
+(*   case_if * . simpl. apply* notin_singleton. *)
+(* Proof. *)
+(*   introv notin. *)
+(*   induction e. simpl; auto. *)
+(*   unfold ATSubst. simpl. *)
+(*   case_if * . simpl. apply* notin_singleton. *)
+(* Qed. *)
 
-Lemma notin_another_subst: forall x y t e,
-  x \notin AFv e ->
-  x \notin AFv t ->
-  x \notin AFv (ASubst y t e).
-Proof.
-  introv notine notint.
-  destruct (eq_var_dec x y); subst. apply* notin_subst.
-  induction e; simpls; auto.
-  case_if * .
-  case_if * .
-Qed.
+(* Lemma notin_another_subst: forall x y t e, *)
+(*   x \notin AFv e -> *)
+(*   x \notin AFv t -> *)
+(*   x \notin AFv (ASubst y t e). *)
+(* Proof. *)
+(*   introv notine notint. *)
+(*   destruct (eq_var_dec x y); subst. apply* notin_subst. *)
+(*   induction e; simpls; auto. *)
+(*   case_if * . *)
+(*   case_if * . *)
+(* Qed. *)
 
-Lemma notin_ctxsubst: forall x H e,
-  x \notin AFv e ->
-  x # H ->
-  AWf H ->
-  x \notin AFv (ACtxSubst H e).
-Proof.
-  introv notine notinh wf. gen e.
-  induction H using env_ind; introv notine.
-  rewrite* subst_empty_env.
-  assert (wf2:=wf). apply AWf_left in wf2.
-  induction v.
-  rewrite subst_add_var. apply* IHenv.
-  rewrite subst_add_typvar. apply* IHenv.
-  assert (x <> x0). simpl_dom. auto_star.
+(* Lemma notin_ctxsubst: forall x H e, *)
+(*   x \notin AFv e -> *)
+(*   x # H -> *)
+(*   AWf H -> *)
+(*   x \notin AFv (ACtxSubst H e). *)
+(* Proof. *)
+(*   introv notine notinh wf. gen e. *)
+(*   induction H using env_ind; introv notine. *)
+(*   rewrite* subst_empty_env. *)
+(*   assert (wf2:=wf). apply AWf_left in wf2. *)
+(*   induction v. *)
+(*   rewrite subst_add_var. apply* IHenv. *)
+(*   rewrite subst_add_typvar. apply* IHenv. *)
+(*   assert (x <> x0). simpl_dom. auto_star. *)
 
-  rewrite subst_add_bndvar.
-  apply* IHenv. apply* notin_another_subst.
-  apply notin_awterm with (G:=H); auto.
-  apply* awterm_bnd.
+(*   rewrite subst_add_bndvar. *)
+(*   apply* IHenv. apply* notin_another_subst. *)
+(*   apply notin_awterm with (G:=H); auto. *)
+(*   apply* awterm_bnd. *)
 
-  rewrite subst_add_evar. apply* IHenv.
+(*   rewrite subst_add_evar. apply* IHenv. *)
 
-  rewrite subst_add_solved_evar.
-  apply* IHenv. apply* notin_another_subst.
-  apply notin_awterm with (G:=H); auto.
-  apply* awterm_solved_evar.
-Qed.
-
-Lemma notin_bnd: forall G x s t,
-    AWf (G & x ~ AC_Bnd s t) ->
-    x \notin AFv t.
-Proof.
-  introv wf.
-  apply notin_awterm with (G:=G).
-  apply* awterm_bnd.
-  apply* AWf_push_inv.
-Qed.
+(*   rewrite subst_add_solved_evar. *)
+(*   apply* IHenv. apply* notin_another_subst. *)
+(*   apply notin_awterm with (G:=H); auto. *)
+(*   apply* awterm_solved_evar. *)
+(* Qed. *)
 
 (* uv *)
 
@@ -1034,28 +1239,22 @@ Proof.
   apply AWf_left in wf.
   apply* IHenv.
 
-  repeat(rewrite subst_add_bndvar).
-  rewrite subst_subst_distr.
+  repeat(rewrite subst_add_tvar).
   apply AWf_left in wf.
   apply* IHenv.
-  simpl_dom. auto.
-  simpl_dom.
-  assert (x # H). apply* AWf_push_inv.
-  apply awterm_bnd in wf. apply* notin_awterm.
-  apply awterm_bnd in wf. apply* notin_awterm.
 
   repeat(rewrite subst_add_evar).
   apply AWf_left in wf.
   apply* IHenv.
 
   repeat(rewrite subst_add_solved_evar).
-  rewrite subst_subst_distr.
+  rewrite substt_subst_distr.
   apply AWf_left in wf.
   apply* IHenv.
   simpl_dom. auto.
   assert (x # H). apply* AWf_push_inv.
-  apply awterm_solved_evar in wf. apply* notin_awterm.
-  apply awterm_solved_evar in wf. apply* notin_awterm.
+  apply awterm_solved_evar in wf. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply* notin_awtermt.
 Qed.
 
 Lemma distributivity_ctxtsubst_tsubst : forall H x s e,
@@ -1084,17 +1283,11 @@ Proof.
   apply AWf_left in wf.
   apply* IHenv.
 
-  rewrite subst_add_bndvar.
-  rewrite tsubst_add_bndvar.
-  rewrite tsubst_add_bndvar.
-  rewrite tsubst_tsubst_distr.
+  rewrite subst_add_tvar.
+  rewrite tsubst_add_tvar.
+  rewrite tsubst_add_tvar.
   apply AWf_left in wf.
   apply* IHenv.
-  simpl_dom. auto.
-  simpl_dom.
-  assert (x # H). apply* AWf_push_inv.
-  apply awterm_bnd in wf. apply* notin_awterm.
-  apply awterm_bnd in wf. apply* notin_awterm.
 
   rewrite subst_add_evar.
   rewrite tsubst_add_evar.
@@ -1105,11 +1298,11 @@ Proof.
   rewrite subst_add_solved_evar.
   rewrite tsubst_add_solved_evar.
   rewrite tsubst_add_solved_evar.
-  rewrite tsubst_tsubst_distr.
+  rewrite tsubstt_tsubst_distr.
   apply AWf_left in wf.
   apply* IHenv.
   simpl_dom. auto.
   assert (x # H). apply* AWf_push_inv.
-  apply awterm_solved_evar in wf. apply* notin_awterm.
-  apply awterm_solved_evar in wf. apply* notin_awterm.
+  apply awterm_solved_evar in wf. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply* notin_awtermt.
 Qed.

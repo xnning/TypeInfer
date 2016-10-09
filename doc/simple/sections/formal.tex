@@ -206,7 +206,7 @@
 \newcommand*{\DSPi}{\inferrule{\dpresub \sigma_3 \dsub \sigma_1 \\ \dpresub[,x:\sigma_1] \sigma_2 \dsub \sigma_4}{\dpresub \bpi x {\sigma_1} {\sigma_2} \dsub \bpi x {\sigma_3} {\sigma_4} \toctx}\rname{DS-Pi}}
 \newcommand*{\DSAEq}{\inferrule{\dpreuni \sigma_1 \aeq \sigma_2}{\dpresub \sigma_1 \dsub \sigma_2}\rname{DS-AEq}}
 
-\newcommand*{\SPolyR}{\inferrule{\tpresub[, \typA] \sigma_1 \lt \sigma_2 \toctx }{\tpresub \sigma_1 \lt \forall \typA:\star. \sigma_2 \toctx}\rname{S-PolyR}}
+\newcommand*{\SPolyR}{\inferrule{\tpresub[, \typA] \sigma_1 \lt \sigma_2 \toctx, \typA, \ctxr }{\tpresub \sigma_1 \lt \forall \typA:\star. \sigma_2 \toctx}\rname{S-PolyR}}
 \newcommand*{\SPolyL}{\inferrule{\tpresub[, \genA] \sigma_1 \subst \typA \genA \lt \sigma_2 \toctx}{\tpresub \forall \typA:\star. \sigma_1 \lt \sigma_2 \toctx}\rname{S-PolyL}}
 \newcommand*{\SPi}{\inferrule{\tpresub \sigma_3 \lt \sigma_1 \toctx_1 \\ \ctxl_1, x:\sigma_1 \bysub [\ctxl_1]\sigma_2 \lt [\ctxl_1]\sigma_4 \toctx, x:\sigma_1,\ctxr}{\tpresub \bpi x {\sigma_1} {\sigma_2} \lt \bpi x {\sigma_3} {\sigma_4} \toctx}\rname{S-Pi}}
 \newcommand*{\SEVarL}{\inferrule{\tctx \byrf^- \sigma \rfto \tau \toctx_1 \\ \ctxl_1 \byuni \genA \uni \tau \toctx}{\tpresub[{[\genA]}] \genA \lt \sigma \toctx}\rname{S-EVarL}}

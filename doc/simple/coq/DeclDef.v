@@ -12,14 +12,16 @@ Inductive DExpr : Set :=
   | DE_Star : DExpr
   | DE_App : DExpr -> DExpr -> DExpr
   | DE_Lam : DExpr -> DExpr
-  | DE_Pi : DExpr -> DExpr -> DExpr
-  | DE_Let : DExpr -> DExpr -> DExpr
+  | DE_Pi : DType -> DType -> DExpr
   | DE_CastUp : DExpr -> DExpr
   | DE_CastDn : DExpr -> DExpr
-  | DE_Ann : DExpr -> DExpr -> DExpr.
+  | DE_Ann : DExpr -> DType -> DExpr
+  | DE_Forall: DType -> DExpr
 
-Inductive DType : Set :=
-  | DT_Forall : DType -> DType
+with
+DType : Set :=
+  | DT_TBVar : nat -> DType
+  | DT_TFVar : var -> DType
   | DT_Expr : DExpr -> DType.
 
 (** Open Operation *)
@@ -31,26 +33,55 @@ Fixpoint DOpenRec (k : nat) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
   | DE_Star      => DE_Star
   | DE_App e1 e2 => DE_App    (DOpenRec k u e1) (DOpenRec k u e2)
   | DE_Lam e     => DE_Lam    (DOpenRec (S k) u e)
-  | DE_Pi t1 t2  => DE_Pi     (DOpenRec k u t1) (DOpenRec (S k) u t2)
-  | DE_Let e1 e2 => DE_Let    (DOpenRec k u e1) (DOpenRec (S k) u e2)
+  | DE_Pi t1 t2  => DE_Pi     (DOpenTypRec k u t1) (DOpenTypRec (S k) u t2)
   | DE_CastUp e  => DE_CastUp (DOpenRec k u e)
   | DE_CastDn e  => DE_CastDn (DOpenRec k u e)
-  | DE_Ann e t   => DE_Ann    (DOpenRec k u e) (DOpenRec k u t)
+  | DE_Ann e t   => DE_Ann    (DOpenRec k u e) (DOpenTypRec k u t)
+  | DE_Forall s  => DE_Forall (DOpenTypRec (S k) u s)
+
+  end
+with
+DOpenTypRec (k : nat) (u : DExpr) (e : DType) {struct e} : DType :=
+  match e with
+  | DT_TBVar i   => DT_TBVar i
+  | DT_TFVar i   => DT_TFVar i
+  | DT_Expr t    => DT_Expr (DOpenRec k u t)
   end.
 
-Fixpoint DOpenTypRec (k : nat) (u : DExpr) (e : DType) {struct e} : DType :=
+Fixpoint DTOpenRec (k : nat) (u : DType) (e : DExpr) {struct e} : DExpr :=
   match e with
-  | DT_Forall s => DT_Forall (DOpenTypRec (S k) u s)
-  | DT_Expr t   => DT_Expr (DOpenRec k u t)
+  | DE_BVar i    => DE_BVar i
+  | DE_FVar x    => DE_FVar x
+  | DE_Star      => DE_Star
+  | DE_App e1 e2 => DE_App    (DTOpenRec k u e1) (DTOpenRec k u e2)
+  | DE_Lam e     => DE_Lam    (DTOpenRec (S k) u e)
+  | DE_Pi t1 t2  => DE_Pi     (DTOpenTypRec k u t1) (DTOpenTypRec (S k) u t2)
+  | DE_CastUp e  => DE_CastUp (DTOpenRec k u e)
+  | DE_CastDn e  => DE_CastDn (DTOpenRec k u e)
+  | DE_Ann e t   => DE_Ann    (DTOpenRec k u e) (DTOpenTypRec k u t)
+  | DE_Forall s  => DE_Forall (DTOpenTypRec (S k) u s)
+  end
+with
+DTOpenTypRec (k : nat) (u : DType) (e : DType) {struct e} : DType :=
+  match e with
+  | DT_TBVar i    => If i = k then u else (DT_TBVar i)
+  | DT_TFVar i    => DT_TFVar i
+  | DT_Expr t     => DT_Expr (DTOpenRec k u t)
   end.
 
 Definition DOpen e u := DOpenRec 0 u e.
 Definition DOpenT e u := DOpenTypRec 0 u e.
+Definition DTOpen e u := DTOpenRec 0 u e.
+Definition DTOpenT e u := DTOpenTypRec 0 u e.
 
-Notation "e ^^ u" := (DOpen e u) (at level 67).
 Notation "e ^ x" := (DOpen e (DE_FVar x)).
-Notation "e ^^' u" := (DOpenT e u) (at level 67).
+Notation "e ^^ u" := (DOpen e u) (at level 67).
+Notation "e ^% x" := (DTOpen e (DT_TFVar x)) (at level 67).
+Notation "e ^^% u" := (DTOpen e u) (at level 67).
 Notation "e ^' x" := (DOpenT e (DE_FVar x)) (at level 67).
+Notation "e ^^' u" := (DOpenT e u) (at level 67).
+Notation "e ^%' x" := (DTOpenT e (DT_TFVar x)) (at level 67).
+Notation "e ^^%' u" := (DTOpenT e u) (at level 67).
 
 (** Closed Terms *)
 
@@ -63,28 +94,41 @@ Inductive DTerm : DExpr -> Prop :=
       (forall x, x \notin L -> DTerm (e ^ x)) ->
       DTerm (DE_Lam e)
   | DTerm_Pi : forall L t1 t2,
-      DTerm t1 ->
-      (forall x, x \notin L -> DTerm (t2 ^ x)) ->
+      DTermTy t1 ->
+      (forall x, x \notin L -> DTermTy (t2 ^' x)) ->
       DTerm (DE_Pi t1 t2)
-  | DTerm_Let : forall L e1 e2,
-      DTerm e1 ->
-      (forall x, x \notin L -> DTerm (e2 ^ x)) ->
-      DTerm (DE_Let e1 e2)
   | DTerm_CastUp : forall e,
       DTerm e -> DTerm (DE_CastUp e)
   | DTerm_CastDn : forall e,
       DTerm e -> DTerm (DE_CastDn e)
   | DTerm_Ann : forall t e,
-      DTerm t -> DTerm e -> DTerm (DE_Ann t e).
+      DTerm t -> DTermTy e -> DTerm (DE_Ann t e)
+  | DTerm_Forall : forall L t,
+      (forall x, x \notin L -> DTermTy (t ^%' x)) ->
+      DTerm (DE_Forall t)
+with
+DTermTy : DType -> Prop :=
+  | DTermTy_TFVar : forall i, DTermTy (DT_TFVar i)
+  | DTermTy_Expr : forall e,
+      DTerm e -> DTermTy (DT_Expr e).
+
+Inductive DMono : DExpr -> Prop :=
+| DM_FVar : forall x, DMono (DE_FVar x)
+| DM_Star: DMono (DE_Star)
+| DM_App: forall e1 e2, DMono e1 -> DMono e2 -> DMono (DE_App e1 e2)
+| DM_Lam: forall L e, (forall x, x \notin L -> DMono (e ^ x)) -> DMono (DE_Lam e)
+| DM_Pi: forall L s1 s2, DTMono s1 -> (forall x, x \notin L -> DTMono (s2 ^' x)) -> DMono (DE_Pi s1 s2)
+| DM_CastUp: forall e, DMono e -> DMono (DE_CastUp e)
+| DM_CastDn: forall e, DMono e -> DMono (DE_CastDn e)
+| DM_Ann: forall e s, DMono e -> DTMono s -> DMono (DE_Ann e s)
+
+with
+DTMono: DType -> Prop :=
+| DM_TFVar : forall x, DTMono (DT_TFVar x)
+| DM_Expr : forall e, DMono e -> DTMono (DT_Expr e).
 
 Definition DBody t :=
   exists L, forall x, x \notin L -> DTerm (t ^ x).
-
-Inductive DTermTy : DType -> Prop :=
-  | DTermTy_Expr : forall e, DTerm e -> DTermTy (DT_Expr e)
-  | DTermTy_Forall : forall L t,
-      (forall x, x \notin L -> DTermTy (t ^' x)) ->
-      DTermTy (DT_Forall t).
 
 Definition DBodyTy t :=
   exists L, forall x, x \notin L -> DTermTy (t ^' x).
@@ -98,17 +142,39 @@ Fixpoint DSubst (z : var) (u : DExpr) (e : DExpr) {struct e} : DExpr :=
   | DE_Star      => DE_Star
   | DE_App e1 e2 => DE_App    (DSubst z u e1) (DSubst z u e2)
   | DE_Lam e     => DE_Lam    (DSubst z u e)
-  | DE_Pi t1 t2  => DE_Pi     (DSubst z u t1) (DSubst z u t2)
-  | DE_Let e1 e2 => DE_Let    (DSubst z u e1) (DSubst z u e2)
+  | DE_Pi t1 t2  => DE_Pi     (DTSubst z u t1) (DTSubst z u t2)
   | DE_CastUp e  => DE_CastUp (DSubst z u e)
   | DE_CastDn e  => DE_CastDn (DSubst z u e)
-  | DE_Ann e t   => DE_Ann    (DSubst z u e) (DSubst z u t)
+  | DE_Ann e t   => DE_Ann    (DSubst z u e) (DTSubst z u t)
+  | DE_Forall s  => DE_Forall (DTSubst z u s)
+  end
+with
+DTSubst (z : var) (u : DExpr) (e : DType) {struct e} : DType :=
+  match e with
+  | DT_TBVar i    => DT_TBVar i
+  | DT_TFVar i    => DT_TFVar i
+  | DT_Expr t    => DT_Expr (DSubst z u t)
   end.
 
-Fixpoint DTSubst (z : var) (u : DExpr) (e : DType) {struct e} : DType :=
+Fixpoint DSubstT (z : var) (u : DType) (e : DExpr) {struct e} : DExpr :=
   match e with
-  | DT_Forall s  => DT_Forall (DTSubst z u s)
-  | DT_Expr t    => DT_Expr (DSubst z u t)
+  | DE_BVar i    => DE_BVar i
+  | DE_FVar x    => DE_FVar x
+  | DE_Star      => DE_Star
+  | DE_App e1 e2 => DE_App    (DSubstT z u e1) (DSubstT z u e2)
+  | DE_Lam e     => DE_Lam    (DSubstT z u e)
+  | DE_Pi t1 t2  => DE_Pi     (DTSubstT z u t1) (DTSubstT z u t2)
+  | DE_CastUp e  => DE_CastUp (DSubstT z u e)
+  | DE_CastDn e  => DE_CastDn (DSubstT z u e)
+  | DE_Ann e t   => DE_Ann    (DSubstT z u e) (DTSubstT z u t)
+  | DE_Forall s  => DE_Forall (DTSubstT z u s)
+  end
+with
+DTSubstT (z : var) (u : DType) (e : DType) {struct e} : DType :=
+  match e with
+  | DT_TBVar i    => DT_TBVar i
+  | DT_TFVar i    => If i = z then u else (DT_TFVar i)
+  | DT_Expr t     => DT_Expr (DSubstT z u t)
   end.
 
 (** Free Varialble *)
@@ -120,34 +186,27 @@ Fixpoint DFv (e : DExpr) {struct e} : vars :=
   | DE_Star      => \{}
   | DE_App e1 e2 => (DFv e1) \u (DFv e2)
   | DE_Lam e     => DFv e
-  | DE_Pi t1 t2  => (DFv t1) \u (DFv t2)
-  | DE_Let e1 e2 => (DFv e1) \u (DFv e2)
+  | DE_Pi t1 t2  => (DTFv t1) \u (DTFv t2)
   | DE_CastUp e  => DFv e
   | DE_CastDn e  => DFv e
-  | DE_Ann e t   => (DFv e) \u (DFv t)
-  end.
-
-Fixpoint DTFv (e : DType) {struct e} : vars :=
+  | DE_Ann e t   => (DFv e) \u (DTFv t)
+  | DE_Forall s  => DTFv s
+  end
+with
+DTFv (e : DType) {struct e} : vars :=
   match e with
-  | DT_Forall s => DTFv s
+  | DT_TBVar i => \{}
+  | DT_TFVar i => \{i}
   | DT_Expr t   => DFv t
   end.
 
 (** Context *)
 
 Inductive DCtxT : Set :=
-  | DC_Typ : DExpr -> DCtxT
-  | DC_Bnd : DType -> DExpr -> DCtxT.
+  | DC_TVar: DCtxT
+  | DC_Typ : DType -> DCtxT.
 
 Definition DCtx := LibEnv.env DCtxT.
-
-Definition DCtxSubst (G : DCtx) (e : DExpr) : DExpr :=
-  LibList.fold_left
-    (fun (c : var * DCtxT) v => let (x, p) := c in
-        match p with
-        | DC_Typ _ => v
-        | DC_Bnd s t => DSubst x t v
-        end) e G.
 
 (** Reduction *)
 
@@ -165,115 +224,96 @@ Inductive DRed : DExpr -> DExpr -> Prop :=
   | DR_CastDn : forall e e',
       DRed e e' -> DRed (DE_CastDn e) (DE_CastDn e')
   | DR_Ann : forall e t e',
-      DTerm t -> DRed e e' ->
+      DTermTy t -> DRed e e' ->
       DRed (DE_Ann e t) (DE_Ann e' t)
-  | DR_Let : forall e1 e2,
-      DTerm (DE_Let e1 e2) ->
-      DRed (DE_Let e1 e2) (e2 ^^ e1).
-
+.
 (** Typing *)
 
-Inductive DMode := Inf | Chk.
+Inductive DMode := Inf | Chk | App : DType -> DMode.
 
-Inductive DTyping : DMode -> DCtx -> DExpr -> DExpr -> Prop :=
-  | DTI_Ax : forall G, DWf G -> DTyping Inf G DE_Star DE_Star
-  | DTI_Var : forall G x t, DWf G -> binds x (DC_Typ t) G ->
-                            DTyping Inf G (DE_FVar x) t
-  | DTI_LetVar : forall G x s t t2,
-      DWf G -> binds x (DC_Bnd s t) G ->
-      DInst G s t2 ->
-      DTyping Inf G (DE_FVar x) t2
+Inductive DTyping : DMode -> DCtx -> DType -> DType -> Prop :=
+  | DTI_TFVar : forall G a, DWf G -> binds a DC_TVar G ->
+                      DTyping Inf G (DT_TFVar a) (DT_Expr DE_Star)
+  | DTI_Ax : forall G, DWf G -> DTyping Inf G (DT_Expr DE_Star) (DT_Expr DE_Star)
+  | DTI_Var : forall G x s, DWf G -> binds x (DC_Typ s) G ->
+                       DTyping Inf G (DT_Expr (DE_FVar x)) s
   | DTI_Ann : forall G e t,
-      DTyping Chk G t DE_Star ->
-      DTyping Chk G e t ->
-      DTyping Inf G (DE_Ann e t) t
+      DTyping Chk G t (DT_Expr DE_Star) ->
+      DTyping Chk G (DT_Expr e) t ->
+      DTyping Inf G (DT_Expr (DE_Ann e t)) t
   | DTI_Lam : forall L G e t1 t2,
-      DTyping Chk G t1 DE_Star ->
+      DTMono t1 ->
+      DTyping Chk G t1 (DT_Expr DE_Star) ->
       (forall x, x \notin L ->
-                 DTyping Inf (G & x ~ (DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTyping Inf G (DE_Lam e) (DE_Pi t1 t2)
-  | DTI_App : forall G e1 e2 t1 t2,
-      DTyping Inf G e1 (DE_Pi t1 t2) ->
-      DTyping Chk G e2 t1 ->
-      DTyping Inf G (DE_App e1 e2) (t2 ^^ e2)
-  | DTI_Let : forall L G e1 e2 s t2,
-      DGen G e1 s ->
-      (forall x, x \notin L ->
-                 DTyping Inf (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
-      DTyping Inf G (DE_Let e1 e2) (t2 ^^ e1)
+                 DTyping Inf (G & x ~ DC_Typ t1) (DT_Expr (e ^ x)) (t2 ^' x)) ->
+      DTyping Inf G (DT_Expr (DE_Lam e)) (DT_Expr (DE_Pi t1 t2))
   | DTI_Pi : forall L G t1 t2,
-      DTyping Chk G t1 DE_Star ->
+      DTyping Chk G t1 (DT_Expr DE_Star) ->
       (forall x, x \notin L ->
-                 DTyping Chk (G & (x ~ DC_Typ t1)) (t2 ^ x) DE_Star) ->
-      DTyping Inf G (DE_Pi t1 t2) DE_Star
+                 DTyping Chk (G & (x ~ DC_Typ t1)) (t2 ^' x) (DT_Expr DE_Star)) ->
+      DTyping Inf G (DT_Expr (DE_Pi t1 t2)) (DT_Expr DE_Star)
+  | DTI_Forall : forall L G s,
+      (forall a, a \notin L ->
+            DTyping Chk (G & a ~ DC_TVar) (s ^%' a) (DT_Expr DE_Star)) ->
+      DTyping Inf G (DT_Expr (DE_Forall s)) (DT_Expr DE_Star)
   | DTI_CastDn : forall G e t1 t2,
-      DTyping Inf G e t1 ->
+      DTyping Inf G (DT_Expr e) (DT_Expr t1) ->
       DRed t1 t2 ->
-      DTyping Inf G (DE_CastDn e) t2
-  | DTI_Conv : forall G e1 t1 t2,
-      DTyping Inf G e1 t2 ->
-      DCtxSubst G t1 = DCtxSubst G t2 ->
-      DTyping Inf G e1 t2
-      
+      DTyping Inf G (DT_Expr (DE_CastDn e)) (DT_Expr t2)
+  | DTI_App : forall G e1 e2 s1 s2,
+      DTyping Inf G (DT_Expr e1) s1 ->
+      DTyping (App s1) G (DT_Expr e2) s2 ->
+      DTyping Inf G (DT_Expr (DE_App e1 e2)) s2
+  | DTA_Pi : forall G s1 s2 e2,
+      DTyping Chk G (DT_Expr e2) s1 ->
+      DTyping (App (DT_Expr (DE_Pi s1 s2))) G (DT_Expr e2) (s2 ^^' e2)
+  | DTA_Forall : forall G s1 s2 t e2,
+      DTMono t ->
+      DTyping Chk G t (DT_Expr DE_Star) ->
+      DTyping (App (s1 ^^%' t)) G e2 s2 ->
+      DTyping (App (DT_Expr (DE_Forall s1))) G e2 s2
   | DTC_Lam : forall L G e t1 t2,
-      DTyping Chk G t1 DE_Star ->
+      DTyping Chk G t1 (DT_Expr DE_Star) ->
       (forall x, x \notin L ->
-                 DTyping Chk (G & (x ~ DC_Typ t1)) (e ^ x) (t2 ^ x)) ->
-      DTyping Chk G (DE_Lam e) (DE_Pi t1 t2)
-  | DTC_Let : forall L G e1 e2 s t2,
-      DGen G e1 s ->
-      (forall x, x \notin L ->
-                 DTyping Chk (G & x ~ (DC_Bnd s e1)) (e2 ^ x) (t2 ^ x)) ->
-      DTyping Chk G (DE_Let e1 e2) (t2 ^^ e1)
+            DTyping Chk (G & x ~ DC_Typ t1) (DT_Expr (e ^ x)) (t2 ^' x)) ->
+      DTyping Chk G (DT_Expr (DE_Lam e)) (DT_Expr (DE_Pi t1 t2))
   | DTC_CastUp : forall G e t1 t2,
-      DTyping Chk G e t1 ->
       DRed t2 t1 ->
-      DTyping Chk G (DE_CastUp e) t2
-  | DTC_Sub : forall G e t,
-      DTyping Inf G e t ->
-      DTyping Chk G e t
-
-with DWfTyp : DCtx -> DType -> Prop :=
-  | DWf_Expr : forall G t,
-      DTyping Chk G t DE_Star ->
-      DWfTyp G (DT_Expr t)
-  | DWf_Poly : forall L G s,
-      (forall x, x \notin L ->
-                 DWfTyp (G & x ~ DC_Typ DE_Star) (s ^' x)) ->
-      DWfTyp G (DT_Forall s)
+      DTyping Chk G (DT_Expr e) (DT_Expr t1) ->
+      DTyping Chk G (DT_Expr (DE_CastUp e)) (DT_Expr t2)
+  | DTC_Sub : forall G e s1 s2,
+      DTyping Inf G e s1 ->
+      DSubtyping G s1 s2 ->
+      DTyping Chk G e s2
+  | DTC_Inst : forall L G e s,
+      (forall a, a \notin L -> DTyping Chk (G & a ~ DC_TVar) e (s ^%' a)) ->
+      DTyping Chk G e (DT_Expr (DE_Forall s))
 
 with DWf : DCtx -> Prop :=
   | DWf_Nil : DWf empty
-  | DWf_TyVar : forall G x t,
+  | DWf_TVar : forall G a,
+      DWf G -> a # G -> DWf (G & a ~ DC_TVar)
+  | DWf_TyVar : forall G x s,
       DWf G -> x # G ->
-      DTyping Chk G t DE_Star ->
-      DWf (G & x ~ DC_Typ t)
-  | DWf_LetVar : forall G x s t,
-      DWf G -> x # G -> DWfTyp G (DT_Expr s) ->
-      DTyping Chk G t s ->
-      DWf (G & x ~ DC_Bnd (DT_Expr s) t)
-  | DWf_LetVar2 : forall L G x s t,
-      DWf G -> x # G -> DWfTyp G (DT_Forall s) ->
-      (forall y, y \notin L -> DWf (G & x ~ DC_Bnd (s ^' y) t)) ->
-      DWf (G & x ~ DC_Bnd (DT_Forall s) t)
+      DTyping Chk G s (DT_Expr DE_Star) ->
+      DWf (G & x ~ DC_Typ s)
 
-with DInst : DCtx -> DType -> DExpr -> Prop :=
-  | DInst_Expr : forall G t1,
-      DTyping Chk G t1 DE_Star ->
-      DInst G (DT_Expr t1) t1
-  | DInst_Poly : forall G t s t1,
-      DTyping Chk G t DE_Star ->
-      DInst G (s ^^' t) t1  ->
-      DInst G (DT_Forall s) t1
-
-with DGen : DCtx -> DExpr -> DType -> Prop :=
-  | DGen_Expr : forall G e t,
-      DTyping Inf G e t ->
-      DGen G e (DT_Expr t)
-  | DGen_Poly : forall L G e s,
-      (forall x, x \notin L -> x \notin (DFv e) ->
-                 DGen (G & x ~ DC_Typ DE_Star) e (s ^' x)) ->
-      DGen G e (DT_Forall s).
+with DSubtyping: DCtx -> DType -> DType -> Prop :=
+  | DSub_PolyR: forall L G s1 s2,
+      (forall a, a \notin L -> DSubtyping (G & a ~ DC_TVar) s1 (s2 ^%' a)) ->
+      DSubtyping G s1 (DT_Expr (DE_Forall s2))
+  | DSub_PolyL: forall G t s1 s2,
+      DTMono t ->
+      DTyping Chk G t (DT_Expr DE_Star) ->
+      DSubtyping G (s1 ^^%' t) s2 ->
+      DSubtyping G (DT_Expr (DE_Forall s1)) s2
+  | DSub_Pi: forall L G s1 s2 s3 s4,
+      DSubtyping G s3 s1 ->
+      (forall x, x \notin L -> DSubtyping (G & x ~ DC_Typ s1) (s2 ^' x) (s4 ^' x)) ->
+      DSubtyping G (DT_Expr (DE_Pi s1 s2)) (DT_Expr (DE_Pi s3 s4))
+  | DSub_AEq: forall G s,
+      DSubtyping G s s
+.
 
 Definition DTypingC := DTyping Chk.
 Definition DTypingI := DTyping Inf.
