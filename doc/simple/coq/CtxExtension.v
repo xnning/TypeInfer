@@ -1240,53 +1240,69 @@ Proof.
   rewrite HH in H0. apply AWf_push_inv in H0. auto_star.
 Qed.
 
-(* Lemma extension_weakening_awterm: extension_weakening_awterm_def *)
-(* with *)
-(* extension_weakening_awtermt : extension_weakening_awtermt_def. *)
-(* Proof. *)
-(*   introv ga gh. assert (wf: ok H). apply* ok_preservation. *)
-(*   gen H. *)
-(*   induction ga; introv gh wf; auto; try(apply split_bind_context in H; destruct H as (G1 & G2 & gi); rewrite gi in gh). *)
-(*   apply extension_order_var in gh. destruct gh as (H1 & H2 & [hi _]). *)
-(*   rewrite hi. constructor*. *)
-(*   apply* binds_middle_eq. *)
-(*   rewrite hi in wf. apply* ok_middle_inv_r. *)
+Lemma extension_weakening_awterm: forall G H a,
+    AWTerm G a ->
+    ExtCtx G H ->
+    AWTerm H a
+with
+extension_weakening_awtermt : forall G H a,
+    AWTermT G a ->
+    ExtCtx G H ->
+    AWTermT H a.
+Proof.
+  introv ga gh. assert (wf: ok H). apply* ok_preservation.
+  gen H.
+  induction ga; introv gh wf; auto; try(apply split_bind_context in H; destruct H as (G1 & G2 & gi); rewrite gi in gh).
+  apply extension_order_var in gh. destruct gh as (H1 & H2 & [hi _]).
+  rewrite hi. constructor*.
+  apply* binds_middle_eq.
+  rewrite hi in wf. apply* ok_middle_inv_r.
 
-(*   apply extension_order_typvar in gh. destruct gh as (H1 & H2 & t2 & [hi _]). *)
-(*   rewrite hi. apply* AWTerm_TypVar. *)
-(*   apply* binds_middle_eq. *)
-(*   rewrite hi in wf. apply* ok_middle_inv_r. *)
+  apply extension_order_typvar in gh. destruct gh as (H1 & H2 & t2 & [hi _]).
+  rewrite hi. apply* AWTerm_TypVar.
+  apply* binds_middle_eq.
+  rewrite hi in wf. apply* ok_middle_inv_r.
 
-(*   apply extension_order_tvar in gh. destruct gh as (H1 & H2 & s2 & t2 & [hi _]). *)
-(*   rewrite hi. apply* AWTerm_LetVar. *)
-(*   rewrite hi in wf. apply* binds_middle_eq. *)
-(*   apply* ok_middle_inv_r. *)
+  assert (AWf G). apply awf_context in gh. assumption.
+  assert (AWf H1). apply awf_preservation in gh. assumption.
+  apply AWTerm_Lam with (L:=L \u dom H1 \u dom G). introv notin. apply* H0.
 
-(*   apply extension_order_unsolved_evar in gh. destruct gh as (H1 & H2 & [hi _]). *)
-(*   destruct hi as [hi1 | (t & hi1)]; *)
-(*     try(rewrite hi1); *)
-(*     [apply* AWTerm_EVar | apply* AWTerm_Solved_EVar]; *)
-(*     try(rewrite hi1 in wf; apply* binds_middle_eq);try(apply* ok_middle_inv_r). *)
+  assert (AWf G). apply awf_context in gh. assumption.
+  assert (AWf H1). apply awf_preservation in gh. assumption.
+  apply AWTerm_Pi with (L:=L \u dom H1 \u dom G). apply* extension_weakening_awtermt.
+  intros. apply* extension_weakening_awtermt.
 
-(*   apply extension_order_solved_evar in gh. destruct gh as (H1 & H2 & t2 & [hi _]). *)
-(*   rewrite hi. apply* AWTerm_Solved_EVar. *)
-(*   rewrite hi in wf. apply* binds_middle_eq. *)
-(*   apply* ok_middle_inv_r. *)
+  assert (AWf G). apply awf_context in gh. assumption.
+  assert (AWf H0). apply awf_preservation in gh. assumption.
+  apply AWTerm_Ann. apply* IHga. apply* extension_weakening_awtermt.
 
-(*   assert (AWf G). apply awf_context in gh. assumption. *)
-(*   assert (AWf H1). apply awf_preservation in gh. assumption. *)
-(*   apply AWTerm_Lam with (L:=L \u dom H1 \u dom G). introv notin. apply* H0. *)
+  assert (AWf G). apply awf_context in gh. assumption.
+  assert (AWf H0). apply awf_preservation in gh. assumption.
+  apply AWTerm_Forall with (L:=L \u dom H0 \u dom G).
+  intros. apply* extension_weakening_awtermt.
+Proof.
+  introv ga gh. assert (wf: ok H). apply* ok_preservation.
+  gen H.
+  induction ga; introv gh wf; auto; try(apply split_bind_context in H; destruct H as (G1 & G2 & gi); rewrite gi in gh).
+  apply extension_order_tvar in gh. destruct gh as (H1 & H2 & [hi _]).
+  rewrite hi. apply* AWTermT_TFVar.
+  apply* binds_middle_eq.
+  rewrite hi in wf. apply* ok_middle_inv_r.
 
-(*   assert (AWf G). apply awf_context in gh. assumption. *)
-(*   assert (AWf H1). apply awf_preservation in gh. assumption. *)
-(*   apply AWTerm_Pi with (L:=L \u dom H1 \u dom G). apply* IHga. *)
-(*   introv notin. apply* H0. *)
+  apply extension_order_unsolved_evar in gh. destruct gh as (H1 & H2 & [hi _]).
+  destruct hi as [hi1 | (t & hi1)];
+    try(rewrite hi1);
+    [apply* AWTermT_Unsolved_EVar | apply* AWTermT_Solved_EVar];
+    try(rewrite hi1 in wf; apply* binds_middle_eq);try(apply* ok_middle_inv_r).
 
-(*   assert (AWf G). apply awf_context in gh. assumption. *)
-(*   assert (AWf H1). apply awf_preservation in gh. assumption. *)
-(*   apply AWTerm_Let with (L:=L \u dom H1 \u dom G). apply* IHga. *)
-(*   introv notin. apply* H0. *)
-(* Qed. *)
+  apply extension_order_solved_evar in gh. destruct gh as (H1 & H2 & t2 & [hi _]).
+  rewrite hi. apply* AWTermT_Solved_EVar.
+  rewrite hi in wf. apply* binds_middle_eq.
+  apply* ok_middle_inv_r.
+
+  apply AWTermT_Expr.
+  apply* extension_weakening_awterm.
+Qed.
 
 Lemma extension_equality_preservation: extension_equality_preservation_def.
 Proof.
