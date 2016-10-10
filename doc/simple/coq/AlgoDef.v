@@ -212,6 +212,52 @@ ATFv (e : AType) {struct e} : vars :=
   end
   .
 
+Fixpoint AFev (e : AExpr) {struct e} : vars :=
+  match e with
+  | AE_BVar i    => \{}
+  | AE_FVar x    => \{x}
+  | AE_Star      => \{}
+  | AE_App e1 e2 => (AFev e1) \u (AFev e2)
+  | AE_Lam e     => AFev e
+  | AE_Pi t1 t2  => (ATFev t1) \u (ATFev t2)
+  | AE_CastUp e  => AFev e
+  | AE_CastDn e  => AFev e
+  | AE_Ann e t   => (AFev e) \u (ATFev t)
+  | AE_Forall  t => ATFev t
+  end
+with
+ATFev (e : AType) {struct e} : vars :=
+  match e with
+  | AT_TBVar x   => \{}
+  | AT_TFVar x   => \{}
+  | AT_EVar x    => \{}
+  | AT_Expr e    => AFev e
+  end
+  .
+
+Fixpoint AFtv (e : AExpr) {struct e} : vars :=
+  match e with
+  | AE_BVar i    => \{}
+  | AE_FVar x    => \{}
+  | AE_Star      => \{}
+  | AE_App e1 e2 => (AFtv e1) \u (AFtv e2)
+  | AE_Lam e     => AFtv e
+  | AE_Pi t1 t2  => (ATFtv t1) \u (ATFtv t2)
+  | AE_CastUp e  => AFtv e
+  | AE_CastDn e  => AFtv e
+  | AE_Ann e t   => (AFtv e) \u (ATFtv t)
+  | AE_Forall  t => ATFtv t
+  end
+with
+ATFtv (e : AType) {struct e} : vars :=
+  match e with
+  | AT_TBVar x   => \{}
+  | AT_TFVar x   => \{x}
+  | AT_EVar x    => \{x}
+  | AT_Expr e    => AFtv e
+  end
+  .
+
 (** Context *)
 
 Inductive ACtxT : Set :=

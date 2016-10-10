@@ -6,8 +6,8 @@
     \headercapm{\tctx \exto \ctxr}{Context Extension}
 
     \[\CEEmtpy \quad \CEVar\quad\CETypedVar\]
-    \[\CELetVar\quad\CEEVar \quad \CESolvedEVar\]
-    \[\CESolve\quad\CEAdd \quad \CEAddSolved\]
+    \[\CETVar \quad\CEEVar \quad \CESolvedEVar\]
+    \[\CESolve \quad\CEAdd \quad \CEAddSolved\]
     \caption{Context Extension.}
     \label{fig:ctx-extension}
 \end{figure*}
@@ -19,8 +19,8 @@
     \begin{tabular}{r c l l}
         $[\ctxinit]\ctxinit$   & = & $\ctxinit$    \\
         $[\cctx,x](\tctx,x)$ & = & $[\cctx]\tctx$  \\
+        $[\cctx,\typA](\tctx,\typA)$ & = & $[\cctx]\tctx, \typA$  \\
         $[\cctx,x:\tau_1](\tctx,x:\tau_2)$ & = & $[\cctx]\tctx,x:[\cctx]\tau_1$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
-        $[\cctx,x:\sigma_1=\tau_1](\tctx,x:\sigma_2=\tau_2)$ & = & $[\cctx]\tctx,x:[\cctx]\sigma_1=[\cctx]\tau_1$ & if $[\cctx]\sigma_1$=$[\cctx]\sigma_2$ and $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
         $[\cctx,\genA=\tau_1](\tctx,\genA)$ & = & $[\cctx]\tctx$ \\
         $[\cctx,\genA=\tau_1](\tctx,\genA=\tau_2)$ & = & $[\cctx]\tctx$ & if $[\cctx]\tau_1$=$[\cctx]\tau_2$ \\
         $[\cctx,\genA=\tau_1]\tctx$ & = & $[\cctx]\tctx$ & if $\genA \notin dom(\tctx)$ \\

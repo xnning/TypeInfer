@@ -321,6 +321,7 @@
 
 \newcommand*{\CEEmtpy}{\inferrule{  }{\ctxinit \exto \ctxinit}\rname{CE-Empty}}
 \newcommand*{\CEVar}{\inferrule{\tctx \exto \ctxr}{\tctx, x \exto \ctxr, x}\rname{CE-Var}}
+\newcommand*{\CETVar}{\inferrule{\tctx \exto \ctxr}{\tctx, \typA \exto \ctxr, \typA}\rname{CE-TVar}}
 \newcommand*{\CETypedVar}{\inferrule{\tctx \exto \ctxr \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\tctx, x:\tau_1 \exto \ctxr, x:\tau_2}\rname{CE-TypedVar}}
 \newcommand*{\CELetVar}{\inferrule{\tctx \exto \ctxr \\ [\ctxr]\sigma_1 = [\ctxr]\sigma_2 \\ [\ctxr]\tau_1 = [\ctxr]\tau_2}{\tctx, x:\sigma_1=\tau_1 \exto \ctxr, x:\sigma_2 = \tau_2}\rname{CE-LetVar}}
 \newcommand*{\CEEVar}{\inferrule{\tctx \exto \ctxr}{\tctx, \genA \exto \ctxr, \genA}\rname{CE-EVar}}

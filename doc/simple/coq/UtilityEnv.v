@@ -299,13 +299,13 @@ Proof.
   apply* AWTermT_Solved_EVar.
 Qed.
 
-Lemma notin_open : forall x y e n,
-    x \notin (AFv (AOpenRec n y e)) ->
-    x \notin (AFv e)
+Lemma notin_open_fev : forall x y e n,
+    x \notin (AFev (AOpenRec n y e)) ->
+    x \notin (AFev e)
 with
-notin_opent : forall x y e n,
-    x \notin (ATFv (AOpenTypRec n y e)) ->
-    x \notin (ATFv e).
+notin_opent_fev : forall x y e n,
+    x \notin (ATFev (AOpenTypRec n y e)) ->
+    x \notin (ATFev e).
 Proof.
   introv notin. gen n.
   induction e; introv notin; try(simpl in *; auto);
@@ -319,23 +319,53 @@ Proof.
       try(lets: notin_opent notin1);
       try(lets: notin_opent notin2);
       auto_star).
-  apply* notin_opent.
-
+  apply* notin_opent_fev.
+Proof.
   introv notin. gen n.
   induction e; introv notin.
     simpl in *; auto_star.
     simpl in *. auto.
     simpl in *. auto.
-    simpl in *. apply*  notin_open.
+    simpl in *. apply*  notin_open_fev.
 Qed.
 
-Lemma notin_topen : forall x y e n,
-    x \notin (AFv (ATOpenRec n y e)) ->
-    x \notin (AFv e)
+Lemma notin_open_ftv : forall x y e n,
+    x \notin (AFtv (AOpenRec n y e)) ->
+    x \notin (AFtv e)
 with
-notin_topent : forall x y e n,
-    x \notin (ATFv (ATOpenTypRec n y e)) ->
-    x \notin (ATFv e).
+notin_opent_ftv : forall x y e n,
+    x \notin (ATFtv (AOpenTypRec n y e)) ->
+    x \notin (ATFtv e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin; try(simpl in *; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      apply IHe1 in notin1;
+      apply IHe2 in notin2; auto);
+  try(apply IHe in notin; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      try(lets: notin_opent notin1);
+      try(lets: notin_opent notin2);
+      auto_star).
+  apply* notin_opent_ftv.
+Proof.
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. auto.
+    simpl in *. auto.
+    simpl in *. apply*  notin_open_ftv.
+Qed.
+
+Lemma notin_topen_ftv : forall x y e n,
+    x \notin (AFtv (ATOpenRec n y e)) ->
+    x \notin (AFtv e)
+with
+notin_topent_ftv : forall x y e n,
+    x \notin (ATFtv (ATOpenTypRec n y e)) ->
+    x \notin (ATFtv e).
 Proof.
   introv notin. gen n.
   induction e; introv notin; try(simpl in *; auto);
@@ -349,14 +379,78 @@ Proof.
       try(lets: notin_topen notin1);
       try(lets: notin_topen notin2);
       auto_star).
-  apply* notin_topent.
+  apply* notin_topent_ftv.
 
   introv notin. gen n.
   induction e; introv notin.
     simpl in *; auto_star.
     simpl in *. auto.
     simpl in *. auto.
-    simpl in *. apply*  notin_topen.
+    simpl in *. apply*  notin_topen_ftv.
+Qed.
+
+Lemma notin_topen_fev : forall x y e n,
+    x \notin (AFev (ATOpenRec n y e)) ->
+    x \notin (AFev e)
+with
+notin_topent_fev : forall x y e n,
+    x \notin (ATFev (ATOpenTypRec n y e)) ->
+    x \notin (ATFev e).
+Proof.
+  introv notin. gen n.
+  induction e; introv notin; try(simpl in *; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      apply IHe1 in notin1;
+      apply IHe2 in notin2; auto);
+  try(apply IHe in notin; auto);
+  try(apply notin_union in notin;
+      destruct notin as [notin1 notin2];
+      try(lets: notin_topen notin1);
+      try(lets: notin_topen notin2);
+      auto_star).
+  apply* notin_topent_fev.
+
+  introv notin. gen n.
+  induction e; introv notin.
+    simpl in *; auto_star.
+    simpl in *. auto.
+    simpl in *. auto.
+    simpl in *. apply*  notin_topen_fev.
+Qed.
+
+Lemma notin_open_fv : forall x y e n,
+    x \notin (AFv (AOpenRec n y e)) ->
+    x \notin (AFv e)
+with
+notin_opent_fv : forall x y e n,
+    x \notin (ATFv (AOpenTypRec n y e)) ->
+    x \notin (ATFv e).
+Proof.
+  intros. apply notin_fv_inv.
+  apply notin_fv_fev in H. apply* notin_open_fev.
+  apply notin_fv_ftv in H. apply* notin_open_ftv.
+Proof.
+  intros. apply notin_tfv_inv.
+  apply notin_tfv_tfev in H. apply* notin_opent_fev.
+  apply notin_tfv_tftv in H. apply* notin_opent_ftv.
+Qed.
+
+Lemma notin_topen_fv : forall x y e n,
+    x \notin (AFv (ATOpenRec n y e)) ->
+    x \notin (AFv e)
+with
+notin_topent_fv : forall x y e n,
+    x \notin (ATFv (ATOpenTypRec n y e)) ->
+    x \notin (ATFv e).
+Proof.
+  intros. apply notin_fv_inv.
+  apply notin_fv_fev in H. apply* notin_topen_fev.
+  apply notin_fv_ftv in H. apply* notin_topen_ftv.
+Proof.
+  intros. apply notin_tfv_inv.
+  apply notin_tfv_tfev in H. apply* notin_topent_fev.
+  apply notin_tfv_tftv in H. apply* notin_topent_ftv.
 Qed.
 
 Lemma notin_awterm : forall G t x,
@@ -370,10 +464,10 @@ with notin_awtermt : forall G t x,
 Proof.
   introv wt notin. induction wt; simpl; auto;
       try(apply notin_singleton; unfold not; introv neq; subst; apply (binds_fresh_inv H notin0)).
-  pick_fresh y. apply* notin_open. apply H0 with (x0:=y); auto_star.
-  pick_fresh y. apply notin_union. split; auto. apply* notin_awtermt. apply* notin_opent. apply notin_awtermt with (G & y ~ AC_Var); auto. apply H0 with (x:=y). auto.
+  pick_fresh y. apply* notin_open_fv. apply H0 with (x0:=y); auto_star.
+  pick_fresh y. apply notin_union. split; auto. apply* notin_awtermt. apply* notin_opent_fv. apply notin_awtermt with (G & y ~ AC_Var); auto. apply H0 with (x:=y). auto.
   pick_fresh y. apply notin_union. split; auto. apply* notin_awtermt.
-  pick_fresh y. apply* notin_topent. apply notin_awtermt with (G & y ~ AC_TVar); auto. apply H with (x:=y); auto_star.
+  pick_fresh y. apply* notin_topent_fv. apply notin_awtermt with (G & y ~ AC_TVar); auto. apply H with (x:=y); auto_star.
 Proof.
   introv wt notin. induction wt; simpl; auto.
   intros not. rewrite in_singleton in not; subst. lets: binds_fresh_inv H notin0. auto.
@@ -949,10 +1043,10 @@ Proof.
 Qed.
 
 Lemma subst_notin : forall x v e,
-    x \notin (AFv e) ->
+    x \notin (AFev e) ->
     ASubst x v e = e
 with tsubst_notin : forall x v e,
-    x \notin (ATFv e) ->
+    x \notin (ATFev e) ->
     ATSubst x v e = e.
 Proof.
   introv notin.
@@ -964,10 +1058,10 @@ Proof.
 Qed.
 
 Lemma substt_notin : forall x v e,
-    x \notin (AFv e) ->
+    x \notin (AFtv e) ->
     ASubstT x v e = e
 with tsubstt_notin : forall x v e,
-    x \notin (ATFv e) ->
+    x \notin (ATFtv e) ->
     ATSubstT x v e = e.
 Proof.
   introv notin.
@@ -979,10 +1073,10 @@ Proof.
 Qed.
 
 Lemma subst_twice : forall x v e,
-    x \notin (AFv v) ->
+    x \notin (AFev v) ->
     ASubst x v (ASubst x v e) = ASubst x v e
 with tsubst_twice: forall x v t,
-    x \notin (AFv v) ->
+    x \notin (AFev v) ->
     ATSubst x v (ATSubst x v t) = ATSubst x v t.
 Proof.
   introv notin.
@@ -995,10 +1089,10 @@ Proof.
 Qed.
 
 Lemma substt_twice : forall x v e,
-    x \notin (ATFv v) ->
+    x \notin (ATFtv v) ->
     ASubstT x v (ASubstT x v e) = ASubstT x v e
 with tsubstt_twice: forall x v t,
-    x \notin (ATFv v) ->
+    x \notin (ATFtv v) ->
     ATSubstT x v (ATSubstT x v t) = ATSubstT x v t.
 Proof.
   introv notin.
@@ -1072,14 +1166,14 @@ Qed.
 
 Lemma substt_subst_distr: forall x vx y vy e,
     x <> y ->
-    x \notin ATFv (vx) ->
-    y \notin ATFv (vx) ->
+    x \notin ATFtv (vx) ->
+    y \notin ATFev (vx) ->
     ASubstT x vx (ASubst y vy e) =
     ASubst y (ASubstT x vx vy) (ASubstT x vx e)
 with tsubstt_tsubst_distr: forall x vx y vy e,
     x <> y ->
-    x \notin ATFv (vx) ->
-    y \notin ATFv (vx) ->
+    x \notin ATFtv (vx) ->
+    y \notin ATFev (vx) ->
     ATSubstT x vx (ATSubst y vy e) =
     ATSubst y (ASubstT x vx vy) (ATSubstT x vx e).
 Proof.
@@ -1096,14 +1190,43 @@ Proof.
   case_var*.
 Qed.
 
+Lemma substt_substt_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin ATFtv (vx) ->
+    y \notin ATFtv (vx) ->
+    ASubstT x vx (ASubstT y vy e) =
+    ASubstT y (ATSubstT x vx vy) (ASubstT x vx e)
+with tsubstt_tsubstt_distr: forall x vx y vy e,
+    x <> y ->
+    x \notin ATFtv (vx) ->
+    y \notin ATFtv (vx) ->
+    ATSubstT x vx (ATSubstT y vy e) =
+    ATSubstT y (ATSubstT x vx vy) (ATSubstT x vx e).
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
+Proof.
+  introv.
+  induction e; introv neq notinx notiny; simpl; auto; try(solve[f_equal *]).
+  destruct (eq_var_dec y v).
+  case_var*. case_var*. simpls. case_var*.
+  case_var*. case_var*. simpls. case_var*. rewrite* tsubstt_notin.
+  simpls. case_var*. case_var*.
+
+  destruct (eq_var_dec y v).
+  case_var*. case_var*. simpls. case_var*.
+  case_var*. case_var*. simpls. case_var*. rewrite* tsubstt_notin.
+  simpls. case_var*. case_var*.
+Qed.
+
 (* notin *)
 
 Lemma in_open: forall x y e n,
-    x \in AFv e ->
-    x \in AFv (AOpenRec n y e)
+    x \in AFev e ->
+    x \in AFev (AOpenRec n y e)
 with in_opent: forall x y e n,
-    x \in ATFv e ->
-    x \in ATFv (AOpenTypRec n y e).
+    x \in ATFev e ->
+    x \in ATFev (AOpenTypRec n y e).
 Proof.
   introv hi. gen n.
   induction e; introv; simpl in *; auto_star;
@@ -1143,62 +1266,191 @@ Proof.
   apply* AWf_push_inv.
 Qed.
 
-(* Lemma notin_subst: forall x t e, *)
-(*   x \notin AFv t -> *)
-(*   x \notin AFv (ASubst x t e) *)
-(* with notin_tsubst: forall x t e, *)
-(*   x \notin AFv t -> *)
-(*   x \notin ATFv (ATSubst x t e). *)
-(* Proof. *)
-(*   introv notin. *)
-(*   induction e; simpl; auto. *)
-(*   case_if * . simpl. apply* notin_singleton. *)
-(* Proof. *)
-(*   introv notin. *)
-(*   induction e. simpl; auto. *)
-(*   unfold ATSubst. simpl. *)
-(*   case_if * . simpl. apply* notin_singleton. *)
-(* Qed. *)
+Lemma notin_subst_self: forall x t e,
+    x \notin AFev t ->
+    x \notin AFev (ASubst x t e)
+with notin_tsubst_self: forall x t e,
+    x \notin AFev t ->
+    x \notin ATFev (ATSubst x t e).
+Proof.
+  introv notint.
+  induction e; simpls; auto.
+  case_if * . simpls. apply* notin_singleton.
+Proof.
+  introv notine.
+  induction e; simpls; auto.
+Qed.
 
-(* Lemma notin_another_subst: forall x y t e, *)
-(*   x \notin AFv e -> *)
-(*   x \notin AFv t -> *)
-(*   x \notin AFv (ASubst y t e). *)
-(* Proof. *)
-(*   introv notine notint. *)
-(*   destruct (eq_var_dec x y); subst. apply* notin_subst. *)
-(*   induction e; simpls; auto. *)
-(*   case_if * . *)
-(*   case_if * . *)
-(* Qed. *)
+Lemma notin_substt_self: forall x t e,
+    x \notin ATFtv t ->
+    x \notin AFtv (ASubstT x t e)
+with notin_tsubstt_self: forall x t e,
+    x \notin ATFtv t ->
+    x \notin ATFtv (ATSubstT x t e).
+Proof.
+  introv notint.
+  induction e; simpls; auto.
+Proof.
+  introv notint.
+  induction e; simpls; auto.
+  case_if * . simpls. apply* notin_singleton.
+  case_if * . simpls. apply* notin_singleton.
+Qed.
 
-(* Lemma notin_ctxsubst: forall x H e, *)
-(*   x \notin AFv e -> *)
-(*   x # H -> *)
-(*   AWf H -> *)
-(*   x \notin AFv (ACtxSubst H e). *)
-(* Proof. *)
-(*   introv notine notinh wf. gen e. *)
-(*   induction H using env_ind; introv notine. *)
-(*   rewrite* subst_empty_env. *)
-(*   assert (wf2:=wf). apply AWf_left in wf2. *)
-(*   induction v. *)
-(*   rewrite subst_add_var. apply* IHenv. *)
-(*   rewrite subst_add_typvar. apply* IHenv. *)
-(*   assert (x <> x0). simpl_dom. auto_star. *)
+Lemma notin_subst: forall x y t e,
+  x \notin AFev e ->
+  x \notin AFev t ->
+  x \notin AFev (ASubst y t e)
+with notin_tsubst: forall x y t e,
+  x \notin ATFev e ->
+  x \notin AFev t ->
+  x \notin ATFev (ATSubst y t e).
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* subst_notin.
+  induction e; simpls; auto.
+  case_if * .
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* tsubst_notin.
+  induction e; simpls; auto.
+Qed.
 
-(*   rewrite subst_add_bndvar. *)
-(*   apply* IHenv. apply* notin_another_subst. *)
-(*   apply notin_awterm with (G:=H); auto. *)
-(*   apply* awterm_bnd. *)
+Lemma notin_substt_ftv: forall x y t e,
+  x \notin AFtv e ->
+  x \notin ATFtv t ->
+  x \notin AFtv (ASubstT y t e)
+with notin_tsubstt_ftv: forall x y t e,
+  x \notin ATFtv e ->
+  x \notin ATFtv t ->
+  x \notin ATFtv (ATSubstT y t e).
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* substt_notin.
+  induction e; simpls; auto.
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* tsubstt_notin.
+  induction e; simpls; auto.
+  case_if *.
+  case_if *.
+Qed.
 
-(*   rewrite subst_add_evar. apply* IHenv. *)
+Lemma notin_substt_fev: forall x y t e,
+  x \notin AFev e ->
+  x \notin ATFev t ->
+  x \notin AFev (ASubstT y t e)
+with notin_tsubstt_fev: forall x y t e,
+  x \notin ATFev e ->
+  x \notin ATFev t ->
+  x \notin ATFev (ATSubstT y t e).
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. induction e; simpls; auto.
+  induction e; simpls; auto.
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. induction e; simpls; auto.
+  case_if *. case_if *.
+  induction e; simpls; auto.
+  case_if *. case_if *.
+Qed.
 
-(*   rewrite subst_add_solved_evar. *)
-(*   apply* IHenv. apply* notin_another_subst. *)
-(*   apply notin_awterm with (G:=H); auto. *)
-(*   apply* awterm_solved_evar. *)
-(* Qed. *)
+Lemma notin_ctxsubst_fev: forall x H e,
+  x \notin AFev e ->
+  x # H ->
+  AWf H ->
+  x \notin AFev (ACtxSubst H e).
+Proof.
+  introv notine notinh wf. gen e.
+  induction H using env_ind; introv notine.
+  rewrite* subst_empty_env.
+  assert (wf2:=wf). apply AWf_left in wf2.
+  induction v.
+  rewrite subst_add_var. apply* IHenv.
+  rewrite subst_add_typvar. apply* IHenv.
+  assert (x <> x0). simpl_dom. auto_star.
+
+  rewrite subst_add_tvar. apply* IHenv.
+  rewrite subst_add_evar. apply* IHenv.
+
+  rewrite subst_add_solved_evar.
+  apply* IHenv. apply* notin_substt_fev.
+  apply notin_tfv_tfev. apply notin_awtermt with (G:=H); auto.
+  apply* awterm_solved_evar.
+Qed.
+
+Lemma notin_ctxsubst_ftv: forall x H e,
+  x \notin AFtv e ->
+  x # H ->
+  AWf H ->
+  x \notin AFtv (ACtxSubst H e).
+Proof.
+  introv notine notinh wf. gen e.
+  induction H using env_ind; introv notine.
+  rewrite* subst_empty_env.
+  assert (wf2:=wf). apply AWf_left in wf2.
+  induction v.
+  rewrite subst_add_var. apply* IHenv.
+  rewrite subst_add_typvar. apply* IHenv.
+  assert (x <> x0). simpl_dom. auto_star.
+
+  rewrite subst_add_tvar. apply* IHenv.
+  rewrite subst_add_evar. apply* IHenv.
+
+  rewrite subst_add_solved_evar.
+  apply* IHenv. apply* notin_substt_ftv.
+  apply notin_tfv_tftv. apply notin_awtermt with (G:=H); auto.
+  apply* awterm_solved_evar.
+Qed.
+
+Lemma notin_ctxtsubst_ftv: forall x H e,
+  x \notin ATFtv e ->
+  x # H ->
+  AWf H ->
+  x \notin ATFtv (ACtxTSubst H e).
+Proof.
+  introv notine notinh wf. gen e.
+  induction H using env_ind; introv notine.
+  rewrite* tsubst_empty_env.
+  assert (wf2:=wf). apply AWf_left in wf2.
+  induction v.
+  rewrite tsubst_add_var. apply* IHenv.
+  rewrite tsubst_add_typvar. apply* IHenv.
+  assert (x <> x0). simpl_dom. auto_star.
+
+  rewrite tsubst_add_tvar. apply* IHenv.
+  rewrite tsubst_add_evar. apply* IHenv.
+
+  rewrite tsubst_add_solved_evar.
+  apply* IHenv. apply* notin_tsubstt_ftv.
+  apply notin_tfv_tftv. apply notin_awtermt with (G:=H); auto.
+  apply* awterm_solved_evar.
+Qed.
+
+Lemma notin_ctxtsubst_fev: forall x H e,
+  x \notin ATFev e ->
+  x # H ->
+  AWf H ->
+  x \notin ATFev (ACtxTSubst H e).
+Proof.
+  introv notine notinh wf. gen e.
+  induction H using env_ind; introv notine.
+  rewrite* tsubst_empty_env.
+  assert (wf2:=wf). apply AWf_left in wf2.
+  induction v.
+  rewrite tsubst_add_var. apply* IHenv.
+  rewrite tsubst_add_typvar. apply* IHenv.
+  assert (x <> x0). simpl_dom. auto_star.
+
+  rewrite tsubst_add_tvar. apply* IHenv.
+  rewrite tsubst_add_evar. apply* IHenv.
+
+  rewrite tsubst_add_solved_evar.
+  apply* IHenv. apply* notin_tsubstt_fev.
+  apply notin_tfv_tfev. apply notin_awtermt with (G:=H); auto.
+  apply* awterm_solved_evar.
+Qed.
 
 (* uv *)
 
@@ -1253,8 +1505,52 @@ Proof.
   apply* IHenv.
   simpl_dom. auto.
   assert (x # H). apply* AWf_push_inv.
-  apply awterm_solved_evar in wf. apply* notin_awtermt.
-  apply awterm_solved_evar in wf. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tfev. apply* notin_awtermt.
+Qed.
+
+Lemma distributivity_ctxsubst_substt : forall H x s e,
+    AWf H ->
+    x # H ->
+    ACtxSubst H (ASubstT x s e) =
+    ASubstT x (ACtxTSubst H s) (ACtxSubst H e).
+Proof.
+  introv. gen s e x.
+  induction H using env_ind; introv wf notin.
+  repeat(rewrite* subst_empty_env).
+  repeat(rewrite* tsubst_empty_env).
+
+  induction v.
+
+  repeat(rewrite subst_add_var).
+  repeat(rewrite tsubst_add_var).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite subst_add_typvar).
+  repeat(rewrite tsubst_add_typvar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite subst_add_tvar).
+  repeat(rewrite tsubst_add_tvar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite subst_add_evar).
+  repeat(rewrite tsubst_add_evar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite subst_add_solved_evar).
+  repeat(rewrite tsubst_add_solved_evar).
+  rewrite substt_substt_distr.
+  apply AWf_left in wf.
+  apply* IHenv.
+  simpl_dom. auto.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
 Qed.
 
 Lemma distributivity_ctxtsubst_tsubst : forall H x s e,
@@ -1303,6 +1599,94 @@ Proof.
   apply* IHenv.
   simpl_dom. auto.
   assert (x # H). apply* AWf_push_inv.
-  apply awterm_solved_evar in wf. apply* notin_awtermt.
-  apply awterm_solved_evar in wf. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tfev. apply* notin_awtermt.
+Qed.
+
+Lemma distributivity_ctxtsubst_substt : forall H x s e,
+    AWf H ->
+    x # H ->
+    ACtxSubst H (ASubstT x s e) =
+    ASubstT x (ACtxTSubst H s) (ACtxSubst H e).
+Proof.
+  introv. gen s e x.
+  induction H using env_ind; introv wf notin.
+  rewrite* subst_empty_env.
+  rewrite* tsubst_empty_env.
+  rewrite* subst_empty_env.
+
+  induction v.
+
+  rewrite subst_add_var.
+  rewrite tsubst_add_var.
+  rewrite subst_add_var.
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  rewrite subst_add_typvar.
+  rewrite tsubst_add_typvar.
+  rewrite subst_add_typvar.
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  rewrite subst_add_tvar.
+  rewrite tsubst_add_tvar.
+  rewrite subst_add_tvar.
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  rewrite subst_add_evar.
+  rewrite tsubst_add_evar.
+  rewrite subst_add_evar.
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  rewrite subst_add_solved_evar.
+  rewrite tsubst_add_solved_evar.
+  rewrite subst_add_solved_evar.
+  rewrite substt_substt_distr.
+  apply AWf_left in wf.
+  apply* IHenv.
+  simpl_dom. auto.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+Qed.
+
+Lemma distributivity_ctxtsubst_tsubstt : forall H x s e,
+    AWf H ->
+    x # H ->
+    ACtxTSubst H (ATSubstT x s e) =
+    ATSubstT x (ACtxTSubst H s) (ACtxTSubst H e).
+Proof.
+  introv. gen s e x.
+  induction H using env_ind; introv wf notin.
+  repeat(rewrite* tsubst_empty_env).
+
+  induction v.
+
+  repeat(rewrite tsubst_add_var).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite tsubst_add_typvar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite tsubst_add_tvar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite tsubst_add_evar).
+  apply AWf_left in wf.
+  apply* IHenv.
+
+  repeat(rewrite tsubst_add_solved_evar).
+  rewrite tsubstt_tsubstt_distr.
+  apply AWf_left in wf.
+  apply* IHenv.
+  simpl_dom. auto.
+  assert (x # H). apply* AWf_push_inv.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+  apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
 Qed.

@@ -30,6 +30,44 @@ Scheme atyping_induct := Induction for ATyping Sort Prop
 Hint Constructors ARed ATyping AMode ARFMode AWfTyp AWf
      AUnify AResolveEVar AResolveForall AWTerm AWTermT.
 
+Lemma notin_fv_fev: forall x t,
+    x \notin AFv t ->
+    x \notin AFev t
+with notin_tfv_tfev: forall x t,
+    x \notin ATFv t ->
+    x \notin ATFev t.
+Proof.
+  intros. induction t; simpls; auto.
+Proof.
+  intros. induction t; simpls; auto.
+Qed.
+
+Lemma notin_fv_ftv: forall x t,
+    x \notin AFv t ->
+    x \notin AFtv t
+with notin_tfv_tftv: forall x t,
+    x \notin ATFv t ->
+    x \notin ATFtv t.
+Proof.
+  intros. induction t; simpls; auto.
+Proof.
+  intros. induction t; simpls; auto.
+Qed.
+
+Lemma notin_fv_inv: forall x t,
+    x \notin AFev t -> x \notin AFtv t ->
+    x \notin AFv t
+with notin_tfv_inv: forall x t,
+    x \notin ATFev t -> x \notin ATFtv t ->
+    x \notin ATFv t.
+Proof.
+  intros. induction t; simpls; auto.
+Proof.
+  intros. induction t; simpls; auto.
+Qed.
+
+Hint Resolve notin_fv_fev notin_tfv_tfev notin_fv_ftv notin_tfv_tftv notin_fv_inv notin_tfv_inv.
+
 (** Substitution *)
 
 Hint Constructors ATerm.
@@ -240,9 +278,9 @@ Qed.
 (* Substitution for a fresh name is identity. *)
 
 Lemma asubst_fresh : forall x t u, 
-  x \notin AFv t -> ASubst x u t = t
+  x \notin AFev t -> ASubst x u t = t
 with atsubst_fresh : forall x t u,
-  x \notin ATFv t -> ATSubst x u t = t.
+  x \notin ATFev t -> ATSubst x u t = t.
 Proof.
   intros. induction t; simpls; fequals*.
   case_var*.
@@ -251,9 +289,9 @@ Proof.
 Qed.
 
 Lemma asubstt_fresh : forall x t u,
-  x \notin AFv t -> ASubstT x u t = t
+  x \notin AFtv t -> ASubstT x u t = t
 with atsubstt_fresh : forall x t u,
-  x \notin ATFv t -> ATSubstT x u t = t.
+  x \notin ATFtv t -> ATSubstT x u t = t.
 Proof.
   intros. induction t; simpls; fequals*.
 Proof.
