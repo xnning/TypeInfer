@@ -28,7 +28,7 @@ Scheme atyping_induct := Induction for ATyping Sort Prop
   with awf_induct := Induction for AWf Sort Prop.
 
 Hint Constructors ARed ATyping AMode ARFMode AWfTyp AWf
-     AUnify AResolveEVar AResolveForall AWTerm AWTermT.
+     AUnify AResolveEVar AResolveForall AWTermT.
 
 Lemma notin_fv_fev: forall x t,
     x \notin AFv t ->

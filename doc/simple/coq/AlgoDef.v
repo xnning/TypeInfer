@@ -321,28 +321,27 @@ Inductive ARed : AExpr -> AExpr -> Prop :=
       ARed (AE_Ann e t) (AE_Ann e' t)
 .
 
-Inductive AWTerm : ACtx -> AExpr -> Prop :=
-  | AWTerm_Var : forall G x, binds x AC_Var G -> AWTerm G (AE_FVar x)
-  | AWTerm_TypVar : forall G x t, binds x (AC_Typ t) G -> AWTerm G (AE_FVar x)
-  | AWTerm_Star: forall G, AWTerm G AE_Star
-  | AWTerm_App: forall e1 e2 G, AWTerm G e1 -> AWTerm G e2 -> AWTerm G (AE_App e1 e2)
-  | AWTerm_Lam: forall e G L,
-      (forall x, x \notin L -> AWTerm (G & x ~ AC_Var) (e @ x)) -> AWTerm G (AE_Lam e)
-  | AWTerm_Pi: forall t1 t2 G L,
+Inductive AWTermT : ACtx -> AType -> Prop :=
+  | AWTermT_Var : forall G x, binds x AC_Var G -> AWTermT G (AT_Expr (AE_FVar x))
+  | AWTermT_TypVar : forall G x t, binds x (AC_Typ t) G -> AWTermT G (AT_Expr (AE_FVar x))
+  | AWTermT_Star: forall G, AWTermT G (AT_Expr AE_Star)
+  | AWTermT_App: forall e1 e2 G, AWTermT G (AT_Expr e1) -> AWTermT G (AT_Expr e2) -> AWTermT G (AT_Expr (AE_App e1 e2))
+  | AWTermT_Lam: forall e G L,
+      (forall x, x \notin L -> AWTermT (G & x ~ AC_Var) (AT_Expr (e @ x))) -> AWTermT G (AT_Expr (AE_Lam e))
+  | AWTermT_Pi: forall t1 t2 G L,
       AWTermT G t1 ->
-      (forall x, x \notin L -> AWTermT (G & x ~ AC_Var) (t2 @' x)) -> AWTerm G (AE_Pi t1 t2)
-  | AWTerm_CastUp : forall e G, AWTerm G e -> AWTerm G (AE_CastUp e)
-  | AWTerm_CastDn : forall e G, AWTerm G e -> AWTerm G (AE_CastDn e)
-  | AWTerm_Ann: forall e1 e2 G, AWTerm G e1 -> AWTermT G e2 -> AWTerm G (AE_Ann e1 e2)
-  | AWTerm_Forall: forall G L s,
+      (forall x, x \notin L -> AWTermT (G & x ~ AC_Var) (t2 @' x)) -> AWTermT G (AT_Expr (AE_Pi t1 t2))
+  | AWTermT_CastUp : forall e G, AWTermT G (AT_Expr e) -> AWTermT G (AT_Expr (AE_CastUp e))
+  | AWTermT_CastDn : forall e G, AWTermT G (AT_Expr e) -> AWTermT G (AT_Expr (AE_CastDn e))
+  | AWTermT_Ann: forall e1 e2 G, AWTermT G (AT_Expr e1) -> AWTermT G e2 -> AWTermT G (AT_Expr (AE_Ann e1 e2))
+  | AWTermT_Forall: forall G L s,
       (forall x, x \notin L -> AWTermT (G & x ~ AC_TVar) (s @#' x))
-      -> AWTerm G (AE_Forall s)
-with
-AWTermT : ACtx -> AType -> Prop :=
+      -> AWTermT G (AT_Expr (AE_Forall s))
   | AWTermT_TFVar: forall G i, binds i AC_TVar G -> AWTermT G (AT_TFVar i)
   | AWTermT_Unsolved_EVar: forall G i, binds i AC_Unsolved_EVar G -> AWTermT G (AT_EVar i)
-  | AWTermT_Solved_EVar: forall G i t, binds i (AC_Solved_EVar t) G -> AWTermT G (AT_EVar i)
-  | AWTermT_Expr: forall G e, AWTerm G e -> AWTermT G (AT_Expr e).
+  | AWTermT_Solved_EVar: forall G i t, binds i (AC_Solved_EVar t) G -> AWTermT G (AT_EVar i).
+
+Definition AWTerm G e := AWTermT G (AT_Expr e).
 
 Inductive AResolveEVar : ACtx -> var -> AType -> AType -> ACtx -> Prop :=
   | AResolveEVar_EVar_Before : forall a b G1 G2 G3,
