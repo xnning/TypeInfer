@@ -200,6 +200,48 @@ DTFv (e : DType) {struct e} : vars :=
   | DT_Expr t   => DFv t
   end.
 
+Fixpoint DFev (e : DExpr) {struct e} : vars :=
+  match e with
+  | DE_BVar i    => \{}
+  | DE_FVar x    => \{x}
+  | DE_Star      => \{}
+  | DE_App e1 e2 => (DFev e1) \u (DFev e2)
+  | DE_Lam e     => DFev e
+  | DE_Pi t1 t2  => (DTFev t1) \u (DTFev t2)
+  | DE_CastUp e  => DFev e
+  | DE_CastDn e  => DFev e
+  | DE_Ann e t   => (DFev e) \u (DTFev t)
+  | DE_Forall s  => DTFev s
+  end
+with
+DTFev (e : DType) {struct e} : vars :=
+  match e with
+  | DT_TBVar i => \{}
+  | DT_TFVar i => \{}
+  | DT_Expr t   => DFev t
+  end.
+
+Fixpoint DFtv (e : DExpr) {struct e} : vars :=
+  match e with
+  | DE_BVar i    => \{}
+  | DE_FVar x    => \{}
+  | DE_Star      => \{}
+  | DE_App e1 e2 => (DFtv e1) \u (DFtv e2)
+  | DE_Lam e     => DFtv e
+  | DE_Pi t1 t2  => (DTFtv t1) \u (DTFtv t2)
+  | DE_CastUp e  => DFtv e
+  | DE_CastDn e  => DFtv e
+  | DE_Ann e t   => (DFtv e) \u (DTFtv t)
+  | DE_Forall s  => DTFtv s
+  end
+with
+DTFtv (e : DType) {struct e} : vars :=
+  match e with
+  | DT_TBVar i => \{}
+  | DT_TFVar i => \{i}
+  | DT_Expr t   => DFtv t
+  end.
+
 (** Context *)
 
 Inductive DCtxT : Set :=
