@@ -1027,6 +1027,133 @@ Proof.
   repeat(rewrite tsubst_add_solved_evar). auto.
 Qed.
 
+
+Lemma actxtsubst_expr: forall G e,
+    ACtxTSubst G (AT_Expr e) = AT_Expr (ACtxSubst G e).
+Proof.
+  intros.
+  gen e. induction G using env_ind; intros.
+  rewrite tsubst_empty_env.
+  rewrite~ subst_empty_env.
+  induction v.
+  rewrite~ subst_add_var.
+  rewrite~ tsubst_add_var.
+  rewrite~ subst_add_typvar.
+  rewrite~ tsubst_add_typvar.
+  rewrite~ subst_add_tvar.
+  rewrite~ tsubst_add_tvar.
+  rewrite~ subst_add_evar.
+  rewrite~ tsubst_add_evar.
+  rewrite~ subst_add_solved_evar.
+  rewrite~ tsubst_add_solved_evar.
+  apply* IHG.
+Qed.
+
+Lemma actxsubst_app: forall G e1 e2,
+    ACtxSubst G (AE_App e1 e2) = AE_App (ACtxSubst G e1) (ACtxSubst G e2).
+Proof.
+  intros.
+  gen e1 e2. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_lam: forall G e,
+    ACtxSubst G (AE_Lam e) = AE_Lam (ACtxSubst G e).
+Proof.
+  intros.
+  gen e. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_castup: forall G e,
+    ACtxSubst G (AE_CastUp e) = AE_CastUp (ACtxSubst G e).
+Proof.
+  intros.
+  gen e. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_castdn: forall G e,
+    ACtxSubst G (AE_CastDn e) = AE_CastDn (ACtxSubst G e).
+Proof.
+  intros.
+  gen e. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_pi: forall G e1 e2,
+    ACtxSubst G (AE_Pi e1 e2) = AE_Pi (ACtxTSubst G e1) (ACtxTSubst G e2).
+Proof.
+  intros.
+  gen e1 e2. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env). repeat(rewrite~ tsubst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var). repeat(rewrite~ tsubst_add_var).
+  repeat(rewrite~ subst_add_typvar). repeat(rewrite~ tsubst_add_typvar).
+  repeat(rewrite~ subst_add_tvar). repeat(rewrite~ tsubst_add_tvar).
+  repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_ann: forall G e1 e2,
+    ACtxSubst G (AE_Ann e1 e2) = AE_Ann (ACtxSubst G e1) (ACtxTSubst G e2).
+Proof.
+  intros.
+  gen e1 e2. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env). repeat(rewrite~ tsubst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var). repeat(rewrite~ tsubst_add_var).
+  repeat(rewrite~ subst_add_typvar). repeat(rewrite~ tsubst_add_typvar).
+  repeat(rewrite~ subst_add_tvar). repeat(rewrite~ tsubst_add_tvar).
+  repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
+Lemma actxsubst_forall: forall G e,
+    ACtxSubst G (AE_Forall e) = AE_Forall (ACtxTSubst G e).
+Proof.
+  intros.
+  gen e. induction G using env_ind; intros.
+  repeat(rewrite~ subst_empty_env). repeat(rewrite~ tsubst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var). repeat(rewrite~ tsubst_add_var).
+  repeat(rewrite~ subst_add_typvar). repeat(rewrite~ tsubst_add_typvar).
+  repeat(rewrite~ subst_add_tvar). repeat(rewrite~ tsubst_add_tvar).
+  repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
+  simpls. apply* IHG.
+Qed.
+
 Lemma subst_notin : forall x v e,
     x \notin (AFev e) ->
     ASubst x v e = e

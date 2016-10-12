@@ -68,6 +68,18 @@ Qed.
 
 Hint Resolve notin_fv_fev notin_tfv_tfev notin_fv_ftv notin_tfv_tftv notin_fv_inv notin_tfv_inv.
 
+Lemma asubstt_expr: forall e z u,
+    ATSubst z u (AT_Expr e) = AT_Expr (ASubst z u e).
+Proof.
+  intros. simpls~.
+Qed.
+
+Lemma atsubstt_expr: forall e z u,
+    ATSubstT z u (AT_Expr e) = AT_Expr (ASubstT z u e).
+Proof.
+  intros. simpls~.
+Qed.
+
 (** Substitution *)
 
 Hint Constructors ATerm.

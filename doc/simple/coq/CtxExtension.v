@@ -103,7 +103,7 @@ Inductive ACpltCtxSubstCtx : ACtx -> ACtx -> DCtx -> Prop :=
       ACpltCtxSubstCtx (H & x ~ AC_Typ t1) (G & x ~ AC_Typ t2) (I & x ~ DC_Typ t1')
   | ACpltCtxSubstCtx_TVar : forall H G I a,
       CompleteCtx H -> ACpltCtxSubstCtx H G I ->
-      ACpltCtxSubstCtx (H & a ~ AC_TVar) (G & a ~ AC_TVar) I
+      ACpltCtxSubstCtx (H & a ~ AC_TVar) (G & a ~ AC_TVar) (I & a ~ DC_TVar)
   | ACpltCtxSubstCtx_Solved_Unsolved_EVar: forall H G I a t,
       CompleteCtx H -> ACpltCtxSubstCtx H G I ->
       ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t) (G & a ~ AC_Unsolved_EVar) I

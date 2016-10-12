@@ -161,7 +161,7 @@ Lemma dopen_var_inj : forall x t1 t2,
   x \notin (DFv t1) -> x \notin (DFv t2) ->
   forall k, (DOpenRec k (DE_FVar x) t1 = DOpenRec k (DE_FVar x) t2) -> (t1 = t2)
 with
-dtopen_var_inj : forall x t1 t2,
+dopent_var_inj : forall x t1 t2,
   x \notin (DTFv t1) -> x \notin (DTFv t2) ->
   forall k, (DOpenTypRec k (DE_FVar x) t1 = DOpenTypRec k (DE_FVar x) t2) -> (t1 = t2).
 Proof.
@@ -178,20 +178,62 @@ Proof.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
   inversion H1; subst. f_equal ~. apply* IHt1.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
-  inversion H1; subst. f_equal ~. apply* dtopen_var_inj. apply* dtopen_var_inj.
+  inversion H1; subst. f_equal ~. apply* dopent_var_inj. apply* dopent_var_inj.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
   inversion H1; subst. f_equal ~. apply* IHt1.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
   inversion H1; subst. f_equal ~. apply* IHt1.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
-  inversion H1; subst. f_equal ~. apply* IHt1. apply* dtopen_var_inj.
+  inversion H1; subst. f_equal ~. apply* IHt1. apply* dopent_var_inj.
   destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
-  inversion H1; subst. f_equal ~. apply* dtopen_var_inj.
+  inversion H1; subst. f_equal ~. apply* dopent_var_inj.
 
   intros x t1.
   destruct t1; intros t2; destruct t2; simpl; intros; inversion H1; auto.
   lets: dopen_var_inj H3; auto.
   subst~.
+Qed.
+
+Lemma dtopen_var_inj : forall x t1 t2,
+  x \notin (DFv t1) -> x \notin (DFv t2) ->
+  forall k, (DTOpenRec k (DT_TFVar x) t1 = DTOpenRec k (DT_TFVar x) t2) -> (t1 = t2)
+with
+dtopent_var_inj : forall x t1 t2,
+  x \notin (DTFv t1) -> x \notin (DTFv t2) ->
+  forall k, (DTOpenTypRec k (DT_TFVar x) t1 = DTOpenTypRec k (DT_TFVar x) t2) -> (t1 = t2).
+Proof.
+  intros x t1.
+  induction t1; intro t2.
+  destruct t2; simpl; intros; auto; try(false*).
+  destruct t2; simpl; intros; auto; try(false*).
+  destruct t2; simpl; intros; auto; try(false*).
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* IHt1_1. apply* IHt1_2.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* dtopent_var_inj. apply* dtopent_var_inj.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* IHt1. apply* dtopent_var_inj.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  inversion H1; subst. f_equal ~. apply* dtopent_var_inj.
+  destruct t2; simpl; intros; auto; try(solve[false*]).
+  case_nat~.
+  destruct t1;  simpls; inversion H1; auto; try(solve[false*]).
+  case_nat~. subst. notin_false.
+  destruct t1;  simpls; inversion H1; auto; try(solve[false*]).
+  case_nat~.
+
+  destruct t1;  simpls; inversion H1; auto; try(solve[false*]).
+  case_nat~. subst. inversion H1. subst. notin_false.
+  destruct t1;  simpls; inversion H1; auto; try(solve[false*]).
+  case_nat~.
+
+  f_equal *.
 Qed.
 
 Lemma dopen_reorder: forall e1 e2 i j e,
