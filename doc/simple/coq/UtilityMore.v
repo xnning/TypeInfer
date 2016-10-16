@@ -61,62 +61,41 @@ Qed.
 Lemma cpltctxsubst_wftyp: forall G s t,
     AWf G ->
     ACpltCtxSubst G s t ->
-    AWTerm G s.
-Proof.
-  introv wf sub.
-  induction sub.
-  constructor~.
-  apply* AWTerm_TypVar.
-  apply* AWTerm_LetVar.
-  apply AWTerm_Solved_EVar with t. apply binds_concat_left_ok. apply~ awf_is_ok. apply binds_push_eq.
-  apply~ AWTerm_Star.
-  apply~ AWTerm_App.
-  apply AWTerm_Lam with (L \u dom G). intros y notin. apply~ H0.
-  apply AWTerm_Pi with (L \u dom G). apply~ IHsub. intros y notin. apply~ H0.
-  apply AWTerm_Let with (L \u dom G). apply~ IHsub. intros y notin. apply~ H0.
-  apply AWTerm_CastUp. apply~ IHsub.
-  apply AWTerm_CastDn. apply~ IHsub.
-  apply AWTerm_Ann; f_equal~.
-Qed.
-
-Lemma cpltctxsubst_awterm: forall G t d,
-      ACpltCtxSubst G t d ->
-      AWTerm G t.
-Proof.
-  introv sub.
-  induction sub; simpls; f_equal ~.
-  apply AWTerm_TypVar with t; auto.
-  apply AWTerm_LetVar with t e; auto.
-  apply AWTerm_Solved_EVar with t; auto. apply binds_middle_eq. apply* ok_middle_inv.
-  apply AWTerm_Lam with L. intros y notin. apply (H0 y notin).
-  apply AWTerm_Pi with L. auto. intros y notin. apply (H0 y notin).
-  apply AWTerm_Let with L. auto. intros y notin. apply (H0 y notin).
-Qed.
-
-Lemma cpltctxtsubst_awtermt: forall G s t,
-    AWf G ->
-    ACpltCtxTSubst G s t ->
     AWTermT G s.
 Proof.
   introv wf sub.
   induction sub.
-  apply AWTermT_Forall with (L \u dom G). intros y notin. apply~ H0. apply~ AWf_TyVar.
-  apply~ awftyp_star.
-  apply AWTermT_Expr. apply* cpltctxsubst_awterm.
+  constructor~.
+  apply* AWTermT_TypVar.
+  apply* AWTermT_TFVar.
+  apply AWTermT_Solved_EVar with t. apply binds_concat_left_ok. apply~ awf_is_ok. apply binds_push_eq.
+  apply~ AWTermT_Star.
+  apply~ AWTermT_App.
+  apply AWTermT_Lam with (L \u dom G). intros y notin. apply~ H0.
+  apply AWTermT_Pi with (L \u dom G). apply~ IHsub. intros y notin. apply~ H0.
+  apply AWTermT_CastUp. apply~ IHsub.
+  apply AWTermT_CastDn. apply~ IHsub.
+  apply AWTermT_Ann; f_equal~.
+  apply AWTermT_Forall with (L \u dom G). intros y notin. apply~ H0.
 Qed.
 
-Lemma cpltctxsubst_dterm: forall G t d,
+Lemma cpltctxsubst_awterm: forall G t d,
       ACpltCtxSubst G t d ->
-      DTerm d.
+      AWTermT G t.
 Proof.
   introv sub.
   induction sub; simpls; f_equal ~.
+  apply AWTermT_TypVar with t; auto.
+  apply AWTermT_Solved_EVar with t; auto. apply binds_middle_eq. apply* ok_middle_inv.
+  apply AWTermT_Lam with L. intros y notin. apply (H0 y notin).
+  apply AWTermT_Pi with L. auto. intros y notin. apply (H0 y notin).
+  apply AWTermT_Forall with L. auto.
 Qed.
 
 Lemma cpltctxsubst_notin: forall G t d y,
     ACpltCtxSubst G t d ->
     y # G ->
-    y \notin DFv d.
+    y \notin DTFv d.
 Proof.
   introv sub notin.
   induction sub; simpls; try(solve[f_equal *]).
@@ -128,23 +107,21 @@ Proof.
   assert (z \notin L) by auto_star.
   assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
   lets: H0 H1 H2.
-  apply notin_dopen in H3. auto.
+  apply notin_dopen_fv in H3. auto.
 
   pick_fresh z.
   assert (z \notin L) by auto_star.
   assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
   lets: IHsub notin.
-  lets: H0 H1 H2. apply notin_dopen in H4.
-  auto_star.
+  lets: H0 H1 H2. apply notin_dopent_fv in H4.
+  auto.
 
   pick_fresh z.
   assert (z \notin L) by auto_star.
-  assert (y # G & z ~ AC_Var). simpl_dom. auto_star.
-  lets: IHsub notin.
-  lets: H0 H1 H2. apply notin_dopen in H4.
-  auto_star.
+  assert (y # G & z ~ AC_TVar). simpl_dom. auto_star.
+  lets: H0 H1 H2. apply notin_dtopent_fv in H3.
+  auto.
 Qed.
-
 
 Lemma cpltctxsubstctx_remove_soft: forall G H I G',
     ExtCtx G H ->
@@ -179,13 +156,13 @@ Proof.
   apply~ ACpltCtxSubstCtx_TypVar. rewrite hi. apply* awf_is_ok.
   apply* awf_is_ok.
 
-  assert (binds x (AC_Bnd s2 t2) (G & x ~ AC_Bnd s2 t2)). apply binds_push_eq.
-  destruct (declaration_preservation ex H6) as (v2 & bd).
+  assert (binds a AC_TVar (G & a ~ AC_TVar)). apply binds_push_eq.
+  destruct (declaration_preservation ex H2) as (v2 & bd).
   apply split_bind_context in bd. destruct bd as (HH1 & HH2 & hh). subst.
   rewrite <- concat_assoc in hi.
   symmetry in hi. apply tail_empty_eq2 in hi. destruct hi as [eqh [eqv eqh2]].
   symmetry in eqh2. destruct (empty_concat_inv eqh2) as [em1 em2]. subst. rewrite concat_empty_r in *.
-  apply~ ACpltCtxSubstCtx_BndVar. rewrite hi. apply* awf_is_ok.
+  apply~ ACpltCtxSubstCtx_TVar. rewrite hi. apply* awf_is_ok.
   apply* awf_is_ok.
 
   assert (binds a AC_Unsolved_EVar (G & a ~ AC_Unsolved_EVar)). apply binds_push_eq.
@@ -256,10 +233,10 @@ Proof.
   rewrite~ concat_empty_r. apply* ok_preservation.
   rewrite <- inv. rewrite~ concat_empty_r. apply* ok_preservation.
 
-  assert (xin: x \in dom I1). apply declaration_preservation_dom with (G & x ~ AC_Bnd s2 t2); auto. simpl_dom. apply union_left. apply in_singleton_self.
+  assert (xin: a0 \in dom I1). apply declaration_preservation_dom with (G & a0 ~ AC_TVar); auto. simpl_dom. apply union_left. apply in_singleton_self.
   destruct (split_context xin) as (I11 & I12 & v & hinfo).
   rewrite hinfo in hh.
-  assert (inv: H & x ~ AC_Bnd s1 t1 & empty = I11 & x ~ v & (I12 & a ~ AC_Solved_EVar t & I2)). rewrite~ concat_empty_r. do 2 rewrite~ concat_assoc.
+  assert (inv: H & a0 ~ AC_TVar & empty = I11 & a0 ~ v & (I12 & a ~ AC_Solved_EVar t & I2)). rewrite~ concat_empty_r. do 2 rewrite~ concat_assoc.
   apply ok_middle_eq2 in inv; auto.
   destruct inv as [_ [_ inv]].
   false empty_middle_inv inv.
@@ -346,7 +323,7 @@ Lemma cpltctxsubst_remove': forall m n I1 I2 t d x v,
    AWf (I1 & I2) ->
    CompleteCtx (I1 & x ~ v & I2) ->
    ACpltCtxSubst (I1 & x ~ v & I2) t d ->
-   x \notin AFv t ->
+   x \notin ATFv t ->
    ALen (I1 & x ~ v & I2) t n ->
    n < m ->
    ACpltCtxSubst (I1 & I2) t d.
@@ -378,7 +355,7 @@ Proof.
   subst. simpls.
   apply notin_singleton in notin.
   assert (x0 <> x) by auto.
-  lets: binds_subst H0 H1. apply ACpltCtxSubst_BndVar with t e; auto.
+  lets: binds_subst H0 H1. apply ACpltCtxSubst_TVar; auto.
   apply complete_append.
   rewrite <- concat_assoc in comp. apply complete_part_left in comp. assumption. rewrite concat_assoc. apply* awf_is_ok.
   apply complete_part_right in comp. assumption. apply* awf_is_ok.
@@ -410,14 +387,15 @@ Proof.
   assert (exists m, ALen (I1 & x ~ v & I11) t m).
   apply alen_exists.
   rewrite <- concat_assoc in wfx. apply AWf_left in wfx. auto.
+  apply AWf_left in wfx. apply awterm_solved_evar in wfx. auto.
   destruct H4 as (mt & alen_t).
   apply IHm with mt x v; auto.
   rewrite <- concat_assoc in wfx. apply AWf_left in wfx. auto.
   repeat (rewrite concat_assoc in wf).
   rewrite <- concat_assoc in wf. apply AWf_left in wf. auto.
   assert (x # (I1 & I11)). rewrite <- concat_assoc in H1. apply ok_concat_inv_l in H1. apply ok_middle_inv in H1. simpl_dom. auto_star.
-  assert (AWTerm (I1 & I11) t). do 2 rewrite concat_assoc in wf. apply AWf_left in wf. apply awterm_solved_evar in wf. assumption.
-  lets: notin_awterm H5 H4. auto.
+  assert (AWTermT (I1 & I11) t). do 2 rewrite concat_assoc in wf. apply AWf_left in wf. apply awterm_solved_evar in wf. assumption.
+  lets: notin_awtermt H5 H4. auto.
   assert (n = mt + 1). apply alen_evar with (I1 & x ~ v & I11) (I12) a t; auto.
   Omega.omega.
   rewrite~ <- hg.
@@ -455,9 +433,9 @@ Proof.
   assert (IH1: y \notin L) by auto_star.
   assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_Var)) by apply~ AWf_Var.
   assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_Var)) by apply~ complete_add.
-  assert (IH4: x\notin AFv (t @ y)). apply~ notin_open_inv. simpls. apply notin_singleton. auto_star.
+  assert (IH4: x\notin ATFv (AT_Expr (t @ y))). apply~ notin_open_inv. simpls. apply notin_singleton. auto_star.
   assert (IH5: AWf (I1 & (I2 & y ~ AC_Var))). rewrite concat_assoc. apply~ AWf_Var.
-  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_Var) (t @ y) i). apply alen_add_var with (y:=y) in H3; auto. apply alen_open with (y:=y) in H3; auto.
+  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_Var) (AT_Expr (t @ y)) i). apply alen_add_var with (y:=y) in H3; auto. apply alen_open with (y:=y) (n:=0) in H3; auto.
   assert (IH7: i < S m) by Omega.omega.
   assert (IH8: I1 & x ~ v & I2 & y ~ AC_Var = I1 & x ~ v & (I2 & y ~ AC_Var)) by rewrite~ concat_assoc.
   lets: H0 y IH1 IH2 IH3 IH4.
@@ -466,34 +444,16 @@ Proof.
   rewrite concat_assoc in H1. assumption.
 
   simpls. inversion len; subst.
-  apply ACpltCtxSubst_Pi with (L \u dom I1 \u dom I2 \u AFv t1 \u AFv t2 \u \{x}).
+  apply ACpltCtxSubst_Pi with (L \u dom I1 \u dom I2 \u ATFv t1 \u ATFv t2 \u \{x}).
   apply IHsub with i1; auto. Omega.omega.
   intros y notiny.
   subst.
   assert (IH1: y \notin L) by auto_star.
   assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_Var)) by apply~ AWf_Var.
   assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_Var)) by apply~ complete_add.
-  assert (IH4: x\notin AFv (t2 @ y)). apply~ notin_open_inv. simpls. apply notin_singleton. auto_star.
+  assert (IH4: x\notin ATFv (t2 @' y)). apply~ notin_opent_inv. simpls. apply notin_singleton. auto_star.
   assert (IH5: AWf (I1 & (I2 & y ~ AC_Var))). rewrite concat_assoc. apply~ AWf_Var.
-  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_Var) (t2 @ y) i2). apply alen_add_var with (y:=y) in H6; auto. apply alen_open with (y:=y) in H6; auto.
-  assert (IH7: i2 < S m) by Omega.omega.
-  assert (IH8: I1 & x ~ v & I2 & y ~ AC_Var = I1 & x ~ v & (I2 & y ~ AC_Var)) by rewrite~ concat_assoc.
-  lets: H0 y IH1 IH2 IH3 IH4.
-  lets: H1 (I2 & y ~ AC_Var) IH5 i2 IH6. clear H1.
-  lets: H2 IH7 IH8. clear H2.
-  rewrite concat_assoc in H1. assumption.
-
-  simpls. inversion len; subst.
-  apply ACpltCtxSubst_Let with (L \u dom I1 \u dom I2 \u AFv t1 \u AFv t2 \u \{x}).
-  apply IHsub with i1; auto. Omega.omega.
-  intros y notiny.
-  subst.
-  assert (IH1: y \notin L) by auto_star.
-  assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_Var)) by apply~ AWf_Var.
-  assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_Var)) by apply~ complete_add.
-  assert (IH4: x\notin AFv (t2 @ y)). apply~ notin_open_inv. simpls. apply notin_singleton. auto_star.
-  assert (IH5: AWf (I1 & (I2 & y ~ AC_Var))). rewrite concat_assoc. apply~ AWf_Var.
-  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_Var) (t2 @ y) i2). apply alen_add_var with (y:=y) in H6; auto. apply alen_open with (y:=y) in H6; auto.
+  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_Var) (t2 @' y) i2). apply alen_add_var with (y:=y) in H6; auto. apply alen_open with (y:=y) (n:=0) in H6; auto.
   assert (IH7: i2 < S m) by Omega.omega.
   assert (IH8: I1 & x ~ v & I2 & y ~ AC_Var = I1 & x ~ v & (I2 & y ~ AC_Var)) by rewrite~ concat_assoc.
   lets: H0 y IH1 IH2 IH3 IH4.
@@ -511,6 +471,23 @@ Proof.
 
   simpls. inversion len; subst. apply ACpltCtxSubst_Ann. apply IHsub1 with i1; auto. Omega.omega.
   apply IHsub2 with i2; auto. Omega.omega.
+
+  apply ACpltCtxSubst_Forall with (L \u dom G \u ATFv s1 \u \{x}).
+  intros y notiny.
+  subst.
+  inversion len; subst.
+  assert (IH1: y \notin L) by auto_star.
+  assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_TVar)) by apply~ AWf_TVar.
+  assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_TVar)) by apply~ complete_add_tvar.
+  assert (IH4: x\notin ATFv (s1 @#' y)). apply~ notin_topent_inv. simpls. apply notin_singleton. auto_star.
+  assert (IH5: AWf (I1 & (I2 & y ~ AC_TVar))). rewrite concat_assoc. apply~ AWf_TVar.
+  assert (IH6: ALen (I1 & x ~ v & I2 & y ~ AC_TVar) (s1 @#' y) i). apply alen_add_tvar with (y:=y) in H3; auto. apply alen_topen with (y:=y) (n:=0) in H3; auto.
+  assert (IH7: i < S m) by Omega.omega.
+  assert (IH8: I1 & x ~ v & I2 & y ~ AC_TVar = I1 & x ~ v & (I2 & y ~ AC_TVar)) by rewrite~ concat_assoc.
+  lets: H0 y IH1 IH2 IH3 IH4.
+  lets: H1 (I2 & y ~ AC_TVar) IH5 i IH6. clear H1.
+  lets: H2 IH7 IH8. clear H2.
+  rewrite concat_assoc in H1. assumption.
 Qed.
 
 Lemma cpltctxsubst_remove: forall I1 I2 t d x v,
@@ -518,11 +495,13 @@ Lemma cpltctxsubst_remove: forall I1 I2 t d x v,
    AWf (I1 & I2) ->
    CompleteCtx (I1 & x ~ v & I2) ->
    ACpltCtxSubst (I1 & x ~ v & I2) t d ->
-   x \notin AFv t ->
+   x \notin ATFv t ->
    ACpltCtxSubst (I1 & I2) t d.
 Proof.
   introv. intros.
   destruct(@alen_exists (I1 & x ~ v & I2) t) as (n & ex). auto.
+  apply awterm_is_awterma.
+  apply* cpltctxsubst_wftyp.
   apply* cpltctxsubst_remove'.
 Qed.
 
@@ -530,7 +509,7 @@ Lemma cpltctxsubst_weaken: forall I1 t d x v,
    AWf (I1 & x ~ v) ->
    CompleteCtx (I1 & x ~ v) ->
    ACpltCtxSubst (I1 & x ~ v) t d ->
-   x \notin AFv t ->
+   x \notin ATFv t ->
    ACpltCtxSubst I1 t d.
 Proof.
   intros.
@@ -544,72 +523,8 @@ Lemma cpltctxsubst_weaken_append: forall I1 I2 t d,
    AWf (I1 & I2) ->
    CompleteCtx (I1 & I2) ->
    ACpltCtxSubst (I1 & I2) t d ->
-   AWTerm I1 t ->
-   ACpltCtxSubst I1 t d.
-Proof.
-  introv wf comp sub wt.
-  induction I2 using env_ind.
-  rewrite concat_empty_r in sub. auto.
-  assert (x # I1). rewrite concat_assoc in wf. apply awf_is_ok in wf. destruct (ok_push_inv wf) as [_ notin]. auto_star.
-  lets: notin_awterm wt H.
-  rewrite concat_assoc in *.
-  lets: cpltctxsubst_weaken (I1 & I2) t d x.
-  lets: H1 wf comp sub H0.
-  apply~ IHI2.
-  apply* AWf_left.
-  apply* complete_part_left.
-Qed.
-
-Lemma cpltctxtsubst_remove: forall I1 I2 t d x v,
-   AWf (I1 & x ~ v & I2) ->
-   AWf (I1 & I2) ->
-   CompleteCtx (I1 & x ~ v & I2) ->
-   ACpltCtxTSubst (I1 & x ~ v & I2) t d ->
-   x \notin ATFv t ->
-   ACpltCtxTSubst (I1 & I2) t d.
-Proof.
-  introv wfx wf comp sub notin.
-  gen_eq I : (I1 & x ~ v & I2).
-  gen I2.
-  induction sub; introv wf ginfo.
-
-  apply ACpltCtxTSubst_Poly with (L \u dom G \u ATFv s1 \u \{x}).
-  intros y notiny.
-  subst.
-  assert (IH1: y \notin L) by auto_star.
-  assert (IH2: AWf (I1 & x ~ v & I2 & y ~ AC_Typ AE_Star)). apply~ AWf_TyVar. apply~ awftyp_star.
-  assert (IH3: CompleteCtx (I1 & x ~ v & I2 & y ~AC_Typ AE_Star)) by apply~ complete_add_typ.
-  assert (IH4: x\notin ATFv (s1 @' y)). apply~ notin_opent_inv. simpls. apply notin_singleton. auto_star.
-  assert (IH5: AWf (I1 & (I2 & y ~ AC_Typ AE_Star))). rewrite concat_assoc. apply~ AWf_TyVar. apply~ awftyp_star.
-  assert (IH8: I1 & x ~ v & I2 & y ~ AC_Typ AE_Star = I1 & x ~ v & (I2 & y ~ AC_Typ AE_Star)) by rewrite~ concat_assoc.
-  lets: H0 y IH1 IH2 IH3 IH4.
-  lets: H1 (I2 & y ~ AC_Typ AE_Star) IH5 IH8.
-  rewrite concat_assoc in H2. assumption.
-
-  apply ACpltCtxTSubst_Expr. subst.
-  apply* cpltctxsubst_remove.
-Qed.
-
-Lemma cpltctxtsubst_weaken: forall I1 t d x v,
-   AWf (I1 & x ~ v) ->
-   CompleteCtx (I1 & x ~ v) ->
-   ACpltCtxTSubst (I1 & x ~ v) t d ->
-   x \notin ATFv t ->
-   ACpltCtxTSubst I1 t d.
-Proof.
-  intros.
-  assert (ACpltCtxTSubst (I1 & empty) t d).
-  apply cpltctxtsubst_remove with (I2:=empty) (x:=x) (v:=v); repeat(rewrite concat_empty_r); auto.
-  apply* AWf_left.
-  rewrite concat_empty_r in H3. auto.
-Qed.
-
-Lemma cpltctxtsubst_weaken_append: forall I1 I2 t d,
-   AWf (I1 & I2) ->
-   CompleteCtx (I1 & I2) ->
-   ACpltCtxTSubst (I1 & I2) t d ->
    AWTermT I1 t ->
-   ACpltCtxTSubst I1 t d.
+   ACpltCtxSubst I1 t d.
 Proof.
   introv wf comp sub wt.
   induction I2 using env_ind.
@@ -617,7 +532,7 @@ Proof.
   assert (x # I1). rewrite concat_assoc in wf. apply awf_is_ok in wf. destruct (ok_push_inv wf) as [_ notin]. auto_star.
   lets: notin_awtermt wt H.
   rewrite concat_assoc in *.
-  lets: cpltctxtsubst_weaken (I1 & I2) t d x.
+  lets: cpltctxsubst_weaken (I1 & I2) t d x.
   lets: H1 wf comp sub H0.
   apply~ IHI2.
   apply* AWf_left.

@@ -316,18 +316,6 @@ Proof.
   intros. unfold CompleteCtx in H. apply H in H0. apply* H0.
 Qed.
 
-Lemma complete_add: forall G x,
-    CompleteCtx G ->
-    CompleteCtx (G & x ~ AC_Var).
-Proof.
-  introv comp.
-  unfold CompleteCtx.
-  intros z zv bd eqzv. subst.
-  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
-  false neq.
-  false complete_contains_unsolved comp neq.
-Qed.
-
 Lemma complete_empty: CompleteCtx empty.
 Proof.
   unfold CompleteCtx. intros.
@@ -355,6 +343,18 @@ Proof.
   assert (binds x v (G1 & G2)). apply* binds_concat_left_ok.
   unfold not. intros.
   false (cm x v H H0).
+Qed.
+
+Lemma complete_add: forall G x,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Var).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
 Qed.
 
 Lemma complete_add_typ: forall G x t,
