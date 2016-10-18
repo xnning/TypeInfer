@@ -348,6 +348,7 @@ Inductive AResolveEVar : ACtx -> var -> AType -> AType -> ACtx -> Prop :=
       AResolveEVar (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3) a (AT_EVar b) (AT_EVar b)
                    (G1 & b ~ AC_Unsolved_EVar & G2 & a ~ AC_Unsolved_EVar & G3)
   | AResolveEVar_EVar_After : forall a b G1 G2 G3 a1,
+      a1 # (G1 & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Unsolved_EVar & G3) ->
       AResolveEVar (G1 & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Unsolved_EVar & G3) a (AT_EVar b) (AT_EVar a1)
                    (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Solved_EVar (AT_EVar a1) & G3)
   | AResolveEVar_Pi : forall a t1 t2 t3 t4 G H1 H L,
@@ -368,10 +369,10 @@ Inductive AResolveEVar : ACtx -> var -> AType -> AType -> ACtx -> Prop :=
 Inductive ARFMode := Plus | Minus.
 
 Inductive AResolveForall : ACtx -> var -> ARFMode -> AType -> AType -> ACtx -> Prop :=
-  | AResolveForall_Poly: forall a L G1 G2 H s t,
-      (forall a1, a1 \notin L ->
-             AResolveForall (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2)
-                            a Plus (s @@#' (AT_EVar a1)) t H) ->
+  | AResolveForall_Poly: forall a G1 G2 H s t a1,
+      a1 # (G1 & a ~ AC_Unsolved_EVar & G2) ->
+      AResolveForall (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2)
+                     a Plus (s @@#' (AT_EVar a1)) t H ->
       AResolveForall (G1 & a ~ AC_Unsolved_EVar & G2) a Plus (AT_Expr (AE_Forall s)) t H
   | AResolveForall_Pi1: forall G s1 s2 t1 t2 H1 H a,
       AResolveForall G a Plus s1 t1 H1 ->
@@ -381,8 +382,8 @@ Inductive AResolveForall : ACtx -> var -> ARFMode -> AType -> AType -> ACtx -> P
       AResolveForall G a Minus s1 t1 H1 ->
       AResolveForall H1 a Plus s2 t2 H ->
       AResolveForall G a Plus (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi t1 t2)) H
-  | AResolveForall_Mono : forall G H a m t,
-      ATMono t -> AResolveForall G a m t t H.
+  | AResolveForall_Mono : forall G a m t,
+      ATMono t -> AResolveForall G a m t t G.
 
 Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
   | AUnify_Var : forall x G, binds x AC_Var G -> AUnify G (AT_Expr (AE_FVar x)) (AT_Expr (AE_FVar x)) G
@@ -394,7 +395,7 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
   | AUnify_App : forall t1 t2 t3 t4 G H1 H,
       AUnify G (AT_Expr t1) (AT_Expr t2) H1 ->
       AUnify H1 (AT_Expr (ACtxSubst H1 t3)) (AT_Expr (ACtxSubst H1 t4)) H ->
-      AUnify G (AT_Expr (AE_App t1 t3)) (AT_Expr (AE_App t2 t3)) H
+      AUnify G (AT_Expr (AE_App t1 t3)) (AT_Expr (AE_App t2 t4)) H
   | AUnify_Lam : forall t1 t2 G H L,
       (forall x, x \notin L -> AUnify (G & x ~ AC_Var) (AT_Expr (t1 @ x)) (AT_Expr (t2 @ x)) (H & x ~ AC_Var)) ->
       AUnify G (AT_Expr (AE_Lam t1)) (AT_Expr (AE_Lam t2)) H
@@ -411,7 +412,7 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
   | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
       AUnify G (AT_Expr t1) (AT_Expr t2) H1 ->
       AUnify H1 (ACtxTSubst H1 t3) (ACtxTSubst H1 t4) H ->
-      AUnify G (AT_Expr (AE_Ann t1 t3)) (AT_Expr (AE_Ann t2 t3)) H
+      AUnify G (AT_Expr (AE_Ann t1 t3)) (AT_Expr (AE_Ann t2 t4)) H
   | AUnify_EVarTy : forall a t1 t2 G H1 H2,
       a \notin ATFv (t1) ->
       AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
@@ -436,6 +437,7 @@ Inductive ASubtyping : ACtx -> AType -> AType -> ACtx -> Prop :=
       ASubtyping G (AT_Expr (AE_Forall s1)) s2 H
   | ASub_Pi: forall G s1 s2 s3 s4 H I x H1,
       ASubtyping G s3 s1 H1 ->
+      x # H1 ->
       ASubtyping (H1 & x ~ AC_Typ s1) (ACtxTSubst H1 (s2 @' x)) (ACtxTSubst H1 (s4 @' x)) (H & x ~ AC_Typ s1 & I) ->
       ASubtyping G (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi s3 s4)) H
   | ASub_EVarL: forall a s G1 G2 H1 H t,

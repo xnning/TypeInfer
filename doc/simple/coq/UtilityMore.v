@@ -56,6 +56,24 @@ Proof.
   rewrite <- ih.  apply* ok_preservation.
 Qed.
 
+Lemma extension_append: forall G H I,
+    ExtCtx G H ->
+    AWf (G & I) ->
+    AWf (H & I) ->
+    ExtCtx (G & I) (H & I).
+Proof.
+  introv ex wfgi wfhi.
+  induction I using env_ind.
+  repeat rewrite concat_empty_r in *. auto.
+  repeat rewrite concat_assoc in *. auto.
+  induction v; auto.
+  apply~ ExtCtx_Var. apply~ IHI. apply* AWf_left. apply* AWf_left.
+  apply~ ExtCtx_TypVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
+  apply~ ExtCtx_TVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
+  apply~ ExtCtx_EVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
+  apply~ ExtCtx_SolvedEVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
+Qed.
+
 (* properties about cpltctxsubst *)
 
 Lemma cpltctxsubst_wftyp: forall G s t,
@@ -537,4 +555,199 @@ Proof.
   apply~ IHI2.
   apply* AWf_left.
   apply* complete_part_left.
+Qed.
+
+Hint Resolve awf_is_ok.
+
+Lemma actxtsubst_append: forall G H t,
+    ok (G & H) ->
+    AWTermT G t ->
+    ACtxTSubst (G & H) t = ACtxTSubst G t.
+Proof.
+  introv okg wt.
+  induction H using env_ind.
+  rewrite~ concat_empty_r.
+  rewrite concat_assoc.
+  rewrite tsubst_add_ctx.
+
+  assert (ACtxTSubst (x ~ v) t = t).
+  rewrite single_def. unfold ACtxTSubst. rewrite LibList.fold_left_cons. rewrite LibList.fold_left_nil.
+  destruct v; simpls; auto.
+  apply atsubstt_fresh.
+  apply notin_tfv_tftv.
+  apply notin_awtermt with G; auto.
+  rewrite concat_assoc in okg.
+  destruct (ok_push_inv okg) as [_ okg2]. auto_star.
+  rewrite H0. apply* IHenv.
+  rewrite concat_assoc in okg.
+  destruct (ok_push_inv okg) as [okg1 _]. auto_star.
+Qed.
+
+Lemma ctxsubst_awterm' : forall G t n m,
+    AWf G ->
+    AWTermT G t ->
+    n < m ->
+    ALen G t n ->
+    AWTermT G (ACtxTSubst G t).
+Proof.
+  intros. gen G t n. induction m; introv wf wt less len.
+  inversion less.
+
+
+  gen n. induction wt; introv less len; simpls; auto.
+
+  (* AE_FVar *)
+  assert (ACtxTSubst G (AT_Expr (AE_FVar x)) = AT_Expr (AE_FVar x)).
+  rewrite actxtsubst_expr. f_equal.
+  apply ctxsubst_fvar_eq; auto.
+  rewrite H0.
+  apply* AWTermT_Var.
+
+  (* AE_FVar *)
+  assert (ACtxTSubst G (AT_Expr (AE_FVar x)) = AT_Expr (AE_FVar x)).
+  rewrite* actxtsubst_expr. f_equal ~.
+  apply* ctxsubst_fvar_eq.
+  rewrite H0.
+  apply* AWTermT_TypVar.
+
+  (* Star *)
+  rewrite tsubst_star.
+  apply AWTermT_Star.
+
+  (* APP *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_app.
+  inversion len; subst.
+  apply* AWTermT_App.
+  apply IHwt1 with i1; auto. Omega.omega.
+  apply IHwt2 with i2; auto. Omega.omega.
+
+  (* Lam *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_lam.
+  apply AWTermT_Lam with (L \u dom G).
+  intros y notiny.
+  assert (AWf (G & y ~ AC_Var)). apply* AWf_Var.
+  assert (y \notin L) by auto_star.
+  lets: H0 H2 H1.
+  rewrite actxtsubst_expr in H3.
+  rewrite subst_add_var in H3.
+  inversion len; subst.
+  apply alen_open_expr with (n:=0) (y:=y) in H6; auto.
+  apply alen_add_var_expr with (y:=y) in H6; auto.
+  lets: H3 H6. Omega.omega.
+
+  rewrite actxsubst_open in H4; auto.
+  rewrite ctxsubst_fvar_eq in H4; auto.
+
+  (* Pi *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_pi.
+  inversion len; subst.
+  apply AWTermT_Pi with (L \u dom G).
+  apply IHwt with (n:=i1); auto. Omega.omega.
+  intros y notiny.
+  assert (AWf (G & y ~ AC_Var)). apply* AWf_Var.
+  assert (y \notin L) by auto_star.
+  lets: H0 H2 H1.
+  rewrite tsubst_add_var in H3.
+  apply alen_open with (n:=0) (y:=y) in H6; auto.
+  apply alen_add_var with (y:=y) in H6; auto.
+  lets: H3 H6. Omega.omega.
+
+  rewrite actxtsubst_open in H5; auto.
+  rewrite ctxsubst_fvar_eq in H5; auto.
+
+  (* CASTUP *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_castup.
+  apply AWTermT_CastUp.
+  inversion len; subst.
+  apply IHwt with i; auto. Omega.omega.
+
+  (* CASTDOWN *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_castdn.
+  apply AWTermT_CastDn.
+  inversion len; subst.
+  apply IHwt with i; auto. Omega.omega.
+
+  (* ANN *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_ann.
+  inversion len; subst.
+  apply AWTermT_Ann.
+  apply IHwt1 with i1; auto. Omega.omega.
+  apply IHwt2 with i2; auto. Omega.omega.
+
+  (* FORALL *)
+  rewrite actxtsubst_expr in *.
+  rewrite actxsubst_forall.
+  inversion len; subst.
+  apply AWTermT_Forall with (L \u dom G).
+  intros y notiny.
+  assert (AWf (G & y ~ AC_TVar)). apply* AWf_TVar.
+  assert (y \notin L) by auto_star.
+  lets: H0 H2 H1.
+  rewrite tsubst_add_tvar in H4.
+  apply alen_topen with (n:=0) (y:=y) in H3; auto.
+  apply alen_add_tvar with (y:=y) in H3; auto.
+  lets: H4 H3. Omega.omega.
+
+  rewrite actxtsubst_topen in H5.
+  rewrite ctxsubst_tvar_eq in H5; auto.
+  apply AWf_left in H1; auto.
+
+  (* TVar *)
+  rewrite* ctxsubst_tvar_eq.
+  (* Unsolved EVAR *)
+  rewrite* ctxsubst_evar_eq.
+
+  (* Solved EVar*)
+  destruct (split_bind_context H) as (G1 & G2 & hg).
+  assert (AWTermT G t) by apply* awterm_evar_binds.
+  assert (exists n1, ALen G1 t n1). apply* alen_exists. rewrite hg in wf. do 2 apply AWf_left in wf. auto.
+  rewrite hg in wf. apply AWf_left in wf. apply awterm_solved_evar in wf. apply* awterm_is_awterma.
+  destruct H1 as (n1 & len_t).
+  assert (n1 < m). rewrite hg in len. apply alen_evar with (G2:=G2) (a:=i) (n:=n) in len_t; auto. Omega.omega. rewrite <- hg. apply* awf_is_ok.
+  lets: IHm wf H0 n1 H1.
+
+  assert (ALen (G1 & (i ~ AC_Solved_EVar t & G2)) t n1).
+  apply* alen_awterm_append.
+  rewrite concat_assoc. rewrite <- hg. auto.
+  apply awterm_is_awterma. rewrite hg in wf. apply AWf_left in wf. apply awterm_solved_evar in wf. auto.
+  rewrite concat_assoc in H3. rewrite <- hg in H3.
+  lets: H2 H3.
+
+  rewrite hg.
+  rewrite tsubst_add_ctx.
+  assert (i # G2). rewrite hg in wf. apply awf_is_ok in wf. apply* ok_middle_inv_r.
+  rewrite* ctxsubst_evar_eq.
+  simpls.
+  rewrite tsubst_add_ctx.
+  assert (ACtxTSubst (i ~ AC_Solved_EVar t) (AT_EVar i) = t). unfold ACtxTSubst.
+  rewrite single_def.
+  rewrite LibList.fold_left_cons.
+  rewrite LibList.fold_left_nil.
+  simpls. case_if*.
+
+  rewrite H6. clear H6.
+  rewrite <- actxtsubst_append with (H:=i ~ AC_Solved_EVar t & G2); auto.
+  rewrite concat_assoc. rewrite <- hg. auto.
+
+  rewrite concat_assoc. rewrite~ <- hg.
+  rewrite hg in wf. apply AWf_left in wf. apply awterm_solved_evar in wf; auto.
+  rewrite hg in wf.
+  apply* ok_concat_inv_r.
+Qed.
+
+Lemma ctxsubst_awterm : forall G t,
+    AWf G ->
+    AWTermT G t ->
+    AWTermT G (ACtxTSubst G t).
+Proof.
+  intros.
+  assert (exists n, ALen G t n). apply~ alen_exists.
+  destruct H1 as (n & len).
+  apply* ctxsubst_awterm'.
 Qed.

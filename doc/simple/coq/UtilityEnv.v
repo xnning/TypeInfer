@@ -135,6 +135,20 @@ Qed.
 
 (* if a context is ok *)
 
+Lemma ok_insert: forall {A} (G H: env A) a v,
+    ok (G & H) ->
+    a # (G & H) ->
+    ok (G & a ~ v & H).
+Proof.
+  introv okg notin.
+  induction H using env_ind.
+  rewrite~ concat_empty_r.
+  rewrite concat_assoc. apply ok_push.
+  apply~ IHenv. rewrite concat_assoc in okg. apply ok_concat_inv_l in okg. auto.
+  assert (x # (G & H)). rewrite concat_assoc in okg. apply ok_push_inv in okg. destruct okg as [_ okg]. auto.
+  auto_star.
+Qed.
+
 Lemma ok_non_eq : forall {A} x vx y vy (E F G: env A),
     ok (E & x ~ vx & F & y ~ vy & G) -> x <> y.
 Proof.
@@ -730,6 +744,54 @@ Proof.
   unfold AWTerm. intros. apply* awtermt_reorder_tvar.
 Qed.
 
+Lemma awtermt_reorder_typvar : forall G1 G2 x1 x2 v e t,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_Typ t & x1 ~ v & G2) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_Typ t & G2) e.
+Proof.
+  intros. inductions H0.
+  apply* AWTermT_Var. apply* binds_swap.
+  apply* AWTermT_TypVar. apply* binds_swap.
+  apply* AWTermT_Star.
+  apply* AWTermT_App.
+
+  apply AWTermT_Lam with (L := L); intros.
+  assert (JMeq.JMeq (G1 & x2 ~ AC_Typ t & x1 ~ v & G2 & x ~ AC_Var)
+                    (G1 & x2 ~ AC_Typ t & x1 ~ v & (G2 & x ~ AC_Var))).
+  rewrite -> concat_assoc. auto.
+  pose (Re := H0 x H2 t v x2 x1 H (G2 & x ~ AC_Var) G1 H3).
+  rewrite -> concat_assoc in Re.
+  auto.
+
+  apply AWTermT_Pi with (L := L). auto. intros.
+  lets: H2 H3.
+  rewrite <- concat_assoc in H4.
+  rewrite <- concat_assoc.
+  apply* H1. rewrite* concat_assoc.
+
+  apply* AWTermT_CastUp.
+  apply* AWTermT_CastDn.
+  apply* AWTermT_Ann.
+
+  apply AWTermT_Forall with (L := L). intros.
+  lets: H1 H2.
+  rewrite <- concat_assoc in H3.
+  rewrite <- concat_assoc.
+  apply* H0. rewrite~ concat_assoc.
+  apply* AWTermT_TFVar. apply* binds_swap.
+  apply* AWTermT_Unsolved_EVar. apply* binds_swap.
+  apply* AWTermT_Solved_EVar. apply* binds_swap.
+Qed.
+
+Lemma awterm_reorder_typvar : forall G1 G2 x1 x2 v e t,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_Typ t & x1 ~ v & G2) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_Typ t & G2) e.
+Proof.
+  unfold AWTerm. intros.
+  apply* awtermt_reorder_typvar.
+Qed.
+
 Lemma awtermt_reorder_simp : forall G1 x1 x2 v e,
     x1 <> x2 ->
     AWTermT (G1 & x2 ~ AC_Var & x1 ~ v) e ->
@@ -774,6 +836,29 @@ Lemma awterm_reorder_tvar_simp : forall G1 x1 x2 v e,
     AWTerm (G1 & x1 ~ v & x2 ~ AC_TVar) e.
 Proof.
   unfold AWTerm. intros. apply* awtermt_reorder_tvar_simp.
+Qed.
+
+Lemma awtermt_reorder_typvar_simp : forall G1 x1 x2 v e t,
+    x1 <> x2 ->
+    AWTermT (G1 & x2 ~ AC_Typ t & x1 ~ v) e ->
+    AWTermT (G1 & x1 ~ v & x2 ~ AC_Typ t) e.
+Proof.
+  intros.
+  assert (G1 & x2 ~ AC_Typ t & x1 ~ v = G1 & x2 ~ AC_Typ t & x1 ~ v & empty).
+  rewrite* concat_empty_r.
+  assert (G1 & x1 ~ v & x2 ~ AC_Typ t = G1 & x1 ~ v & x2 ~ AC_Typ t & empty).
+  rewrite* concat_empty_r.
+  rewrite H1 in H0.
+  rewrite H2.
+  apply* awtermt_reorder_typvar.
+Qed.
+
+Lemma awterm_reorder_typvar_simp : forall G1 x1 x2 v e t,
+    x1 <> x2 ->
+    AWTerm (G1 & x2 ~ AC_Typ t & x1 ~ v) e ->
+    AWTerm (G1 & x1 ~ v & x2 ~ AC_Typ t) e.
+Proof.
+  unfold AWTerm; intros. apply* awtermt_reorder_typvar_simp.
 Qed.
 
 Lemma binds_push_fresh : forall A x v (G : env A) x' v',
@@ -868,8 +953,7 @@ Lemma atyping_awf: forall G m e t H,
     AWf G.
 Proof.
   introv ty.
-  induction ty; simpl; auto; try(solve[apply* AWf_left]).
-  apply* AWf_left. rewrite* concat_assoc.
+  induction ty; repeat apply AWf_left in IHty; auto.
 Qed.
 
 (* substitution *)
@@ -1581,6 +1665,76 @@ Proof.
   rewrite IHenv. rewrite concat_assoc. auto.
 Qed.
 
+Lemma uv_add_var: forall G x,
+    ACtxUV (G & x ~ AC_Var) = ACtxUV G.
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma uv_add_typvar: forall G x t,
+    ACtxUV (G & x ~ AC_Typ t) = ACtxUV G.
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma uv_add_tvar: forall G x,
+    ACtxUV (G & x ~ AC_TVar) = ACtxUV G.
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma uv_add_evar: forall G x,
+    ACtxUV (G & x ~ AC_Unsolved_EVar) = (ACtxUV G) & x ~ AC_Unsolved_EVar.
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma uv_add_solved_evar: forall G x t,
+    ACtxUV (G & x ~ AC_Solved_EVar t) = (ACtxUV G).
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma awf_append_uv: forall G H,
+    AWf G ->
+    ok (G & H) ->
+    AWf (G & ACtxUV H).
+Proof.
+  introv wf okg.
+  induction H using env_ind.
+  rewrite empty_uv. rewrite~ concat_empty_r.
+  assert (ok (G & H)). rewrite concat_assoc in okg. apply* ok_concat_inv_l.
+  lets: IHenv H0.
+  destruct v; simpls; auto.
+  rewrite~ uv_add_var.
+  rewrite~ uv_add_typvar.
+  rewrite~ uv_add_tvar.
+  rewrite~ uv_add_evar. rewrite concat_assoc. apply~ AWf_Ctx_Unsolved_EVar. simpl_dom. apply notin_union. split.
+  rewrite concat_assoc in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
+  apply notin_uv. apply ok_concat_inv_r in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
+  rewrite~ uv_add_solved_evar.
+Qed.
+
+Lemma uv_ok: forall G H,
+    ok (G & H) ->
+    ok (G & ACtxUV H).
+Proof.
+  introv okg.
+  induction H using env_ind.
+  rewrite~ empty_uv.
+  assert (ok (G & H)). rewrite concat_assoc in okg. apply* ok_concat_inv_l.
+  lets: IHenv H0.
+  destruct v; simpls; auto.
+  rewrite~ uv_add_var.
+  rewrite~ uv_add_typvar.
+  rewrite~ uv_add_tvar.
+  rewrite~ uv_add_evar. rewrite concat_assoc. apply~ ok_push. simpl_dom. apply notin_union. split.
+  rewrite concat_assoc in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
+  apply notin_uv. apply ok_concat_inv_r in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
+  rewrite~ uv_add_solved_evar.
+Qed.
+
+
 (* distributivity of context substitution *)
 
 Lemma distributivity_ctxsubst_subst : forall H x s e,
@@ -1801,4 +1955,48 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+Qed.
+
+Lemma awtermt_is_awtermty: forall G e,
+    AWTermT G e -> ATermTy e.
+Proof.
+  introv wt.
+  induction wt; simpls; auto.
+
+  inversion IHwt1; subst.
+  inversion IHwt2; subst.
+  apply~ ATermTy_Expr.
+
+  apply~ ATermTy_Expr.
+  apply ATerm_Lam with L.
+  intros y notin_l.
+  lets: H0 notin_l.
+  inversion H1; subst; auto.
+
+  inversion IHwt; subst.
+  apply~ ATermTy_Expr.
+
+  inversion IHwt; subst.
+  apply~ ATermTy_Expr.
+
+  inversion IHwt1; subst.
+  inversion IHwt2; subst.
+  apply~ ATermTy_Expr.
+
+  inversion IHwt1; subst.
+  inversion IHwt2; subst.
+  apply~ ATermTy_Expr.
+
+  inversion IHwt1; subst.
+  inversion IHwt2; subst.
+  apply~ ATermTy_Expr.
+
+  apply~ ATermTy_Expr.
+  apply ATerm_Forall with L.
+  intros y notin_l.
+  lets: H0 notin_l. auto.
+
+  apply ATermTy_TFVar.
+  apply ATermTy_EVar.
+  apply ATermTy_EVar.
 Qed.

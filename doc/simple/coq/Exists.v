@@ -374,21 +374,41 @@ Proof.
   apply* alen_add_tvar_expr.
 Qed.
 
+Lemma alen_fvar: forall G x,
+    ALen G (AT_Expr (AE_FVar x)) 1.
+Proof.
+  intros.
+  assert ({x \in dom G}+{x \notin dom G}). apply* decidable_sumbool. apply indom_decidable.
+  destruct H as [hin | hnotin].
+  assert (exists vx, binds x vx G) by apply* get_some.
+  destruct H as (vx & H). destruct vx; auto_star.
+  apply* ALen_Var_I.
+Qed.
+
+Lemma alen_tfvar: forall G x,
+    ALen G (AT_TFVar x) 1.
+Proof.
+  intros.
+  assert ({x \in dom G}+{x \notin dom G}). apply* decidable_sumbool. apply indom_decidable.
+  destruct H as [hin | hnotin].
+  assert (exists vx, binds x vx G) by apply* get_some.
+  destruct H as (vx & H). destruct vx; auto_star.
+  apply* ALen_TFVar_I.
+Qed.
+
 Lemma alen_open_expr: forall G e i y n,
     ALen G (AT_Expr e) i ->
     ok G ->
-    binds y AC_Var G ->
     ALen G (AT_Expr (AOpenRec n (AE_FVar y) e)) i
 with alen_open: forall G e i y n,
     ALen G e i ->
     ok G ->
-    binds y AC_Var G ->
     ALen G (AOpenTypRec n (AE_FVar y) e) i.
 Proof.
-  introv len okg bd.
+  introv len okg.
   gen i n. induction e; introv len; intro k; simpls; try(solve[assumption]).
 
-  simpls. auto. case_if*. inversion len; subst. apply* ALen_Var.
+  simpls. auto. case_if*. inversion len; subst. apply alen_fvar.
 
   inversion len; subst. apply ALen_App.
   apply* IHe1. apply* IHe2.
@@ -412,7 +432,7 @@ Proof.
   inversion len; subst. apply ALen_Forall.
   apply* alen_open.
 Proof.
-  introv len okg bd.
+  introv len okg.
   gen i n. induction e; introv len; intro k; simpls; try(solve[assumption]).
 
   simpls. auto.
@@ -421,15 +441,13 @@ Qed.
 Lemma alen_topen_expr: forall G e i y n,
     ALen G (AT_Expr e) i ->
     ok G ->
-    binds y AC_TVar G ->
     ALen G (AT_Expr (ATOpenRec n (AT_TFVar y) e)) i
 with alen_topen: forall G e i y n,
     ALen G e i ->
     ok G ->
-    binds y AC_TVar G ->
     ALen G (ATOpenTypRec n (AT_TFVar y) e) i.
 Proof.
-  introv len okg bd.
+  introv len okg.
   gen i n. induction e; introv len; intro k; simpls; try(solve[assumption]).
 
   inversion len; subst. apply ALen_App.
@@ -454,10 +472,10 @@ Proof.
   inversion len; subst. apply ALen_Forall.
   apply* alen_topen.
 Proof.
-  introv len okg bd.
+  introv len okg.
   gen i n. induction e; introv len; intro k; simpls; try(solve[assumption]).
 
-  simpls. auto. case_if*. inversion len; subst. apply* ALen_TFVar.
+  simpls. auto. case_if*. inversion len; subst. apply* alen_tfvar.
 
   simpls. auto.
 Qed.

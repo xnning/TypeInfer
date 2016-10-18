@@ -5,6 +5,7 @@ Require Import UtilityEnv.
 Require Import DeclDef.
 Require Import DeclInfra.
 Require Import AlgoInfra.
+Require Import LibReflect.
 
 Set Implicit Arguments.
 
@@ -485,54 +486,19 @@ Proof.
   subst. auto.
 Qed.   
 
-Lemma ctxsubst_fvar_eq : forall G x v,
+Lemma ctxsubst_fvar_eq : forall G x,
     ok G ->
-    (forall a, v <> AC_Solved_EVar a) ->
-    (binds x v G \/ x # G) ->
     ACtxSubst G (AE_FVar x) = AE_FVar x.
 Proof.
-  introv H NEvar H1. inductions H.
+  introv H. induction G using env_ind.
   rewrite* subst_empty_env.
-  inductions v0.
+
+  induction v.
   rewrite~ subst_add_var.
-  destruct H1 as [Bnd | Frh].
-  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
-  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
-  apply* IHok.
-  apply* IHok.
-  apply* IHok.
-
   rewrite~ subst_add_typvar.
-  destruct H1 as [Bnd | Frh].
-  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
-  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
-  apply* IHok.
-  apply* IHok.
-  apply* IHok.
-
   rewrite~ subst_add_tvar.
-  destruct H1 as [Bnd | Frh].
-  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
-  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
-  apply* IHok.
-  apply* IHok.
-  apply* IHok.
-
   rewrite~ subst_add_evar.
-  destruct H1 as [Bnd | Frh].
-  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
-  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
-  apply* IHok.
-  apply* IHok.
-  apply* IHok.
-
   rewrite~ subst_add_solved_evar.
-  destruct H1 as [Bnd | Frh].
-  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
-  destruct (binds_single_inv Bnd1) as [Eq1 Eq2].
-  false.
-  apply* IHok.
-  apply* IHok.
 Qed.
 
 Lemma ctxsubst_evar_eq : forall G x,
@@ -639,166 +605,63 @@ Proof.
   apply* notin_same.
 Qed.
 
-Hint Resolve awf_is_ok.
+Lemma actxsubst_open: forall G e u,
+    AWf G ->
+    ACtxSubst G (e @@ u) = (ACtxSubst G e) @@ (ACtxSubst G u).
+Proof.
+  introv wf. gen e u.
+  induction G using env_ind; introv.
+  repeat rewrite~ subst_empty_env.
+  assert (AWf G) by apply* AWf_left.
+  induction v.
+  repeat rewrite~ subst_add_var.
+  repeat rewrite~ subst_add_typvar.
+  repeat rewrite~ subst_add_tvar.
+  repeat rewrite~ subst_add_evar.
+  repeat rewrite~ subst_add_solved_evar.
+  rewrite~ <- IHG. f_equal ~.
+  unfold AOpen. rewrite~ asubstt_openrec.
+  apply awtermt_is_awtermty with G.
+  apply* awterm_solved_evar.
+Qed.
 
-(* THIS SHOULD BE PROVED BY INDUCTION ON LENGTH *)
-(* Lemma ctxsubst_awterm : forall G t, *)
-(*     AWf G -> *)
-(*     AWTermT G t -> *)
-(*     AWTermT G (ACtxTSubst G t). *)
-(* Proof. *)
-(*   introv Ok Hyp.  *)
-(*   inductions Hyp. *)
-(*   assert (ACtxTSubst G (AT_Expr (AE_FVar x)) = AT_Expr (AE_FVar x)). *)
-(*   rewrite* actxtsubst_expr. f_equal ~. *)
-(*   apply* ctxsubst_fvar_eq.  *)
-(*   unfold not; intros. inversions H0. *)
-(*   unfold not; intros. inversions H0. *)
-(*   rewrite H2. rewrite H2. *)
-(*   apply* AWTermT_Var. *)
-  
-(*   assert (ACtxTSubst G (AT_Expr (AE_FVar x)) = AT_Expr (AE_FVar x)). *)
-(*   rewrite* actxtsubst_expr. f_equal ~. *)
-(*   apply* ctxsubst_fvar_eq. *)
-(*   unfold not; intros. inversions H0. *)
-(*   rewrite H0. *)
-(*   apply* AWTermT_TypVar. *)
+Lemma actxtsubst_open: forall G e u,
+    AWf G ->
+    ACtxTSubst G (e @@' u) = (ACtxTSubst G e) @@' (ACtxSubst G u).
+Proof.
+  introv wf. gen e u.
+  induction G using env_ind; introv.
+  repeat rewrite~ subst_empty_env.
+  repeat rewrite~ tsubst_empty_env.
+  assert (AWf G) by apply* AWf_left.
+  induction v.
+  repeat rewrite~ subst_add_var. repeat rewrite~ tsubst_add_var.
+  repeat rewrite~ subst_add_typvar. repeat rewrite~ tsubst_add_typvar.
+  repeat rewrite~ subst_add_tvar. repeat rewrite~ tsubst_add_tvar.
+  repeat rewrite~ subst_add_evar. repeat rewrite~ tsubst_add_evar.
+  repeat rewrite~ subst_add_solved_evar. repeat rewrite~ tsubst_add_solved_evar.
+  rewrite~ <- IHG. f_equal ~.
+  unfold AOpenT. rewrite~ atsubstt_opentyprec.
+  apply awtermt_is_awtermty with G.
+  apply* awterm_solved_evar.
+Qed.
 
-(*   rewrite tsubst_star. *)
-(*   apply AWTermT_Star. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_app. *)
-(*   apply* AWTermT_App. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_lam. *)
-(*   apply AWTermT_Lam with (L \u dom G). *)
-(*   intros y notiny. *)
-(*   assert (AWf (G & y ~ AC_Var)). apply* AWf_Var. *)
-(*   assert (y \notin L) by auto_star. *)
-(*   lets: H0 H2 H1. *)
-(*   rewrite actxtsubst_expr in H3. *)
-(*   rewrite subst_add_var in H3. *)
-(*   admit. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_pi. *)
-(*   apply AWTermT_Pi with (L \u dom G). *)
-(*   apply* IHHyp. *)
-(*   intros y notiny. *)
-(*   assert (AWf (G & y ~ AC_Var)). apply* AWf_Var. *)
-(*   assert (y \notin L) by auto_star. *)
-(*   lets: H0 H2 H1. *)
-(*   rewrite tsubst_add_var in H3. *)
-(*   admit. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_castup. *)
-(*   apply AWTermT_CastUp. *)
-(*   apply* IHHyp. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_castdn. *)
-(*   apply AWTermT_CastDn. *)
-(*   apply* IHHyp. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_ann. *)
-(*   apply AWTermT_Ann. *)
-(*   apply* IHHyp1. apply* IHHyp2. *)
-
-(*   rewrite actxtsubst_expr in *. *)
-(*   rewrite actxsubst_forall. *)
-(*   apply AWTermT_Forall with (L \u dom G). *)
-(*   intros y notiny. *)
-(*   assert (AWf (G & y ~ AC_TVar)). apply* AWf_TVar. *)
-(*   assert (y \notin L) by auto_star. *)
-(*   lets: H0 H2 H1. *)
-(*   rewrite tsubst_add_tvar in H3. *)
-(*   admit. *)
-
-(*   rewrite* ctxsubst_tvar_eq. *)
-(*   rewrite* ctxsubst_evar_eq. *)
-
-(*   intros y notiny. *)
-(*   assert (ok (G & y ~ AC_Var)). apply* ok_push. *)
-(*   assert (y \notin L) by auto_star. *)
-(*   lets: H0 H2 H1. *)
-(*   rewrite tsubst_add_var in H3. *)
-(*   admit. *)
-
-(*   inductions Ok. *)
-(*   false. apply* binds_empty_inv. *)
-(*   inductions v. *)
-(*   rewrite~ subst_add_var. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_typvar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_bndvar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   inversions Eq2. *)
-(*   simpl. case_var~. *)
-(*   apply* awterm_weaken. *)
-(*   (* FIXME: AWTerm E (ACtxSubst E a0) *) admit. *)
-(*   simpl. case_var~. *)
-(*   rewrite dom_single in NIn. *)
-(*   false. apply* notin_same. *)
-(*   apply* awterm_weaken. *)
-(*   rewrite~ subst_add_evar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_solved_evar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. simpl. case_var~. false. *)
-(*   rewrite dom_single in NIn. *)
-(*   false. apply* notin_same. *)
-(*   apply* awterm_weaken. *)
-
-(*   assert (ACtxSubst G (AE_EVar a) = AE_EVar a). *)
-(*   apply* ctxsubst_evar_eq. *)
-(*   unfold not; intros. *)
-(*   rewrite H0. *)
-(*   apply* AWTerm_EVar. *)
-(*  false. apply* binds_empty_inv. *)
-(*   inductions v. *)
-(*   rewrite~ subst_add_var. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_typvar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_bndvar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. simpl. case_var~. false. *)
-(*   rewrite dom_single in NIn. *)
-(*   false. apply* notin_same. *)
-(*   apply* awterm_weaken. *)
-(*   rewrite~ subst_add_evar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   false. apply* awterm_weaken. *)
-(*   rewrite~ subst_add_solved_evar. *)
-(*   destruct (binds_concat_inv H0) as [Bnd1 | [NIn Bnd1]]. *)
-(*   destruct (binds_single_inv Bnd1) as [Eq1 Eq2]. *)
-(*   inversions Eq2. *)
-(*   simpl. case_var~. *)
-(*   apply* awterm_weaken. *)
-(*   (* FIXME: AWTerm E (ACtxSubst E a) *) admit. *)
-(*   simpl. case_var~. *)
-(*   rewrite dom_single in NIn. *)
-(*   false. apply* notin_same. *)
-(*   apply* awterm_weaken. *)
-
-(*   rewrite~ subst_star. *)
-(* Admitted. *)
+Lemma actxtsubst_topen: forall G e u,
+    AWf G ->
+    ACtxTSubst G (e @@#' u) = (ACtxTSubst G e) @@#' (ACtxTSubst G u).
+Proof.
+  introv wf. gen e u.
+  induction G using env_ind; introv.
+  repeat rewrite~ tsubst_empty_env.
+  assert (AWf G) by apply* AWf_left.
+  induction v.
+  repeat rewrite~ tsubst_add_var.
+  repeat rewrite~ tsubst_add_typvar.
+  repeat rewrite~ tsubst_add_tvar.
+  repeat rewrite~ tsubst_add_evar.
+  repeat rewrite~ tsubst_add_solved_evar.
+  rewrite~ <- IHG. f_equal ~.
+  unfold ATOpenT. rewrite~ atsubstt_topentyprec.
+  apply awtermt_is_awtermty with G.
+  apply* awterm_solved_evar.
+Qed.
