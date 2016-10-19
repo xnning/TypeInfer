@@ -410,7 +410,7 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
       AUnify G (AT_Expr (AE_CastDn t1)) (AT_Expr (AE_CastDn t2)) H
   | AUnify_Pi : forall t1 t2 t3 t4 G H1 H L,
       AUnify G t1 t3 H1 ->
-      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Typ t1) (ACtxTSubst H1 (t2 @' x)) (ACtxTSubst H1 (t4 @' x)) (H & x ~ AC_Typ t1)) ->
+      (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxTSubst H1 (t2 @' x)) (ACtxTSubst H1 (t4 @' x)) (H & x ~ AC_Var)) ->
       AUnify G (AT_Expr (AE_Pi t1 t2)) (AT_Expr (AE_Pi t3 t4)) H
   | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
       AUnify G (AT_Expr t1) (AT_Expr t2) H1 ->
@@ -422,6 +422,7 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
       AWTermT H1 t2 ->
       AUnify G (AT_EVar a) t1 (H1 & a ~ AC_Solved_EVar t2 & H2)
   | AUnify_TyEVar : forall a t1 t2 G H1 H2,
+      (forall n, t1 <> AT_EVar n) ->
       a \notin ATFv (t1) ->
       AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
       AWTermT H1 t2 ->
