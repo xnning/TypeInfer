@@ -2161,6 +2161,43 @@ Proof.
   apply* weak_extension_binds_unsolved_evar.
 Qed.
 
+(***********************)
+(* PROPERTIES ABOUT ALGORITHMIC RELATIONSHIPS *)
+(***********************)
+
+Lemma resolve_evar_inserts: forall G1 G2 a e t H,
+    AResolveEVar (G1 & a ~ AC_Unsolved_EVar & G2) a e t H ->
+    ok (G1 & a ~ AC_Unsolved_EVar & G2) ->
+    exists I1 I2, H = G1 & I1 & a ~ AC_Unsolved_EVar & I2.
+Proof.
+  introv res okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2).
+  gen G1 G2.
+  induction res; introv sinfo; try(solve[exists~ (empty: ACtx) G2; rewrite~ concat_empty_r]).
+
+  apply ok_middle_eq2 in sinfo; auto.
+  destruct sinfo as[? [? ?]]; subst.
+  exists~ (empty: ACtx) G4. rewrite~ concat_empty_r.
+  rewrite~ <- sinfo.
+
+  do 2 rewrite <- concat_assoc in sinfo.
+  apply ok_middle_eq2 in sinfo; auto.
+  destruct sinfo as[? [? ?]]; subst.
+  exists~ (a1 ~ AC_Unsolved_EVar) (G2 & b ~ AC_Solved_EVar (AT_EVar a1) & G3).
+  repeat rewrite~ concat_assoc.
+
+  do 2 rewrite~ concat_assoc.
+  rewrite <- sinfo.
+  do 2 rewrite~ concat_assoc.
+
+  lets: IHres okg sinfo.
+  destruct H3 as (I1 & I2 & h1info). subst. clear IHres.
+  lets: resolve_evar_ok_preservation res okg.
+  pick_fresh y. assert(y \notin L) by auto.
+  forwards*: H2 H3 H1.
+  destruct H4 as (I3 & I4 & ?). subst.
+  exists~ (I1 & I3) I4. repeat rewrite ~ concat_assoc.
+Qed.
+
 Lemma resolve_evar_unsolved: forall G a e t H,
     AResolveEVar G a e t H ->
     ok G ->
@@ -2251,6 +2288,26 @@ Proof.
   lets: resolve_forall_ok_preservation res1 okg.
   lets: IHres1 okg bd.
   lets: IHres2 H0 H2. auto.
+Qed.
+
+Lemma unify_inserts: forall G1 G2 a s H,
+    AUnify (G1 & a ~ AC_Unsolved_EVar & G2) (AT_EVar a) s H ->
+    ok (G1 & a ~ AC_Unsolved_EVar & G2) ->
+    (exists I1 I2 t,  H = G1 & I1 & a ~ AC_Solved_EVar t & I2)
+      \/ (H = (G1 & a ~ AC_Unsolved_EVar & G2) /\ s = AT_EVar a).
+Proof.
+  introv uni okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2).
+  gen_eq expr: (AT_EVar a). gen G1.
+
+  induction uni; introv einfo sinfo; auto; try(solve[false einfo]).
+
+  subst. inversion einfo; subst.
+  lets: resolve_evar_inserts H0 okg.
+  destruct H4 as (I1 & I2 & ?). subst.
+  apply ok_middle_eq2 in H4; auto. destruct H4 as [? [? ?]]. subst.
+  left. exists~ I1 I2 t2.
+  lets: resolve_evar_ok_preservation H0 okg; auto.
+  rewrite <- H4. lets: resolve_evar_ok_preservation H0 okg; auto.
 Qed.
 
 Lemma unify_unsolved: forall G e t H,
@@ -2368,59 +2425,7 @@ Proof.
   apply* ok_middle_change.
 Qed.
 
-Lemma resolve_evar_inserts: forall G1 G2 a e t H,
-    AResolveEVar (G1 & a ~ AC_Unsolved_EVar & G2) a e t H ->
-    ok (G1 & a ~ AC_Unsolved_EVar & G2) ->
-    exists I1 I2, H = G1 & I1 & a ~ AC_Unsolved_EVar & I2.
-Proof.
-  introv res okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2).
-  gen G1 G2.
-  induction res; introv sinfo; try(solve[exists~ (empty: ACtx) G2; rewrite~ concat_empty_r]).
-
-  apply ok_middle_eq2 in sinfo; auto.
-  destruct sinfo as[? [? ?]]; subst.
-  exists~ (empty: ACtx) G4. rewrite~ concat_empty_r.
-  rewrite~ <- sinfo.
-
-  do 2 rewrite <- concat_assoc in sinfo.
-  apply ok_middle_eq2 in sinfo; auto.
-  destruct sinfo as[? [? ?]]; subst.
-  exists~ (a1 ~ AC_Unsolved_EVar) (G2 & b ~ AC_Solved_EVar (AT_EVar a1) & G3).
-  repeat rewrite~ concat_assoc.
-
-  do 2 rewrite~ concat_assoc.
-  rewrite <- sinfo.
-  do 2 rewrite~ concat_assoc.
-
-  lets: IHres okg sinfo.
-  destruct H3 as (I1 & I2 & h1info). subst. clear IHres.
-  lets: resolve_evar_ok_preservation res okg.
-  pick_fresh y. assert(y \notin L) by auto.
-  forwards*: H2 H3 H1.
-  destruct H4 as (I3 & I4 & ?). subst.
-  exists~ (I1 & I3) I4. repeat rewrite ~ concat_assoc.
-Qed.
-
-Lemma unify_inserts: forall G1 G2 a s H,
-    AUnify (G1 & a ~ AC_Unsolved_EVar & G2) (AT_EVar a) s H ->
-    ok (G1 & a ~ AC_Unsolved_EVar & G2) ->
-    (exists I1 I2 t,  H = G1 & I1 & a ~ AC_Solved_EVar t & I2)
-      \/ (H = (G1 & a ~ AC_Unsolved_EVar & G2) /\ s = AT_EVar a).
-Proof.
-  introv uni okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2).
-  gen_eq expr: (AT_EVar a). gen G1.
-
-  induction uni; introv einfo sinfo; auto; try(solve[false einfo]).
-
-  subst. inversion einfo; subst.
-  lets: resolve_evar_inserts H0 okg.
-  destruct H4 as (I1 & I2 & ?). subst.
-  apply ok_middle_eq2 in H4; auto. destruct H4 as [? [? ?]]. subst.
-  left. exists~ I1 I2 t2.
-  lets: resolve_evar_ok_preservation H0 okg; auto.
-  rewrite <- H4. lets: resolve_evar_ok_preservation H0 okg; auto.
-Qed.
-
+(* WRONG *)
 Lemma subtyping_unsolved': forall G e t H S,
     ASubtyping (G & S) e t H ->
     ok (G & S) ->
@@ -2829,36 +2834,4 @@ Proof.
   (* APP FORALL *)
   assert(G0 & a ~ AC_Unsolved_EVar = G & (S & a ~ AC_Unsolved_EVar)). rewrite ginfo. repeat rewrite~ concat_assoc.
   lets: IHty hy H2. auto.
-Qed.
-
-Lemma atyping_unsolved: forall G e t H m,
-    ATyping m G e t H ->
-    (forall a, binds a AC_Unsolved_EVar G -> binds a AC_Unsolved_EVar H) ->
-    exists I, H = G & I.
-Proof.
-  introv ty hy.
-  assert (ATyping m (G & empty) e t H) by rewrite~ concat_empty_r.
-  apply* atyping_unsolved'.
-Qed.
-
-Lemma awftyp_eq : forall G e,
-    AWfTyp G e <->
-    (exists H, ATyping Chk G e (AT_Expr AE_Star) H /\
-     forall a, binds a AC_Unsolved_EVar G -> binds a AC_Unsolved_EVar H).
-Proof.
-  introv. split.
-
-  (* LEFT *)
-  introv wf.
-  inversion wf; subst.
-  exists (G & H). split~.
-  introv bd. apply~ binds_concat_left_ok.
-  apply* atyping_ok_preservation.
-
-  (* RIGHT *)
-  introv H.
-  destruct H as (H & [ty bd]).
-  lets: atyping_unsolved ty bd.
-  destruct H0 as (I & hinfo). subst.
-  apply AWf_Expr with I; auto.
 Qed.
