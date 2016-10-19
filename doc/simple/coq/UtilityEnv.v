@@ -1067,6 +1067,20 @@ Proof.
   unfold ACtxTSubst. simpl. auto.
 Qed.
 
+Lemma subst_add_marker : forall G e x,
+     ACtxSubst (G & x ~ AC_Marker) e = ACtxSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
+Lemma tsubst_add_marker : forall G e x,
+     ACtxTSubst (G & x ~ AC_Marker) e = ACtxTSubst G e.
+Proof.
+  introv. rewrite <- cons_to_push.
+  unfold ACtxTSubst. simpl. auto.
+Qed.
+
 Lemma tsubst_add_solved_evar: forall H x t e,
     ACtxTSubst (H & x ~ AC_Solved_EVar t) e = ACtxTSubst H (ATSubstT x t e).
 Proof.
@@ -1094,6 +1108,7 @@ Proof.
   repeat(rewrite subst_add_tvar). auto.
   repeat(rewrite subst_add_evar). auto.
   repeat(rewrite subst_add_solved_evar). auto.
+  repeat(rewrite subst_add_marker). auto.
 Qed.
 
 Lemma tsubst_add_ctx: forall G H e,
@@ -1109,6 +1124,8 @@ Proof.
   repeat(rewrite tsubst_add_tvar). auto.
   repeat(rewrite tsubst_add_evar). auto.
   repeat(rewrite tsubst_add_solved_evar). auto.
+  repeat(rewrite subst_add_marker). auto.
+  repeat(rewrite tsubst_add_marker). auto.
 Qed.
 
 
@@ -1131,6 +1148,8 @@ Proof.
   rewrite~ subst_add_solved_evar.
   rewrite~ tsubst_add_solved_evar.
   apply* IHG.
+  rewrite~ subst_add_marker.
+  rewrite~ tsubst_add_marker.
 Qed.
 
 Lemma actxsubst_app: forall G e1 e2,
@@ -1146,6 +1165,7 @@ Proof.
   repeat(rewrite~ subst_add_evar).
   repeat(rewrite~ subst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker.
 Qed.
 
 Lemma actxsubst_lam: forall G e,
@@ -1161,6 +1181,7 @@ Proof.
   repeat(rewrite~ subst_add_evar).
   repeat(rewrite~ subst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker.
 Qed.
 
 Lemma actxsubst_castup: forall G e,
@@ -1176,6 +1197,7 @@ Proof.
   repeat(rewrite~ subst_add_evar).
   repeat(rewrite~ subst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker.
 Qed.
 
 Lemma actxsubst_castdn: forall G e,
@@ -1191,6 +1213,7 @@ Proof.
   repeat(rewrite~ subst_add_evar).
   repeat(rewrite~ subst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker.
 Qed.
 
 Lemma actxsubst_pi: forall G e1 e2,
@@ -1206,6 +1229,8 @@ Proof.
   repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
   repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker.
+  repeat rewrite~ tsubst_add_marker.
 Qed.
 
 Lemma actxsubst_ann: forall G e1 e2,
@@ -1221,6 +1246,7 @@ Proof.
   repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
   repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker. repeat rewrite~ tsubst_add_marker.
 Qed.
 
 Lemma actxsubst_forall: forall G e,
@@ -1236,6 +1262,7 @@ Proof.
   repeat(rewrite~ subst_add_evar). repeat(rewrite~ tsubst_add_evar).
   repeat(rewrite~ subst_add_solved_evar). repeat(rewrite~ tsubst_add_solved_evar).
   simpls. apply* IHG.
+  repeat rewrite~ subst_add_marker. repeat rewrite~ tsubst_add_marker.
 Qed.
 
 Lemma subst_notin : forall x v e,
@@ -1574,6 +1601,7 @@ Proof.
   apply* IHenv. apply* notin_substt_fev.
   apply notin_tfv_tfev. apply notin_awtermt with (G:=H); auto.
   apply* awterm_solved_evar.
+  rewrite subst_add_marker. apply* IHenv.
 Qed.
 
 Lemma notin_ctxsubst_ftv: forall x H e,
@@ -1598,6 +1626,7 @@ Proof.
   apply* IHenv. apply* notin_substt_ftv.
   apply notin_tfv_tftv. apply notin_awtermt with (G:=H); auto.
   apply* awterm_solved_evar.
+  rewrite subst_add_marker. apply* IHenv.
 Qed.
 
 Lemma notin_ctxtsubst_ftv: forall x H e,
@@ -1622,6 +1651,7 @@ Proof.
   apply* IHenv. apply* notin_tsubstt_ftv.
   apply notin_tfv_tftv. apply notin_awtermt with (G:=H); auto.
   apply* awterm_solved_evar.
+  rewrite tsubst_add_marker. apply* IHenv.
 Qed.
 
 Lemma notin_ctxtsubst_fev: forall x H e,
@@ -1646,6 +1676,7 @@ Proof.
   apply* IHenv. apply* notin_tsubstt_fev.
   apply notin_tfv_tfev. apply notin_awtermt with (G:=H); auto.
   apply* awterm_solved_evar.
+  rewrite tsubst_add_marker. apply* IHenv.
 Qed.
 
 (* uv *)
@@ -1695,6 +1726,12 @@ Proof.
   introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
 Qed.
 
+Lemma uv_add_marker: forall G x,
+    ACtxUV (G & x ~ AC_Marker) = (ACtxUV G).
+Proof.
+  introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
 Lemma awf_append_uv: forall G H,
     AWf G ->
     ok (G & H) ->
@@ -1713,6 +1750,7 @@ Proof.
   rewrite concat_assoc in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
   apply notin_uv. apply ok_concat_inv_r in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
   rewrite~ uv_add_solved_evar.
+  rewrite~ uv_add_marker.
 Qed.
 
 Lemma uv_ok: forall G H,
@@ -1732,6 +1770,7 @@ Proof.
   rewrite concat_assoc in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
   apply notin_uv. apply ok_concat_inv_r in okg. destruct (ok_push_inv okg) as [_ notin]. auto.
   rewrite~ uv_add_solved_evar.
+  rewrite~ uv_add_marker.
 Qed.
 
 
@@ -1773,6 +1812,10 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tfev. apply* notin_awtermt.
+
+  repeat(rewrite subst_add_marker).
+  apply AWf_left in wf.
+  apply* IHenv.
 Qed.
 
 Lemma distributivity_ctxsubst_substt : forall H x s e,
@@ -1817,6 +1860,11 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+
+  repeat(rewrite subst_add_marker).
+  repeat(rewrite tsubst_add_marker).
+  apply AWf_left in wf.
+  apply* IHenv.
 Qed.
 
 Lemma distributivity_ctxtsubst_tsubst : forall H x s e,
@@ -1867,6 +1915,12 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tfev. apply* notin_awtermt.
+
+  rewrite subst_add_marker.
+  rewrite tsubst_add_marker.
+  rewrite tsubst_add_marker.
+  apply AWf_left in wf.
+  apply* IHenv.
 Qed.
 
 Lemma distributivity_ctxtsubst_substt : forall H x s e,
@@ -1917,6 +1971,12 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+
+  rewrite subst_add_marker.
+  rewrite tsubst_add_marker.
+  rewrite subst_add_marker.
+  apply AWf_left in wf.
+  apply* IHenv.
 Qed.
 
 Lemma distributivity_ctxtsubst_tsubstt : forall H x s e,
@@ -1955,6 +2015,10 @@ Proof.
   assert (x # H). apply* AWf_push_inv.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
   apply awterm_solved_evar in wf. apply notin_tfv_tftv. apply* notin_awtermt.
+
+  repeat rewrite tsubst_add_marker.
+  apply AWf_left in wf.
+  apply* IHenv.
 Qed.
 
 Lemma awtermt_is_awtermty: forall G e,

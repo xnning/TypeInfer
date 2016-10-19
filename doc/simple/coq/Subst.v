@@ -20,6 +20,7 @@ Proof.
   false. apply* empty_push_inv.
   false. apply* empty_push_inv.
   false. apply* empty_push_inv.
+  false. apply* empty_push_inv.
 Qed.
 
 Lemma ctxsubst_inv_var : forall H G I x,
@@ -32,6 +33,8 @@ Proof.
   destruct (eq_push_inv H2) as [? [? ?]]; subst.
   destruct (eq_push_inv H3) as [? [? ?]]; subst.
   auto.
+  destruct (eq_push_inv H2) as [? [? ?]].
+  false.
   destruct (eq_push_inv H2) as [? [? ?]].
   false.
   destruct (eq_push_inv H2) as [? [? ?]].
@@ -62,6 +65,7 @@ Proof.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
 Qed.
 
 Lemma ctxsubst_inv_tvar : forall H G I' x,
@@ -80,6 +84,7 @@ Proof.
   destruct (eq_push_inv H3) as [? [? ?]]; subst.
   exists I.
   auto.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
@@ -113,6 +118,12 @@ Proof.
   destruct H2 as (v2 & bd2). exists~ v2.
 
   destruct (eq_var_dec x a).
+  subst. exists~ AC_Marker.
+  lets: binds_push_neq_inv bd n.
+  lets: IHsub H1.
+  destruct H2 as (v2 & bd2). exists~ v2.
+
+  destruct (eq_var_dec x a).
   subst. exists~ (AC_Solved_EVar t).
   lets: binds_push_neq_inv bd n.
   lets: IHsub H1.
@@ -130,6 +141,23 @@ Proof.
   destruct H2 as (v2 & bd2). exists~ v2.
 Qed.
 
+Lemma ctxsubst_inv_marker : forall H G I x,
+    ACpltCtxSubstCtx (H & x ~ AC_Marker) (G & x ~ AC_Marker) I ->
+    CompleteCtx H /\ ACpltCtxSubstCtx H G I.
+Proof.
+  intros. inversions H0.
+  false. apply* empty_push_inv.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]; subst.
+  destruct (eq_push_inv H3) as [? [? ?]]; subst.
+  auto.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
+Qed.
+
 Lemma ctxsubst_inv_suevar : forall H G I a t,
     ACpltCtxSubstCtx (H & a ~ AC_Solved_EVar t) (G & a ~ AC_Unsolved_EVar) I ->
     CompleteCtx H /\
@@ -138,6 +166,8 @@ Proof.
   intros. inversions H0.
   false. apply* empty_push_inv.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
+  destruct (eq_push_inv H2) as [? [? ?]].
+  false.
   destruct (eq_push_inv H2) as [? [? ?]].
   false.
   destruct (eq_push_inv H2) as [? [? ?]].
@@ -170,6 +200,7 @@ Proof.
   destruct (eq_push_inv H2) as [? [? ?]].
   false.
   destruct (eq_push_inv H3) as [? [? ?]]; false.
+  destruct (eq_push_inv H3) as [? [? ?]]; false.
   destruct (eq_push_inv H2) as [? [? ?]]; subst.
   destruct (eq_push_inv H3) as [? [? ?]]; subst.
   inversions H1; inversions H7.
@@ -192,6 +223,7 @@ Lemma ctxsubst_inv_sevar : forall H G I t a,
 Proof.
   intros. inversions H0.
   false. apply* empty_push_inv.
+  destruct (eq_push_inv H3) as [? [? ?]]. false.
   destruct (eq_push_inv H3) as [? [? ?]]. false.
   destruct (eq_push_inv H3) as [? [? ?]]. false.
   destruct (eq_push_inv H3) as [? [? ?]]. false.
@@ -219,6 +251,7 @@ Lemma ctxsubst_inv_uuevar : forall H G I a,
 Proof.
   intros. inversions H0.
   false. apply* empty_push_inv.
+  destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
   destruct (eq_push_inv H2) as [? [? ?]]. false.
@@ -288,6 +321,9 @@ Proof.
   destruct (ctxsubst_inv_tvar H4) as [I2' [? [? ?]]].
   pose (IHExtCtx I1' H7 I2' H10).
   rewrite H5. rewrite H8. rewrite e. auto.
+  destruct (ctxsubst_inv_marker H3) as [? ?].
+  destruct (ctxsubst_inv_marker H4) as [? ?].
+  apply* IHExtCtx.
   false. pose (ctxsubst_inv_uuevar H3). auto.
   destruct (ctxsubst_inv_ssevar H4) as [? [? ?]].
   destruct (ctxsubst_inv_ssevar H5) as [? [? ?]].
@@ -382,6 +418,18 @@ Proof.
   false complete_contains_unsolved comp neq.
 Qed.
 
+Lemma complete_add_marker: forall G x,
+    CompleteCtx G ->
+    CompleteCtx (G & x ~ AC_Marker).
+Proof.
+  introv comp.
+  unfold CompleteCtx.
+  intros z zv bd eqzv. subst.
+  apply binds_push_inv in bd. destruct bd as [[_ neq] | [_ neq]].
+  false neq.
+  false complete_contains_unsolved comp neq.
+Qed.
+
 Lemma complete_add_solved: forall G x e,
     CompleteCtx G ->
     CompleteCtx (G & x ~ AC_Solved_EVar e).
@@ -428,6 +476,12 @@ Proof.
 
   rewrite concat_assoc.
   apply~ complete_add_solved.
+  apply~ IHenv.
+  apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
+  rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
+
+  rewrite concat_assoc.
+  apply~ complete_add_marker.
   apply~ IHenv.
   apply complete_part_left in comp_h. auto. apply* ok_concat_inv_r.
   rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
@@ -499,6 +553,7 @@ Proof.
   rewrite~ subst_add_tvar.
   rewrite~ subst_add_evar.
   rewrite~ subst_add_solved_evar.
+  rewrite~ subst_add_marker.
 Qed.
 
 Lemma ctxsubst_evar_eq : forall G x,
@@ -551,6 +606,15 @@ Proof.
   simpl. case_var~.
   false. rewrite dom_push in Frh.
   apply* notin_same.
+
+  rewrite~ tsubst_add_marker.
+  destruct H1 as [Bnd | Frh].
+  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
+  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
+  apply* IHok.
+  apply* IHok.
+  apply* IHok.
+
 Qed.
 
 Lemma ctxsubst_tvar_eq : forall G x,
@@ -603,6 +667,15 @@ Proof.
   simpl. case_var~.
   false. rewrite dom_push in Frh.
   apply* notin_same.
+
+  rewrite~ tsubst_add_marker.
+  destruct H1 as [Bnd | Frh].
+  destruct (binds_concat_inv Bnd) as [Bnd1 | [NIn Bnd1]].
+  destruct (binds_single_inv Bnd1) as [Eq1 Eq2]; subst.
+  apply* IHok.
+  apply* IHok.
+  apply* IHok.
+
 Qed.
 
 Lemma actxsubst_open: forall G e u,
@@ -623,6 +696,7 @@ Proof.
   unfold AOpen. rewrite~ asubstt_openrec.
   apply awtermt_is_awtermty with G.
   apply* awterm_solved_evar.
+  repeat rewrite~ subst_add_marker.
 Qed.
 
 Lemma actxtsubst_open: forall G e u,
@@ -644,6 +718,7 @@ Proof.
   unfold AOpenT. rewrite~ atsubstt_opentyprec.
   apply awtermt_is_awtermty with G.
   apply* awterm_solved_evar.
+  repeat rewrite~ subst_add_marker. repeat rewrite~ tsubst_add_marker.
 Qed.
 
 Lemma actxtsubst_topen: forall G e u,
@@ -664,4 +739,5 @@ Proof.
   unfold ATOpenT. rewrite~ atsubstt_topentyprec.
   apply awtermt_is_awtermty with G.
   apply* awterm_solved_evar.
+  repeat rewrite~ subst_add_marker. repeat rewrite~ tsubst_add_marker.
 Qed.

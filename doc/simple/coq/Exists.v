@@ -159,6 +159,7 @@ Inductive ALen : ACtx -> AType -> nat -> Prop :=
 | ALen_Var_I1 : forall G x, binds x AC_Unsolved_EVar G -> ALen G (AT_Expr (AE_FVar x)) 1
 | ALen_Var_I2 : forall G x t, binds x (AC_Solved_EVar t) G -> ALen G (AT_Expr (AE_FVar x)) 1
 | ALen_Var_I3 : forall G x, binds x AC_TVar G -> ALen G (AT_Expr (AE_FVar x)) 1
+| ALen_Var_I4 : forall G x, binds x AC_Marker G -> ALen G (AT_Expr (AE_FVar x)) 1
 | ALen_Var_I : forall G x, x # G -> ALen G (AT_Expr (AE_FVar x)) 1
 | ALen_EVar : forall G a, binds a AC_Unsolved_EVar G -> ALen G (AT_EVar a) 1
 | ALen_Solved_EVar: forall G1 G2 a t i,
@@ -167,6 +168,7 @@ Inductive ALen : ACtx -> AType -> nat -> Prop :=
 | ALen_EVar_I1: forall G x, binds x AC_Var G -> ALen G (AT_EVar x) 1
 | ALen_EVar_I2: forall G x t, binds x (AC_Typ t) G -> ALen G (AT_EVar x) 1
 | ALen_EVar_I3: forall G x, binds x (AC_TVar) G -> ALen G (AT_EVar x) 1
+| ALen_EVar_I4: forall G x, binds x AC_Marker G -> ALen G (AT_EVar x) 1
 | ALen_EVar_I : forall G a, a # G -> ALen G (AT_EVar a) 1
 | ALen_TBVar: forall G i, ALen G (AT_TBVar i) 1
 | ALen_TFVar: forall G a, binds a AC_TVar G -> ALen G (AT_TFVar a) 1
@@ -174,6 +176,7 @@ Inductive ALen : ACtx -> AType -> nat -> Prop :=
 | ALen_TFVar_I2: forall G a t, binds a (AC_Typ t) G -> ALen G (AT_TFVar a) 1
 | ALen_TFVar_I3: forall G a, binds a AC_Unsolved_EVar G -> ALen G (AT_TFVar a) 1
 | ALen_TFVar_I4: forall G a t, binds a (AC_Solved_EVar t) G -> ALen G (AT_TFVar a) 1
+| ALen_TFVar_I5: forall G a, binds a AC_Marker G -> ALen G (AT_TFVar a) 1
 | ALen_TFVar_I: forall G a, a # G -> ALen G (AT_TFVar a) 1
 | ALen_Star: forall G, ALen G (AT_Expr AE_Star) 1
 | ALen_App: forall e1 e2 G i1 i2, ALen G (AT_Expr e1) i1 -> ALen G (AT_Expr e2) i2 -> ALen G (AT_Expr (AE_App e1 e2)) (i1 + i2 + 1)
@@ -213,6 +216,8 @@ Proof.
   apply ALen_Var_I2 with t. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_Var_I3. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_Var_I4. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_Var. apply* binds_push_eq.
   apply ALen_Var_I. auto_star.
@@ -258,6 +263,8 @@ Proof.
   apply ALen_TFVar_I3. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_TFVar_I4 with t. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_TFVar_I5. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_TFVar_I1. apply* binds_push_eq.
   apply ALen_TFVar_I. auto_star.
@@ -274,6 +281,8 @@ Proof.
   apply ALen_EVar_I2 with t. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_EVar_I3. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_EVar_I4. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_EVar_I1. apply* binds_push_eq.
   apply ALen_EVar_I. auto_star.
@@ -306,6 +315,8 @@ Proof.
   apply ALen_Var_I2 with t. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_Var_I3. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_Var_I4. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_Var_I3. apply* binds_push_eq.
   apply ALen_Var_I. auto_star.
@@ -351,6 +362,8 @@ Proof.
   apply ALen_TFVar_I3. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_TFVar_I4 with t. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_TFVar_I5. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_TFVar. apply* binds_push_eq.
   apply ALen_TFVar_I. auto_star.
@@ -367,6 +380,8 @@ Proof.
   apply ALen_EVar_I2 with t. apply* binds_concat_left.
   assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
   apply ALen_EVar_I3. apply* binds_concat_left.
+  assert (v<>y). intros neq. subst. apply ok_push_inv in okg. destruct okg as [_ okg]. false binds_fresh_inv H1 okg.
+  apply ALen_EVar_I4. apply* binds_concat_left.
   destruct (eq_var_dec v y). subst.
   apply ALen_EVar_I3. apply* binds_push_eq.
   apply ALen_EVar_I. auto_star.
@@ -495,6 +510,7 @@ Proof.
   apply* ALen_Var_I1. apply* binds_concat_left_ok.
   apply* ALen_Var_I2. apply* binds_concat_left_ok.
   apply* ALen_Var_I3. apply* binds_concat_left_ok.
+  apply* ALen_Var_I4. apply* binds_concat_left_ok.
   inversion wt; subst; try(solve[false binds_fresh_inv H3 H0]).
 
   apply* ALen_EVar. apply* binds_concat_left_ok.
@@ -503,6 +519,7 @@ Proof.
   apply* ALen_EVar_I1. apply* binds_concat_left_ok.
   apply* ALen_EVar_I2. apply* binds_concat_left_ok.
   apply* ALen_EVar_I3. apply* binds_concat_left_ok.
+  apply* ALen_EVar_I4. apply* binds_concat_left_ok.
   inversion wt; subst; try(solve[false binds_fresh_inv H3 H0]).
 
   apply ALen_TBVar.
@@ -511,6 +528,7 @@ Proof.
   apply* ALen_TFVar_I2. apply* binds_concat_left_ok.
   apply* ALen_TFVar_I3. apply* binds_concat_left_ok.
   apply* ALen_TFVar_I4. apply* binds_concat_left_ok.
+  apply* ALen_TFVar_I5. apply* binds_concat_left_ok.
   inversion wt; subst; try(solve[false binds_fresh_inv H3 H0]).
 
   apply* ALen_Star.
@@ -601,7 +619,9 @@ Proof.
   apply binds_middle_eq_inv in H2; auto. inversion H2.
   apply binds_middle_eq_inv in H2; auto. inversion H2.
   apply binds_middle_eq_inv in H2; auto. inversion H2.
+  apply binds_middle_eq_inv in H2; auto. inversion H2.
   false H2. simpl_dom. apply union_left. apply union_right. apply in_singleton_self.
+  apply binds_middle_eq_inv in H; auto. inversion H.
   apply binds_middle_eq_inv in H; auto. inversion H.
   apply binds_middle_eq_inv in H; auto. inversion H.
   apply binds_middle_eq_inv in H; auto. inversion H.
@@ -620,6 +640,7 @@ Proof.
   apply ok_middle_eq2 in H; auto.
   destruct H as [eqg [eqv eqg2]]. inversion eqv. subst.
   lets: alen_eq H2 lent. subst*.
+  apply binds_middle_eq_inv in H1; auto. inversion H1.
   apply binds_middle_eq_inv in H1; auto. inversion H1.
   apply binds_middle_eq_inv in H1; auto. inversion H1.
   apply binds_middle_eq_inv in H1; auto. inversion H1.

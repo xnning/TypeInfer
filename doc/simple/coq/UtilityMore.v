@@ -72,6 +72,7 @@ Proof.
   apply~ ExtCtx_TVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
   apply~ ExtCtx_EVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
   apply~ ExtCtx_SolvedEVar. apply~ IHI. apply* AWf_left. apply* AWf_left.
+  apply~ ExtCtx_Marker. apply~ IHI. apply* AWf_left. apply* AWf_left.
 Qed.
 
 (* properties about cpltctxsubst *)
@@ -183,6 +184,15 @@ Proof.
   apply~ ACpltCtxSubstCtx_TVar. rewrite hi. apply* awf_is_ok.
   apply* awf_is_ok.
 
+  assert (binds a AC_Marker (G & a ~ AC_Marker)). apply binds_push_eq.
+  destruct (declaration_preservation ex H2) as (v2 & bd).
+  apply split_bind_context in bd. destruct bd as (HH1 & HH2 & hh). subst.
+  rewrite <- concat_assoc in hi.
+  symmetry in hi. apply tail_empty_eq2 in hi. destruct hi as [eqh [eqv eqh2]].
+  symmetry in eqh2. destruct (empty_concat_inv eqh2) as [em1 em2]. subst. rewrite concat_empty_r in *.
+  apply~ ACpltCtxSubstCtx_Marker. rewrite hi. apply* awf_is_ok.
+  apply* awf_is_ok.
+
   assert (binds a AC_Unsolved_EVar (G & a ~ AC_Unsolved_EVar)). apply binds_push_eq.
   destruct (declaration_preservation ex H2) as (v2 & bd).
   apply split_bind_context in bd. destruct bd as (HH1 & HH2 & hh). subst.
@@ -255,6 +265,16 @@ Proof.
   destruct (split_context xin) as (I11 & I12 & v & hinfo).
   rewrite hinfo in hh.
   assert (inv: H & a0 ~ AC_TVar & empty = I11 & a0 ~ v & (I12 & a ~ AC_Solved_EVar t & I2)). rewrite~ concat_empty_r. do 2 rewrite~ concat_assoc.
+  apply ok_middle_eq2 in inv; auto.
+  destruct inv as [_ [_ inv]].
+  false empty_middle_inv inv.
+  rewrite~ concat_empty_r. apply* ok_preservation.
+  rewrite <- inv. rewrite~ concat_empty_r. apply* ok_preservation.
+
+  assert (xin: a0 \in dom I1). apply declaration_preservation_dom with (G & a0 ~ AC_Marker); auto. simpl_dom. apply union_left. apply in_singleton_self.
+  destruct (split_context xin) as (I11 & I12 & v & hinfo).
+  rewrite hinfo in hh.
+  assert (inv: H & a0 ~ AC_Marker & empty = I11 & a0 ~ v & (I12 & a ~ AC_Solved_EVar t & I2)). rewrite~ concat_empty_r. do 2 rewrite~ concat_assoc.
   apply ok_middle_eq2 in inv; auto.
   destruct inv as [_ [_ inv]].
   false empty_middle_inv inv.

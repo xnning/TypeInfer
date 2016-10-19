@@ -265,7 +265,8 @@ Inductive ACtxT : Set :=
   | AC_Typ : AType -> ACtxT
   | AC_TVar : ACtxT
   | AC_Unsolved_EVar : ACtxT
-  | AC_Solved_EVar : AType -> ACtxT.
+  | AC_Solved_EVar : AType -> ACtxT
+  | AC_Marker : ACtxT.
 
 Definition ACtx := LibEnv.env ACtxT.
 
@@ -276,6 +277,7 @@ Definition ACtxSubst (G : ACtx) (e : AExpr) : AExpr :=
         | AC_Var => v
         | AC_Typ _ => v
         | AC_TVar => v
+        | AC_Marker => v
         | AC_Unsolved_EVar => v
         | AC_Solved_EVar t => ASubstT x t v
         end) e G.
@@ -287,6 +289,7 @@ Definition ACtxTSubst (G : ACtx) (e : AType) : AType :=
         | AC_Var => v
         | AC_Typ _ => v
         | AC_TVar => v
+        | AC_Marker => v
         | AC_Unsolved_EVar => v
         | AC_Solved_EVar t => ATSubstT x t v
         end) e G.
@@ -427,18 +430,20 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
 Inductive AMode := Inf | Chk | App : AType -> AMode.
 
 Inductive ASubtyping : ACtx -> AType -> AType -> ACtx -> Prop :=
-  | ASub_PolyR: forall G v s1 s2 H I,
+  | ASub_PolyR: forall G v s1 s2 H,
       v # G ->
-      ASubtyping (G & v ~ AC_TVar) s1 (s2 @#' v) (H & v ~ AC_TVar & I) ->
+      ASubtyping (G & v ~ AC_TVar) s1 (s2 @#' v) (H & v ~ AC_TVar) ->
       ASubtyping G s1 (AT_Expr (AE_Forall s2)) H
-  | ASub_PolyL: forall G s1 s2 H a,
+  | ASub_PolyL: forall G s1 s2 H a b I,
       a # G ->
-      ASubtyping (G & a ~ AC_Unsolved_EVar) (s1 @@#' (AT_EVar a)) s2 H ->
+      b # G ->
+      b <> a ->
+      ASubtyping (G & b ~ AC_Marker & a ~ AC_Unsolved_EVar) (s1 @@#' (AT_EVar a)) s2 (H & b ~ AC_Marker & I) ->
       ASubtyping G (AT_Expr (AE_Forall s1)) s2 H
-  | ASub_Pi: forall G s1 s2 s3 s4 H I x H1,
+  | ASub_Pi: forall G s1 s2 s3 s4 H x H1,
       ASubtyping G s3 s1 H1 ->
       x # H1 ->
-      ASubtyping (H1 & x ~ AC_Typ s1) (ACtxTSubst H1 (s2 @' x)) (ACtxTSubst H1 (s4 @' x)) (H & x ~ AC_Typ s1 & I) ->
+      ASubtyping (H1 & x ~ AC_Typ s1) (ACtxTSubst H1 (s2 @' x)) (ACtxTSubst H1 (s4 @' x)) (H & x ~ AC_Typ s1) ->
       ASubtyping G (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi s3 s4)) H
   | ASub_EVarL: forall a s G1 G2 H1 H t,
       AResolveForall (G1 & a ~ AC_Unsolved_EVar & G2) a Minus s t H1 ->
