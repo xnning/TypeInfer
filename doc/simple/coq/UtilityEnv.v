@@ -1003,12 +1003,12 @@ Lemma awftyp_star: forall G,
     AWfTyp G (AT_Expr AE_Star).
 Proof.
   introv wf.
-  apply AWf_Expr with empty.
-  rewrite concat_empty_r.
+  apply AWf_Expr with G.
   apply~ ATC_Sub.
   rewrite tsubst_star.
   apply ASub_Unify.
   apply AUnify_Star.
+  auto.
 Qed.
 
 Lemma subst_add_var : forall G e x,

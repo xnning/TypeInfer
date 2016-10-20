@@ -538,7 +538,8 @@ Inductive ATyping : AMode -> ACtx -> AType -> AType -> ACtx -> Prop :=
 
 with AWfTyp : ACtx -> AType -> Prop :=
      | AWf_Expr : forall G H s,
-         ATyping Chk G s (AT_Expr AE_Star) (G & H) ->
+         ATyping Chk G s (AT_Expr AE_Star) H ->
+         (forall a, binds a AC_Unsolved_EVar G -> binds a AC_Unsolved_EVar H) ->
          AWfTyp G s
 
 with AWf : ACtx -> Prop :=
