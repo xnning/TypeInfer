@@ -114,20 +114,20 @@ ATermTy : AType -> Prop :=
 .
 
 Inductive AMono : AExpr -> Prop :=
-| DM_FVar : forall x, AMono (AE_FVar x)
-| DM_Star: AMono (AE_Star)
-| DM_App: forall e1 e2, AMono e1 -> AMono e2 -> AMono (AE_App e1 e2)
-| DM_Lam: forall L e, (forall x, x \notin L -> AMono (e @ x)) -> AMono (AE_Lam e)
-| DM_Pi: forall L s1 s2, ATMono s1 -> (forall x, x \notin L -> ATMono (s2 @' x)) -> AMono (AE_Pi s1 s2)
-| DM_CastUp: forall e, AMono e -> AMono (AE_CastUp e)
-| DM_CastDn: forall e, AMono e -> AMono (AE_CastDn e)
-| DM_Ann: forall e s, AMono e -> ATMono s -> AMono (AE_Ann e s)
+| AM_FVar : forall x, AMono (AE_FVar x)
+| AM_Star: AMono (AE_Star)
+| AM_App: forall e1 e2, AMono e1 -> AMono e2 -> AMono (AE_App e1 e2)
+| AM_Lam: forall L e, (forall x, x \notin L -> AMono (e @ x)) -> AMono (AE_Lam e)
+| AM_Pi: forall L s1 s2, ATMono s1 -> (forall x, x \notin L -> ATMono (s2 @' x)) -> AMono (AE_Pi s1 s2)
+| AM_CastUp: forall e, AMono e -> AMono (AE_CastUp e)
+| AM_CastDn: forall e, AMono e -> AMono (AE_CastDn e)
+| AM_Ann: forall e s, AMono e -> ATMono s -> AMono (AE_Ann e s)
 
 with
 ATMono: AType -> Prop :=
-| DM_TFVar : forall x, ATMono (AT_TFVar x)
-| DM_EVar : forall x, ATMono (AT_EVar x)
-| DM_Expr : forall e, AMono e -> ATMono (AT_Expr e).
+| AM_TFVar : forall x, ATMono (AT_TFVar x)
+| AM_EVar : forall x, ATMono (AT_EVar x)
+| AM_Expr : forall e, AMono e -> ATMono (AT_Expr e).
 
 Definition ABody t :=
   exists L, forall x, x \notin L -> ATerm (t @ x).
@@ -356,18 +356,27 @@ Inductive AResolveEVar : ACtx -> var -> AType -> AType -> ACtx -> Prop :=
                    (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2 & b ~ AC_Solved_EVar (AT_EVar a1) & G3)
   | AResolveEVar_Pi : forall a t1 t2 t3 t4 G H1 H L,
       AResolveEVar G a t1 t3 H1 ->
-      (forall x, x \notin L -> AResolveEVar H1 a (ACtxTSubst H1 (t2 @' x)) (ACtxTSubst H1 (t4 @' x)) H) ->
+      (forall x, x \notin L -> AResolveEVar (H1 & x ~ AC_Var) a (ACtxTSubst H1 (t2 @' x))
+                                      (t4 @' x) (H & x ~ AC_Var)) ->
       AResolveEVar G a (AT_Expr (AE_Pi t1 t2)) (AT_Expr (AE_Pi t3 t4)) H
   | AResolveEVar_Var : forall a x G, AResolveEVar G a (AT_Expr (AE_FVar x)) (AT_Expr (AE_FVar x)) G
   | AResolveEVar_TBVar : forall (x:nat) a G, AResolveEVar G a (AT_TBVar x) (AT_TBVar x) G
   | AResolveEVar_TFVar : forall a x G, AResolveEVar G a (AT_TFVar x) (AT_TFVar x) G
   | AResolveEVar_Star : forall a G, AResolveEVar G a (AT_Expr AE_Star) (AT_Expr AE_Star) G
-  | AResolveEVar_App : forall a t1 t2 G, AResolveEVar G a (AT_Expr (AE_App t1 t2)) (AT_Expr (AE_App t1 t2)) G
-  | AResolveEVar_Lam : forall a t1 G, AResolveEVar G a (AT_Expr (AE_Lam t1)) (AT_Expr (AE_Lam t1)) G
+  | AResolveEVar_App : forall a t1 t2 G d1 d2 H1 H,
+      AResolveEVar G a (AT_Expr t1) (AT_Expr d1) H1 ->
+      AResolveEVar H1 a (ACtxTSubst H1 (AT_Expr t2)) (AT_Expr d2) H ->
+      AResolveEVar G a (AT_Expr (AE_App t1 t2)) (AT_Expr (AE_App d1 d2)) H
+  | AResolveEVar_Lam : forall a t1 t2 G H L,
+      (forall x, x \notin L -> AResolveEVar (G & x ~ AC_Var) a (AT_Expr (t1 @ x))
+                                      (AT_Expr (t2 @ x)) (H & x ~ AC_Var)) ->
+      AResolveEVar G a (AT_Expr (AE_Lam t1)) (AT_Expr (AE_Lam t2)) H
   | AResolveEVar_CastUp : forall a t G, AResolveEVar G a (AT_Expr (AE_CastUp t)) (AT_Expr (AE_CastUp t)) G
   | AResolveEVar_CastDn : forall a t G, AResolveEVar G a (AT_Expr (AE_CastDn t)) (AT_Expr (AE_CastDn t)) G
-  | AResolveEVar_Ann : forall a t1 t2 G, AResolveEVar G a (AT_Expr (AE_Ann t1 t2)) (AT_Expr (AE_Ann t1 t2)) G
-.
+  | AResolveEVar_Ann : forall a t1 t2 G d1 d2 H1 H,
+      AResolveEVar G a (AT_Expr t1) (AT_Expr d1) H1 ->
+      AResolveEVar H1 a (ACtxTSubst H1 t2) d2 H ->
+      AResolveEVar G a (AT_Expr (AE_Ann t1 t2)) (AT_Expr (AE_Ann d1 d2)) H.
 
 Inductive ARFMode := Plus | Minus.
 

@@ -622,6 +622,23 @@ Proof.
   apply atyping_awterm in H0. auto.
 Qed.
 
+Lemma awtermt_is_atermty  : forall G e,
+    AWTermT G e ->
+    ATermTy e.
+Proof.
+  introv wt.
+  induction wt; subst; auto; f_equal *; auto.
+  apply ATermTy_Expr. apply ATerm_App. inversion IHwt1; subst. auto. inversion IHwt2; subst. auto.
+  apply ATermTy_Expr. apply ATerm_Lam with L. intros y notin.
+  lets: H0 notin. inversion H1; auto.
+  apply ATermTy_Expr. apply ATerm_CastUp. inversion IHwt; auto.
+  apply ATermTy_Expr. apply ATerm_CastDn. inversion IHwt; auto.
+  apply ATermTy_Expr. apply ATerm_Ann. inversion IHwt1; subst. auto. inversion IHwt2; subst. auto.
+  auto. auto. apply ATermTy_TFVar.
+  apply ATermTy_EVar.
+  apply ATermTy_EVar.
+Qed.
+
 Lemma awterm_awftyp: forall G t,
     AWfTyp G (AT_Expr t) ->
     AWTerm G t.
@@ -924,6 +941,21 @@ Proof.
   rewrite concat_assoc in okg. apply* ok_push_inv.
 Qed.
 
+Lemma awterm_typ: forall G x a,
+    AWf (G & x ~ AC_Typ a) ->
+    AWTermT G a.
+Proof.
+  intros. inductions H.
+  false. apply* empty_push_inv.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H3.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H3.
+  destruct (eq_push_inv x) as [s1 [s2 s3]]. inversion s2. subst.
+  apply* awtermt_awftyp.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H4.
+Qed.
+
 Lemma awterm_solved_evar: forall G x t,
     AWf (G & x ~ AC_Solved_EVar t) ->
     AWTermT G t.
@@ -1128,6 +1160,29 @@ Proof.
   repeat(rewrite tsubst_add_marker). auto.
 Qed.
 
+Lemma actxtsubst_append: forall G H t,
+    ok (G & H) ->
+    AWTermT G t ->
+    ACtxTSubst (G & H) t = ACtxTSubst G t.
+Proof.
+  introv okg wt.
+  induction H using env_ind.
+  rewrite~ concat_empty_r.
+  rewrite concat_assoc.
+  rewrite tsubst_add_ctx.
+
+  assert (ACtxTSubst (x ~ v) t = t).
+  rewrite single_def. unfold ACtxTSubst. rewrite LibList.fold_left_cons. rewrite LibList.fold_left_nil.
+  destruct v; simpls; auto.
+  apply atsubstt_fresh.
+  apply notin_tfv_tftv.
+  apply notin_awtermt with G; auto.
+  rewrite concat_assoc in okg.
+  destruct (ok_push_inv okg) as [_ okg2]. auto_star.
+  rewrite H0. apply* IHenv.
+  rewrite concat_assoc in okg.
+  destruct (ok_push_inv okg) as [okg1 _]. auto_star.
+Qed.
 
 Lemma actxtsubst_expr: forall G e,
     ACtxTSubst G (AT_Expr e) = AT_Expr (ACtxSubst G e).
@@ -1150,6 +1205,117 @@ Proof.
   apply* IHG.
   rewrite~ subst_add_marker.
   rewrite~ tsubst_add_marker.
+Qed.
+
+Lemma actxsubst_bvar: forall G e,
+    ACtxSubst G (AE_BVar e) = AE_BVar e.
+Proof.
+  intros.
+  induction G using env_ind.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  repeat rewrite~ subst_add_marker.
+Qed.
+
+Lemma actxtsubst_tbvar: forall G e,
+    ACtxTSubst G (AT_TBVar e) = AT_TBVar e.
+Proof.
+  intros.
+  induction G using env_ind.
+  repeat(rewrite~ tsubst_empty_env).
+  induction v.
+  repeat(rewrite~ tsubst_add_var).
+  repeat(rewrite~ tsubst_add_typvar).
+  repeat(rewrite~ tsubst_add_tvar).
+  repeat(rewrite~ tsubst_add_evar).
+  repeat(rewrite~ tsubst_add_solved_evar).
+  repeat rewrite~ tsubst_add_marker.
+Qed.
+
+Lemma actxsubst_fvar: forall G e,
+    ACtxSubst G (AE_FVar e) = AE_FVar e.
+Proof.
+  intros.
+  induction G using env_ind.
+  repeat(rewrite~ subst_empty_env).
+  induction v.
+  repeat(rewrite~ subst_add_var).
+  repeat(rewrite~ subst_add_typvar).
+  repeat(rewrite~ subst_add_tvar).
+  repeat(rewrite~ subst_add_evar).
+  repeat(rewrite~ subst_add_solved_evar).
+  repeat rewrite~ subst_add_marker.
+Qed.
+
+Lemma actxtsubst_tfvar_notin: forall G e,
+   e # G ->
+   ACtxTSubst G (AT_TFVar e) = AT_TFVar e.
+Proof.
+  introv neq.
+  induction G using env_ind.
+  rewrite~ tsubst_empty_env.
+  induction v. rewrite tsubst_add_var. apply* IHG.
+  rewrite tsubst_add_typvar. apply* IHG.
+  rewrite tsubst_add_tvar. apply* IHG.
+  rewrite tsubst_add_evar. apply* IHG.
+  rewrite tsubst_add_solved_evar. simpls. simpl_dom. case_var~.
+  rewrite tsubst_add_marker. apply* IHG.
+Qed.
+
+Lemma actxtsubst_tfvar: forall G e,
+    ok G ->
+    binds e AC_TVar G ->
+    ACtxTSubst G (AT_TFVar e) = AT_TFVar e.
+Proof.
+  intros.
+  induction G using env_ind.
+  repeat(rewrite~ tsubst_empty_env).
+  destruct (eq_var_dec e x).
+  subst. lets: binds_push_eq_inv H0. subst.
+  rewrite tsubst_add_tvar.
+  apply ok_push_inv in H. destruct H.
+  apply* actxtsubst_tfvar_notin.
+  lets: ok_push_inv H. destruct H1.
+  apply binds_push_neq_inv in H0; auto.
+  lets: IHG H1 H0.
+  destruct v.
+  repeat(rewrite~ tsubst_add_var).
+  repeat(rewrite~ tsubst_add_typvar).
+  repeat(rewrite~ tsubst_add_tvar).
+  repeat(rewrite~ tsubst_add_evar).
+  repeat(rewrite~ tsubst_add_solved_evar). simpls. case_var~.
+  repeat(rewrite~ tsubst_add_marker).
+Qed.
+
+Lemma actxtsubst_evar: forall G1 G2 a t,
+   ok (G1 & a ~ AC_Solved_EVar t & G2) ->
+   ACtxTSubst (G1 & a ~ AC_Solved_EVar t & G2) (AT_EVar a)
+              = ACtxTSubst G1 t.
+Proof.
+  introv okg.
+  rewrite~ actxtsubst_append.
+  rewrite~ tsubst_add_solved_evar. simpls. case_var~.
+  apply AWTermT_Solved_EVar with t. apply binds_push_eq.
+Qed.
+
+Lemma actxtsubst_evar_notin: forall G e,
+   e # G ->
+   ACtxTSubst G (AT_EVar e) = AT_EVar e.
+Proof.
+  introv neq.
+  induction G using env_ind.
+  rewrite~ tsubst_empty_env.
+  induction v. rewrite tsubst_add_var. apply* IHG.
+  rewrite tsubst_add_typvar. apply* IHG.
+  rewrite tsubst_add_tvar. apply* IHG.
+  rewrite tsubst_add_evar. apply* IHG.
+  rewrite tsubst_add_solved_evar. simpls. simpl_dom. case_var~.
+  rewrite tsubst_add_marker. apply* IHG.
 Qed.
 
 Lemma actxsubst_app: forall G e1 e2,
@@ -1539,6 +1705,26 @@ Proof.
   induction e; simpls; auto.
 Qed.
 
+Lemma notin_substt: forall x y t e,
+  x \notin AFv e ->
+  x \notin ATFv t ->
+  x \notin AFv (ASubstT y t e)
+with notin_tsubstt: forall x y t e,
+  x \notin ATFv e ->
+  x \notin ATFv t ->
+  x \notin ATFv (ATSubstT y t e).
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* substt_notin.
+  induction e; simpls; auto.
+Proof.
+  introv notine notint.
+  destruct (eq_var_dec x y); subst. rewrite* tsubstt_notin.
+  induction e; simpls; auto.
+  case_if * .
+  case_if * .
+Qed.
+
 Lemma notin_substt_ftv: forall x y t e,
   x \notin AFtv e ->
   x \notin ATFtv t ->
@@ -1629,6 +1815,28 @@ Proof.
   rewrite subst_add_marker. apply* IHenv.
 Qed.
 
+Lemma notin_actxsubst: forall y H e,
+    AWf H ->
+    y # H ->
+    y \notin AFv e ->
+    y \notin AFv (ACtxSubst H e).
+Proof.
+  introv wf notinh notine.
+  gen e. induction H using env_ind; introv notine.
+  rewrite~ subst_empty_env.
+  simpls.
+  lets: AWf_left wf.
+  induction v.
+  rewrite~ subst_add_var.
+  rewrite~ subst_add_typvar.
+  rewrite~ subst_add_tvar.
+  rewrite~ subst_add_evar.
+  rewrite~ subst_add_solved_evar.
+  apply* IHenv. apply* notin_substt. apply notin_awtermt with H; auto.
+  apply* awterm_solved_evar.
+  rewrite~ subst_add_marker.
+Qed.
+
 Lemma notin_ctxtsubst_ftv: forall x H e,
   x \notin ATFtv e ->
   x # H ->
@@ -1678,6 +1886,29 @@ Proof.
   apply* awterm_solved_evar.
   rewrite tsubst_add_marker. apply* IHenv.
 Qed.
+
+Lemma notin_actxtsubst: forall y H e,
+    AWf H ->
+    y # H ->
+    y \notin ATFv e ->
+    y \notin ATFv (ACtxTSubst H e).
+Proof.
+  introv wf notinh notine.
+  gen e. induction H using env_ind; introv notine.
+  rewrite~ tsubst_empty_env.
+  simpls.
+  lets: AWf_left wf.
+  induction v.
+  rewrite~ tsubst_add_var.
+  rewrite~ tsubst_add_typvar.
+  rewrite~ tsubst_add_tvar.
+  rewrite~ tsubst_add_evar.
+  rewrite~ tsubst_add_solved_evar.
+  apply* IHenv. apply* notin_tsubstt. apply notin_awtermt with H; auto.
+  apply* awterm_solved_evar.
+  rewrite~ tsubst_add_marker.
+Qed.
+
 
 (* uv *)
 
@@ -1730,6 +1961,21 @@ Lemma uv_add_marker: forall G x,
     ACtxUV (G & x ~ AC_Marker) = (ACtxUV G).
 Proof.
   introv. rewrite <- cons_to_push. unfold ACtxUV; simpls; auto.
+Qed.
+
+Lemma uv_is_soft: forall G,
+    ok G ->
+    Softness (ACtxUV G).
+Proof.
+  introv okg. induction G using env_ind.
+  rewrite empty_uv. constructor.
+  induction v.
+  rewrite~ uv_add_var.
+  rewrite~ uv_add_typvar.
+  rewrite~ uv_add_tvar.
+  rewrite~ uv_add_evar. constructor. apply IHG. apply* ok_push_inv. apply notin_uv. apply* ok_push_inv.
+  rewrite~ uv_add_solved_evar.
+  rewrite~ uv_add_marker.
 Qed.
 
 Lemma awf_append_uv: forall G H,
@@ -2063,4 +2309,50 @@ Proof.
   apply ATermTy_TFVar.
   apply ATermTy_EVar.
   apply ATermTy_EVar.
+Qed.
+
+Lemma ctxsubst_twice: forall H e,
+    AWf H ->
+    ACtxSubst H (ACtxSubst H e) = ACtxSubst H e.
+Proof.
+  introv wf. gen e. induction H using env_ind; introv.
+  repeat rewrite~ subst_empty_env.
+  lets: AWf_left wf.
+  destruct (ok_push_inv (awf_is_ok wf)).
+  destruct v.
+  repeat rewrite~ subst_add_var.
+  repeat rewrite~ subst_add_typvar.
+  repeat rewrite~ subst_add_tvar.
+  repeat rewrite~ subst_add_evar.
+  repeat rewrite~ subst_add_solved_evar.
+  rewrite~ distributivity_ctxsubst_substt.
+  rewrite~ IHenv.
+  rewrite~ <- distributivity_ctxsubst_substt.
+  rewrite~ substt_twice. apply notin_tfv_tftv.
+  apply notin_awtermt with H; auto.
+  apply awterm_solved_evar in wf; auto.
+  repeat rewrite~ subst_add_marker.
+Qed.
+
+Lemma ctxtsubst_twice: forall H e,
+    AWf H ->
+    ACtxTSubst H (ACtxTSubst H e) = ACtxTSubst H e.
+Proof.
+  introv wf. gen e. induction H using env_ind; introv.
+  repeat rewrite~ tsubst_empty_env.
+  lets: AWf_left wf.
+  destruct (ok_push_inv (awf_is_ok wf)).
+  destruct v.
+  repeat rewrite~ tsubst_add_var.
+  repeat rewrite~ tsubst_add_typvar.
+  repeat rewrite~ tsubst_add_tvar.
+  repeat rewrite~ tsubst_add_evar.
+  repeat rewrite~ tsubst_add_solved_evar.
+  rewrite~ distributivity_ctxtsubst_tsubstt.
+  rewrite~ IHenv.
+  rewrite~ <- distributivity_ctxtsubst_tsubstt.
+  rewrite~ tsubstt_twice. apply notin_tfv_tftv.
+  apply notin_awtermt with H; auto.
+  apply awterm_solved_evar in wf; auto.
+  repeat rewrite~ tsubst_add_marker.
 Qed.

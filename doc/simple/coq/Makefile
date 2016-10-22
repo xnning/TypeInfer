@@ -34,7 +34,8 @@ FILES=\
 	Subst\
 	Exists\
 	UtilityMore\
-	Theorems
+	WeakExtension\
+	UtilityAlgo\
 
 ALL=$(FILES)
 

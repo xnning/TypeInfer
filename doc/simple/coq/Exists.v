@@ -15,6 +15,11 @@ Definition cpltctxsubst_exists_def := forall G e,
     exists t, ACpltCtxSubst G e t
 .
 
+Definition cpltctxsubstctx_exists_def := forall G,
+    AWf G ->
+    CompleteCtx G ->
+    exists H, ACpltCtxSubstCtx G G H.
+
 (* admitted lemma with issue about quantification *)
 
 Lemma lam_solve: forall G x e t,
@@ -764,4 +769,35 @@ Theorem cpltctxsubst_exists: cpltctxsubst_exists_def.
 Proof.
   introv. intros. destruct(@alen_exists G e) as (n & ex). auto. auto.
   apply* cpltctxsubst_exists'.
+Qed.
+
+Theorem cpltctxsubstctx_exists: cpltctxsubstctx_exists_def.
+Proof.
+  unfold cpltctxsubstctx_exists_def. intros.
+  induction G using env_ind.
+  exists* (empty : DCtx). apply* ACpltCtxSubstCtx_Empty.
+  assert (WfG : AWf G) by (apply* AWf_left).
+  assert (CCtxG : CompleteCtx G) by (apply* complete_part_left; apply* awf_is_ok).
+  induction v.
+
+  destruct (IHG WfG CCtxG) as [H1 IHSubst].
+  exists H1. apply* ACpltCtxSubstCtx_Var.
+
+  assert (TrmA: AWTermT G a) by (apply* awterm_typ).
+  destruct (cpltctxsubst_exists G a WfG TrmA CCtxG) as [t1' S].
+  destruct (IHG WfG CCtxG) as [H1 S'].
+  exists (H1 & x ~ DC_Typ t1'). apply* ACpltCtxSubstCtx_TypVar.
+
+  destruct (IHG WfG CCtxG) as [H1 S'].
+  exists (H1 & x ~ DC_TVar). apply* ACpltCtxSubstCtx_TVar.
+
+  false. unfold CompleteCtx in H0.
+  destruct (H0 x AC_Unsolved_EVar).
+  apply* binds_tail. auto.
+
+  destruct (IHG WfG CCtxG) as [H1 IHSubst].
+  exists H1. apply* ACpltCtxSubstCtx_Solved_Solved_EVar.
+
+  destruct (IHG WfG CCtxG) as [H1 S'].
+  exists H1. apply* ACpltCtxSubstCtx_Marker.
 Qed.

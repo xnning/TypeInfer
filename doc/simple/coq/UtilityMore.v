@@ -8,7 +8,62 @@ Require Import UtilityEnv.
 Require Import Subst.
 Require Import Exists.
 
+Set Implicit Arguments.
+
+Ltac gather_vars :=
+  let A := gather_vars_with (fun x : vars => x) in
+  let B := gather_vars_with (fun x : var => \{x}) in
+  let C := gather_vars_with (fun x : AExpr => AFv x) in
+  let D := gather_vars_with (fun x : AType => ATFv x) in
+  let E := gather_vars_with (fun x : ACtx => dom x) in
+  let F := gather_vars_with (fun x : DCtx => dom x) in
+  let G := gather_vars_with (fun x : DExpr => DFv x) in
+  let H := gather_vars_with (fun x : DType => DTFv x) in
+  constr:(A \u B \u C \u D \u E \u F \u G \u H).
+
+Ltac pick_fresh X :=
+  let L := gather_vars in (pick_fresh_gen L X).
+
 (* properties about extension *)
+
+Lemma extctx_to_empty_inv : forall G,
+    ExtCtx G empty -> G = empty.
+Proof.
+  intros.
+  inversions H; auto; false; apply* empty_push_inv.
+Qed.
+
+Lemma extctx_remove_var : forall G H y,
+    ExtCtx (G & y ~ AC_Var) (H & y ~ AC_Var) ->
+    ExtCtx G H.
+Proof.
+  introv D.
+  rewrite <- concat_empty_r in D at 1.
+  rewrite <- concat_empty_r in D.
+  destruct (extension_order_var D) as [X [Y (K1 & K2 & _)]].
+  lets C: awf_preservation D.
+  pose (Ok2 := awf_is_ok C).
+  lets Ok3: Ok2.
+  rewrite K1 in Ok3.
+  destruct~ (ok_middle_eq Ok2 eq_refl Ok3 eq_refl K1) as (Eq1 & Eq2 & Eq3).
+  subst*.
+Qed.
+
+Lemma extctx_remove_typvar : forall G H y t1 t2,
+    ExtCtx (G & y ~ AC_Typ t1) (H & y ~ AC_Typ t2) ->
+    ExtCtx G H.
+Proof.
+  introv D.
+  rewrite <- concat_empty_r in D at 1.
+  rewrite <- concat_empty_r in D.
+  destruct (extension_order_typvar D) as [X [Y [Z (K1 & K2 & _)]]].
+  lets C: awf_preservation D.
+  pose (Ok2 := awf_is_ok C).
+  lets Ok3: Ok2.
+  rewrite K1 in Ok3.
+  destruct~ (ok_middle_eq Ok2 eq_refl Ok3 eq_refl K1) as (Eq1 & Eq2 & Eq3).
+  subst*.
+Qed.
 
 Lemma extension_remove_evar: forall G H a,
     ExtCtx (G & a ~ AC_Unsolved_EVar) H ->
@@ -579,30 +634,6 @@ Qed.
 
 Hint Resolve awf_is_ok.
 
-Lemma actxtsubst_append: forall G H t,
-    ok (G & H) ->
-    AWTermT G t ->
-    ACtxTSubst (G & H) t = ACtxTSubst G t.
-Proof.
-  introv okg wt.
-  induction H using env_ind.
-  rewrite~ concat_empty_r.
-  rewrite concat_assoc.
-  rewrite tsubst_add_ctx.
-
-  assert (ACtxTSubst (x ~ v) t = t).
-  rewrite single_def. unfold ACtxTSubst. rewrite LibList.fold_left_cons. rewrite LibList.fold_left_nil.
-  destruct v; simpls; auto.
-  apply atsubstt_fresh.
-  apply notin_tfv_tftv.
-  apply notin_awtermt with G; auto.
-  rewrite concat_assoc in okg.
-  destruct (ok_push_inv okg) as [_ okg2]. auto_star.
-  rewrite H0. apply* IHenv.
-  rewrite concat_assoc in okg.
-  destruct (ok_push_inv okg) as [okg1 _]. auto_star.
-Qed.
-
 Lemma ctxsubst_awterm' : forall G t n m,
     AWf G ->
     AWTermT G t ->
@@ -770,4 +801,262 @@ Proof.
   assert (exists n, ALen G t n). apply~ alen_exists.
   destruct H1 as (n & len).
   apply* ctxsubst_awterm'.
+Qed.
+
+(* CPLTCTXSUBSTCTX *)
+
+Lemma confluence_cplt2 : forall G1 G2 H I J,
+    ExtCtx G1 H -> ExtCtx G2 H ->
+    CompleteCtx H ->
+    ACpltCtxSubstCtx H G1 I ->
+    ACpltCtxSubstCtx H G2 J ->
+    I = J.
+Proof.
+  intros.
+  assert (Wf: AWf H) by (apply* awf_preservation).
+  destruct (cpltctxsubstctx_exists H Wf H2) as [K P].
+  assert (I = K).
+  intros. apply stable_cplt_env_eq with (G := G1) (H := H).
+  auto. auto. auto.
+  assert (J = K).
+  intros. apply stable_cplt_env_eq with (G := G2) (H := H).
+  auto. auto. auto.
+  subst. auto.
+Qed.
+
+Theorem cpltctxsubstctx_exists_ext: forall G I,
+    ExtCtx I G ->
+    CompleteCtx G ->
+    exists H, ACpltCtxSubstCtx G I H.
+Proof.
+  intros. gen I.
+  induction G using env_ind; intros.
+  assert (I = empty) by (apply* extctx_to_empty_inv).
+  subst.
+  exists* (empty : DCtx). apply* ACpltCtxSubstCtx_Empty.
+  lets:  awf_preservation H.
+  assert (CompleteCtx G). apply complete_part_left in H0; auto.
+  lets: IHG H2. clear IHG.
+
+  induction v.
+
+  inversion H; subst; try(solve[destruct (eq_push_inv H5) as [? [eqv ?]]; false eqv]).
+  false empty_push_inv H6.
+  destruct (eq_push_inv H5) as [? [? ?]]. subst. clear H5 H10.
+  lets: H3 H6. destruct H4.
+  exists x0. apply~ ACpltCtxSubstCtx_Var.
+
+  inversion H; subst; try(solve[destruct (eq_push_inv H5) as [? [eqv ?]]; false eqv]).
+  false empty_push_inv H6.
+  destruct (eq_push_inv H5) as [? [? ?]]. inversion H11. subst. clear H5 H11.
+  lets: H3 H6. destruct H4.
+  assert (TrmA: AWTermT G a) by (apply* awterm_typ).
+  assert (WfG : AWf G) by (apply* AWf_left).
+  destruct (cpltctxsubst_exists G a WfG TrmA H2) as [t1' S].
+  exists (x0 & x ~ DC_Typ t1'). apply* ACpltCtxSubstCtx_TypVar.
+
+  inversion H; subst; try(solve[destruct (eq_push_inv H5) as [? [eqv ?]]; false eqv]).
+  false empty_push_inv H6.
+  destruct (eq_push_inv H5) as [? [? ?]]. subst. clear H5 H10.
+  lets: H3 H6. destruct H4.
+  exists (x0 & x ~ DC_TVar). apply* ACpltCtxSubstCtx_TVar.
+
+  false. unfold CompleteCtx in H0.
+  destruct (H0 x AC_Unsolved_EVar).
+  apply* binds_tail. auto.
+
+  inversion H; subst; try(solve[destruct (eq_push_inv H5) as [? [eqv ?]]; false eqv]).
+  false empty_push_inv H6.
+  destruct (eq_push_inv H5) as [? [? ?]]. inversion H11. subst. clear H5 H11.
+  lets: H3 H6. destruct H4.
+  exists x0. apply* ACpltCtxSubstCtx_Solved_Solved_EVar.
+
+  destruct (eq_push_inv H5) as [? [? ?]]. inversion H10. subst. clear H5 H10.
+  lets: H3 H6. destruct H4.
+  exists x0. apply* ACpltCtxSubstCtx_Solved_Unsolved_EVar.
+
+  destruct (eq_push_inv H5) as [? [? ?]]. inversion H9. subst. clear H5 H9.
+  lets: H3 H6. destruct H4.
+  exists x0. apply~ ACpltCtxSubstCtx_Solved_EVar.
+  apply awf_is_ok in H1. apply* ok_push_inv.
+
+  inversion H; subst; try(solve[destruct (eq_push_inv H5) as [? [eqv ?]]; false eqv]).
+  false empty_push_inv H6.
+  destruct (eq_push_inv H5) as [? [? ?]]. subst. clear H5 H10.
+  lets: H3 H6. destruct H4.
+  exists x0. apply~ ACpltCtxSubstCtx_Marker.
+Qed.
+
+Lemma confluence_cplt3 : forall G1 G2 H I,
+    ExtCtx G1 H -> ExtCtx G2 H ->
+    CompleteCtx H ->
+    ACpltCtxSubstCtx H G1 I ->
+    ACpltCtxSubstCtx H G2 I.
+Proof.
+  intros.
+  destruct (cpltctxsubstctx_exists_ext H1 H2) as [J ?].
+  assert (I = J).
+  apply (confluence_cplt2 H0 H1 H2 H3 H4).
+  subst. auto.
+Qed.
+
+(* A2D *)
+
+Inductive A2D : AType -> DType -> Prop :=
+  | A2D_Var : forall x,
+      A2D (AT_Expr (AE_FVar x)) (DT_Expr (DE_FVar x))
+  | A2D_TVar : forall x,
+      A2D (AT_TFVar x) (DT_TFVar x)
+  | A2D_Star : A2D (AT_Expr AE_Star) (DT_Expr DE_Star)
+  | A2D_App : forall t1 t2 d1 d2,
+      A2D (AT_Expr t1) (DT_Expr d1) ->
+      A2D (AT_Expr t2) (DT_Expr d2) ->
+      A2D (AT_Expr (AE_App t1 t2)) (DT_Expr (DE_App d1 d2))
+  | A2D_Lam : forall t d L,
+      (forall x, x \notin L -> A2D (AT_Expr (t @ x)) (DT_Expr (d ^ x))) ->
+      A2D (AT_Expr (AE_Lam t)) (DT_Expr (DE_Lam d))
+  | A2D_Pi : forall t1 t2 d1 d2 L,
+      A2D t1 d1 ->
+      (forall x, x \notin L -> A2D (t2 @' x) (d2 ^' x)) ->
+      A2D (AT_Expr (AE_Pi t1 t2)) (DT_Expr (DE_Pi d1 d2))
+  | A2D_CastUp : forall t d,
+      A2D (AT_Expr t) (DT_Expr d) ->
+      A2D (AT_Expr (AE_CastUp t)) (DT_Expr (DE_CastUp d))
+  | A2D_CastDn : forall t d,
+      A2D (AT_Expr t) (DT_Expr d) ->
+      A2D (AT_Expr (AE_CastDn t)) (DT_Expr (DE_CastDn d))
+  | A2D_Ann : forall t1 t2 d1 d2,
+      A2D (AT_Expr t1) (DT_Expr d1) -> A2D t2 d2 ->
+      A2D (AT_Expr (AE_Ann t1 t2)) (DT_Expr (DE_Ann d1 d2))
+  | A2D_Forall : forall s1 s2 L,
+      (forall x, x \notin L -> A2D (s1 @#' x) (s2 ^%' x)) ->
+      A2D (AT_Expr (AE_Forall s1)) (DT_Expr (DE_Forall s2))
+.
+
+Lemma acpltctxsubst_ctxsubst_a2d: forall I t d,
+    AWf I ->
+    ACpltCtxSubst I t d ->
+    A2D (ACtxTSubst I t) d.
+Proof.
+  introv oki sub.
+  induction sub; auto.
+  rewrite actxtsubst_expr. rewrite actxsubst_fvar. constructor.
+  rewrite actxtsubst_expr. rewrite actxsubst_fvar. constructor.
+  rewrite actxtsubst_tfvar; auto. constructor.
+  rewrite~ actxtsubst_evar. apply~ IHsub. apply AWf_left in oki. apply AWf_left in oki; auto.
+  rewrite tsubst_star. constructor.
+  rewrite actxtsubst_expr in *. rewrite actxsubst_app. constructor~.
+  rewrite actxtsubst_expr in *. rewrite actxsubst_lam.
+  apply A2D_Lam with (L \u dom G).
+  intros y notin.
+  assert (y \notin L) by auto.
+  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
+  lets: H0 H1 H2.
+  rewrite tsubst_add_var in H3.
+  rewrite actxtsubst_expr in H3.
+  rewrite actxsubst_open in H3. rewrite actxsubst_fvar in H3. auto.
+  apply AWf_left in H2; auto.
+
+  rewrite actxtsubst_expr in *. rewrite actxsubst_pi.
+  apply A2D_Pi with (L \u dom G). auto.
+  intros y notin.
+  assert (y \notin L) by auto.
+  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
+  lets: H0 H1 H2.
+  rewrite tsubst_add_var in H3.
+  rewrite actxtsubst_open in H3. rewrite actxsubst_fvar in H3. auto.
+  apply AWf_left in H2; auto.
+
+  rewrite actxtsubst_expr in *. rewrite actxsubst_castup. constructor~.
+  rewrite actxtsubst_expr in *. rewrite actxsubst_castdn. constructor~.
+  rewrite actxtsubst_expr in *. rewrite actxsubst_ann. constructor~.
+
+  rewrite actxtsubst_expr in *. rewrite actxsubst_forall.
+  apply A2D_Forall with (L \u dom G). simpl_dom.
+  intros y notin.
+  assert(y \notin L) by auto.
+  assert (AWf (G & y ~ AC_TVar)) by apply~ AWf_TVar.
+  lets: H0 H1 H2.
+  rewrite tsubst_add_tvar in H3.
+  rewrite actxtsubst_topen in H3. rewrite actxtsubst_tfvar_notin in H3. auto.
+  apply awf_is_ok in H2. apply ok_push_inv in H2. destruct H2; auto.
+  apply AWf_left in H2; auto.
+Qed.
+
+Lemma a2d_eq: forall e d1 d2,
+    A2D e d1 ->
+    A2D e d2 ->
+    d1 = d2.
+Proof.
+  introv ad1 ad2. gen d2.
+  induction ad1; introv ad2; inversion ad2; subst; auto; f_equal *.
+
+  lets: IHad1_1 H1. inversion~ H.
+  lets: IHad1_2 H3. inversion~ H0.
+
+  f_equal. pick_fresh y. assert(y \notin L0) by auto.
+  assert (y \notin L) by auto.
+  lets: H2 H1. lets: H0 H3 H4. inversion H5.
+  apply dopen_var_inj in H7; auto.
+
+  f_equal. lets: IHad1 H3. auto.
+  pick_fresh y. assert(y \notin L0) by auto.
+  assert (y \notin L) by auto.
+  lets: H5 H1. lets: H0 H2 H4.
+  apply dopent_var_inj in H6; auto.
+
+  lets: IHad1 H0. inversion~ H.
+  lets: IHad1 H0. inversion~ H.
+
+  lets: IHad1_1 H1. inversion~ H.
+  lets: IHad1_2 H3. inversion~ H0.
+
+  f_equal. pick_fresh y. assert(y \notin L0) by auto.
+  assert (y \notin L) by auto.
+  lets: H2 H1. lets: H0 H3 H4.
+  apply dtopent_var_inj in H5; auto.
+Qed.
+
+Lemma a2d_cpltctxsubst: forall I t d,
+    AWf I ->
+    AWTermT I t ->
+    CompleteCtx I ->
+    A2D (ACtxTSubst I t) d ->
+    ACpltCtxSubst I t d.
+Proof.
+  intros.
+  assert (exists d', ACpltCtxSubst I t d') by apply* cpltctxsubst_exists.
+  destruct H3.
+  lets: acpltctxsubst_ctxsubst_a2d H3; auto.
+  lets: a2d_eq H2 H4. subst~.
+Qed.
+
+Lemma complete_eq: forall I t1 t2 d,
+    AWf I ->
+    CompleteCtx I ->
+    AWTermT I t2 ->
+    ACtxTSubst I t1 = ACtxTSubst I t2 ->
+    ACpltCtxSubst I t1 d ->
+    ACpltCtxSubst I t2 d.
+Proof.
+  intros.
+  lets: acpltctxsubst_ctxsubst_a2d H3; auto.
+  rewrite H2 in H4.
+  forwards * :  a2d_cpltctxsubst H4.
+Qed.
+
+Lemma acpltctxsubst_subst_invariance: forall G I e d,
+     ExtCtx G I ->
+     CompleteCtx I ->
+     AWTermT G e ->
+     ACpltCtxSubst I e d ->
+     ACpltCtxSubst I (ACtxTSubst G e) d.
+Proof.
+  introv gh comp wt sub.
+  lets: awf_context gh.
+  lets: awf_preservation gh.
+  apply complete_eq with e; auto.
+  apply* extension_weakening_awtermt.
+  apply* ctxsubst_awterm.
+  apply* substitution_extension_invariance2.
 Qed.

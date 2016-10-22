@@ -23,6 +23,28 @@ Proof.
   false. apply* empty_push_inv.
 Qed.
 
+Lemma not_in_cpltctx : forall x G H I,
+    ACpltCtxSubstCtx G H I ->
+    x # G ->
+    x # I.
+Proof.
+  intros. inductions H0.
+  auto. apply* IHACpltCtxSubstCtx.
+
+  rewrite dom_push. notin_simpl.
+  rewrite dom_push in H4.
+  auto. apply* IHACpltCtxSubstCtx.
+
+  rewrite dom_push. notin_simpl.
+  rewrite dom_push in H2.
+  auto. apply* IHACpltCtxSubstCtx.
+
+  apply* IHACpltCtxSubstCtx.
+  apply* IHACpltCtxSubstCtx.
+  apply* IHACpltCtxSubstCtx.
+  apply* IHACpltCtxSubstCtx.
+Qed.
+
 Lemma ctxsubst_inv_var : forall H G I x,
     ACpltCtxSubstCtx (H & x ~ AC_Var) (G & x ~ AC_Var) I ->
     CompleteCtx H /\
