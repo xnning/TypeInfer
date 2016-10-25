@@ -278,7 +278,7 @@ Theorem unif_soundness_same : forall G H I t1 t2 H' t1' t2',
     AWf G -> AWTermT G t1 -> AWTermT G t2 ->
     t1' = t2'.
 Proof.
-  intros. gen t1'. gen t2'. gen I. inductions H0; intros.
+  intros. gen t1'. gen t2'. gen I. gen H'. inductions H0; intros.
 
   apply* cplt_ctxsubst_eq.
   apply* cplt_ctxsubst_eq.
@@ -303,7 +303,7 @@ Proof.
   rewrite actxtsubst_expr. f_equal.
   rewrite actxtsubst_expr in H2. inversion~ H2.
   rewrite actxsubst_app in H7. inversion H7. rewrite <- H16. auto.
-  lets: confluence_cplt3 H3 H15 H4 H5. auto.
+  lets: confluence_cplt3 H3 H15 H4 H5. exact H6.
   inversion~ H6. subst. clear H6.
 
   clear IHAUnify1 H18 H19 H0_.
@@ -426,7 +426,7 @@ Proof.
   rewrite actxsubst_pi in H5. inversion H5. rewrite <- H26. auto.
   rewrite actxtsubst_expr in H24. inversion~ H24.
   rewrite actxsubst_pi in H5. inversion H5. repeat rewrite <- H26. auto.
-  lets: confluence_cplt3 H6 H23 H7 H11. auto.
+  lets: confluence_cplt3 H6 H23 H7 H11. exact H4.
   inversion~ H4. subst. clear H5.
 
   clear IHAUnify H15 H21 H16 H17.
@@ -473,6 +473,49 @@ Proof.
   apply dopent_var_inj in H21; auto.
   rewrite~ H21.
 
+  (* FORALL *)
+  inversions H11. inversions H7.
+  inversion H9; subst. inversion H10; subst.
+  pick_fresh y.
+  assert (notinl: y \notin L) by auto.
+  assert (notinl0: y \notin L0) by auto.
+  assert (notinl1: y \notin L1) by auto.
+  assert (notinl2: y \notin L2) by auto.
+  assert (notinl3: y \notin L3) by auto.
+  lets: H0 notinl. clear H0.
+  assert (wf: AWf(G & y ~ AC_TVar)) by apply~ AWf_TVar.
+  lets: unify_extension H7 wf.
+  destruct H0 as [? ?].
+  lets: H13 notinl1.  clear H13.
+  lets: H14 notinl0. clear H14.
+  lets: H12 notinl2. clear H12.
+  lets: H15 notinl3. clear H15.
+  assert((t1 @@#' AT_TFVar y) = ACtxTSubst (G & y ~ AC_TVar) (t1 @@#' AT_TFVar y)).
+  rewrite actxtsubst_expr in *.
+  inversion H2; subst. clear H2.
+  rewrite actxsubst_forall in H17. inversion H17.  clear H17.
+  rewrite <- H15. rewrite tsubst_add_tvar. rewrite~ actxtsubst_topen.
+  rewrite~ actxtsubst_tfvar_notin. rewrite <- H15. auto.
+  assert(t2 @@#' AT_TFVar y = ACtxTSubst (G & y ~ AC_TVar) (t2 @@#' AT_TFVar y)).
+  rewrite actxtsubst_expr in *.
+  inversion H3; subst. clear H3.
+  rewrite actxsubst_forall in H18. inversion H18.  clear H18.
+  rewrite <- H17. rewrite tsubst_add_tvar. rewrite~ actxtsubst_topen.
+  rewrite~ actxtsubst_tfvar_notin. rewrite <- H17. auto.
+
+  lets: H1 notinl H15 H17 wf.
+  clear H1 H15 H17 H2 H3.
+  lets: H18 H14 H12. clear H18 H14 H12.
+  lets: awf_preservation H4.
+  assert (AWf (I & y ~ AC_TVar)) by apply~ AWf_TVar.
+  assert(ExtCtx (H & y ~ AC_TVar) (I & y ~ AC_TVar)) by apply~ ExtCtx_TVar.
+  assert (CompleteCtx (I & y ~ AC_TVar)) by apply~ complete_add_tvar.
+  assert (ACpltCtxSubstCtx (I & y ~ AC_TVar) (H & y ~ AC_TVar) (H' & y ~ DC_TVar)) by apply~ ACpltCtxSubstCtx_TVar.
+  lets: H1 H12 H14 H15 H16 H13. clear H1.
+  inversion H17. clear H17.
+  apply dtopent_var_inj in H18; auto.
+  rewrite~ H18.
+
   (* ANN *)
   lets: unify_extension H0_ H8.
   destruct H11 as [? ?].
@@ -487,7 +530,7 @@ Proof.
   rewrite actxtsubst_expr. f_equal.
   rewrite actxtsubst_expr in H2. inversion~ H2.
   rewrite actxsubst_ann in H7. inversion H7. rewrite <- H16. auto.
-  lets: confluence_cplt3 H3 H15 H4 H5. auto.
+  lets: confluence_cplt3 H3 H15 H4 H5. exact H6.
   inversion~ H6. subst. clear H6.
 
   clear IHAUnify1 H18 H19 H17 H23 H9 H10.

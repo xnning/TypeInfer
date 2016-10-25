@@ -421,6 +421,9 @@ Inductive AUnify : ACtx -> AType -> AType -> ACtx -> Prop :=
       AUnify G t1 t3 H1 ->
       (forall x, x \notin L -> AUnify (H1 & x ~ AC_Var) (ACtxTSubst H1 (t2 @' x)) (ACtxTSubst H1 (t4 @' x)) (H & x ~ AC_Var)) ->
       AUnify G (AT_Expr (AE_Pi t1 t2)) (AT_Expr (AE_Pi t3 t4)) H
+  | AUnify_Forall : forall t1 t2 G H L,
+      (forall x, x \notin L -> AUnify (G & x ~ AC_TVar) (t1 @#' x) (t2 @#' x) (H & x ~ AC_TVar)) ->
+      AUnify G (AT_Expr (AE_Forall t1)) (AT_Expr (AE_Forall t2)) H
   | AUnify_Ann : forall t1 t2 t3 t4 G H1 H,
       AUnify G (AT_Expr t1) (AT_Expr t2) H1 ->
       AUnify H1 (ACtxTSubst H1 t3) (ACtxTSubst H1 t4) H ->

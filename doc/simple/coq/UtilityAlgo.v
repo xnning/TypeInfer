@@ -101,6 +101,13 @@ Proof.
   assert (ok (H1 & y ~ AC_Var)) by apply* ok_push.
   lets: H2 H4 H5.
   apply ok_concat_inv_l in H5; auto.
+
+  pick_fresh y.
+  assert (y \notin L) by auto_star.
+  assert (ok (G & y ~ AC_TVar)) by apply* ok_push.
+  lets: H1 H2 H3.
+  apply ok_concat_inv_l in H4; auto.
+
   lets: resolve_evar_ok_preservation H0 okg.
   apply* ok_middle_change.
 
@@ -244,6 +251,10 @@ Proof.
   pick_fresh y. assert(y \notin L) by auto.
   assert (AWf (H1 & y ~ AC_Var)) by apply~ AWf_Var.
   lets: H2 H4 H5. apply AWf_left in H6; auto.
+
+  pick_fresh y. assert(y \notin L) by auto.
+  assert (AWf (G & y ~ AC_TVar)) by apply~ AWf_TVar.
+  lets: H1 H2 H3. apply AWf_left in H4; auto.
 
   lets: resolve_evar_awf_preservation H0 wfg.
   apply* awf_solve_middle.
@@ -406,6 +417,14 @@ Proof.
   lets: weak_extension_remove_var H9.
   lets: IHuni okg H6.
   lets: weak_extension_transitivity H11 H10. auto.
+
+  (* FORALL *)
+  pick_fresh y.
+  assert (y \notin L) by auto.
+  assert(ok (G & y ~ AC_TVar)). constructor~.
+  assert(ok (H & y ~ AC_TVar)). constructor~.
+  lets: H2 y H3 H4 H5.
+  lets: weak_extension_remove_tvar H6.  auto.
 
   (* ANN *)
   lets: unify_ok_preservation uni1 okg.
@@ -985,6 +1004,19 @@ Proof.
   lets: H1 H2.
   apply eq_push_inv in H6. destruct H6 as [? [? ?]]. subst~.
 
+  (* FORALL *)
+  pick_fresh y.
+  assert(y \notin L) by auto.
+  lets: H0 H2. clear H0.
+  assert (ok (G & y ~ AC_TVar)) by constructor~.
+  lets: H1 H2 H0. clear H1 H0.
+  assert (forall a : var, binds a AC_Unsolved_EVar (G & y ~ AC_TVar) -> binds a AC_Unsolved_EVar (H & y ~ AC_TVar)).
+  intros n bdn.
+  apply binds_push_inv in bdn. destruct bdn as [ [? ?] | [? ?]]. false H1.
+  lets: hy H1.
+  apply~ binds_push_neq.
+  lets: H4 H0. destruct (eq_push_inv H1) as [? [? ?]]. subst. auto.
+
   (* ANN *)
   assert (forall a : var, binds a AC_Unsolved_EVar G -> binds a AC_Unsolved_EVar H1).
   intros n bdn.
@@ -1193,6 +1225,36 @@ Proof.
   rewrite hinfo. lets: unify_ok_preservation H2 H5; auto.
   lets: H0 H3.
   lets: unify_ok_preservation H2 H5; auto.
+
+  (* FORALL *)
+  pick_fresh y.
+  assert (y \notin L) by auto.
+  assert(ok (I1 & I2 & y ~ AC_TVar)). apply~ ok_push.
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar (H & y ~ AC_TVar)).
+  intros n bdn.
+  lets: hy bdn.
+  apply~ binds_push_neq.
+  introv neq. subst. assert(y # I1) by auto. false binds_fresh_inv bdn H5.
+  lets: H1 H2 H3 H4.
+  assert(I1 & I2 & y ~ AC_TVar = I1 & (I2 & y ~ AC_TVar)) by repeat rewrite~ concat_assoc.
+  lets: H5 H6.
+  destruct H7 as (I4 & hinfo).
+  clear H1.
+
+  assert(binds y (AC_TVar) I4). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_push_eq.
+  apply split_bind_context in H1.
+  destruct H1 as (I5 & I6 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  symmetry in hinfo.
+  apply tail_empty_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I5.
+  lets: H0  H2.
+  rewrite hinfo. lets: unify_ok_preservation H1 H3; auto.
+  lets: H0  H2.
+  lets: unify_ok_preservation H1 H3; auto.
 
   (* *)
   assert ((forall a : var,
