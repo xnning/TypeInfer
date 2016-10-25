@@ -456,10 +456,12 @@ Inductive ASubtyping : ACtx -> AType -> AType -> ACtx -> Prop :=
       ASubtyping (H1 & x ~ AC_Typ s1) (ACtxTSubst H1 (s2 @' x)) (ACtxTSubst H1 (s4 @' x)) (H & x ~ AC_Typ s1) ->
       ASubtyping G (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi s3 s4)) H
   | ASub_EVarL: forall a s G1 G2 H1 H t,
+      (forall n, s <> (AT_Expr (AE_Forall n))) ->
       AResolveForall (G1 & a ~ AC_Unsolved_EVar & G2) a Minus s t H1 ->
       AUnify H1 (AT_EVar a) t H ->
       ASubtyping (G1 & a ~ AC_Unsolved_EVar & G2) (AT_EVar a) s H
   | ASub_EVarR: forall a s G1 G2 H1 H t,
+      (forall n, s <> (AT_Expr (AE_Forall n))) ->
       AResolveForall (G1 & a ~ AC_Unsolved_EVar & G2) a Plus s t H1 ->
       AUnify H1 (AT_EVar a) t H ->
       ASubtyping (G1 & a ~ AC_Unsolved_EVar & G2) s (AT_EVar a) H

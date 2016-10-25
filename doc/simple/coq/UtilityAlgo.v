@@ -130,11 +130,11 @@ Proof.
   lets: IHsub2 H3.
   repeat apply ok_concat_inv_l in H4; auto.
 
-  lets: resolve_forall_ok_preservation H0 okg.
-  lets: unify_ok_preservation H2 H3. auto.
+  lets: resolve_forall_ok_preservation H2 okg.
+  lets: unify_ok_preservation H3 H4. auto.
 
-  lets: resolve_forall_ok_preservation H0 okg.
-  lets: unify_ok_preservation H2 H3. auto.
+  lets: resolve_forall_ok_preservation H2 okg.
+  lets: unify_ok_preservation H3 H4. auto.
 
   lets: unify_ok_preservation H0 okg. auto.
 Qed.
@@ -465,17 +465,17 @@ Proof.
   lets: weak_extension_transitivity H4 H11. auto.
 
   (* EVarL *)
-  lets: resolve_forall_wextctx H2 okg.
-  lets: resolve_forall_ok_preservation H2 okg.
-  lets: unify_wextctx H3 H5.
-  lets: weak_extension_transitivity H4 H6.
+  lets: resolve_forall_wextctx H3 okg.
+  lets: resolve_forall_ok_preservation H3 okg.
+  lets: unify_wextctx H4 H6.
+  lets: weak_extension_transitivity H5 H7.
   auto.
 
   (* EVarR *)
-  lets: resolve_forall_wextctx H2 okg.
-  lets: resolve_forall_ok_preservation H2 okg.
-  lets: unify_wextctx H3 H5.
-  lets: weak_extension_transitivity H4 H6.
+  lets: resolve_forall_wextctx H3 okg.
+  lets: resolve_forall_ok_preservation H3 okg.
+  lets: unify_wextctx H4 H6.
+  lets: weak_extension_transitivity H5 H7.
   auto.
 
   (* UNIfy *)
@@ -1029,6 +1029,506 @@ Proof.
   lets: hy H8.
   apply binds_middle_eq_inv in H9; auto. false H9.
   apply* ok_middle_change.
+Qed.
+
+Lemma resolve_evar_helper: forall G H1 H2 a t1 t2,
+    AResolveEVar G a t1 t2 (H1 & a ~ AC_Unsolved_EVar & H2) ->
+    ok G ->
+    binds a AC_Unsolved_EVar G.
+Proof.
+  introv res okg. gen_eq S: (H1 & a ~ AC_Unsolved_EVar & H2). gen H1 H2.
+  induction res; introv sinfo; subst; auto.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  do 2  rewrite <- concat_assoc in *.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  pick_fresh y.
+  assert( y \notin L) by auto.
+  assert(ok (H1 & y ~ AC_Var)).
+  lets: resolve_evar_ok_preservation res okg. apply~ ok_push.
+  assert (H3 & a ~ AC_Unsolved_EVar & H4 & y ~ AC_Var
+        = H3 & a ~ AC_Unsolved_EVar & (H4 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  lets: H2 H H5 H6.
+  apply binds_push_neq_inv in H7; auto.
+  apply split_bind_context in H7.
+  destruct H7 as (I1 & I2 & h1info); subst.
+  forwards * : IHres.
+
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+
+  lets: resolve_evar_ok_preservation res1 okg.
+  forwards * : IHres2.
+  apply split_bind_context in H3.
+  destruct H3 as (I1 & I2 & h1info); subst.
+  forwards * : IHres1.
+
+  pick_fresh y. assert (y \notin L) by auto.
+  assert (ok (G & y ~ AC_Var)) by apply~ ok_push.
+  assert (H2 & a ~ AC_Unsolved_EVar & H3 & y ~ AC_Var =
+          H2 & a ~ AC_Unsolved_EVar & (H3 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  lets: H1 H H4 H5.
+  apply binds_push_neq_inv in H6; auto.
+
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+
+  lets: resolve_evar_ok_preservation res1 okg.
+  forwards * : IHres2.
+  apply split_bind_context in H3.
+  destruct H3 as (I1 & I2 & h1info); subst.
+  forwards * : IHres1.
+Qed.
+
+Lemma unify_unsolved_helper: forall I1 I2 e t H,
+    AUnify (I1 & I2) e t H ->
+    ok (I1 & I2) ->
+    (forall a, binds a AC_Unsolved_EVar I1 -> binds a AC_Unsolved_EVar H) ->
+    exists H2, H = I1 & H2.
+Proof.
+  introv uni okg hy; gen_eq S :(I1 & I2). gen I2.
+  induction uni; introv sinfo; subst; try(solve[exists~ I2]).
+
+  (* *)
+  assert ((forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar H1)).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (I1 & I2)). apply~ binds_concat_left_ok.
+  lets: unify_evar_preservation uni1 okg H0.
+  destruct H2 as [bd_un | (nv & bd_so)]; auto.
+  lets: unify_ok_preservation uni1 okg.
+  lets: unify_evar_preservation2 uni2 H2 bd_so.
+  lets: hy bdn. false binds_func H3 H4.
+
+  lets: IHuni1 okg H0. clear IHuni1.
+  forwards * : H2. clear H2.
+  destruct H3 as (I3 & h1info). subst.
+  lets: unify_ok_preservation uni1 okg; auto.
+  lets: IHuni2 H1 hy.
+  forwards * :  H2.
+
+  (* LAM *)
+  pick_fresh y.
+  assert (y \notin L) by auto.
+  assert(ok (I1 & I2 & y ~ AC_Var)). apply~ ok_push.
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar (H & y ~ AC_Var)).
+  intros n bdn.
+  lets: hy bdn.
+  apply~ binds_push_neq.
+  introv neq. subst. assert(y # I1) by auto. false binds_fresh_inv bdn H5.
+  lets: H1 H2 H3 H4.
+  assert(I1 & I2 & y ~ AC_Var = I1 & (I2 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  lets: H5 H6.
+  destruct H7 as (I4 & hinfo).
+  clear H1.
+
+  assert(binds y (AC_Var) I4). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_push_eq.
+  apply split_bind_context in H1.
+  destruct H1 as (I5 & I6 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  symmetry in hinfo.
+  apply tail_empty_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I5.
+  lets: H0  H2.
+  rewrite hinfo. lets: unify_ok_preservation H1 H3; auto.
+  lets: H0  H2.
+  lets: unify_ok_preservation H1 H3; auto.
+
+  (* *)
+  forwards * : IHuni okg hy.
+  (* *)
+  forwards * : IHuni okg hy.
+
+  (* PI *)
+  pick_fresh y. assert(y \notin L) by auto.
+  assert ((forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar H1)).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (I1 & I2)). apply~ binds_concat_left_ok.
+  lets: unify_evar_preservation uni okg H4.
+  destruct H5 as [bd_un | (nv & bd_so)]; auto.
+  assert (n <> y). introv neq. subst.
+  assert (y # H1) by auto. false binds_fresh_inv bd_so H5.
+  assert(binds n (AC_Solved_EVar nv) (H1 & y ~ AC_Var)). apply~ binds_push_neq.
+  lets: unify_ok_preservation uni okg.
+  assert(ok (H1 & y ~ AC_Var)) by apply~ ok_push.
+  lets: H0 H3. clear H0.
+  lets: unify_evar_preservation2 H9 H8 H6.
+  apply binds_push_neq_inv in H0; auto.
+  lets: hy bdn. false binds_func H0 H10.
+
+  lets: IHuni okg H4. clear IHuni.
+  forwards * : H5. clear H5.
+  destruct H6 as (I3 & h1info). subst.
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar (H & y ~ AC_Var)).
+  intros n bdn.
+  lets: hy bdn.
+  apply~ binds_push_neq.
+  introv neq. subst. assert(y # I1) by auto. false binds_fresh_inv bdn H5.
+  assert(ok (I1 & I3 & y ~ AC_Var)). apply~ ok_push.
+  lets: unify_ok_preservation uni okg; auto.
+  lets: H2 H3 H5 H1.
+  assert(I1 & I3 & y ~ AC_Var = I1 & (I3 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  lets: H6 H7.
+  destruct H8 as (I4 & hinfo).
+  clear H2.
+
+  assert(binds y (AC_Var) I4). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_push_eq.
+  apply split_bind_context in H2.
+  destruct H2 as (I5 & I6 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  symmetry in hinfo.
+  apply tail_empty_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I5.
+  lets: H0 H3.
+  rewrite hinfo. lets: unify_ok_preservation H2 H5; auto.
+  lets: H0 H3.
+  lets: unify_ok_preservation H2 H5; auto.
+
+  (* *)
+  assert ((forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar H1)).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (I1 & I2)). apply~ binds_concat_left_ok.
+  lets: unify_evar_preservation uni1 okg H0.
+  destruct H2 as [bd_un | (nv & bd_so)]; auto.
+  lets: unify_ok_preservation uni1 okg.
+  lets: unify_evar_preservation2 uni2 H2 bd_so.
+  lets: hy bdn. false binds_func H3 H4.
+
+  lets: IHuni1 okg H0. clear IHuni1.
+  forwards * : H2. clear H2.
+  destruct H3 as (I3 & h1info). subst.
+  lets: unify_ok_preservation uni1 okg; auto.
+  lets: IHuni2 H1 hy.
+  forwards * :  H2.
+
+  (* *)
+  lets: resolve_evar_helper H0 okg.
+  apply binds_concat_inv in H4.
+  destruct H4 as [bd_i2 | [notin bdi1]].
+  apply split_bind_context in bd_i2.
+  destruct bd_i2 as (S1 & S2 & i2info). subst.
+  repeat rewrite concat_assoc in *.
+  lets: resolve_evar_inserts H0 okg.
+  destruct H4 as (S3 & S4 & hinfo).
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ (S1 & S3 & a ~ AC_Solved_EVar t2 & S4).
+  repeat rewrite~ concat_assoc.
+  lets: resolve_evar_ok_preservation H0 okg; auto.
+  rewrite <- hinfo.
+  lets: resolve_evar_ok_preservation H0 okg; auto.
+
+  lets: hy bdi1.
+  apply binds_middle_eq_inv in H4. false H4.
+  lets: resolve_evar_ok_preservation H0 okg; auto.
+  apply* ok_middle_change.
+
+  (* *)
+  lets: resolve_evar_helper H3 okg.
+  apply binds_concat_inv in H5.
+  destruct H5 as [bd_i2 | [notin bdi1]].
+  apply split_bind_context in bd_i2.
+  destruct bd_i2 as (S1 & S2 & i2info). subst.
+  repeat rewrite concat_assoc in *.
+  lets: resolve_evar_inserts H3 okg.
+  destruct H5 as (S3 & S4 & hinfo).
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ (S1 & S3 & a ~ AC_Solved_EVar t2 & S4).
+  repeat rewrite~ concat_assoc.
+  lets: resolve_evar_ok_preservation H3 okg; auto.
+  rewrite <- hinfo.
+  lets: resolve_evar_ok_preservation H3 okg; auto.
+
+  lets: hy bdi1.
+  apply binds_middle_eq_inv in H5. false H5.
+  lets: resolve_evar_ok_preservation H3 okg; auto.
+  apply* ok_middle_change.
+Qed.
+
+Lemma subtyping_unsolved_helper: forall I1 I2 e t H,
+    ASubtyping (I1 & I2) e t H ->
+    ok (I1 & I2) ->
+    (forall a, binds a AC_Unsolved_EVar I1 -> binds a AC_Unsolved_EVar H) ->
+    exists H2, H = I1 & H2.
+Proof.
+  introv sub okg hy; gen_eq S :(I1 & I2). gen I2.
+  induction sub; introv sinfo; subst.
+
+  (* POLYR *)
+  assert(ok (I1 & I2 & v ~ AC_TVar)) by apply~ ok_push.
+  assert(forall a : var,
+           binds a AC_Unsolved_EVar I1 ->
+           binds a AC_Unsolved_EVar (H & v ~ AC_TVar)).
+  intros n bdn.
+  apply binds_push_neq. lets: hy bdn; auto.
+  introv neq. subst. assert(v # I1) by auto. false binds_fresh_inv bdn H2.
+  assert(I1 & I2 & v ~ AC_TVar = I1 & (I2 & v ~ AC_TVar)) by rewrite~ concat_assoc.
+  lets: IHsub H1 H2 H3.
+
+  destruct H4 as (I3 & hinfo).
+  assert(binds v AC_TVar I3). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_push_eq.
+  apply split_bind_context in H4.
+  destruct H4 as (I4 & I5 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  symmetry in hinfo.
+  apply tail_empty_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I4.
+  rewrite hinfo. lets: subtyping_ok_preservation sub H1; auto.
+  lets: subtyping_ok_preservation sub H1; auto.
+
+  (* POLYL *)
+  assert (ok (I1 & I2 & b ~ AC_Marker & a ~ AC_Unsolved_EVar)). apply~ ok_push.
+  assert (forall a : var,
+           binds a AC_Unsolved_EVar I1 ->
+           binds a AC_Unsolved_EVar (H & b ~ AC_Marker & I)).
+  intros n bdn. lets: hy bdn.
+  rewrite <- concat_assoc. apply~ binds_concat_left_ok.
+  rewrite concat_assoc. lets: subtyping_ok_preservation sub H3; auto.
+  assert (I1 & I2 & b ~ AC_Marker & a ~ AC_Unsolved_EVar =
+          I1 & (I2 & b ~ AC_Marker & a ~ AC_Unsolved_EVar)) by repeat rewrite~ concat_assoc.
+  lets: IHsub H3 H4 H5.
+  destruct H6 as (I3 & hinfo).
+
+  assert(binds b AC_Marker I3). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_middle_eq. lets: subtyping_ok_preservation sub H3. apply ok_middle_inv_r in H6; auto.
+  apply split_bind_context in H6.
+  destruct H6 as (I4 & I5 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I4.
+  lets: subtyping_ok_preservation sub H3; auto.
+  rewrite <- hinfo. lets: subtyping_ok_preservation sub H3; auto.
+
+  (* PI *)
+  assert ((forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar H1)).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (I1 & I2)). apply~ binds_concat_left_ok.
+  lets: subtyping_evar_preservation sub1 okg H2.
+  destruct H3 as [bd_un | (nv & bd_so)]; auto.
+  assert (n <> x). introv neq. subst.
+  false binds_fresh_inv bd_so H0.
+  assert(binds n (AC_Solved_EVar nv) (H1 & x ~ AC_Typ s1)). apply~ binds_push_neq.
+  lets: subtyping_ok_preservation sub1 okg.
+  assert(ok (H1 & x ~ AC_Typ s1)) by apply~ ok_push.
+  lets: subtyping_evar_preservation2 sub2 H6 H4.
+  apply binds_push_neq_inv in H7; auto.
+  lets: hy bdn. false binds_func H7 H8.
+
+  lets: IHsub1 okg H2. clear IHsub1.
+  forwards * : H3. clear H3.
+  destruct H4 as (I3 & h1info). subst.
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar I1 ->
+            binds a AC_Unsolved_EVar (H & x ~ AC_Typ s1)).
+  intros n bdn.
+  lets: hy bdn.
+  apply~ binds_push_neq.
+  introv neq. subst. assert(x # I1) by auto. false binds_fresh_inv bdn H3.
+  assert(ok (I1 & I3 & x ~ AC_Typ s1)). apply~ ok_push.
+  lets: subtyping_ok_preservation sub1 okg; auto.
+  lets: IHsub2 H3 H1.
+  assert(I1 & I3 & x ~ AC_Typ s1 = I1 & (I3 & x ~ AC_Typ s1)) by repeat rewrite~ concat_assoc.
+  lets: H4 H5.
+  destruct H6 as (I4 & hinfo).
+  clear IHsub2.
+
+  assert(binds x (AC_Typ s1) I4). apply binds_concat_right_inv with I1; auto. rewrite <- hinfo. apply binds_push_eq.
+  apply split_bind_context in H6.
+  destruct H6 as (I5 & I6 & i3info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  symmetry in hinfo.
+  apply tail_empty_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. subst.
+  exists~ I5.
+  rewrite hinfo. lets: subtyping_ok_preservation sub2 H3; auto.
+  lets: subtyping_ok_preservation sub2 H3; auto.
+
+  (* EVARL *)
+  lets: resolve_forall_inserts H2 okg.
+  destruct H4 as (I3 & h1info). subst.
+  rewrite sinfo in H2.
+  rewrite sinfo in okg.
+  lets: resolve_forall_ok_preservation H2 okg.
+  lets: unify_inserts H3 H1.
+  destruct H4 as [(I4 & I5 & t2 & hinfo1) | hinfo2].
+  assert(binds a AC_Unsolved_EVar (I1 & I2)).
+  rewrite <- sinfo.
+  apply binds_middle_eq. apply ok_middle_inv_r in H1; auto.
+  apply binds_concat_inv in H4.
+  destruct H4 as [bdi2 | [notin bdi1]].
+  apply split_bind_context in bdi2.
+  destruct bdi2 as (I6 & I7 & i2info). subst.
+  repeat rewrite concat_assoc in sinfo.
+  apply ok_middle_eq2 in sinfo.
+  destruct sinfo as [? [? ?]]. subst.
+  exists~ (I6 & I3 & I4 & a ~ AC_Solved_EVar t2 & I5).
+  repeat rewrite~ concat_assoc.
+  rewrite sinfo. repeat rewrite concat_assoc in okg; auto.
+  repeat rewrite concat_assoc in okg; auto.
+  lets: hy bdi1.
+  rewrite hinfo1 in H4.
+  apply binds_middle_eq_inv in H4. false H4.
+  rewrite <- hinfo1.
+  lets: resolve_forall_ok_preservation H2 okg; auto.
+  lets: unify_ok_preservation H3 H5; auto.
+
+  destruct hinfo2 as [hinfo2 tinfo]. subst.
+  inversion H2; subst.
+  exists~ I2.
+
+  (* EVARR *)
+  lets: resolve_forall_inserts H2 okg.
+  destruct H4 as (I3 & h1info). subst.
+  rewrite sinfo in H2.
+  rewrite sinfo in okg.
+  lets: resolve_forall_ok_preservation H2 okg.
+  lets: unify_inserts H3 H1.
+  destruct H4 as [(I4 & I5 & t2 & hinfo1) | hinfo2].
+  assert(binds a AC_Unsolved_EVar (I1 & I2)).
+  rewrite <- sinfo.
+  apply binds_middle_eq. apply ok_middle_inv_r in H1; auto.
+  apply binds_concat_inv in H4.
+  destruct H4 as [bdi2 | [notin bdi1]].
+  apply split_bind_context in bdi2.
+  destruct bdi2 as (I6 & I7 & i2info). subst.
+  repeat rewrite concat_assoc in sinfo.
+  apply ok_middle_eq2 in sinfo.
+  destruct sinfo as [? [? ?]]. subst.
+  exists~ (I6 & I3 & I4 & a ~ AC_Solved_EVar t2 & I5).
+  repeat rewrite~ concat_assoc.
+  rewrite sinfo. repeat rewrite concat_assoc in okg; auto.
+  repeat rewrite concat_assoc in okg; auto.
+  lets: hy bdi1.
+  rewrite hinfo1 in H4.
+  apply binds_middle_eq_inv in H4. false H4.
+  rewrite <- hinfo1.
+  lets: resolve_forall_ok_preservation H2 okg; auto.
+  lets: unify_ok_preservation H3 H5; auto.
+
+  destruct hinfo2 as [hinfo2 tinfo]. subst.
+  inversion H2; subst.
+  lets: H0 s0. false~ H.
+  exists~ I2.
+
+  lets: unify_unsolved_helper H0 okg hy. auto.
+Qed.
+
+Lemma subtyping_unsolved: forall I e t H,
+    ASubtyping I e t H ->
+    ok I ->
+    (forall a, binds a AC_Unsolved_EVar I -> binds a AC_Unsolved_EVar H) ->
+    H = I.
+Proof.
+  introv sub oki hy.
+  induction sub; auto.
+
+  (* POLYR *)
+  assert(ok (G & v ~ AC_TVar)) by apply~ ok_push.
+  assert(forall a : var,
+           binds a AC_Unsolved_EVar (G & v ~ AC_TVar) ->
+           binds a AC_Unsolved_EVar (H & v ~ AC_TVar)).
+  intros n bdn.
+  assert( n <> v). introv neq; subst. false binds_push_eq_inv bdn.
+  apply~ binds_push_neq.
+  apply binds_push_neq_inv in bdn; auto.
+  lets: IHsub H1 H2.
+  destruct (eq_push_inv H3) as [? [? ?]]. subst~.
+
+  (* POLYL *)
+  assert(ok (G & b ~ AC_Marker & a ~ AC_Unsolved_EVar)) by apply~ ok_push.
+  assert (forall a : var, binds a AC_Unsolved_EVar (G & b ~ AC_Marker) ->
+                    binds a AC_Unsolved_EVar (H & b ~ AC_Marker & I)).
+  intros n bdn.
+  assert (n <> b). introv neq; subst.
+  false binds_push_eq_inv bdn.
+  apply binds_push_neq_inv in bdn; auto.
+  lets: hy bdn.
+  rewrite <- concat_assoc.
+  apply~ binds_concat_left_ok.
+  rewrite concat_assoc.
+  lets: subtyping_ok_preservation sub H3. auto.
+  lets: subtyping_unsolved_helper sub H3 H4.
+  destruct H5 as (I1 & hinfo).
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo as [? [? ?]]. auto.
+  lets: subtyping_ok_preservation sub H3. auto.
+  rewrite <- hinfo.
+  lets: subtyping_ok_preservation sub H3. auto.
+
+  (* PI *)
+  lets: IHsub1 oki. clear IHsub1.
+  assert(forall a : var, binds a AC_Unsolved_EVar G -> binds a AC_Unsolved_EVar H1).
+  intros n bdn.
+  lets: subtyping_evar_preservation sub1 oki bdn.
+  destruct H3 as [bd_un | (nt & bd_so)]; auto.
+
+  lets: hy bdn.
+  assert (x <> n). introv neq; subst. false binds_fresh_inv bd_so H0.
+  assert( binds n (AC_Solved_EVar nt) (H1 & x ~ AC_Typ s1)).
+  apply~ binds_push_neq.
+  lets: subtyping_ok_preservation sub1 oki.
+  assert( ok (H1 & x ~ AC_Typ s1)). apply~ ok_push.
+  lets: subtyping_evar_preservation2 sub2 H7 H5.
+  apply binds_push_neq_inv in H8; auto.
+  false binds_func H3 H8.
+
+  lets: H2 H3. subst. clear H2 H3.
+  assert (ok (G & x ~ AC_Typ s1)) by apply~ ok_push.
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar (G & x ~ AC_Typ s1) ->
+            binds a AC_Unsolved_EVar (H & x ~ AC_Typ s1)).
+  intros n bdn.
+  assert (n <> x). introv neq. subst. false binds_push_eq_inv bdn.
+  apply~ binds_push_neq.
+  apply binds_push_neq_inv in bdn; auto.
+  lets: IHsub2 H1 H2.
+  destruct (eq_push_inv H3) as [? [? ?]]. auto.
+
+  (* EVARL *)
+  lets: resolve_forall_inserts H2 oki.
+  destruct H4 as (I1 & h1info); subst.
+  inversion H3; subst.
+  inversion H2; subst. auto.
+  assert(binds a AC_Unsolved_EVar (G1 & a ~ AC_Unsolved_EVar & G2)).
+  apply binds_middle_eq. apply ok_middle_inv_r in oki; auto.
+  lets: hy H. apply binds_middle_eq_inv in H5. false H5.
+  lets: resolve_forall_ok_preservation H2 oki.
+  lets: unify_ok_preservation H3 H8. auto.
+  false H5. reflexivity.
+
+  (* EVARR *)
+  lets: resolve_forall_inserts H2 oki.
+  destruct H4 as (I1 & h1info); subst.
+  inversion H3; subst.
+  inversion H2; subst.
+  false H0. reflexivity. auto.
+
+  assert(binds a AC_Unsolved_EVar (G1 & a ~ AC_Unsolved_EVar & G2)).
+  apply binds_middle_eq. apply ok_middle_inv_r in oki; auto.
+  lets: hy H. apply binds_middle_eq_inv in H5. false H5.
+  lets: resolve_forall_ok_preservation H2 oki.
+  lets: unify_ok_preservation H3 H8. auto.
+
+  false H5. reflexivity.
+
+  (* UNIFY *)
+  lets: unify_unsolved H0 oki hy. auto.
 Qed.
 
 (***********************)
