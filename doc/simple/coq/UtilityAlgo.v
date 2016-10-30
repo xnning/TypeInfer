@@ -1593,6 +1593,313 @@ Proof.
   lets: unify_unsolved H0 oki hy. auto.
 Qed.
 
+Lemma typing_unsolved_helper: forall m G1 G2 e t H,
+    ATyping m (G1 & G2) e t H ->
+    (forall a, binds a AC_Unsolved_EVar G1 -> binds a AC_Unsolved_EVar H) ->
+    exists I, H = G1 & I.
+Proof.
+  introv typ hy. gen_eq S : (G1 & G2). gen G2.
+  induction typ; introv sinfo; subst; auto;
+    try(solve[exists~ G2]).
+
+  (* ANN *)
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar G1 ->
+            binds a AC_Unsolved_EVar H1).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (G1 & G2)). apply~ binds_concat_left_ok.
+  lets: atyping_ok typ1; auto.
+  lets: atyping_evar_preservation typ1 H2.
+  destruct H3 as [bd_un | (nv & bd_so)]; auto.
+  lets: atyping_evar_preservation2 typ2 bd_so.
+  lets: hy bdn.
+  false binds_func H3 H4.
+
+  forwards * : IHtyp1 H2.
+  destruct H3 as (I1 & h1info). subst.
+  forwards * : IHtyp2 hy.
+
+  (* PI *)
+  assert (forall a : var,
+            binds a AC_Unsolved_EVar G1 ->
+            binds a AC_Unsolved_EVar H1).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (G1 & G2)). apply~ binds_concat_left_ok.
+  lets: atyping_ok typ1; auto.
+  lets: atyping_evar_preservation typ1 H3.
+  destruct H4 as [bd_un | (nv & bd_so)]; auto.
+  assert (n <> x). introv neq. subst.
+  assert (x # G1) by auto.
+  false binds_fresh_inv bdn H4.
+  assert(binds n (AC_Solved_EVar nv) (H1 & x ~ AC_Typ t1)). apply~ binds_push_neq.
+  lets: atyping_evar_preservation2 typ2 H5.
+  lets: hy bdn.
+  assert (binds n AC_Unsolved_EVar (H & (x ~ AC_Typ t1) & I)).
+  apply~ binds_concat_left_ok.
+  lets: atyping_ok_preservation typ2; auto.
+  false binds_func H6 H8.
+
+  forwards * : IHtyp1 H3.
+  destruct H4 as (I1 & h1info). subst.
+
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar G1 ->
+            binds a AC_Unsolved_EVar
+              (H & x ~ AC_Typ t1 & I)).
+  rewrite <- concat_assoc.
+  intros n bdn.
+  lets: hy bdn.
+  apply~ binds_concat_left_ok.
+  lets: atyping_ok_preservation typ2; auto.
+  rewrite~ concat_assoc.
+  assert (G1 & I1 & x ~ AC_Typ t1 = G1 & (I1 & x ~ AC_Typ t1 )) by rewrite~ concat_assoc.
+  lets: IHtyp2 H1 H4.
+  destruct H5 as (I2 & hinfo); subst.
+  clear IHtyp1 IHtyp2.
+  assert (x # G1).
+  lets: atyping_ok typ2.
+  apply ok_push_inv in H5. destruct H5. auto.
+  assert (binds x (AC_Typ t1) I2).
+  apply binds_concat_right_inv with G1; auto.
+  rewrite <- hinfo.
+  apply~ binds_middle_eq.
+  lets: atyping_ok_preservation typ2.
+  apply ok_middle_inv in H6. destruct H6. auto.
+
+  apply split_bind_context in H6.
+  destruct H6 as (I3 & I4 & i2info). subst.
+  repeat rewrite concat_assoc in hinfo.
+
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo. exists~ I3.
+
+  lets: atyping_ok_preservation typ2; auto.
+  rewrite <- hinfo.
+  lets: atyping_ok_preservation typ2; auto.
+
+  (* LAM *)
+
+  assert(forall a0 : var,
+           binds a0 AC_Unsolved_EVar G1 ->
+           binds a0 AC_Unsolved_EVar
+             (H & x ~ AC_Typ (AT_EVar a) & I)).
+  intros n bdn.
+  assert (n <> x).
+  assert (x # G1) by auto.
+  intros neq; subst. false binds_fresh_inv bdn H3.
+  apply~ binds_weaken.
+
+  lets: hy bdn.
+  apply binds_concat_inv in H4.
+  destruct H4 as [bdi | [notin bdh]].
+  apply uv_var_preservation in bdi.
+  apply~ binds_concat_right.
+  lets: atyping_ok_preservation typ.
+  apply ok_concat_inv_r in H4. auto.
+  apply~ binds_concat_left_ok.
+  lets: atyping_ok_preservation typ.
+  apply ok_remove in H4. auto.
+  lets: atyping_ok_preservation typ. auto.
+
+  assert (G1 & G2 & a ~ AC_Unsolved_EVar & x ~ AC_Typ (AT_EVar a) =
+          G1 & (G2 & a ~ AC_Unsolved_EVar & x ~ AC_Typ (AT_EVar a))).
+  repeat rewrite~ concat_assoc.
+  lets: IHtyp H3 H4.
+  destruct H5 as (I1 & hinfo).
+
+  lets: atyping_ok_preservation typ. clear H4.
+  assert(binds x (AC_Typ (AT_EVar a)) I1).
+  apply binds_concat_right_inv with G1; auto.
+  rewrite <- hinfo.
+  apply binds_middle_eq.
+  apply ok_middle_inv_r in H5. auto.
+
+  apply split_bind_context in H4.
+  destruct H4 as (I2 & I3 & i1info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo. subst.
+  exists~ (I2 & ACtxUV I).
+  repeat rewrite~ concat_assoc.
+  rewrite~ <- hinfo.
+
+  (* APP *)
+  assert(forall a : var,
+            binds a AC_Unsolved_EVar G1 ->
+            binds a AC_Unsolved_EVar H1).
+  intros n bdn.
+  assert(binds n AC_Unsolved_EVar (G1 & G2)). apply~ binds_concat_left_ok.
+  lets: atyping_ok typ1; auto.
+  lets: atyping_evar_preservation typ1 H2.
+  destruct H3 as [bd_un | (nv & bd_so)]; auto.
+  lets: atyping_evar_preservation2 typ2 bd_so.
+  lets: hy bdn.
+  false binds_func H3 H4.
+
+  forwards * : IHtyp1 H2.
+  destruct H3 as (I1 & h1info). subst.
+  forwards * : IHtyp2 hy.
+
+  (* CASTDN *)
+  forwards * : IHtyp hy.
+
+  (* FORALL *)
+  assert(forall a0 : var,
+           binds a0 AC_Unsolved_EVar G1 ->
+           binds a0 AC_Unsolved_EVar
+             (H & a ~ AC_TVar & I)).
+  intros n bdn.
+  assert (n <> a).
+  assert (a # G1) by auto.
+  intros neq; subst. false binds_fresh_inv bdn H2.
+  apply~ binds_weaken.
+
+  lets: hy bdn.
+  apply~ binds_concat_left_ok.
+  lets: atyping_ok_preservation typ.
+  apply ok_remove in H4; auto.
+  lets: atyping_ok_preservation typ. auto.
+
+  assert (G1 & G2 & a ~ AC_TVar = G1 & (G2 & a ~ AC_TVar)).
+  repeat rewrite~ concat_assoc.
+
+  lets: IHtyp H2 H3.
+  destruct H4 as (I1 & hinfo).
+
+  lets: atyping_ok_preservation typ.
+  assert (binds a AC_TVar I1).
+  apply binds_concat_right_inv with G1; auto.
+  rewrite <- hinfo.
+  apply binds_middle_eq.
+  apply ok_middle_inv_r in H4; auto.
+
+  apply split_bind_context in H5.
+  destruct H5 as (I2 & I3 & i1info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo. subst.
+  exists~ I2.
+  rewrite~ <- hinfo.
+
+  (* CHK LAM *)
+  lets: atyping_ok_preservation typ.
+  assert (forall a : var,
+           binds a AC_Unsolved_EVar G1 ->
+           binds a AC_Unsolved_EVar
+                 (H & x ~ AC_Typ s1 & I)).
+  intros n bdn.
+  lets: hy bdn.
+  rewrite <- concat_assoc.
+  apply~ binds_concat_left_ok.
+  rewrite~ concat_assoc.
+
+  assert (G1 & G2 & x ~ AC_Typ s1 = G1 & (G2 & x ~ AC_Typ s1)) by repeat rewrite~ concat_assoc.
+  lets: IHtyp H3 H4.
+  destruct H5 as (I1 & hinfo).
+
+  assert (binds x (AC_Typ s1) I1).
+  apply binds_concat_right_inv with G1; auto.
+  rewrite <- hinfo.
+  apply~ binds_middle_eq.
+  apply ok_middle_inv_r in H2; auto.
+
+  apply split_bind_context in H5.
+  destruct H5 as (I2 & I3 & i1info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  apply ok_middle_eq2 in hinfo; auto.
+  destruct hinfo. subst.
+  exists~ I2.
+  rewrite~ <- hinfo.
+
+  (* CHK CASTUP *)
+  forwards * : IHtyp hy.
+
+  (* SUB *)
+  assert (forall a : var,
+           binds a AC_Unsolved_EVar G1 ->
+           binds a AC_Unsolved_EVar H1).
+  intros n bdn.
+  assert (binds n AC_Unsolved_EVar (G1 & G2)).
+  apply~ binds_concat_left_ok.
+  lets: atyping_ok typ. auto.
+
+  lets: atyping_evar_preservation typ H2.
+  destruct H3 as [bd_un | (nv & bd_so)]; auto.
+  lets: subtyping_evar_preservation2 H0 bd_so.
+  lets: atyping_ok_preservation typ; auto.
+  lets: hy bdn.
+  false (binds_func H3 H4).
+
+  forwards * : IHtyp H2.
+  destruct H3 as (I & h1info). subst.
+  lets: subtyping_unsolved_helper H0 hy.
+  lets: atyping_ok_preservation typ; auto.
+  auto.
+
+  (* TA PI *)
+  forwards * : IHtyp hy.
+
+  (* TA EVAR *)
+  assert (binds a AC_Unsolved_EVar (G1 & G3)).
+  rewrite <- sinfo.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  apply ok_middle_inv_r in H0; auto.
+
+  apply binds_concat_inv in H2.
+  destruct H2 as [bdg3 | [noting3 bdg1]].
+  apply split_bind_context in bdg3.
+  destruct bdg3 as (I1 & I2 & g3info). subst.
+  repeat rewrite concat_assoc in sinfo.
+  apply awf_is_ok in H0.
+  apply ok_middle_eq2 in sinfo; auto.
+  destruct sinfo as [? [_ ?]]. subst.
+  assert (G1 & I1 & a2 ~ AC_Unsolved_EVar & a1 ~ AC_Unsolved_EVar &
+          a ~ AC_Solved_EVar (AT_Expr (AE_Pi (AT_EVar a1) (AT_EVar a2))) & I2 =
+          G1 & (I1 & a2 ~ AC_Unsolved_EVar & a1 ~ AC_Unsolved_EVar &
+                a ~ AC_Solved_EVar (AT_Expr (AE_Pi (AT_EVar a1) (AT_EVar a2))) & I2)).
+  repeat rewrite~ concat_assoc.
+  lets: IHtyp hy H2. auto.
+  rewrite~ <- sinfo.
+
+  lets: hy bdg1.
+  assert (binds a (AC_Solved_EVar (AT_Expr (AE_Pi (AT_EVar a1) (AT_EVar a2))))
+                (G0 & a2 ~ AC_Unsolved_EVar & a1 ~ AC_Unsolved_EVar &
+           a ~
+           AC_Solved_EVar (AT_Expr (AE_Pi (AT_EVar a1) (AT_EVar a2))) &
+           G2)).
+  apply~ binds_middle_eq.
+  apply awf_is_ok in H0. apply ok_middle_inv_r in H0. auto.
+  lets: atyping_evar_preservation2 typ H3.
+  false binds_func H2 H4.
+
+  (* TA FORALL *)
+  assert (G1 & G2 & a ~ AC_Unsolved_EVar = G1 & (G2 & a ~ AC_Unsolved_EVar)).
+  repeat rewrite~ concat_assoc.
+  lets: IHtyp hy H2. auto.
+Qed.
+
+Lemma typing_unsolved: forall m G1 e t H,
+    ATyping m G1 e t H ->
+    (forall a, binds a AC_Unsolved_EVar G1 -> binds a AC_Unsolved_EVar H) ->
+    exists I, H = G1 & I.
+Proof.
+  introv ty bd.
+  assert (ATyping m (G1 & empty) e t H) by rewrite~ concat_empty_r.
+  lets: typing_unsolved_helper H0 bd. auto.
+Qed.
+
+Lemma awftyp_unsolved: forall G e,
+    AWfTyp G e ->
+    (exists H, ATyping Chk G e (AT_Expr AE_Star) (G & H)).
+Proof.
+  introv wf.
+  destruct wf.
+  lets: typing_unsolved H0 H1.
+  destruct H2. subst.
+  exists~ x.
+Qed.
+
 (***********************)
 (* Extension *)
 (***********************)

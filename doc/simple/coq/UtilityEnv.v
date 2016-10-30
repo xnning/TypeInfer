@@ -2076,6 +2076,47 @@ Proof.
   rewrite~ uv_add_marker.
 Qed.
 
+Lemma uv_ok2: forall H,
+    ok H ->
+    ok (ACtxUV H).
+Proof.
+  introv okg.
+  induction H using env_ind.
+  rewrite~ empty_uv.
+  assert (ok H). apply* ok_concat_inv_l.
+  lets: IHenv H0.
+  destruct v; simpls; auto.
+  rewrite~ uv_add_var.
+  rewrite~ uv_add_typvar.
+  rewrite~ uv_add_tvar.
+  rewrite~ uv_add_evar. apply~ ok_push. apply ok_push_inv in okg. destruct okg. apply notin_uv in H3; auto.
+  rewrite~ uv_add_solved_evar.
+  rewrite~ uv_add_marker.
+Qed.
+
+Lemma uv_var_preservation: forall G a v,
+    binds a v (ACtxUV G) ->
+    ok G ->
+    binds a v G.
+Proof.
+  intro G.
+  induction G using env_ind; introv bd okg.
+  rewrite empty_uv in bd.
+  false binds_empty_inv bd.
+  induction v.
+  rewrite~ uv_add_var in bd. destruct (ok_push_inv okg). lets: IHG bd H. apply~ binds_concat_left_ok.
+  rewrite~ uv_add_typvar in bd. destruct (ok_push_inv okg). lets: IHG bd H. apply~ binds_concat_left_ok.
+  rewrite~ uv_add_tvar in bd. destruct (ok_push_inv okg). lets: IHG bd H. apply~ binds_concat_left_ok.
+  rewrite~ uv_add_evar in bd.
+  apply binds_push_inv in bd.
+  destruct bd as [[eq1 eq2] | [neq1 neq2]]; subst.
+  apply~ binds_push_eq. destruct (ok_push_inv okg).
+  lets: IHG neq2 H. apply~ binds_concat_left_ok.
+  rewrite~ uv_add_solved_evar in bd. destruct (ok_push_inv okg). lets: IHG bd H. apply~ binds_concat_left_ok.
+  rewrite~ uv_add_marker in bd. destruct (ok_push_inv okg). lets: IHG bd H. apply~ binds_concat_left_ok.
+Qed.
+
+
 
 (* distributivity of context substitution *)
 
