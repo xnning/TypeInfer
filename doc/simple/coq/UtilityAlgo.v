@@ -14,18 +14,6 @@ Require Import WeakExtension.
 (* ADMITS *)
 (***********************)
 
-Lemma awf_weakening_insert_unsolved: forall G1 G2 a,
-    AWf (G1 & G2) ->
-    a # (G1 & G2) ->
-    AWf (G1 & a ~ AC_Unsolved_EVar & G2).
-Admitted.
-
-Lemma awf_solve_middle: forall G1 G2 a t,
-    AWf (G1 & a ~ AC_Unsolved_EVar & G2) ->
-    AWfTyp G1 t ->
-    AWf (G1 & a ~ AC_Solved_EVar t & G2).
-Admitted.
-
 Lemma awftyp_weakening_insert_unsolved: forall G1 G2 a e,
     AWfTyp (G1 & G2) e ->
     a # (G1 & G2) ->
@@ -38,15 +26,997 @@ Lemma awftyp_solve_middle: forall G1 G2 a e t,
     AWfTyp (G1 & a ~ AC_Solved_EVar t & G2) e.
 Admitted.
 
+Lemma awftyp_middle_change_typvar: forall G1 G2 a t1 t2 e,
+    AWfTyp (G1 & a ~ AC_Typ t1 & G2) e ->
+    ACtxTSubst G1 t1 = ACtxTSubst G1 t2 ->
+    AWfTyp (G1 & a ~ AC_Typ t2 & G2) e.
+Admitted.
+
+Lemma awftyp_middle_change_solved_evar: forall G1 G2 a t1 t2 e,
+    AWfTyp (G1 & a ~ AC_Solved_EVar t1 & G2) e ->
+    ACtxTSubst G1 t1 = ACtxTSubst G1 t2 ->
+    AWfTyp (G1 & a ~ AC_Solved_EVar t2 & G2) e.
+Admitted.
+
+Lemma awftyp_subst: forall G t,
+    AWfTyp G t <-> AWfTyp G (ACtxTSubst G t).
+Admitted.
+
 Lemma awftyp_weakening: forall G H e,
     AWfTyp G e ->
     AWfTyp (G & H) e.
 Admitted.
 
-Lemma awftyp_subst: forall G e,
-    AWfTyp G e ->
-    AWfTyp G (ACtxTSubst G e).
-Admitted.
+(***********************)
+(* DERIVATIONS OF ADMITS *)
+(***********************)
+
+Lemma awf_weakening_insert_unsolved: forall G1 G2 a,
+    AWf (G1 & G2) ->
+    a # (G1 & G2) ->
+    AWf (G1 & a ~ AC_Unsolved_EVar & G2).
+Proof.
+  introv.
+  induction G2 using env_ind; introv wf notin.
+
+  rewrite concat_empty_r in *.
+  apply~ AWf_Ctx_Unsolved_EVar.
+
+  rewrite concat_assoc in *. induction v.
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_Var.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_TyVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: awftyp_typvar wf.
+  apply* awftyp_weakening_insert_unsolved.
+
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_TVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_Ctx_Unsolved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_Ctx_Solved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  apply atmono_solved_evar in wf. auto.
+  apply awftyp_solved_evar in wf.
+  apply* awftyp_weakening_insert_unsolved.
+
+  lets: AWf_left wf.
+  assert (a # G1 & G2) by auto.
+  lets: IHG2 H H0.
+  apply~ AWf_Marker.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+Qed.
+
+Lemma awf_solve_middle: forall G1 G2 a t,
+    AWf (G1 & a ~ AC_Unsolved_EVar & G2) ->
+    AWfTyp G1 t ->
+    ATMono t ->
+    AWf (G1 & a ~ AC_Solved_EVar t & G2).
+Proof.
+  introv.
+  induction G2 using env_ind; introv wf wftyp mono.
+
+  rewrite concat_empty_r in *.
+  apply~ AWf_Ctx_Solved_EVar.
+  lets: AWf_left wf. auto.
+  lets: awf_is_ok wf. apply ok_push_inv in H. destruct H. auto.
+
+  rewrite concat_assoc in *. induction v.
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_Var.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_TyVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: awftyp_typvar wf.
+  apply* awftyp_solve_middle.
+
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_TVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_Ctx_Unsolved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_Ctx_Solved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: atmono_solved_evar wf. auto.
+  apply* awftyp_solve_middle.
+  lets: awftyp_solved_evar wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H wftyp mono.
+  apply~ AWf_Marker.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+Qed.
+
+Lemma awf_middle_change_typvar: forall G1 G2 t1 t2 a,
+    AWf (G1 & a ~ AC_Typ t1 & G2) ->
+    ACtxTSubst G1 t1 = ACtxTSubst G1 t2 ->
+    AWf (G1 & a ~ AC_Typ t2 & G2).
+Proof.
+  introv.
+  induction G2 using env_ind; introv wf sub.
+
+  rewrite concat_empty_r in *.
+  apply~ AWf_TyVar.
+  lets: AWf_left wf. auto.
+  lets: awf_is_ok wf. apply ok_push_inv in H. destruct H. auto.
+  lets: awftyp_typvar wf.
+  apply awftyp_subst in H.
+  rewrite sub in H.
+  apply awftyp_subst in H. auto.
+
+  rewrite concat_assoc in *. induction v.
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Var.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_TyVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: awftyp_typvar wf.
+  apply* awftyp_middle_change_typvar.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_TVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Ctx_Unsolved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Ctx_Solved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: atmono_solved_evar wf. auto.
+  lets: awftyp_solved_evar wf. auto.
+  apply* awftyp_middle_change_typvar.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Marker.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+Qed.
+
+Lemma awf_middle_change_solved_evar: forall G1 G2 t1 t2 a,
+    AWf (G1 & a ~ AC_Solved_EVar t1 & G2) ->
+    ACtxTSubst G1 t1 = ACtxTSubst G1 t2 ->
+    AWf (G1 & a ~ AC_Solved_EVar t2 & G2).
+Proof.
+  introv.
+  induction G2 using env_ind; introv wf sub.
+
+  rewrite concat_empty_r in *.
+  apply~ AWf_Ctx_Solved_EVar.
+  lets: AWf_left wf. auto.
+  lets: awf_is_ok wf. apply ok_push_inv in H. destruct H. auto.
+  lets: atmono_solved_evar wf.
+  apply atmono_actxtsubst with (G:=G1) in H.
+  rewrite sub in H.
+  apply atmono_actxtsubst in H. auto.
+  lets: AWf_left wf. auto.
+  lets: AWf_left wf. auto.
+  lets: awftyp_solved_evar wf.
+  apply awftyp_subst in H.
+  rewrite sub in H.
+  apply awftyp_subst in H. auto.
+
+  rewrite concat_assoc in *. induction v.
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Var.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_TyVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: awftyp_typvar wf.
+  apply* awftyp_middle_change_solved_evar.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_TVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Ctx_Unsolved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Ctx_Solved_EVar.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+  lets: atmono_solved_evar wf. auto.
+  lets: awftyp_solved_evar wf. auto.
+  apply* awftyp_middle_change_solved_evar.
+
+  lets: AWf_left wf.
+  lets: IHG2 H sub.
+  apply~ AWf_Marker.
+  apply awf_is_ok in wf.
+  apply ok_push_inv in wf. destruct wf. auto.
+Qed.
+
+(***********************)
+(* EQUIVALENT OF EXTENSION *)
+(***********************)
+
+Inductive ExtCtx2 : ACtx -> ACtx -> Prop :=
+  | ExtCtx2_Self: forall G, AWf G -> ExtCtx2 G G
+  | ExtCtx2_TypVar : forall G I x t1 t2,
+      AWf (G & x ~ AC_Typ t1 & I) ->
+      AWf (G & x ~ AC_Typ t2 & I) ->
+      ACtxTSubst G t1 = ACtxTSubst G t2 ->
+      ExtCtx2 (G & x ~ AC_Typ t1 & I) (G & x ~ AC_Typ t2 & I)
+  | ExtCtx2_SolvedEVar: forall G I a t1 t2,
+      AWf (G & a ~ AC_Solved_EVar t1 & I) ->
+      AWf (G & a ~ AC_Solved_EVar t2 & I) ->
+      ACtxTSubst G t1 = ACtxTSubst G t2 ->
+      ExtCtx2 (G & a ~ AC_Solved_EVar t1 & I) (G & a ~ AC_Solved_EVar t2 & I)
+  | ExtCtx2_Solve : forall G I a t,
+      AWf (G & a ~ AC_Unsolved_EVar & I) ->
+      AWf (G & a ~ AC_Solved_EVar t & I) ->
+      ExtCtx2 (G & a ~ AC_Unsolved_EVar & I) (G & a ~ AC_Solved_EVar t & I)
+  | ExtCtx2_Add : forall G I a,
+      AWf (G & I) ->
+      AWf (G & a ~ AC_Unsolved_EVar & I) ->
+      ExtCtx2 (G & I) (G & a ~ AC_Unsolved_EVar & I)
+  | ExtCtx2_AddSolved: forall G I a t,
+      AWf (G & I) ->
+      AWf (G & a ~ AC_Solved_EVar t & I) ->
+      ExtCtx2 (G & I) (G & a ~ AC_Solved_EVar t & I).
+
+Inductive multi : ACtx -> ACtx -> Prop :=
+  | multi_refl : forall (G : ACtx), AWf G -> multi G G
+  | multi_step : forall (G H I : ACtx),
+                    ExtCtx2 G H ->
+                    multi H I ->
+                    multi G I.
+
+Lemma extension2_weakening_awftyp : forall G H a,
+    AWfTyp G a ->
+    ExtCtx2 G H ->
+    AWfTyp H a.
+Proof.
+  introv wf ex. induction ex; auto.
+  apply* awftyp_middle_change_typvar.
+  apply* awftyp_middle_change_solved_evar.
+  apply* awftyp_solve_middle.
+  apply AWf_left in H0. lets: awftyp_solved_evar H0. auto.
+  apply awftyp_weakening_insert_unsolved with (a:=a0) in wf; auto.
+  apply awf_is_ok in H0. apply ok_middle_inv in H0. destruct H0. auto.
+
+  apply awftyp_weakening_insert_unsolved with (a:=a0) in wf; auto.
+  apply awftyp_solve_middle with (t:=t) in wf; auto.
+  apply AWf_left in H0. lets: awftyp_solved_evar H0. auto.
+  apply awf_is_ok in H0. apply ok_middle_inv in H0. destruct H0. auto.
+Qed.
+
+Lemma multi_weakening_awftyp : forall G H a,
+    AWfTyp G a ->
+    multi G H ->
+    AWfTyp H a.
+Proof.
+  introv wf ex. induction ex; auto.
+  lets: extension2_weakening_awftyp wf H0.
+  lets: IHex H1. auto.
+Qed.
+
+Lemma extension2_awf_context: forall G H,
+    ExtCtx2 G H ->
+    AWf G.
+Proof.
+  introv ex. induction ex; auto.
+Qed.
+
+Lemma extension2_awf_preservation: forall G H,
+    ExtCtx2 G H ->
+    AWf H.
+Proof.
+  introv ex. induction ex; auto.
+Qed.
+
+Lemma extension2_is_extension: forall G H,
+    ExtCtx2 G H ->
+    ExtCtx G H.
+Proof.
+  introv ex.
+  induction ex. apply~ extension_reflexivity.
+  apply~ extension_append.
+  apply~ ExtCtx_TypVar. apply~ extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H0. auto.
+
+  apply~ extension_append.
+  apply~ ExtCtx_SolvedEVar. apply~ extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H0. auto.
+
+  apply~ extension_append.
+  apply~ ExtCtx_Solve. apply~ extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H0. auto.
+
+  apply~ extension_append.
+  apply~ ExtCtx_Add. apply~ extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H0. auto.
+
+  apply~ extension_append.
+  apply~ ExtCtx_AddSolved. apply~ extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H0. auto.
+Qed.
+
+Lemma multi_awf_context: forall G H,
+    multi G H ->
+    AWf G.
+Proof.
+  introv mul. induction mul; auto.
+  lets: extension2_awf_context H0. auto.
+Qed.
+
+Lemma multi_awf_preservation: forall G H,
+    multi G H ->
+    AWf H.
+Proof.
+  introv mul. induction mul; auto.
+Qed.
+
+Lemma multi_is_extension: forall G H,
+    multi G H ->
+    ExtCtx G H.
+Proof.
+  introv mul. induction mul.
+  apply~ extension_reflexivity.
+  lets: extension2_is_extension H0.
+  lets: extension_transitivity H1 IHmul. auto.
+Qed.
+
+Lemma extension2_add_var: forall G H x,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_Var) -> AWf (H & x ~ AC_Var) ->
+    ExtCtx2 (G & x ~ AC_Var) (H & x ~ AC_Var).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_Var))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_Var))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_Var))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_Var))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Var))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Var))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Var))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Var))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Var))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Var))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_var: forall G H x,
+    multi G H ->
+    AWf (G & x ~ AC_Var) -> AWf (H & x ~ AC_Var) ->
+    multi (G & x ~ AC_Var) (H & x ~ AC_Var).
+Proof.
+  introv mul noting notinh.
+  induction mul; subst.
+  apply multi_refl. auto.
+  lets: multi_is_extension mul.
+  lets: awf_is_ok notinh. apply ok_push_inv in H2. destruct H2.
+  lets: declaration_preservation_inv H1 H3.
+  assert (AWf (H & x ~ AC_Var)). apply~ AWf_Var.
+  lets: awf_context H1. auto.
+  lets: IHmul H5 notinh.
+
+  lets: extension2_add_var H0 noting H5.
+
+  lets: multi_step H7 H6. auto.
+Qed.
+
+Lemma extension2_typvar: forall G x t1 t2,
+    AWf (G & x ~ AC_Typ t1) ->
+    ACtxTSubst G t1 = ACtxTSubst G t2 ->
+    ExtCtx2 (G & x ~ AC_Typ t1) (G & x ~ AC_Typ t2).
+Proof.
+  introv wf sub.
+  assert (ExtCtx2 (G & x ~ AC_Typ t1 & empty) (G & x ~ AC_Typ t2 & empty)).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_empty_r.
+  rewrite~ concat_empty_r.
+  apply~ AWf_TyVar.
+  lets: AWf_left wf; auto.
+  destruct (ok_push_inv (awf_is_ok wf)). auto.
+  apply awftyp_subst.
+  rewrite <- sub.
+  lets: awftyp_typvar wf.
+  apply -> awftyp_subst. auto.
+
+  repeat rewrite~ concat_empty_r in H.
+Qed.
+
+Lemma extension2_add_typvar: forall G H x t,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_Typ t) -> AWf (H & x ~ AC_Typ t) ->
+    ExtCtx2 (G & x ~ AC_Typ t) (H & x ~ AC_Typ t).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_Typ t))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_Typ t))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_Typ t))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_Typ t))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Typ t))
+           (G0 & a ~ AC_Solved_EVar t0 & (I & x ~ AC_Typ t))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Typ t))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Typ t))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Typ t))
+           (G0 & a ~ AC_Solved_EVar t0 & (I & x ~ AC_Typ t))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_typvar: forall G H x t1 t2,
+    multi G H ->
+    AWf (G & x ~ AC_Typ t1) -> AWf (H & x ~ AC_Typ t2) ->
+    ACtxTSubst H t1 = ACtxTSubst H t2 ->
+    multi (G & x ~ AC_Typ t1) (H & x ~ AC_Typ t2).
+Proof.
+  introv mul awfg awfh sub.
+  induction mul; subst.
+
+  assert (multi (G & x ~ AC_Typ t2) (G & x ~ AC_Typ t2)).
+  apply~ multi_refl.
+  assert (ExtCtx2 (G & x ~ AC_Typ t1) (G & x ~ AC_Typ t2)).
+  apply~ extension2_typvar.
+  lets: multi_step H1 H0. auto.
+
+  assert (AWf (H & x ~ AC_Typ t1)). apply AWf_TyVar.
+  lets: extension2_awf_preservation H0; auto.
+  apply awf_is_ok in awfh. destruct (ok_push_inv awfh).
+  apply multi_is_extension in mul.
+  lets: declaration_preservation_inv mul H2. auto.
+  lets: awftyp_typvar awfg.
+  lets: extension2_weakening_awftyp H1 H0. auto.
+
+  lets: IHmul H1 awfh sub. clear IHmul.
+  apply extension2_add_typvar with (x:=x) (t:=t1) in H0; auto.
+  lets: multi_step H0 H2. auto.
+Qed.
+
+Lemma extension2_add_tvar: forall G H x,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_TVar) -> AWf (H & x ~ AC_TVar) ->
+    ExtCtx2 (G & x ~ AC_TVar) (H & x ~ AC_TVar).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_TVar))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_TVar))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_TVar))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_TVar))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_TVar))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_TVar))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_TVar))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_TVar))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_TVar))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_TVar))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_tvar: forall G H x,
+    multi G H ->
+    AWf (G & x ~ AC_TVar) -> AWf (H & x ~ AC_TVar) ->
+    multi (G & x ~ AC_TVar) (H & x ~ AC_TVar).
+Proof.
+  introv mul noting notinh.
+  induction mul; subst.
+  apply multi_refl. auto.
+  lets: multi_is_extension mul.
+  lets: awf_is_ok notinh. apply ok_push_inv in H2. destruct H2.
+  lets: declaration_preservation_inv H1 H3.
+  assert (AWf (H & x ~ AC_TVar)). apply~ AWf_TVar.
+  lets: awf_context H1. auto.
+  lets: IHmul H5 notinh.
+
+  lets: extension2_add_tvar H0 noting H5.
+
+  lets: multi_step H7 H6. auto.
+Qed.
+
+Lemma extension2_add_evar: forall G H x,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_Unsolved_EVar) -> AWf (H & x ~ AC_Unsolved_EVar) ->
+    ExtCtx2 (G & x ~ AC_Unsolved_EVar) (H & x ~ AC_Unsolved_EVar).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_Unsolved_EVar))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_Unsolved_EVar))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_Unsolved_EVar))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_Unsolved_EVar))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Unsolved_EVar))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Unsolved_EVar))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Unsolved_EVar))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Unsolved_EVar))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Unsolved_EVar))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Unsolved_EVar))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_evar: forall G H x,
+    multi G H ->
+    AWf (G & x ~ AC_Unsolved_EVar) -> AWf (H & x ~ AC_Unsolved_EVar) ->
+    multi (G & x ~ AC_Unsolved_EVar) (H & x ~ AC_Unsolved_EVar).
+Proof.
+  introv mul noting notinh.
+  induction mul; subst.
+  apply multi_refl. auto.
+  lets: multi_is_extension mul.
+  lets: awf_is_ok notinh. apply ok_push_inv in H2. destruct H2.
+  lets: declaration_preservation_inv H1 H3.
+  assert (AWf (H & x ~ AC_Unsolved_EVar)). apply~ AWf_Ctx_Unsolved_EVar.
+  lets: awf_context H1. auto.
+  lets: IHmul H5 notinh.
+
+  lets: extension2_add_evar H0 noting H5.
+
+  lets: multi_step H7 H6. auto.
+Qed.
+
+Lemma extension2_add_solved_evar: forall G H x t,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_Solved_EVar t) -> AWf (H & x ~ AC_Solved_EVar t) ->
+    ExtCtx2 (G & x ~ AC_Solved_EVar t) (H & x ~ AC_Solved_EVar t).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_Solved_EVar t))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_Solved_EVar t))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_Solved_EVar t))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_Solved_EVar t))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Solved_EVar t))
+           (G0 & a ~ AC_Solved_EVar t0 & (I & x ~ AC_Solved_EVar t))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Solved_EVar t))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Solved_EVar t))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Solved_EVar t))
+           (G0 & a ~ AC_Solved_EVar t0 & (I & x ~ AC_Solved_EVar t))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_solved_evar: forall G H x t,
+    multi G H ->
+    AWf (G & x ~ AC_Solved_EVar t) -> AWf (H & x ~ AC_Solved_EVar t) ->
+    multi (G & x ~ AC_Solved_EVar t) (H & x ~ AC_Solved_EVar t).
+Proof.
+  introv mul noting notinh.
+  induction mul; subst.
+  apply multi_refl. auto.
+  lets: multi_is_extension mul.
+  lets: awf_is_ok notinh. apply ok_push_inv in H2. destruct H2.
+  lets: declaration_preservation_inv H1 H3.
+  assert (AWf (H & x ~ AC_Solved_EVar t)). apply~ AWf_Ctx_Solved_EVar.
+  lets: awf_context H1. auto.
+  lets: atmono_solved_evar notinh. auto.
+  lets: awftyp_solved_evar noting.
+  lets: extension2_weakening_awftyp H5 H0. auto.
+  lets: IHmul H5 notinh.
+
+  lets: extension2_add_solved_evar H0 noting H5.
+
+  lets: multi_step H7 H6. auto.
+Qed.
+
+Lemma extension2_add_marker: forall G H x,
+    ExtCtx2 G H ->
+    AWf (G & x ~ AC_Marker) -> AWf (H & x ~ AC_Marker) ->
+    ExtCtx2 (G & x ~ AC_Marker) (H & x ~ AC_Marker).
+Proof.
+  introv ex wfg wfh. inversion ex; subst.
+  apply~ ExtCtx2_Self.
+
+  assert(
+   ExtCtx2 (G0 & x0 ~ AC_Typ t1 & (I & x ~ AC_Marker))
+           (G0 & x0 ~ AC_Typ t2 & (I & x ~ AC_Marker))).
+  apply~ ExtCtx2_TypVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Solved_EVar t1 & (I & x ~ AC_Marker))
+           (G0 & a ~ AC_Solved_EVar t2 & (I & x ~ AC_Marker))).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Marker))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Marker))).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Marker))
+           (G0 & a ~ AC_Unsolved_EVar & (I & x ~ AC_Marker))).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+
+  assert(
+   ExtCtx2 (G0 & (I & x ~ AC_Marker))
+           (G0 & a ~ AC_Solved_EVar t & (I & x ~ AC_Marker))).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H.
+Qed.
+
+Lemma multi_add_marker: forall G H x,
+    multi G H ->
+    AWf (G & x ~ AC_Marker) -> AWf (H & x ~ AC_Marker) ->
+    multi (G & x ~ AC_Marker) (H & x ~ AC_Marker).
+Proof.
+  introv mul noting notinh.
+  induction mul; subst.
+  apply multi_refl. auto.
+  lets: multi_is_extension mul.
+  lets: awf_is_ok notinh. apply ok_push_inv in H2. destruct H2.
+  lets: declaration_preservation_inv H1 H3.
+  assert (AWf (H & x ~ AC_Marker)). apply~ AWf_Marker.
+  lets: awf_context H1. auto.
+  lets: IHmul H5 notinh.
+
+  lets: extension2_add_marker H0 noting H5.
+
+  lets: multi_step H7 H6. auto.
+Qed.
+
+Lemma multi_transitivity: forall G H I,
+    multi G H ->
+    multi H I ->
+    multi G I.
+Proof.
+  introv gh hi.
+  induction gh; auto.
+  lets: IHgh hi.
+  lets: multi_step H0 H1. auto.
+Qed.
+
+Lemma extension2_solved_evar: forall G x t1 t2,
+    AWf (G & x ~ AC_Solved_EVar t1) ->
+    ACtxTSubst G t1 = ACtxTSubst G t2 ->
+    ExtCtx2 (G & x ~ AC_Solved_EVar t1) (G & x ~ AC_Solved_EVar t2).
+Proof.
+  introv wf sub.
+  assert (ExtCtx2 (G & x ~ AC_Solved_EVar t1 & empty) (G & x ~ AC_Solved_EVar t2 & empty)).
+  apply~ ExtCtx2_SolvedEVar.
+  rewrite~ concat_empty_r.
+  rewrite~ concat_empty_r.
+  apply~ AWf_Ctx_Solved_EVar.
+  lets: AWf_left wf; auto.
+  destruct (ok_push_inv (awf_is_ok wf)). auto.
+  lets: atmono_solved_evar wf.
+  lets: AWf_left wf.
+  apply atmono_actxtsubst with (G:=G) in H; auto.
+  rewrite sub in H.
+  apply atmono_actxtsubst in H; auto.
+
+  lets: awftyp_solved_evar wf.
+  lets: AWf_left wf.
+  apply awftyp_subst with (G:=G) in H; auto.
+  rewrite sub in H.
+  apply awftyp_subst in H; auto.
+
+  repeat rewrite~ concat_empty_r in H.
+Qed.
+
+Lemma extension2_solve: forall H a t,
+    AWf (H & a ~ AC_Unsolved_EVar) ->
+    AWf (H & a ~ AC_Solved_EVar t) ->
+    ExtCtx2 (H & a ~ AC_Unsolved_EVar)
+            (H & a ~ AC_Solved_EVar t).
+Proof.
+  introv wf1 wf2.
+  assert(
+    ExtCtx2 (H & a ~ AC_Unsolved_EVar & empty)
+            (H & a ~ AC_Solved_EVar t & empty)).
+  apply~ ExtCtx2_Solve.
+  rewrite~ concat_empty_r.
+  rewrite~ concat_empty_r.
+  repeat rewrite~ concat_empty_r in H0.
+Qed.
+
+Lemma extension_is_multi: forall G H,
+    ExtCtx G H ->
+    multi G H.
+Proof.
+  introv ex. induction ex. apply multi_refl. apply AWf_Nil.
+  lets: ok_push_inv (awf_is_ok H0). destruct H2.
+  lets: ok_push_inv (awf_is_ok H1). destruct H4.
+  lets: multi_add_var IHex H0 H1. auto.
+
+  lets: multi_add_typvar IHex H0 H1 H2. auto.
+  lets: multi_add_tvar IHex H0 H1. auto.
+  lets: multi_add_marker IHex H0 H1. auto.
+  lets: multi_add_evar IHex H0 H1. auto.
+
+  assert (AWf (H & a ~ AC_Solved_EVar t1)).
+  apply~ AWf_Ctx_Solved_EVar.
+  lets: AWf_left H1. auto.
+  destruct (ok_push_inv (awf_is_ok H1)). auto.
+  lets: atmono_solved_evar H0. auto.
+  lets: awftyp_solved_evar H0.
+  lets: multi_weakening_awftyp H3 IHex. auto.
+  assert (multi (G & a ~ AC_Solved_EVar t1)
+                (H & a ~ AC_Solved_EVar t1)).
+  lets: multi_add_solved_evar IHex H0 H3.  auto.
+
+  assert (ExtCtx2 (H & a ~ AC_Solved_EVar t1)
+                  (H & a ~ AC_Solved_EVar t2)).
+  apply~ extension2_solved_evar.
+  assert (multi (H & a ~ AC_Solved_EVar t2)
+                (H & a ~ AC_Solved_EVar t2)).
+  apply~ multi_refl.
+  lets: multi_step H5 H6.
+  lets: multi_transitivity H4 H7. auto.
+
+  assert (AWf (H & a ~ AC_Unsolved_EVar)).
+  apply AWf_Ctx_Unsolved_EVar.
+  lets: AWf_left H1. auto.
+  destruct (ok_push_inv (awf_is_ok H1)). auto.
+  assert (multi (G & a ~ AC_Unsolved_EVar)
+                (H & a ~ AC_Unsolved_EVar)).
+  lets: multi_add_evar IHex H0 H2. auto.
+
+  assert (ExtCtx2 (H & a ~ AC_Unsolved_EVar)
+                  (H & a ~ AC_Solved_EVar t)).
+  apply~ extension2_solve.
+  assert (multi (H & a ~ AC_Solved_EVar t) (H & a ~ AC_Solved_EVar t)). apply~ multi_refl.
+  lets: multi_step H4 H5.
+  lets: multi_transitivity H3 H6. auto.
+
+  assert (ExtCtx2 (H & empty) (H & a ~ AC_Unsolved_EVar & empty)).
+  apply~ ExtCtx2_Add.
+  rewrite~ concat_empty_r.
+  lets: AWf_left H0. auto.
+  rewrite~ concat_empty_r.
+  assert (multi (H & a ~ AC_Unsolved_EVar & empty) (H & a ~ AC_Unsolved_EVar & empty)). apply~ multi_refl.
+  rewrite~ concat_empty_r.
+  lets: multi_step H1 H2.
+  repeat rewrite concat_empty_r in *.
+  lets: multi_transitivity IHex H3. auto.
+
+  assert (ExtCtx2 (H & empty) (H & a ~ AC_Solved_EVar t & empty)).
+  apply~ ExtCtx2_AddSolved.
+  rewrite~ concat_empty_r.
+  lets: AWf_left H0. auto.
+  rewrite~ concat_empty_r.
+  assert (multi (H & a ~ AC_Solved_EVar t & empty) (H & a ~ AC_Solved_EVar t & empty)). apply~ multi_refl.
+  rewrite~ concat_empty_r.
+  lets: multi_step H1 H2.
+  repeat rewrite concat_empty_r in *.
+  lets: multi_transitivity IHex H3. auto.
+Qed.
+
+Lemma extension_weakening_awftyp : forall G H a,
+    AWfTyp G a ->
+    ExtCtx G H ->
+    AWfTyp H a.
+Proof.
+  introv wf ex.
+  apply extension_is_multi in ex.
+  lets: multi_weakening_awftyp wf ex. auto.
+Qed.
 
 (***********************)
 (* OK *)
@@ -224,6 +1194,8 @@ Proof.
   rewrite~ concat_assoc.
   do 2 apply AWf_left in wfg; auto.
 
+  apply AM_EVar.
+
   pick_fresh y. assert(y \notin L) by auto.
   lets: H2 H3.
   assert (AWf (H1 & y ~ AC_Var)) by apply* AWf_Var.
@@ -233,6 +1205,92 @@ Proof.
   lets: H1 H2.
   assert (AWf (G & y ~ AC_Var)) by apply* AWf_Var.
   lets: H3 H4. apply AWf_left in H5. auto.
+Qed.
+
+Lemma resolve_evar_atmono: forall G a s t H,
+    AWf G ->
+    AResolveEVar G a s t H ->
+    ATMono s.
+Proof.
+  introv wf res.
+  induction res; auto; try(solve[constructor~]).
+  apply AM_Expr.
+  apply~ AM_Pi.
+  pick_fresh y. assert (y \notin L) by auto.
+  lets: H2 H3.
+  apply atmono_actxtsubst in H4; auto.
+  lets: atmono_open_inv H4. auto.
+  lets: resolve_evar_awf_preservation res wf. auto.
+  lets: resolve_evar_awf_preservation res wf. apply~ AWf_Var.
+  apply AM_Expr. apply AM_FVar.
+  apply AM_Expr. apply AM_Star.
+  apply AM_Expr. apply AM_App.
+  lets: IHres1 wf. inversion H0; subst. auto.
+  lets: resolve_evar_awf_preservation res1 wf.
+  lets: IHres2 H0.
+  apply atmono_actxtsubst in H2; auto. inversion H2; auto.
+  apply AM_Expr. apply AM_Lam.
+  pick_fresh y. assert (y \notin L) by auto.
+  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
+  lets: H1 H2 H3.
+  inversion H4; subst.
+  lets: amono_open_inv H6. auto.
+
+  lets: IHres wf.
+  inversion H0; subst.
+  apply AM_Expr. apply~ AM_CastUp.
+
+  lets: IHres wf.
+  inversion H0; subst.
+  apply AM_Expr. apply~ AM_CastDn.
+
+  apply AM_Expr. apply AM_Ann.
+  lets: IHres1 wf. inversion H0; subst. auto.
+  lets: resolve_evar_awf_preservation res1 wf.
+  lets: IHres2 H0.
+  apply atmono_actxtsubst in H2; auto.
+Qed.
+
+Lemma resolve_evar_atmono_preservation: forall G a s t H,
+    AWf G ->
+    AResolveEVar G a s t H ->
+    ATMono t.
+Proof.
+  introv wf res.
+  induction res; auto; try(solve[constructor~]).
+  apply AM_Expr.
+  apply~ AM_Pi.
+  pick_fresh y. assert (y \notin L) by auto.
+  lets: H2 H3.
+  lets: atmono_open_inv H4. auto.
+  lets: resolve_evar_awf_preservation res wf. auto. auto.
+  apply AM_Expr. apply AM_FVar.
+  apply AM_Expr. apply AM_Star.
+  apply AM_Expr. apply AM_App.
+  lets: IHres1 wf. inversion H0; subst. auto.
+  lets: resolve_evar_awf_preservation res1 wf.
+  lets: IHres2 H0.
+  inversion H2; subst~.
+
+  apply AM_Expr. apply AM_Lam.
+  pick_fresh y. assert (y \notin L) by auto.
+  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
+  lets: H1 H2 H3.
+  inversion H4; subst.
+  lets: amono_open_inv H6. auto.
+
+  lets: IHres wf.
+  inversion H0; subst.
+  apply AM_Expr. apply~ AM_CastUp.
+
+  lets: IHres wf.
+  inversion H0; subst.
+  apply AM_Expr. apply~ AM_CastDn.
+
+  apply AM_Expr. apply AM_Ann.
+  lets: IHres1 wf. inversion H0; subst. auto.
+  lets: resolve_evar_awf_preservation res1 wf.
+  lets: IHres2 H0. auto.
 Qed.
 
 Lemma unify_awf_preservation: forall G s t H,
@@ -259,10 +1317,12 @@ Proof.
   lets: resolve_evar_awf_preservation H0 wfg.
   apply* awf_solve_middle.
   admit. (*solve evar*)
+  lets: resolve_evar_atmono_preservation H0; auto.
 
   lets: resolve_evar_awf_preservation H3 wfg.
   apply* awf_solve_middle.
   admit. (*solve evar*)
+  lets: resolve_evar_atmono_preservation H3; auto.
 Qed.
 
 Lemma atyping_awf: forall G m e t H,
@@ -755,6 +1815,9 @@ Proof.
   destruct (eq_push_inv hinfo) as [? [? ?]]. subst.
   exists~ I1 I5.
 
+  forwards * : IHres okg.
+  forwards * : IHres okg.
+
   lets: IHres1 okg sinfo. clear IHres1.
   destruct H0 as (I1 & I2 & hinfo). subst.
   lets: resolve_evar_ok_preservation res1 okg.
@@ -1103,8 +2166,8 @@ Proof.
   lets: H1 H H4 H5.
   apply binds_push_neq_inv in H6; auto.
 
-  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
-  apply binds_middle_eq. apply ok_middle_inv_r in okg; auto.
+  forwards * : IHres.
+  forwards * : IHres.
 
   lets: resolve_evar_ok_preservation res1 okg.
   forwards * : IHres2.

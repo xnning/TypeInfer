@@ -243,6 +243,20 @@ Proof.
   apply* notin_actxsubst.
   apply* notin_actxsubst.
 
+  (* CASTUP *)
+  repeat rewrite actxtsubst_expr. f_equal.
+  repeat rewrite actxsubst_castup. f_equal.
+  inversion wt; subst.
+  lets: IHres wf H2.
+  repeat rewrite actxtsubst_expr in H0. inversion H0. auto.
+
+  (* CASTDN *)
+  repeat rewrite actxtsubst_expr. f_equal.
+  repeat rewrite actxsubst_castdn. f_equal.
+  inversion wt; subst.
+  lets: IHres wf H2.
+  repeat rewrite actxtsubst_expr in H0. inversion H0. auto.
+
   (* ANN *)
   repeat rewrite actxtsubst_expr. f_equal.
   repeat rewrite actxsubst_ann.

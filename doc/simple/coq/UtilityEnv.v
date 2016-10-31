@@ -1005,12 +1005,28 @@ Proof.
   intros. inductions H.
   false. apply* empty_push_inv.
   destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
-  destruct (eq_push_inv x) as [? [? ?]]. inversions H3.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
+  destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
   destruct (eq_push_inv x) as [? [? ?]]. inversions H3.
   destruct (eq_push_inv x) as [s1 [s2 s3]]. inversion s2. subst.
   apply* awtermt_awftyp.
   destruct (eq_push_inv x) as [? [? ?]]. inversions H2.
   destruct (eq_push_inv x) as [? [? ?]]. inversions H4.
+Qed.
+
+Lemma awftyp_typvar: forall G x t,
+    AWf (G & x ~ AC_Typ t) ->
+    AWfTyp G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Typ t).
+  inversion wf; introv hinfo.
+  false empty_push_inv hinfo.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [? [? ?]]. inversion H5. subst. auto.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
 Qed.
 
 Lemma awterm_solved_evar: forall G x t,
@@ -1023,6 +1039,37 @@ Proof.
   apply empty_push_inv in hi. inversion hi.
   apply* awtermt_awftyp.
 Qed.
+
+Lemma awftyp_solved_evar: forall G x t,
+    AWf (G & x ~ AC_Solved_EVar t) ->
+    AWfTyp G t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
+  inversion wf; introv hinfo.
+  false empty_push_inv hinfo.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [? [? ?]]. inversion H6. subst. auto.
+Qed.
+
+Lemma atmono_solved_evar: forall G x t,
+    AWf (G & x ~ AC_Solved_EVar t) ->
+    ATMono t.
+Proof.
+  introv wf. gen_eq H : (G & x ~ AC_Solved_EVar t).
+  inversion wf; introv hinfo.
+  false empty_push_inv hinfo.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [_ [inv _]]. false inv.
+  apply eq_push_inv in hinfo. destruct hinfo as [? [? ?]]. inversion H6. subst. auto.
+Qed.
+
 
 Lemma awterm_evar_binds: forall G a t,
     AWf G ->
@@ -2453,4 +2500,205 @@ Proof.
   apply notin_awtermt with H; auto.
   apply awterm_solved_evar in wf; auto.
   repeat rewrite~ tsubst_add_marker.
+Qed.
+
+(* mono *)
+
+Lemma atmono_subst: forall t e x,
+    ATMono t -> ATMono e ->
+    ATMono (ATSubstT x t e)
+with amono_subst: forall t e x,
+    ATMono t -> AMono e ->
+    AMono (ASubstT x t e).
+Proof.
+  introv monot monoe.
+  induction e; simpls~.
+  case_var~.
+  case_var~.
+  simpls.
+  apply AM_Expr. inversion monoe. subst. apply~ amono_subst.
+Proof.
+  introv monot monoe.
+  induction e; simpls~.
+  inversion monoe; subst. apply~ AM_App.
+  inversion monoe; subst. apply~ AM_Lam.
+  inversion monoe; subst. apply~ AM_Pi.
+  inversion monoe; subst. apply~ AM_CastUp.
+  inversion monoe; subst. apply~ AM_CastDn.
+  inversion monoe; subst. apply~ AM_Ann.
+  inversion monoe; subst.
+Qed.
+
+Lemma atmono_subst_inv: forall t e x,
+    ATMono (ATSubstT x t e) ->
+    ATMono e
+with amono_subst_inv: forall t e x,
+    AMono (ASubstT x t e) ->
+    AMono e.
+Proof.
+  introv mono.
+  induction e; simpls~.
+  apply~ AM_TFVar.
+  apply~ AM_EVar.
+  inversion mono; subst.
+  apply~ AM_Expr.
+  apply* amono_subst_inv.
+Proof.
+  introv mono.
+  induction e; simpls~.
+  inversion mono; subst. apply~ AM_App.
+  inversion mono; subst. apply~ AM_Lam.
+  inversion mono; subst. apply~ AM_Pi.
+  apply* atmono_subst_inv.
+  apply* atmono_subst_inv.
+  inversion mono; subst. apply~ AM_CastUp.
+  inversion mono; subst. apply~ AM_CastDn.
+  inversion mono; subst. apply~ AM_Ann.
+  apply* atmono_subst_inv.
+  inversion mono; subst.
+Qed.
+
+Lemma atmono_actxtsubst: forall G t,
+    AWf G ->
+    ATMono t <-> ATMono (ACtxTSubst G t)
+with amono_actxsubst: forall G t,
+    AWf G ->
+    AMono t <-> AMono (ACtxSubst G t).
+Proof.
+  split. gen t.
+  induction G using env_ind; introv mono.
+  rewrite~ tsubst_empty_env.
+  lets: AWf_left H.
+  induction v.
+  rewrite~ tsubst_add_var.
+  rewrite~ tsubst_add_typvar.
+  rewrite~ tsubst_add_tvar.
+  rewrite~ tsubst_add_evar.
+  rewrite~ tsubst_add_solved_evar.
+  apply~ IHG. apply~ atmono_subst.
+  lets: atmono_solved_evar H. auto.
+  rewrite~ tsubst_add_marker.
+
+  (* right *)
+  gen t. induction G using env_ind; introv mono.
+  rewrite tsubst_empty_env in mono; auto.
+  lets: AWf_left H.
+  induction v.
+  rewrite tsubst_add_var in mono; auto.
+  rewrite tsubst_add_typvar in mono; auto.
+  rewrite tsubst_add_tvar in mono; auto.
+  rewrite tsubst_add_evar in mono; auto.
+  rewrite tsubst_add_solved_evar in mono.
+  lets: IHG H0 mono.
+  apply atmono_subst_inv in H1. auto.
+  rewrite tsubst_add_marker in mono; auto.
+Proof.
+  split. gen t.
+  induction G using env_ind; introv mono.
+  rewrite~ subst_empty_env.
+  lets: AWf_left H.
+  induction v.
+  rewrite~ subst_add_var.
+  rewrite~ subst_add_typvar.
+  rewrite~ subst_add_tvar.
+  rewrite~ subst_add_evar.
+  rewrite~ subst_add_solved_evar.
+  apply~ IHG. apply~ amono_subst.
+  lets: atmono_solved_evar H. auto.
+  rewrite~ subst_add_marker.
+
+  (* right *)
+  gen t. induction G using env_ind; introv mono.
+  rewrite subst_empty_env in mono; auto.
+  lets: AWf_left H.
+  induction v.
+  rewrite subst_add_var in mono; auto.
+  rewrite subst_add_typvar in mono; auto.
+  rewrite subst_add_tvar in mono; auto.
+  rewrite subst_add_evar in mono; auto.
+  rewrite subst_add_solved_evar in mono.
+  lets: IHG H0 mono.
+  apply amono_subst_inv in H1. auto.
+  rewrite subst_add_marker in mono; auto.
+Qed.
+
+Lemma atmono_open: forall t n u,
+    ATMono t -> ATMono u ->
+    ATMono (ATOpenTypRec n u t)
+with amono_open: forall n u t,
+    AMono t -> ATMono u ->
+    AMono (ATOpenRec n u t).
+Proof.
+  introv monot monou.
+  induction t; simpls~.
+  case_nat~.
+  apply AM_Expr.
+  inversion monot; subst.
+  apply* amono_open.
+Proof.
+  introv monot monou.
+  induction t; simpls~.
+  inversion monot; subst. apply~ AM_App.
+  inversion monot; subst. apply~ AM_Lam.
+  inversion monot; subst. apply~ AM_Pi.
+  inversion monot; subst. apply~ AM_CastUp.
+  inversion monot; subst. apply~ AM_CastDn.
+  inversion monot; subst. apply~ AM_Ann.
+  inversion monot; subst.
+Qed.
+
+Lemma atmono_topen_inv: forall t n u,
+    ATMono (ATOpenTypRec n u t) ->
+    ATMono t
+with amono_topen_inv: forall n u t,
+    AMono (ATOpenRec n u t) ->
+    AMono t.
+Proof.
+  introv monot.
+  induction t; simpls~.
+  case_nat~. apply AM_TBVar.
+  apply AM_Expr.
+  inversion monot; subst.
+  apply* amono_topen_inv.
+Proof.
+  introv monot. gen n.
+  induction t; introv monot; simpls~.
+  inversion monot; subst. apply~ AM_App. apply* IHt1. apply* IHt2.
+  inversion monot; subst. apply~ AM_Lam. apply* IHt.
+  inversion monot; subst. apply~ AM_Pi.
+  apply* atmono_topen_inv.
+  apply* atmono_topen_inv.
+  inversion monot; subst. apply~ AM_CastUp. apply* IHt.
+  inversion monot; subst. apply~ AM_CastDn. apply* IHt.
+  inversion monot; subst. apply~ AM_Ann. apply* IHt.
+  apply* atmono_topen_inv.
+  inversion monot; subst.
+Qed.
+
+Lemma atmono_open_inv: forall t n u,
+    ATMono (AOpenTypRec n u t) ->
+    ATMono t
+with amono_open_inv: forall n u t,
+    AMono (AOpenRec n u t) ->
+    AMono t.
+Proof.
+  introv monot.
+  induction t; simpls~.
+  apply AM_Expr.
+  inversion monot; subst.
+  apply* amono_open_inv.
+Proof.
+  introv monot. gen n.
+  induction t; introv monot; simpls~.
+  apply AM_BVar.
+  inversion monot; subst. apply~ AM_App. apply* IHt1. apply* IHt2.
+  inversion monot; subst. apply~ AM_Lam. apply* IHt.
+  inversion monot; subst. apply~ AM_Pi.
+  apply* atmono_open_inv.
+  apply* atmono_open_inv.
+  inversion monot; subst. apply~ AM_CastUp. apply* IHt.
+  inversion monot; subst. apply~ AM_CastDn. apply* IHt.
+  inversion monot; subst. apply~ AM_Ann. apply* IHt.
+  apply* atmono_open_inv.
+  inversion monot; subst.
 Qed.

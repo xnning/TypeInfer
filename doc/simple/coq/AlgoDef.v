@@ -114,11 +114,12 @@ ATermTy : AType -> Prop :=
 .
 
 Inductive AMono : AExpr -> Prop :=
+| AM_BVar : forall x:nat, AMono (AE_BVar x)
 | AM_FVar : forall x, AMono (AE_FVar x)
 | AM_Star: AMono (AE_Star)
 | AM_App: forall e1 e2, AMono e1 -> AMono e2 -> AMono (AE_App e1 e2)
-| AM_Lam: forall L e, (forall x, x \notin L -> AMono (e @ x)) -> AMono (AE_Lam e)
-| AM_Pi: forall L s1 s2, ATMono s1 -> (forall x, x \notin L -> ATMono (s2 @' x)) -> AMono (AE_Pi s1 s2)
+| AM_Lam: forall e, AMono e -> AMono (AE_Lam e)
+| AM_Pi: forall s1 s2, ATMono s1 -> ATMono s2 -> AMono (AE_Pi s1 s2)
 | AM_CastUp: forall e, AMono e -> AMono (AE_CastUp e)
 | AM_CastDn: forall e, AMono e -> AMono (AE_CastDn e)
 | AM_Ann: forall e s, AMono e -> ATMono s -> AMono (AE_Ann e s)
@@ -126,6 +127,7 @@ Inductive AMono : AExpr -> Prop :=
 with
 ATMono: AType -> Prop :=
 | AM_TFVar : forall x, ATMono (AT_TFVar x)
+| AM_TBVar : forall x:nat, ATMono (AT_TBVar x)
 | AM_EVar : forall x, ATMono (AT_EVar x)
 | AM_Expr : forall e, AMono e -> ATMono (AT_Expr e).
 
@@ -371,8 +373,12 @@ Inductive AResolveEVar : ACtx -> var -> AType -> AType -> ACtx -> Prop :=
       (forall x, x \notin L -> AResolveEVar (G & x ~ AC_Var) a (AT_Expr (t1 @ x))
                                       (AT_Expr (t2 @ x)) (H & x ~ AC_Var)) ->
       AResolveEVar G a (AT_Expr (AE_Lam t1)) (AT_Expr (AE_Lam t2)) H
-  | AResolveEVar_CastUp : forall a t G, AResolveEVar G a (AT_Expr (AE_CastUp t)) (AT_Expr (AE_CastUp t)) G
-  | AResolveEVar_CastDn : forall a t G, AResolveEVar G a (AT_Expr (AE_CastDn t)) (AT_Expr (AE_CastDn t)) G
+  | AResolveEVar_CastUp : forall a t1 t2 G H,
+      AResolveEVar G a (AT_Expr t1) (AT_Expr t2) H ->
+      AResolveEVar G a (AT_Expr (AE_CastUp t1)) (AT_Expr (AE_CastUp t2)) H
+  | AResolveEVar_CastDn : forall a t1 t2 G H,
+      AResolveEVar G a (AT_Expr t1) (AT_Expr t2) H ->
+      AResolveEVar G a (AT_Expr (AE_CastDn t1)) (AT_Expr (AE_CastDn t2)) H
   | AResolveEVar_Ann : forall a t1 t2 G d1 d2 H1 H,
       AResolveEVar G a (AT_Expr t1) (AT_Expr d1) H1 ->
       AResolveEVar H1 a (ACtxTSubst H1 t2) d2 H ->
@@ -564,6 +570,9 @@ with AWf : ACtx -> Prop :=
      | AWf_TVar : forall G a,
          AWf G -> a # G ->
          AWf (G & a ~ AC_TVar)
+     | AWf_Marker : forall G a,
+         AWf G -> a # G ->
+         AWf (G & a ~ AC_Marker)
      | AWf_TyVar : forall G x s,
          AWf G -> x # G ->
          AWfTyp G s ->
