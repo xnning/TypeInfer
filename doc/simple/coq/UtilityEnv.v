@@ -1092,6 +1092,14 @@ Proof.
   induction ty; repeat apply AWf_left in IHty; auto.
 Qed.
 
+Lemma awftyp_awf: forall G e,
+    AWfTyp G e ->
+    AWf G.
+Proof.
+  introv wf. inversion wf; subst.
+  lets: atyping_awf H0. auto.
+Qed.
+
 (* substitution *)
 
 Lemma subst_empty_env : forall a,

@@ -280,6 +280,637 @@ Proof.
   rewrite <- substitution_extension_invariance_left2 in H3; auto.
 Qed.
 
+Theorem weak_extension_invariance: forall G H e,
+    WExtCtx G H ->
+    AWTermT G e ->
+    ACtxTSubst H (ACtxTSubst G e) = ACtxTSubst H e.
+Proof.
+  introv ex wt. gen H.
+  induction wt; introv ex; subst; auto.
+
+  (* VAR *)
+  repeat rewrite actxtsubst_expr.
+  rewrite~ actxsubst_fvar.
+
+  (* TYP VAR *)
+  repeat rewrite actxtsubst_expr.
+  rewrite~ actxsubst_fvar.
+
+  (* STAR *)
+  repeat rewrite~ tsubst_star.
+
+  (* APP *)
+  repeat rewrite actxtsubst_expr in *. f_equal.
+  repeat rewrite~ actxsubst_app. f_equal.
+  lets: IHwt1 ex.
+  repeat rewrite actxtsubst_expr in *. inversion~ H0.
+  lets: IHwt2 ex.
+  repeat rewrite actxtsubst_expr in *. inversion~ H0.
+
+  (* LAM *)
+  repeat rewrite actxtsubst_expr in *. f_equal.
+  repeat rewrite~ actxsubst_lam. f_equal.
+  pick_fresh y.
+  assert (y \notin L) by auto.
+  assert (WExtCtx (G & y ~ AC_Var) (H1 & y ~ AC_Var)).
+  apply~ WExtCtx_Var.
+  lets: H0 H2 H3.
+  repeat rewrite tsubst_add_var in H4.
+  repeat rewrite actxtsubst_expr in *. inversion~ H4.
+Admitted.
+
+
+Theorem unify_invariance: forall G e t H,
+    AWf G ->
+    AUnify G e t H ->
+    AWTermT G e ->
+    ACtxTSubst H e = ACtxTSubst H t.
+Proof.
+  introv uni wt.
+  induction uni; subst; auto.
+
+  (* APP *)
+  repeat rewrite actxtsubst_expr.
+  admit.
+Admitted.
+
+(***********************)
+(* AWfTyping *)
+(***********************)
+
+Inductive AWfTyping : ACtx -> AType -> Prop :=
+| AWfTyping_Star: forall G,
+    AWf G ->
+    AWfTyping G (AT_Expr (AE_Star))
+| AWfTyping_Var: forall G x,
+    AWf G ->
+    binds x AC_Var G ->
+    AWfTyping G (AT_Expr (AE_FVar x))
+| AWfTyping_TypVar: forall G x t,
+    AWf G ->
+    binds x (AC_Typ t) G ->
+    AWfTyping G (AT_Expr (AE_FVar x))
+| AWfTyping_EVar: forall G x,
+    AWf G ->
+    binds x AC_Unsolved_EVar G ->
+    AWfTyping G (AT_EVar x)
+| AWfTyping_Solved_EVar: forall G x t,
+    AWf G ->
+    binds x (AC_Solved_EVar t) G ->
+    AWfTyping G (AT_EVar x)
+| AWfTyping_TVar: forall G x,
+    AWf G ->
+    binds x AC_TVar G ->
+    AWfTyping G (AT_TFVar x)
+| AWfTyping_Ann: forall G e1 e2,
+    AWfTyping G (AT_Expr e1) ->
+    AWfTyp G e2 ->
+    AWfTyping G (AT_Expr (AE_Ann e1 e2))
+| AWfTyping_Pi: forall G e1 e2 L,
+    AWfTyp G e1 ->
+    (forall x, x \notin L ->
+          AWfTyp (G & x ~ AC_Typ e1) (e2 @' x)) ->
+    AWfTyping G (AT_Expr (AE_Pi e1 e2))
+| AWfTyping_Lam: forall G e L,
+    (forall x, x \notin L ->
+          AWfTyping (G & x ~ AC_Var) (AT_Expr (e @ x))) ->
+    AWfTyping G (AT_Expr (AE_Lam e))
+| AWfTyping_App: forall G e1 e2,
+    AWfTyping G (AT_Expr e1) ->
+    AWfTyping G (AT_Expr e2) ->
+    AWfTyping G (AT_Expr (AE_App e1 e2))
+| AWfTyping_CastDn: forall G e,
+    AWfTyping G (AT_Expr e) ->
+    AWfTyping G (AT_Expr (AE_CastDn e))
+| AWfTyping_CastUp: forall G e,
+    AWfTyping G (AT_Expr e) ->
+    AWfTyping G (AT_Expr (AE_CastUp e))
+| AWfTyping_Forall: forall G e L,
+    (forall a, a \notin L ->
+          AWfTyp (G & a ~ AC_TVar) (e @#' a)) ->
+    AWfTyping G (AT_Expr (AE_Forall e)).
+
+Lemma extension_weakening_awftyping: forall G H t,
+    AWfTyping G t ->
+    ExtCtx G H ->
+    AWfTyping H t.
+Proof.
+  introv wf ex. gen H.
+  induction wf; introv ex; auto; try(solve[constructor~]).
+
+  (* STAR *)
+  apply AWfTyping_Star.
+  lets: awf_preservation ex. auto.
+
+  (* VAR *)
+  apply~ AWfTyping_Var.
+  lets: awf_preservation ex. auto.
+  apply split_bind_context in H0.
+  destruct H0 as (G1 & G2 & ginfo); subst.
+  lets: awf_preservation ex.
+  apply extension_order_var in ex.
+  destruct ex as (H2 & H3 & [hinfo _]). subst.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+
+  (* TYP VAR *)
+  apply split_bind_context in H0.
+  destruct H0 as (G1 & G2 & ginfo); subst.
+  lets: awf_preservation ex.
+  apply extension_order_typvar in ex.
+  destruct ex as (H2 & H3 & t1 & [hinfo _]). subst.
+  apply AWfTyping_TypVar with t1. auto.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+
+  (* EVAR *)
+  apply split_bind_context in H0.
+  destruct H0 as (G1 & G2 & ginfo); subst.
+  lets: awf_preservation ex.
+  apply extension_order_unsolved_evar in ex.
+  destruct ex as (H2 & H3 & [[hinfo1 | (t1 & hinfo2)] _]); subst.
+  apply AWfTyping_EVar. auto.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+  apply AWfTyping_Solved_EVar with t1. auto.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+
+  (* SOLVED EVAR *)
+  apply split_bind_context in H0.
+  destruct H0 as (G1 & G2 & ginfo); subst.
+  lets: awf_preservation ex.
+  apply extension_order_solved_evar in ex.
+  destruct ex as (H2 & H3 & t2 &  [hinfo _]); subst.
+  apply AWfTyping_Solved_EVar with t2. auto.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+
+  (* TVAR *)
+  apply split_bind_context in H0.
+  destruct H0 as (G1 & G2 & ginfo); subst.
+  lets: awf_preservation ex.
+  apply extension_order_tvar in ex.
+  destruct ex as (H2 & H3 & [hinfo _]); subst.
+  apply AWfTyping_TVar. auto.
+  apply binds_middle_eq.
+  apply awf_is_ok in H0.
+  lets: ok_middle_inv_r H0.  auto.
+
+  (* ANN *)
+  apply AWfTyping_Ann.
+  lets: IHwf ex; auto.
+  lets: extension_weakening_awftyp H ex. auto.
+
+  (* PI *)
+  apply AWfTyping_Pi with (L \u dom G \u dom H1).
+  lets: extension_weakening_awftyp H ex. auto.
+  intros y notin.
+  assert (y \notin L) by auto.
+  lets: H0 H2. clear H0.
+  assert (ExtCtx (G & y ~ AC_Typ e1) (H1 & y ~ AC_Typ e1)).
+  apply~ ExtCtx_TypVar.
+  apply~ AWf_TyVar.
+  lets: awf_context ex; auto.
+  apply~ AWf_TyVar.
+  lets: awf_preservation ex; auto.
+  lets: extension_weakening_awftyp H ex; auto.
+  lets: extension_weakening_awftyp H3 H0. auto.
+
+  (* LAM *)
+  apply AWfTyping_Lam with (L \u dom G \u dom H1).
+  intros y notin.
+  assert (y \notin L) by auto.
+  assert (ExtCtx (G & y ~ AC_Var) (H1 & y ~ AC_Var)).
+  apply~ ExtCtx_Var. apply~ AWf_Var.
+  lets: awf_context ex; auto.
+  apply~ AWf_Var.
+  lets: awf_preservation ex; auto.
+  lets: H0 H2 H3. auto.
+
+  (* FORALL *)
+  apply AWfTyping_Forall with (L \u dom G \u dom H0).
+  intros y notin.
+  assert (y \notin L) by auto.
+  assert (ExtCtx (G & y ~ AC_TVar) (H0 & y ~ AC_TVar)).
+  apply~ ExtCtx_TVar. apply~ AWf_TVar.
+  lets: awf_context ex; auto.
+  apply~ AWf_TVar.
+  lets: awf_preservation ex; auto.
+  lets: H H1.
+  lets: extension_weakening_awftyp H3 H2. auto.
+Qed.
+
+Lemma awftyping_awf: forall G e,
+    AWfTyping G e ->
+    AWf G.
+Proof.
+  introv wf. induction wf; auto.
+
+  pick_fresh y. assert (y \notin L) by auto.
+  lets: H0 H1.
+  lets: awftyp_awf H2.
+  lets: AWf_left H3. auto.
+
+  pick_fresh y. assert (y \notin L) by auto.
+  lets: H0 H1.
+  lets: AWf_left H2. auto.
+
+  pick_fresh y. assert (y \notin L) by auto.
+  lets: H H0.
+  lets: awftyp_awf H1.
+  lets: AWf_left H2. auto.
+Qed.
+
+Lemma awftyping_middle_remove: forall G H I e,
+    AWfTyping (G & H & I) e ->
+    AWf (G & I) ->
+    AWTermT (G & I) e ->
+    AWfTyping (G & I) e.
+Proof.
+  introv ty wf wt.
+  gen_eq S: (G & H & I). gen I.
+  induction ty; introv wf wt sinfo; subst.
+  apply~ AWfTyping_Star.
+  (* VAR *)
+  apply~ AWfTyping_Var.
+  inversion wt; subst; auto.
+  lets: awf_is_ok H0.
+  lets: binds_weaken H4 H2.
+  false binds_func H1 H3.
+
+  (* TYPVAR *)
+  inversion wt; subst; auto.
+  lets: awf_is_ok H0.
+  lets: binds_weaken H4 H2.
+  false binds_func H1 H3.
+  apply AWfTyping_TypVar with t0; auto.
+
+  (* EVAR *)
+  apply~ AWfTyping_EVar.
+  inversion wt; subst; auto.
+  lets: awf_is_ok H0.
+  lets: binds_weaken H4 H2.
+  false binds_func H1 H3.
+
+  (* SOLVED EVAR *)
+  inversion wt; subst; auto.
+  lets: awf_is_ok H0.
+  lets: binds_weaken H4 H2.
+  false binds_func H1 H3.
+  apply AWfTyping_Solved_EVar with t0; auto.
+
+  (* TVAR *)
+  apply~ AWfTyping_TVar.
+  inversion wt; subst; auto.
+
+  (* ANN *)
+  inversion wt; subst.
+  forwards * : IHty H4.
+  lets: awftyp_middle_remove H0 H5; auto.
+  apply~ AWfTyping_Ann.
+
+  (* PI *)
+  inversion wt; subst.
+  apply AWfTyping_Pi with (L \u L0 \u dom G \u dom I).
+  lets: awftyp_middle_remove H0 H5; auto.
+  intros y notin.
+  assert (y \notin L0) by auto.
+  lets: H6 H2. clear H6.
+  assert (AWTermT (G & I & y ~ AC_Var & empty) (e2 @@' AE_FVar y)) by rewrite~ concat_empty_r.
+  lets: awtermt_replace2 e1 H4.
+  rewrite concat_empty_r in H6.
+
+  assert (y \notin L) by auto.
+  lets: H1 H7.
+  rewrite <- concat_assoc in H8.
+  rewrite <- concat_assoc in H6.
+  lets: awftyp_middle_remove H8 H6.
+  rewrite concat_assoc in *.
+  apply~ AWf_TyVar.
+
+  lets: awftyp_awf H8.
+  lets: awftyp_middle_remove H0 wf H5. auto.
+
+  rewrite concat_assoc in H9. auto.
+
+  (* LAM *)
+  inversion wt; subst.
+  apply AWfTyping_Lam with (L \u L0 \u dom G \u dom I).
+  intros y notin.
+  assert (y \notin L0) by auto.
+  lets: H4 H2. clear H4.
+  rewrite <- concat_assoc.
+  apply~ H1.
+  rewrite concat_assoc. apply~ AWf_Var.
+  rewrite~ concat_assoc.
+  rewrite~ concat_assoc.
+
+  (* APP *)
+  inversion wt; subst.
+  forwards * : IHty1 H3.
+  forwards * : IHty2 H4.
+  apply~ AWfTyping_App.
+
+  (* CASTDN *)
+  inversion wt; subst.
+  forwards * : IHty H2.
+  apply~ AWfTyping_CastDn.
+
+  (* CASTUP *)
+  inversion wt; subst.
+  forwards * : IHty H2.
+  apply~ AWfTyping_CastUp.
+
+  (* FORALL *)
+  inversion wt; subst.
+  apply AWfTyping_Forall with (L \u L0 \u dom G \u dom I).
+  intros y notin.
+  assert (y \notin L0) by auto.
+  lets: H3 H1. clear H3.
+  assert (y \notin L) by auto.
+  lets: H0 H3. clear H0.
+  rewrite <- concat_assoc in H2.
+  rewrite <- concat_assoc in H4.
+  lets: awftyp_middle_remove H4 H2.
+  rewrite concat_assoc. apply~ AWf_TVar.
+  rewrite~ concat_assoc in H0.
+Qed.
+
+
+Lemma awftyping_remove: forall G H e,
+    AWfTyping (G & H) e ->
+    AWTermT G e ->
+    AWfTyping G e.
+Proof.
+  introv wf wt.
+  assert (wf2 := wf).
+  assert (I1: AWfTyping (G & H & empty) e) by rewrite~ concat_empty_r.
+  assert (I2: AWf (G & empty)). rewrite~ concat_empty_r. lets: awftyping_awf wf. apply AWf_left in H0. auto.
+  assert (I3: AWTermT (G & empty) e). rewrite~ concat_empty_r.
+  lets: awftyping_middle_remove I1 I2 I3.
+  rewrite concat_empty_r in H0. auto.
+Qed.
+
+Lemma awftyp_is_awftyping: forall G e,
+    AWfTyp G e ->
+    AWfTyping G e.
+Admitted.
+
+Lemma awftyping_subst: forall G t,
+    AWfTyping G t ->
+    AWfTyping G (ACtxTSubst G t).
+Proof.
+  introv wf. induction wf; simpls~.
+  rewrite tsubst_star. apply~ AWfTyping_Star.
+  rewrite actxtsubst_expr. rewrite actxsubst_fvar. apply~ AWfTyping_Var.
+  rewrite actxtsubst_expr. rewrite actxsubst_fvar. apply* AWfTyping_TypVar.
+  apply split_bind_context in H0.
+  admit.
+  admit.
+  admit.
+
+  (* ANN *)
+  rewrite actxtsubst_expr.
+  rewrite actxsubst_ann.
+  apply~ AWfTyping_Ann.
+  rewrite actxtsubst_expr in IHwf; auto.
+  apply -> awftyp_subst. auto.
+
+  (* PI *)
+  rewrite actxtsubst_expr.
+  rewrite actxsubst_pi.
+  apply AWfTyping_Pi with L.
+  apply -> awftyp_subst. auto.
+Admitted.
+
+Lemma extension_remove_tvar : forall G H y,
+    ExtCtx (G & y ~ AC_TVar) (H & y ~ AC_TVar) ->
+    ExtCtx G H.
+Proof.
+  introv D.
+  rewrite <- concat_empty_r in D at 1.
+  rewrite <- concat_empty_r in D.
+  destruct (extension_order_tvar D) as [X [Y (K1 & K2 & _)]].
+  lets C: awf_preservation D.
+  pose (Ok2 := awf_is_ok C).
+  lets Ok3: Ok2.
+  rewrite K1 in Ok3.
+  destruct~ (ok_middle_eq Ok2 eq_refl Ok3 eq_refl K1) as (Eq1 & Eq2 & Eq3).
+  subst*.
+Qed.
+
+Lemma atunify_awf: forall G t d H,
+    ATUnify UType G t d H ->
+    AWf G ->
+    AWfTyp G t -> AWfTyp G d ->
+    AWf H /\ ExtCtx G H
+with atunify_awf_expr: forall G t d H,
+    ATUnify UExpr G t d H ->
+    AWf G ->
+    AWfTyping G t ->
+    AWfTyping G d ->
+    AWf H /\ ExtCtx G H.
+Proof.
+  introv uni wf awf1 awf2.
+  inversion uni; subst; auto.
+  split; auto. apply~ extension_reflexivity.
+  split; auto. apply~ extension_reflexivity.
+
+  (* *)
+  lets: resolve_evar_awf_preservation H3 wf.
+  assert (AWfTyp H1 t2).
+  lets: resolve_evar_extension H3 wf.
+  lets: extension_weakening_awftyp awf2 H5.
+  apply awftyp_subst in H6.
+  lets: awtermt_awftyp awf2.
+  lets: resolve_evar_invariance wf H3 H7.
+  rewrite H8 in H6.
+  apply awftyp_subst in H6.
+  rewrite <- concat_assoc in H6.
+  lets: awftyp_remove H6 H4. auto.
+
+  assert (AWf (H1 & a ~ AC_Solved_EVar t2 & H2)).
+  apply awf_solve_middle with (t:=t2) in H; auto.
+  lets: resolve_evar_atmono_preservation H3; auto.
+
+  split; auto.
+
+  lets: resolve_evar_extension H3 wf.
+  assert (ExtCtx (H1 & a ~ AC_Unsolved_EVar & H2) (H1 & a ~ AC_Solved_EVar t2 & H2)).
+  apply~ extension_append.
+  apply ExtCtx_Solve. apply extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H6. auto.
+  lets: extension_transitivity H7 H8. auto.
+
+  (* *)
+  lets: resolve_evar_awf_preservation H4 wf.
+  assert (AWfTyp H1 t2).
+  lets: resolve_evar_extension H4 wf.
+  lets: extension_weakening_awftyp awf1 H6.
+  apply awftyp_subst in H7.
+  lets: awtermt_awftyp awf1.
+  lets: resolve_evar_invariance wf H4 H8.
+  rewrite H9 in H7.
+  apply awftyp_subst in H7.
+  rewrite <- concat_assoc in H7.
+  lets: awftyp_remove H7 H5. auto.
+
+  assert (AWf (H1 & a ~ AC_Solved_EVar t2 & H2)).
+  apply awf_solve_middle with (t:=t2) in H; auto.
+  lets: resolve_evar_atmono_preservation H4; auto.
+
+  split; auto.
+
+  lets: resolve_evar_extension H4 wf.
+  assert (ExtCtx (H1 & a ~ AC_Unsolved_EVar & H2) (H1 & a ~ AC_Solved_EVar t2 & H2)).
+  apply~ extension_append.
+  apply ExtCtx_Solve. apply extension_reflexivity.
+  repeat apply AWf_left in H. auto.
+  apply AWf_left in H. auto.
+  apply AWf_left in H7. auto.
+  lets: extension_transitivity H8 H9. auto.
+
+  lets: awftyp_is_awftyping awf1.
+  lets: awftyp_is_awftyping awf2.
+  lets: atunify_awf_expr H1 wf H0 H2. auto.
+Proof.
+  clear atunify_awf_expr.
+  introv uni wf awf1 awf2.
+  gen_eq M: UExpr.
+  induction uni; introv minfo; subst; auto;
+    try(solve[inversion minfo]);
+    try(solve[split; [auto | apply~ extension_reflexivity]]).
+
+  (* APP *)
+  inversion awf1; subst.
+  inversion awf2; subst.
+  lets: IHuni1 wf H4 H6 minfo. clear IHuni1.
+  destruct H0 as [wfh1 exgh1].
+  lets: extension_weakening_awftyping H5 exgh1.
+  apply awftyping_subst in H0.
+  rewrite actxtsubst_expr in H0.
+  lets: extension_weakening_awftyping H7 exgh1.
+  apply awftyping_subst in H2.
+  rewrite actxtsubst_expr in H2.
+  lets: IHuni2 wfh1 H0 H2 minfo.
+  destruct H3.
+  lets: extension_transitivity exgh1 H8. split; auto.
+
+  (* LAM *)
+  inversion awf1; subst.
+  inversion awf2; subst.
+  pick_fresh y.
+  assert (notinl : y \notin L) by auto.
+  assert (notinl0 : y \notin L0) by auto.
+  assert (notinl1 : y \notin L1) by auto.
+  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
+  lets: H4 notinl0.
+  lets: H5 notinl1.
+  lets: H1 notinl H2 H3 H6 minfo.
+  destruct H7 as [wfh exgh].
+  split.
+  apply AWf_left in wfh; auto.
+  apply extctx_remove_var in exgh. auto.
+
+  (* CASTUP *)
+  inversion awf1; subst.
+  inversion awf2; subst.
+  lets: IHuni wf H2 H3 minfo. auto.
+
+  (* CASTDOWN *)
+  inversion awf1; subst.
+  inversion awf2; subst.
+  lets: IHuni wf H2 H3 minfo. auto.
+
+  (* PI *)
+  inversion awf1; subst.
+  inversion awf2; subst.
+  clear H2 IHuni.
+
+  lets: atunify_awf uni wf H6 H8.
+  destruct H2.
+  pick_fresh y.
+  assert (y \notin L0) by auto.
+  assert (y \notin L1) by auto.
+  lets: H7 H4. clear H7.
+  lets: H9 H5. clear H9.
+  assert (ExtCtx (G & y ~ AC_Typ t1) (H1 & y ~ AC_Typ t1)).
+  apply~ ExtCtx_TypVar.
+  apply~ AWf_TyVar.
+  lets: extension_weakening_awftyp H6 H3. auto.
+  assert (ExtCtx (G & y ~ AC_Typ t3) (H1 & y ~ AC_Typ t3)).
+  apply~ ExtCtx_TypVar.
+  apply~ AWf_TyVar.
+  lets: extension_weakening_awftyp H8 H3. auto.
+  lets: extension_weakening_awftyp H10 H9.
+  lets: extension_weakening_awftyp H7 H11.
+  lets: awtermt_awftyp H6.
+  lets: atunify_is_aunify uni.
+  lets: awf_is_ok wf. auto.
+  lets: unify_invariance wf H15 H14.
+  assert (AWfTyp (H1 & y ~ AC_Typ t3 & empty) (t4 @@' AE_FVar y)) by rewrite~ concat_empty_r.
+  symmetry in H16.
+  lets: awftyp_middle_change_typvar H17 H16.
+  rewrite concat_empty_r in H18.
+
+  assert (y \notin L) by auto.
+  lets: H0 H19. clear H0.
+  apply awftyp_subst in H12.
+  rewrite tsubst_add_typvar in H12.
+  apply awftyp_subst in H18.
+  rewrite tsubst_add_typvar in H18.
+  lets: atunify_awf H20 H12 H18.
+  apply~ AWf_TyVar.
+  lets: extension_weakening_awftyp H6 H3. auto.
+
+  destruct H0.
+  split.
+  lets: AWf_left H0. auto.
+  lets: extension_remove_tyvar H21.
+  lets: extension_transitivity H3 H22. auto.
+
+  (* FORALL *)
+  clear H1.
+  inversion awf1; subst.
+  inversion awf2; subst.
+  pick_fresh y.
+  assert (y \notin L) by auto.
+  lets: H0 H1. clear H0.
+  assert (y \notin L0) by auto.
+  lets: H3 H0. clear H3.
+  assert (y \notin L1) by auto.
+  lets: H4 H3. clear H4.
+  lets: atunify_awf H2 H5 H6.
+  apply~ AWf_TVar.
+  destruct H4.
+  split.
+  lets: AWf_left H4. auto.
+  lets: extension_remove_tvar H7. auto.
+
+  (* ANN *)
+  clear IHuni2.
+  inversion awf1; subst.
+  inversion awf2; subst.
+  lets: IHuni1 wf H4 H6 minfo. clear IHuni1 uni1.
+  destruct H0.
+  lets: extension_weakening_awftyp H5 H2.
+  apply awftyp_subst in H3.
+  lets: extension_weakening_awftyp H7 H2.
+  apply awftyp_subst in H8.
+  lets: atunify_awf uni2 H0 H3 H8.
+  destruct H9.
+  lets: extension_transitivity H2 H10.
+  split; auto.
+Qed.
+
 Theorem unif_soundness_same : forall G H I t1 t2 H' t1' t2',
     AUnify G t1 t2 H ->
     t1 = ACtxTSubst G t1 ->

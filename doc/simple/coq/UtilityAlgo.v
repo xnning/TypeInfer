@@ -42,14 +42,34 @@ Lemma awftyp_subst: forall G t,
     AWfTyp G t <-> AWfTyp G (ACtxTSubst G t).
 Admitted.
 
-Lemma awftyp_weakening: forall G H e,
-    AWfTyp G e ->
-    AWfTyp (G & H) e.
+Lemma awftyp_weakening_middle: forall G1 G2 H e,
+    AWfTyp (G1 & G2) e ->
+    AWf (G1 & H & G2) ->
+    AWfTyp (G1 & H & G2) e.
+Admitted.
+
+Lemma awftyp_middle_remove: forall G H I e,
+    AWfTyp (G & H & I) e ->
+    AWf (G & I) ->
+    AWTermT (G & I) e ->
+    AWfTyp (G & I) e.
 Admitted.
 
 (***********************)
 (* DERIVATIONS OF ADMITS *)
 (***********************)
+
+Lemma awftyp_weakening: forall G H e,
+    AWfTyp G e ->
+    AWf (G & H) ->
+    AWfTyp (G & H ) e.
+Proof.
+  introv wt wf.
+  assert (AWfTyp (G & empty) e) by rewrite~ concat_empty_r.
+  rewrite <- concat_empty_r in wf.
+  lets: awftyp_weakening_middle H0 wf.
+  rewrite concat_empty_r in H1. auto.
+Qed.
 
 Lemma awf_weakening_insert_unsolved: forall G1 G2 a,
     AWf (G1 & G2) ->
@@ -292,6 +312,21 @@ Proof.
   apply~ AWf_Marker.
   apply awf_is_ok in wf.
   apply ok_push_inv in wf. destruct wf. auto.
+Qed.
+
+Lemma awftyp_remove: forall G H e,
+    AWfTyp (G & H) e ->
+    AWTermT G e ->
+    AWfTyp G e.
+Proof.
+  introv wf wt.
+  assert (wf2 := wf).
+  inversion wf2; subst.
+  assert (I1: AWfTyp (G & H & empty) e) by rewrite~ concat_empty_r.
+  assert (I2: AWf (G & empty)). rewrite~ concat_empty_r. lets: awftyp_awf wf. apply AWf_left in H3. auto.
+  assert (I3: AWTermT (G & empty) e). rewrite~ concat_empty_r.
+  lets: awftyp_middle_remove I1 I2 I3.
+  rewrite concat_empty_r in H3. auto.
 Qed.
 
 (***********************)
