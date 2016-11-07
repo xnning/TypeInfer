@@ -532,7 +532,15 @@ Proof.
   rewrite hg2 in H1. assumption.
 
   apply ACpltCtxSubst_Star.
-  simpls. inversion len; subst. apply ACpltCtxSubst_App. apply IHsub1 with i1; auto. Omega.omega.
+  rewrite hg in comp.
+  rewrite hg in wfx. apply awf_is_ok in wfx.
+  apply~ complete_append.
+  do 2 apply complete_part_left in comp; auto.
+  apply complete_part_right in comp; auto.
+
+
+  simpls. inversion len; subst.
+  apply ACpltCtxSubst_App. apply IHsub1 with i1; auto. Omega.omega.
   apply IHsub2 with i2; auto. Omega.omega.
 
   apply ACpltCtxSubst_Lam with (L \u dom G \u AFv t \u \{x}).

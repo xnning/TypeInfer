@@ -74,7 +74,7 @@ Inductive ACpltCtxSubst : ACtx -> AType -> DType -> Prop :=
       CompleteCtx G1 -> CompleteCtx G2 ->
       ok (G1 & a ~ (AC_Solved_EVar t) & G2) ->
       ACpltCtxSubst G1 t d -> ACpltCtxSubst (G1 & a ~ (AC_Solved_EVar t) & G2) (AT_EVar a) d
-  | ACpltCtxSubst_Star : forall G, ACpltCtxSubst G (AT_Expr AE_Star) (DT_Expr DE_Star)
+  | ACpltCtxSubst_Star : forall G, CompleteCtx G -> ACpltCtxSubst G (AT_Expr AE_Star) (DT_Expr DE_Star)
   | ACpltCtxSubst_App : forall G t1 t2 d1 d2,
       ACpltCtxSubst G (AT_Expr t1) (DT_Expr d1) -> ACpltCtxSubst G (AT_Expr t2) (DT_Expr d2) ->
       ACpltCtxSubst G (AT_Expr (AE_App t1 t2)) (DT_Expr (DE_App d1 d2))
