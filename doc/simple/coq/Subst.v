@@ -509,6 +509,31 @@ Proof.
   rewrite concat_assoc in okgh. apply* ok_concat_inv_l.
 Qed.
 
+Lemma complete_replace: forall G1 G2 x t,
+  ok (G1 & x ~ AC_Var & G2) ->
+  CompleteCtx (G1 & x ~ AC_Var & G2) ->
+  CompleteCtx (G1 & x ~ AC_Typ t & G2).
+Proof.
+  introv okg compl.
+  apply complete_append.
+  apply complete_add_typ.
+  do 2 apply complete_part_left in compl; auto.
+  apply complete_part_right in compl; auto.
+  apply* ok_middle_change.
+Qed.
+
+Lemma complete_replace': forall G1 x t,
+  ok (G1 & x ~ AC_Var) ->
+  CompleteCtx (G1 & x ~ AC_Var) ->
+  CompleteCtx (G1 & x ~ AC_Typ t).
+Proof.
+  introv okg compl.
+  assert (ok (G1 & x ~ AC_Var & empty)). rewrite~ concat_empty_r.
+  assert (CompleteCtx (G1 & x ~ AC_Var & empty)).  rewrite~ concat_empty_r.
+  lets: complete_replace H H0.
+  rewrite concat_empty_r in H1. exact H1.
+Qed.
+
 Lemma eq_aexpr_dec : forall (T T' : AExpr),
   sumbool (T = T') (T <> T')
 with eq_atype_dec : forall (T T' : AType),
@@ -560,7 +585,134 @@ Proof.
   intros. apply stable_cplt_env_eq with (G := G2) (H := H).
   auto. auto. auto.
   subst. auto.
-Qed.   
+Qed.
+
+Hint Constructors ACpltCtxSubst.
+Hint Resolve complete_replace complete_replace'.
+Lemma cplt_ctxsubst_replace : forall G1 t G2 t1 t2 x,
+    ok (G1 & x ~ AC_Var & G2) ->
+    ACpltCtxSubst (G1 & x ~ AC_Var & G2) t1 t2 ->
+    ACpltCtxSubst (G1 & x ~ AC_Typ t & G2) t1 t2.
+Proof.
+  introv okg sub.
+  gen_eq M: (G1 & x ~ AC_Var & G2). gen G2.
+  induction sub;
+  introv hinfo; subst; auto.
+  apply binds_middle_inv in H0.
+  destruct H0 as [bdg2 | [bdm | bdg1]].
+  apply~ ACpltCtxSubst_Var.
+  destruct bdm as [? [? _]]. subst.
+  apply ACpltCtxSubst_TyVar with t; auto.
+  destruct bdg1 as [? [? ?]].
+  apply ACpltCtxSubst_Var; auto.
+
+  (* TYP VAR *)
+  apply binds_middle_inv in H0.
+  destruct H0 as [bdg2 | [bdm | bdg1]].
+  apply ACpltCtxSubst_TyVar with t0; auto.
+  destruct bdm as [? [? inv]]. false inv.
+  destruct bdg1 as [? [? ?]].
+  apply ACpltCtxSubst_TyVar with t0; auto.
+
+  (* TVAR *)
+  apply binds_middle_inv in H0.
+  destruct H0 as [bdg2 | [bdm | bdg1]].
+  apply~ ACpltCtxSubst_TVar.
+  destruct bdm as [? [? inv]]. false inv.
+  destruct bdg1 as [? [? ?]].
+  apply ACpltCtxSubst_TVar; auto.
+
+  (* EVAR *)
+  assert (binds x AC_Var (G0 & a ~ AC_Solved_EVar t0 & G2)).
+  rewrite hinfo.
+  apply binds_middle_eq.
+  rewrite hinfo in H1. destruct (ok_middle_inv H1) as [? ?]. auto.
+
+  apply binds_middle_inv in H2.
+  destruct H2 as [bdg2 | [bda | bdg0]].
+  apply split_bind_context in bdg2.
+  destruct bdg2 as (I1 & I2 & g2info). subst.
+  repeat rewrite concat_assoc in hinfo.
+  apply ok_middle_eq2 in hinfo; auto.
+
+  destruct hinfo as [g1info [_ i2g3]]. subst.
+  assert (ACpltCtxSubst
+            (G0 & a ~ AC_Solved_EVar t0 & (I1 & x ~ AC_Typ t & G3))
+            (AT_EVar a) d).
+  apply~ ACpltCtxSubst_EVar.
+  repeat rewrite~ concat_assoc.
+  repeat rewrite concat_assoc in H1. apply* ok_middle_change.
+  repeat rewrite~ concat_assoc in H2.
+  repeat rewrite concat_assoc in H1. auto.
+  rewrite <- hinfo.
+  repeat rewrite concat_assoc in H1. auto.
+
+  destruct bda as [_ [_ inv]]. false inv.
+  destruct bdg0 as [noting2 [neq bdg0]].
+  apply split_bind_context in bdg0.
+  destruct bdg0 as (I1 & I2 & g0info). subst.
+  assert (I1 & x ~ AC_Var & (I2 & a ~ AC_Solved_EVar t0 & G2) =
+                            G1 & x ~ AC_Var & G3).
+  repeat rewrite~ concat_assoc.
+  apply ok_middle_eq2 in H2.
+  destruct H2 as [? [_ ?]]. subst.
+  forwards * : IHsub. do 2 apply ok_concat_inv_l in okg. auto.
+  repeat rewrite~ concat_assoc.
+  apply~ ACpltCtxSubst_EVar. apply* complete_replace.
+  do 2 apply ok_concat_inv_l in okg. auto.
+  assert (ok (G1 & x ~ AC_Var & (I2 & a ~ AC_Solved_EVar t0 & G2))).
+  repeat rewrite~ concat_assoc.
+  assert (ok (G1 & x ~ AC_Typ t & (I2 & a ~ AC_Solved_EVar t0 & G2))).
+  apply* ok_middle_change.
+  repeat rewrite concat_assoc in H4. auto.
+  repeat rewrite~ concat_assoc.
+  rewrite <- H2.
+  repeat rewrite~ concat_assoc.
+
+  (* LAM *)
+  apply ACpltCtxSubst_Lam with (L \u dom (G1 & x ~ AC_Var & G2)).
+  intros y notin. assert (notinl: y \notin L) by auto.
+  assert (G1 & x ~ AC_Var & G2 & y ~ AC_Var =
+          G1 & x ~ AC_Var & (G2 & y ~ AC_Var)).
+  repeat rewrite~ concat_assoc.
+  lets: H0 notinl H1.
+  rewrite H1. repeat rewrite concat_assoc. apply~ ok_push.
+  repeat rewrite concat_assoc in H2. auto.
+
+  (* PI *)
+  apply ACpltCtxSubst_Pi with (L \u dom (G1 & x ~ AC_Var & G2)).
+  apply~ IHsub.
+  intros y notin. assert (notinl: y \notin L) by auto.
+  assert (G1 & x ~ AC_Var & G2 & y ~ AC_Var =
+          G1 & x ~ AC_Var & (G2 & y ~ AC_Var)).
+  repeat rewrite~ concat_assoc.
+  lets: H0 notinl H1.
+  apply~ ok_push.
+  repeat rewrite concat_assoc in H2. auto.
+
+  (* FORALL *)
+  apply ACpltCtxSubst_Forall with (L \u dom (G1 & x ~ AC_Var & G2)).
+  intros y notin. assert (notinl: y \notin L) by auto.
+  assert (G1 & x ~ AC_Var & G2 & y ~ AC_TVar =
+          G1 & x ~ AC_Var & (G2 & y ~ AC_TVar)).
+  repeat rewrite~ concat_assoc.
+  lets: H0 notinl H1.
+  apply~ ok_push.
+  repeat rewrite concat_assoc in H2. auto.
+Qed.
+
+Lemma cplt_ctxsubst_replace' : forall G1 t t1 t2 x,
+    ok (G1 & x ~ AC_Var) ->
+    ACpltCtxSubst (G1 & x ~ AC_Var) t1 t2 ->
+    ACpltCtxSubst (G1 & x ~ AC_Typ t) t1 t2.
+Proof.
+  introv okg sub.
+  assert (ok (G1 & x ~ AC_Var & empty)) by rewrite~ concat_empty_r.
+  assert (ACpltCtxSubst (G1 & x ~ AC_Var & empty) t1 t2) by rewrite~ concat_empty_r.
+  lets: cplt_ctxsubst_replace H H0.
+  rewrite concat_empty_r in H1.
+  exact H1.
+Qed.
 
 Lemma ctxsubst_fvar_eq : forall G x,
     ok G ->

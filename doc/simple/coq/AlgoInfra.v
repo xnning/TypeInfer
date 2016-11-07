@@ -209,6 +209,48 @@ Proof.
   subst~.
 Qed.
 
+Lemma aopen_tvar_inj : forall x t1 t2,
+  x \notin (AFv t1) -> x \notin (AFv t2) ->
+  forall k, (ATOpenRec k (AT_TFVar x) t1 = ATOpenRec k (AT_TFVar x) t2) -> (t1 = t2)
+with
+atopen_tvar_inj : forall x t1 t2,
+  x \notin (ATFv t1) -> x \notin (ATFv t2) ->
+  forall k, (ATOpenTypRec k (AT_TFVar x) t1 = ATOpenTypRec k (AT_TFVar x) t2) -> (t1 = t2).
+Proof.
+  intros x t1.
+  induction t1; intro t2.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* IHt1_1. apply* IHt1_2.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* atopen_tvar_inj. apply* atopen_tvar_inj.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* IHt1.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* IHt1. apply* atopen_tvar_inj.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto.
+  inversion H1; subst. f_equal ~. apply* atopen_tvar_inj.
+
+  intros x t1.
+  induction t1; intro t2.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]); auto. case_nat~. case_nat~.
+  inversion H1; subst. notin_false.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]).
+  inversion H1; subst. notin_false.
+  inversion H1; subst~.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]).
+  inversion H1; subst. auto.
+  destruct t2; simpl; intros; try(case_nat~); try(solve[inversion H1]).
+  inversion H1.
+  lets: aopen_tvar_inj H3; auto. subst~.
+Qed.
+
 Lemma open_reorder: forall e1 e2 i j e,
     ATerm e1 ->
     ATerm e2 ->

@@ -669,6 +669,67 @@ Proof.
   apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
 Qed.
 
+Lemma awtermt_middle_solve: forall G H x t e,
+    AWTermT (G & x ~ AC_Unsolved_EVar & H) e ->
+    AWTermT G t ->
+    AWTermT (G & x ~ AC_Solved_EVar t & H) e.
+Proof.
+  introv wt wf. gen_eq I: (G & x ~ AC_Unsolved_EVar & H).
+  gen H. induction wt; introv hg; subst.
+
+  destruct (eq_var_dec x x0). subst.
+  apply binds_middle_inv in H. destruct H as [h1 | [h2 | h3]]. apply AWTermT_Var. apply binds_concat_right. auto.
+  destruct h2 as [_ [_ inv]]. false inv.
+  apply AWTermT_Var.  apply* binds_concat_right.
+  apply binds_subst in H; auto.
+  apply AWTermT_Var. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  destruct (eq_var_dec x x0). subst.
+  apply binds_middle_inv in H. destruct H as [h1 | [h2 | h3]]. apply AWTermT_TypVar with t0. apply binds_concat_right. auto.
+  destruct h2 as [_ [_ inv]]. false inv.
+  apply AWTermT_Var.  apply* binds_concat_right.
+  apply binds_subst in H; auto.
+  apply AWTermT_TypVar with t0. apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  constructor.
+  apply AWTermT_App. apply* IHwt1. apply* IHwt2.
+  apply AWTermT_Lam with L. intros y notin_y. rewrite <- concat_assoc. apply* H0. rewrite* concat_assoc.
+  apply AWTermT_Pi with L. apply* IHwt. intros y notin_y. rewrite <- concat_assoc. apply* H0. lets: H0 notin_y. rewrite* concat_assoc.
+  apply* AWTermT_CastUp.
+  apply* AWTermT_CastDn.
+  apply AWTermT_Ann. apply* IHwt1. apply* IHwt2.
+  apply AWTermT_Forall with L. intros y notin_y. rewrite <- concat_assoc. apply* H0. lets: H notin_y. rewrite* concat_assoc.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_TFVar. apply* binds_concat_right.
+  apply binds_push_eq_inv in H2. inversion H2.
+  apply AWTermT_TFVar.
+  apply binds_subst in H; auto.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_Unsolved_EVar. apply* binds_concat_right.
+  apply AWTermT_Solved_EVar with t.
+  apply* binds_concat_left.
+  apply binds_subst in H; auto.
+  apply AWTermT_Unsolved_EVar.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+
+  destruct (eq_var_dec x i). subst.
+  apply binds_concat_inv in H.
+  destruct H as [H1 | [notin H2]].
+  apply AWTermT_Solved_EVar with t0. apply* binds_concat_right.
+  apply binds_push_eq_inv in H2. inversion H2.
+  apply AWTermT_Solved_EVar with t0.
+  apply binds_subst in H; auto.
+  apply binds_concat_inv in H. destruct H as [h1 | h2]. apply* binds_concat_right. apply* binds_concat_left.
+Qed.
+
+
 Lemma awtermt_awftyp: forall G t,
     AWfTyp G t ->
     AWTermT G t.
@@ -997,6 +1058,78 @@ Proof.
   rewrite concat_assoc. apply* awtermt_weaken.
   rewrite concat_assoc in okg. apply* ok_push_inv.
 Qed.
+
+Lemma awtermt_weaken_middle : forall G x v e H,
+    AWTermT (G & H) e ->
+    x # (G & H) ->
+    ok (G & x ~ v & H) ->
+    AWTermT (G & x ~ v & H) e.
+Proof.
+  intros. gen_eq S :(G & H). gen H. inductions H0; introv okg sinfo; subst.
+  apply* AWTermT_Var. apply* binds_weaken.
+  apply* AWTermT_TypVar.  apply* binds_weaken.
+  apply* AWTermT_Star.
+  apply* AWTermT_App.
+  apply AWTermT_Lam with (L := L \u \{x} \u dom G \u dom H2); intros.
+  assert (x0 \notin L) by auto.
+  forwards * : H0 H4 (H2 & x0 ~ AC_Var).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H5.
+  apply AWTermT_Pi with (L := L \u \{x} \u dom G \u dom H3); intros. apply* IHAWTermT.
+  assert (x0 \notin L) by auto.
+  forwards * : H1 H5 (H3 & x0 ~ AC_Var).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H6.
+  apply* AWTermT_CastUp.
+  apply* AWTermT_CastDn.
+  apply* AWTermT_Ann.
+  apply AWTermT_Forall with (L := L \u \{x} \u dom G \u dom H2); intros.
+  assert (x0 \notin L) by auto.
+  forwards * : H0 H4 (H2 & x0 ~ AC_TVar).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H5.
+  apply* AWTermT_TFVar. apply* binds_weaken.
+  apply* AWTermT_Unsolved_EVar.  apply* binds_weaken.
+  apply* AWTermT_Solved_EVar.  apply* binds_weaken.
+Qed.
+
+Lemma awtermt_weaken_context_middle : forall G e H I,
+    AWTermT (G & H) e ->
+    ok (G & I & H) ->
+    AWTermT (G & I & H) e.
+Proof.
+  intros. gen_eq S : (G & H). gen H.
+  induction H0; introv okg sinfo; subst; auto.
+
+  apply* AWTermT_Var. apply* binds_weaken.
+  apply* AWTermT_TypVar.  apply* binds_weaken.
+  apply AWTermT_Lam with (L := L \u  dom G \u dom H1 \u dom I); intros.
+  assert (x \notin L) by auto.
+  forwards * : H0 H3 (H1 & x ~ AC_Var).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H4.
+  apply AWTermT_Pi with (L := L \u dom G \u dom H2 \u dom I); intros.
+  forwards * : IHAWTermT.
+  assert (x \notin L) by auto.
+  forwards * : H1 H4 (H2 & x ~ AC_Var).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H5.
+  apply AWTermT_Forall with (L := L \u dom G \u dom H1 \u dom I); intros.
+  assert (x \notin L) by auto.
+  forwards * : H0 H3 (H1 & x ~ AC_TVar).
+  rewrite concat_assoc. apply~ ok_push.
+  rewrite~ concat_assoc.
+  repeat rewrite~ concat_assoc in H4.
+  apply* AWTermT_TFVar. apply* binds_weaken.
+  apply* AWTermT_Unsolved_EVar.  apply* binds_weaken.
+  apply* AWTermT_Solved_EVar.  apply* binds_weaken.
+Qed.
+
 
 Lemma awterm_typ: forall G x a,
     AWf (G & x ~ AC_Typ a) ->

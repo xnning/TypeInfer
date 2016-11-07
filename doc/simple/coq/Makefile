@@ -34,7 +34,11 @@ FILES=\
 	Subst\
 	Exists\
 	UtilityMore\
+	UnifEq\
+	AWt\
 	WeakExtension\
+	SoftExtension\
+	AWfTyping\
 	UtilityAlgo\
 
 ALL=$(FILES)

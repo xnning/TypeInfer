@@ -111,6 +111,22 @@ Proof.
   rewrite <- ih.  apply* ok_preservation.
 Qed.
 
+Lemma extension_remove_tvar : forall G H y,
+    ExtCtx (G & y ~ AC_TVar) (H & y ~ AC_TVar) ->
+    ExtCtx G H.
+Proof.
+  introv D.
+  rewrite <- concat_empty_r in D at 1.
+  rewrite <- concat_empty_r in D.
+  destruct (extension_order_tvar D) as [X [Y (K1 & K2 & _)]].
+  lets C: awf_preservation D.
+  pose (Ok2 := awf_is_ok C).
+  lets Ok3: Ok2.
+  rewrite K1 in Ok3.
+  destruct~ (ok_middle_eq Ok2 eq_refl Ok3 eq_refl K1) as (Eq1 & Eq2 & Eq3).
+  subst*.
+Qed.
+
 Lemma extension_append: forall G H I,
     ExtCtx G H ->
     AWf (G & I) ->
