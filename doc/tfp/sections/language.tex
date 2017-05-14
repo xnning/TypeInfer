@@ -1,4 +1,5 @@
 \section{Language Overview}
+\label{sec:language}
 
 Below shows the syntax of the system.
 
@@ -37,15 +38,11 @@ types, function $\blam x \sigma e$
 , application $e_1~e_2$, and Pi type
 $\bpi x {\tau_1} {\tau_2}$.
 
-In $\lambda C$, there are two distinct sorts $\star$ and $\square$
-representing the type of types and sorts respectively, and an axiom
-$\star:\square$ specifying the relationship between these two. Here we
-further merge types and kinds together by including only a single sort
-$\star$ with an impredicative axiom $\star:\star$. This choice is
+Notice here we merge types and kinds together by an impredicative axiom $\star:\star$.
+This choice is
 ok for our
-own purposes:
-we intend to use the calculus as an example for unification, not
-theorem proving.
+purposes since
+we only intend to use the calculus as an example for unification.
 
 Another similar confusion is that this language is fully annotated, which should
 not need the unification process at all.
@@ -77,15 +74,15 @@ Figure \ref{fig:wellform} gives the definition of well formedness of a context
 and the well formedness of
 a type under certain context ($\tctx \bywf \sigma$).
 Both definitions rely on the typing process,
-which is quite standard so is put in the appendix.
+which due to the limitation of space is put in the appendix.
 For a type to be well formed, the typing should not solve existing variables.
-The last judgment,, the
+The last judgment, the
 well-termedness
 $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically
 legal term with all variables bounded.
 
-\paragraph{Hole notation.} We keep the same hole notations like $\tctx[x]$ to
-require the variable $x$ appear in the context, sometimes also written as
+\paragraph{Hole notation.} We use hole notations like $\tctx[x]$ to
+denote the variable $x$ appear in the context, sometimes also written as
 $\tctx_1, x, \tctx_2$.
 
 Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only
@@ -99,7 +96,8 @@ now is solved by $\star$.
 
 \paragraph{Applying Context.} Since the context records all the solutions of
 solved variables, it can be used as a substitution on types. Figure
-\ref{fig:applyctx} defines the substitution process.
+\ref{fig:applyctx} defines the substitution process, where all solved
+unification variable is substituted by its solution.
 
 \begin{figure}[t]
     \headercapm{[\tctx]\sigma_1 = \sigma_2}{}

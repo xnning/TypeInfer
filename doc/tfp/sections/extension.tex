@@ -1,4 +1,5 @@
 \section{Extended with Polymorphism}
+\label{sec:extension}
 
 In this section, we discuss how to extends the type sanitization to deal with
 restricted polymorphic types. Our system has two simplifications: type variables
@@ -26,7 +27,7 @@ the general version
 $\forall x:\sigma. \sigma$.
 The restriction on type variable $x$ is that it can only have type $\star$.
 
-\paragraph{Types and Contexts.} The definition of types $\sigma$ is the same.
+\paragraph{Types.} The definition of types $\sigma$ is the same.
 Monotype $\tau$ is a special kind of $\sigma$ that
 contains no universal quantifiers. Therefore, only monotypes can be solutions of
 unification variables.

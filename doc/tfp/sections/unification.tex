@@ -1,13 +1,14 @@
 \section{Unification}
+\label{sec:unification}
 
 We first formalize the unification problem as:
 
 \begin{lstlisting}
-$\tpreuni \sigma_1 \uni \sigma_2 \toctx$
+$\tpreuni \tau_1 \uni \tau_2 \toctx$
 \end{lstlisting}
 
 The input of the unification is the current context $\tctx$, and two types
-$\sigma_1$ and $\sigma_2$ that are being unified. The output of the unification
+$\tau_1$ and $\tau_2$ that are being unified. The output of the unification
 is a new context $\ctxl$ which extends the original context with probably more
 new unification variables or more existing
 unification variables solved. For example,
