@@ -1,0 +1,117 @@
+\section{Language Overview}
+
+Below shows the syntax of the system.
+
+\begin{tabular}{lrcl}
+  Type & $\sigma, \tau$ & \syndef & $\genA \mid e$ \\
+  Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e$ \\
+       && \synor & $\bpi x {\sigma_1} \sigma_2$ \\
+  Contexts &
+             $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
+                                               \mid \tctx, \genA
+                                               \mid \tctx, \genA = \tau $ \\
+\end{tabular}
+
+\begin{figure}[t]
+    \headercapm{\tctx\wc}
+
+    \[\TWCEmpty \quad \TWCTVar\]
+    \[\TWCTypedVar \quad \TWCEVar\]
+    \[\TWCSolvedEVar\]
+
+    \headercapm{\tctx \bywf \sigma}
+
+    \[\TWFOther \]
+
+    \headercapm{\tctx \bywt \sigma}
+    \[\TWTVar \quad \TWTEVar \quad \TWTStar\]
+    \[\TWTApp \quad \TWTLam \quad \TWTPi \]
+
+    \caption{Well formedness}
+    \label{fig:wellform}
+\end{figure}
+
+\paragraph{Expression. }
+Expressions $e$ are variables x, a single sort $\star$ to represent the type of
+types, function $\blam x \sigma e$
+, application $e_1~e_2$, and Pi type
+$\bpi x {\tau_1} {\tau_2}$.
+
+In $\lambda C$, there are two distinct sorts $\star$ and $\square$
+representing the type of types and sorts respectively, and an axiom
+$\star:\square$ specifying the relationship between these two. Here we
+further merge types and kinds together by including only a single sort
+$\star$ with an impredicative axiom $\star:\star$. This choice is
+ok for our
+own purposes:
+we intend to use the calculus as an example for unification, not
+theorem proving.
+
+Another similar confusion is that this language is fully annotated, which should
+not need the unification process at all.
+Again, this is not our goal to do type inference for this language, but use this
+language as an example to do unification.
+
+\paragraph{Types.} Types $\sigma, \tau$ contain all expression forms, with an
+additional $\genA$ to denote unification variables.
+
+\paragraph{Context.} A context is a ordered list of variables, and all
+unification variables.
+Unification variables can either be unsolved
+(with form $\genA$) or solved by type $\tau$ (with form $\genA = \tau$).
+Once an existential vairable is solved, its solution will never change.
+
+It is important for a context to be ordered to solve the dependency between
+variables.
+For example, the expression
+
+\begin{lstlisting}
+  \z. \x. \y:x. y == z
+\end{lstlisting}
+
+\noindent cannot type check because $z$ cannot be of type $x$ since $x$
+would come after $z$ in the context.
+
+Figure \ref{fig:wellform} gives the definition of well formedness of a context
+($\tctx \wc$),
+and the well formedness of
+a type under certain context ($\tctx \bywf \sigma$).
+Both definitions rely on the typing process,
+which is quite standard so is put in the appendix.
+For a type to be well formed, the typing should not solve existing variables.
+The last judgment,, the
+well-termedness
+$\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically
+legal term with all variables bounded.
+
+\paragraph{Hole notation.} We keep the same hole notations like $\tctx[x]$ to
+require the variable $x$ appear in the context, sometimes also written as
+$\tctx_1, x, \tctx_2$.
+
+Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only
+require the existance of both variable $x$ and $\genA$, but also require $x$ to
+appear before $\genA$.
+
+Hole notation is also used for replacement and modification. For example,
+$\tctx[\genA]$ could become
+$\tctx[\genA = \star]$, which means the context keeps unchanged except $\genA$
+now is solved by $\star$.
+
+\paragraph{Applying Context.} Since the context records all the solutions of
+solved variables, it can be used as a substitution on types. Figure
+\ref{fig:applyctx} defines the substitution process.
+
+\begin{figure}[t]
+    \headercapm{[\tctx]\sigma_1 = \sigma_2}{}
+
+    \begin{mathpar}
+    \begin{tabular}{r c l l}
+        $[\ctxinit]e$   & = & $e$       \\
+        $[\tctx,x:\tau]e$ & = & $[\tctx]e$ \\
+        $[\tctx, \genA]e$ & = & $[\tctx]e$ \\
+        $[\tctx, \genA=\tau]e$ & = & $[\tctx](e[\genA \mapsto \tau])$
+    \end{tabular}
+    \end{mathpar}
+    \caption{Applying a context with existential variables.}
+    \label{fig:applyctx}
+\end{figure}

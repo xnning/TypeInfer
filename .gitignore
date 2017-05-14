@@ -15,7 +15,7 @@
 doc/**/appendix.tex
 doc/**/expcore.ott.tex
 doc/**/otthelper.tex
-doc/simple/auto
+doc/**/auto
 
 *.swp
 

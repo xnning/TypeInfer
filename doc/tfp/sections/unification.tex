@@ -1,0 +1,250 @@
+\section{Unification}
+
+We first formalize the unification problem as:
+
+\begin{lstlisting}
+$\tpreuni \sigma_1 \uni \sigma_2 \toctx$
+\end{lstlisting}
+
+The input of the unification is the current context $\tctx$, and two types
+$\sigma_1$ and $\sigma_2$ that are being unified. The output of the unification
+is a new context $\ctxl$ which extends the original context with probably more
+new unification variables or more existing
+unification variables solved. For example,
+
+\begin{lstlisting}
+$\genA \byuni \genA = \Int \dashv \genA = \Int$
+\end{lstlisting}
+
+For a valid unification problem, it must have the invariant: $[\tctx] \sigma_1 =
+\sigma_1$, and $[\tctx] \sigma_2 = \sigma_2$. Namely, the input types must be
+fully applied under the input context. So the following is not a valid
+unification problem input:
+
+\begin{lstlisting}
+$\genA = \String \byuni \genA = \Int$
+\end{lstlisting}
+
+We assume this invariant is maintained through the whole
+formalization.
+
+\subsection{Type Sanitization}
+
+As we mentioned before, our unification is based on alpha-equality. So in most
+cases, the unification rules are intuitively structural. The most difficult
+one which is also the most essential one, is how to unify a unification variable
+with another type. We discuss those cases first.
+
+\paragraph{Variable Orders matter.}
+
+While unifying existential variable $\genA$ and type $\sigma$, we tends to
+directly derive that $\genA = \sigma$. But the orders in the context are
+important. Consider a unification example:
+
+\begin{lstlisting}
+$\tctx, \genA, x \byuni \genA \uni x$
+\end{lstlisting}
+
+\noindent which has no feasible solution. Because $\genA$ cannot be solved by
+$x$ since $x$ is not in the scope of $\genA$.
+
+From this observation, it seems whenever we have the unification problem as
+
+\begin{lstlisting}
+$\tctx, \genA, \ctxr \byuni \genA \uni \sigma$
+\end{lstlisting}
+
+\noindent we need to check $\sigma$ is in the scope of $\tctx$. Only if it
+satisfies the scope constraint, we can derive $\genA = \sigma$.
+
+\paragraph{Unification variable orders do not matter.}
+
+However, there are unification problems that even if the type does not satisfies the
+scope constraint, it still has feasible solution. Consider:
+
+\begin{lstlisting}
+$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
+\end{lstlisting}
+
+Here because $\genB$ appears after $\genA$, we cannot directly solve $\genA$
+by $\bpi x \genB x$ which is ill typed.
+But this unification does have a solution context if we could sanitize the
+appearance of $\genB$ by solving it by a fresh unification variable $\genA_1$
+which is put in the scope of $\genA$, and then
+get an equivalent unification problem:
+
+\begin{lstlisting}
+$\tctx, \genA_1, \genA, \genB = \genA_1 \byuni \genA \lt \bpi x {\genA_1} x$
+\end{lstlisting}
+
+\noindent Then we can derive the solution of this equivalent unification problem:
+
+\begin{lstlisting}
+$\tctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1$.
+\end{lstlisting}
+
+From this example, we can see that the orders of unification variables do not
+matter because we can always solve it by a fresh unification variable that
+satisfies the scope constraint. So for a unification problem
+
+\begin{lstlisting}
+$\tctx, \genA, \ctxr \byuni \genA \uni \sigma$
+\end{lstlisting}
+
+\noindent we need to sanitize the unification variables in $\sigma$
+before we check the scope constraint. We call this process \textit{type
+  sanitization}, which is given in Figure \ref{fig:algo-resolve}. The
+interesting cases are only \rul{I-EVar} and \rul{I-EVar2}. In \rul{I-EVar},
+because $\genB$ appears after $\genA$, so we create a fresh unification variable
+$\genA_1$, which is put before $\genA$, and solve $\genB$ by $\genA_1$. In
+\rul{I-EVar2}, because $\genB$ is in the scope of $\genA$, so we leave it
+unchanged.
+
+\begin{figure*}[t]
+     \headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{}
+     \[\IEVarB \quad \IEVarA \]
+     \[\IVar \quad \IStar \]
+     \[\IApp\]
+     \[\ILam \]
+     \[\IPi\]
+    \caption{Type Sanitization}
+    \label{fig:algo-resolve}
+\end{figure*}
+
+\subsection{Unification}
+
+\begin{figure*}[t]
+\headercapm{\tpreuni \tau_1 \uni \tau_2 \toctx}{Unification of Types}
+    \[\UAEq \quad \UEVarTy\]
+    \[\UTyEVar\]
+    \[\UApp\]
+    \[\ULamAnn\]
+    \[\UPi\]
+    \caption{Unification rules}
+    \label{fig:algo-unification}
+\end{figure*}
+
+Based on type sanitization, Figure \ref{fig:algo-unification} gives the
+unification rules.
+
+Rule \rul{U-AEq} corresponds to the case when two types are already
+alpha-equivalent. Most of the rest rules are structural.
+Two most subtle ones are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which
+corresponding respectively to when the unification variable is on the left and on the
+right. We go through the first one. There are three preconditions.
+First is the occurs check, since no recursive
+types are allowed. After then we use type sanitization to make sure all the
+existential types in $\tau_1$ that are out of scope of $\genA$ are turned into
+fresh ones that are in the scope of $\genA$. This process gives us the output
+type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$. In this step, we
+eliminate the orders that do not matter. Finally, $\tau_2$ could also contain
+variables of which the
+orders matter, so
+we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
+Unlike well-formedness $\tctx \bywf \sigma$, well-termedness $\tctx \bywt
+\sigma$ is a
+relation that does not depend on typing. So there is no coupling between
+unification and typing.
+
+\paragraph{Example.} Below shows the process for the unification problem
+
+\begin{lstlisting}
+$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
+\end{lstlisting}
+
+For clarity, we denote $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1$. And it is
+easy to verify  $\genA \notin FV(\bpi x \genB x)$.
+
+\[
+   \ExUni
+\]
+
+
+\paragraph{Comparison.}
+
+In [], they do not need to do type sanitization because they destruct function
+type into two unifications
+
+\[
+  \inferrule{
+     \tctx [\genA_2, \genA_2, \genA = \genA_1 \to \genA_2] \byuni \genA_1 \uni \sigma_1
+     \toctx
+  \\ \ctxl \byuni [\ctxl]\sigma_2 \uni \genA_2 \dashv \ctxr
+  }{
+     \tpreuni[\genA] \sigma_1 \to \sigma_2 \uni \genA \dashv \ctxr
+  }
+\]
+
+\noindent until both sides are unification variables. Then they will take two
+cases into consideration: the unification variable on the left appears first, or
+the one on the right appear first.
+
+This cannot hold in dependent types. For example consider we apply this rule to
+this specific unification:
+
+$\tpreuni \genA \uni \bpi x \star x $
+
+\noindent It is obviously $\genA_2$ should be unified with $x$. However, $x$ is
+not in put into the context, so it will be ill typed. One choice is to put $x$
+into the context, and it must be put before $\genA_2$ to make $\genA_2$ well
+formed. However, this means $x$ will remains in the context, and it will make
+$x$ available for any unification variable after $\genA_2$ even though they may
+not have $x$ in their scope. More subtly, we can make a local context for each
+unification variable. Then we can put $x$ into the local context of $\genA_2$.
+In this way, there will be a local context attached with each unification
+variable, which complicate the system.
+
+Type sanitization solves thin problem in another way. We do not destruct Pi
+types but sanitize the unification variables that are out of scope.
+
+\subsection{Meta-theory}
+
+We do not give formal proofs for the following conjectures, but we believe most of
+them are quite intuitive:
+
+\begin{conjecture}
+  if $\tctx[\genA] \bycg \sigma_1 \cgto \sigma_2 \toctx$,
+  then $[\ctxl] \sigma_1 = [\ctxl] \sigma_2$.
+\end{conjecture}
+\begin{hproof}
+  By induction on type sanitization rules.
+\end{hproof}
+
+\begin{conjecture}
+  if $\tctx \byuni \sigma_1 \uni \sigma_2 \toctx$,
+  then $[\ctxl] \sigma_1 = [\ctxl] \sigma_2$.
+\end{conjecture}
+\begin{hproof}
+  By induction on unification rules.
+\end{hproof}
+
+\begin{conjecture}
+  \label{conj:correct_sani_2}
+  if $\tctx[\genA] \bycg \sigma_1 \cgto \sigma_2 \toctx$,
+  and $\tctx[\genA] \bywf \sigma_1$,
+  then $\ctxl \bywf \sigma_2$.
+\end{conjecture}
+\begin{hproof}
+  Type sanitization does nothing but replaces some unification variables with
+  fresh unification variables. And all fresh unification variables are in the
+  scope of the output context. So the output type preserves the well formedness
+  of the input type.
+\end{hproof}
+
+\begin{conjecture}
+  if $\tctx \byuni \sigma_1 \uni \sigma_2 \toctx$,
+  and $\tctx \bywf \sigma_1$,
+  and $\tctx \bywf \sigma_2$,
+  then $\ctxl \bywf \sigma_1$,
+  and $\ctxl \bywf \sigma_2$.
+\end{conjecture}
+\begin{hproof}
+  Unification extends the input context with more fresh unification variables
+  and newly solved existing unification variables. Those updates will not change
+  the well formedness of the type. However, the key point here is to prove the rule
+  \rul{U-EVarTy} and \rul{E-TyEVar} give well-formed output contexts. This is
+  based on Conjecture \ref{conj:correct_sani_2}, from where we know $\ctxl_1,
+  \genA, \ctxl_2 \bywf \tau_2$. From another precondition $\ctxl_1 \bywt
+  \tau_2$, we know $\tau_2$ is well scoped in $\ctxl_1$. This means $\genA, \ctxl_2$
+  plays no role for the well formedness of $\tau_2$. So $\ctxl_1 \bywf \tau_2$.
+\end{hproof}

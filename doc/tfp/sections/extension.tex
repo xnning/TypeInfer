@@ -1,0 +1,218 @@
+\section{Extended with Polymorphism}
+
+In this section, we discuss how to extends the type sanitization to deal with
+restricted polymorphic types. Our system has two simplifications: type variables
+in polymorphic types only have type $\star$, and subtyping only concerns Pi
+types and polymorphic types.
+
+\subsection{Language}
+
+The new definition of syntax extends the original one:
+
+\begin{tabular}{lrcl}
+  Type & $\sigma $ & \syndef & $\genA \mid e$ \\
+  Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e$ \\
+       && \synor & $\bpi x {\sigma_1} \sigma_2 \mid \forall x: \star. \sigma$ \\
+  Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
+  Contexts &
+             $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
+                                               \mid \tctx, \genA
+                                               \mid \tctx, \genA = \tau $ \\
+\end{tabular}
+
+\paragraph{Expression.} Expressions $e$ are extended with the polymorphic type
+$\forall x : \star . \sigma$. Note our definition of polymorphic type is not
+the general version
+$\forall x:\sigma. \sigma$.
+The restriction on type variable $x$ is that it can only have type $\star$.
+
+\paragraph{Types and Contexts.} The definition of types $\sigma$ is the same.
+Monotype $\tau$ is a special kind of $\sigma$ that
+contains no universal quantifiers. Therefore, only monotypes can be solutions of
+unification variables.
+The well-termedness of polymorphic type is
+given in Figure \ref{fig:poly-wellform}.
+
+\begin{figure}[t]
+    \headercapm{\tctx \bywt \sigma}
+    \[ \TWTPoly \]
+
+    \caption{Well formedness (extends Figure \ref{fig:wellform})}
+    \label{fig:poly-wellform}
+\end{figure}
+
+\subsection{Subtyping}
+
+\subsubsection{Declarative Subtyping}
+
+\begin{figure*}[t]
+    \headercapm{\dpreall \sigma_1 \dsub \sigma_2}
+    \[\DSPolyR \quad \DSPolyL\]
+    \[\DSPi \quad \DSAEq \]
+    \\
+    \caption{Declarative Subtyping}
+    \label{fig:decl-subtyp}
+\end{figure*}
+
+Unification is only for monotypes. So the definition of unification for the new
+polymorphic language is the same as Figure \ref{fig:algo-unification}. The
+difference is now typing actually depends on subtyping, then subtyping depends on
+unification.
+
+The subtyping relationship for polymorphic language is quite standard. The
+version extended with dependent type is shown
+in Figure \ref{fig:decl-subtyp}. This is a restricted version of subtyping,
+where we do not consider the polymorphic relationship between constructs other
+than Pi types and polymorphic types. For
+example, in some type system, the following two types have polymorphic
+relationship:
+
+\begin{lstlisting}
+  $(\blam x \Int {\forall a. a \to a}) ~ 3$
+  $(\blam x \Int {\Int \to \Int}) ~ 3$
+\end{lstlisting}
+
+This simplification is acceptable since our purpose is to deal with unification
+variables in algorithmic subtyping.
+
+Rule \rul{DS-PolyR} first put $x:\star$ to the context and continue subtyping.
+Rule \rul{DS-PolyL} guesses a monotype $\tau$ to instantiate $x$. The system
+is predicative because polymorphic types can only be instantiated with
+monotypes. Rule \rul{DS-Pi} is contra-variant on argument, and co-variant on
+return type. Type variable $x$ is assigned the less general type $\sigma_1$. For
+all other cases, rule \rul{DS-AEq} requests two types to be alpha-equivalent.
+
+\subsubsection{Algorithmic Subtyping}
+
+\begin{figure*}[t]
+    \headercapm{\tctx[\genA] \byrf^s \sigma \rfto \tau \toctx}{$s = + | -$}
+    \[\IPoly \quad \IMono\]
+    \[\IPiA \]
+    \caption{Polymorphic Type Sanitization}
+    \label{fig:algo-poly-saniti}
+\end{figure*}
+
+\begin{figure*}[t]
+    \headercapm{\tpresub \sigma_1 \lt \sigma_2 \toctx}{Subtyping}
+    \[\SPolyR \quad \SPolyL\]
+    \[\SPi \]
+    \[\SEVarL \quad \SEVarR\]
+    \[\SUnify\]
+    \caption{Algorithmic Subtyping}
+    \label{fig:subtyping}
+\end{figure*}
+
+For the algorithmic system, we need to add consideration for unification
+variables in subtyping. Usually, in the case when a unification variable on one
+side, we will do unification:
+
+\[
+  \inferrule{\tpreuni \genA \uni \sigma \toctx}{\tpresub \genA \lt \sigma \toctx}
+\]
+
+However, unification only accept monotypes as input types. But we cannot
+restrict the type in the above rule to be monotype, because there are cases
+when the type on the other side is a polymorphic type, and the subtyping still
+holds. For example, in this subtyping
+
+\[
+\tpresub \genA \lt \bpi x {(\forall y .y \to y)} \Int
+\]
+
+\noindent one possible solution for $\genA$ is $\bpi x {(\Int \to Int)} \Int$.
+
+One observation from this example is that, when the unification variable is on the left,
+even though there can be polymorphic components on the right hand side, those
+polymorphic components must appear contra-variantly. In the above example,
+because the type $\forall y. y \to y$ is contra-variant, so there exists a
+monotype as the solution of $\genA$.
+
+Similar, when the unification variable is on the right, the polymorphic
+components on the left must appear co-variantly.
+
+Also, if such a solution exists, there could be unlimited number of solutions.
+For the above example, solution of $\genA$ can be $(\bpi x {(\String \to String)}
+\Int)$, or $(\bpi x {((\Int \to \Int) \to \Int \to \Int)} \Int)$. Namely, any type
+of form
+$\genA_1 \to \genA_1$, where $\genA_1$ is a fresh unification variable. This
+means, we can eliminate the universal quantifier in the type $(\bpi x {(\forall y
+  .y \to y)} \Int)$ by replacing $y$ with a fresh unification variable $\genA_1$,
+and then unify $\genA$ with $(\bpi x {(\genA_1 \to \genA_1)} \Int)$.
+
+Based on this observation, we give another type sanitization process for
+polymorphic types in Figure \ref{fig:algo-poly-saniti}. The polymorphic
+sanitization process will sanitize a probably polymorphic type $\sigma$ to a
+monotype $\tau$. As we discussed before, this process has two different modes:
+contra-variant($s=+$), and co-variant($s = -$). Rule \rul{I-Poly} is when a
+polymorphic type appears contra-variantly, we eliminate the universal
+quantifier by replacing $x$ with a fresh unification variable $\genA_1$. Rule
+\rul{I-Mono} is when the type is already a monotype so it remains unchanged.
+Rule \rul{I-Pi} switches the mode in this argument type, and preserves the mode in
+thi return type. Notice there is no rule for a polymorphic type under co-variant
+mode. For example,
+
+\[
+\tpresub \genA \lt \forall y .y \to y
+\]
+
+\noindent will try to sanitize the type $\forall y. y \to y$ under co-variant
+mode, then it fails, which corresponds to the
+fact that no solution is feasible for this subtyping.
+
+Having polymorphic type sanitization, we are ready to define algorithmic subtyping
+relation, which is shown in Figure \ref{fig:subtyping}. Rule \rul{S-PolyR} is
+intuitive. The trailing context $\ctxr$ is discarded because the variables are
+already out of scope. The original
+non-determinism in rule \rul{DS-PolyL} is replaced by a new unification variable
+$\genA$ in rule \rul{S-PolyL}. Rule \rul{S-Pi} also discards useless trailing
+context.
+Rule \rul{S-EVarL} deals with the case a unification variable is on
+left hand side, where the type $\sigma$ is first sanitized co-variantly.
+Meanwhile, in rule \rul{S-EVarR}, the unification variable is on the right hand
+side, and the type $\sigma$ is sanitized contra-variantly.
+
+\subsection{Meta-theory}
+
+Again, we do not give formal proofs for the following conjectures, but we
+believe most of them are intuitive:
+
+\begin{conjecture}
+  if $\tctx[\genA] \byrf^s \sigma \cgto \tau \toctx$,
+  and $\tctx[\genA] \bywf \sigma$,
+  then $\ctxl \bywf \tau$,
+  and if $s=+$, then $\ctxl \bysub \sigma \lt \tau \toctx_2$,
+  else $\ctxl \bysub \tau \lt \sigma \toctx_3$.
+\end{conjecture}
+\begin{hproof}
+  By induction on polymorphic type sanitization rules.
+\end{hproof}
+
+\begin{conjecture}
+  if $\tpresub \sigma_1 \lt \sigma_2 \toctx$,
+  and $\ctxr$ is an extension of $\ctxl$ with all unsolved unification
+  variables solved,
+  then $\ctxr \bysub [\ctxr] \sigma_1 \lt [\ctxr] \sigma_2$.
+\end{conjecture}
+\begin{hproof}
+  By induction on subtyping rules, with help of conclusions from conjecture of
+  unifications and polymorphic type sanitization.
+\end{hproof}
+
+\begin{conjecture}
+  if $\ctxl$ extends $\tctx$ with all unification variables solved,
+  and $[\ctxl]\tctx \bysub [\ctxl] \sigma_1 \lt [\ctxl]\sigma_2$,
+  then there exists a context $\ctxl_2$, and $\ctxr'$,
+  that $\tctx \bysub [\tctx] \sigma_1 \lt [\tctx]\sigma_2 \toctx_2$,
+  and both $\ctxl$ and $\ctxl_2$ can be extended to $\ctxr'$.
+\end{conjecture}
+\begin{hproof}
+  This proof would be more complicated. The idea is by induction on
+  declarative subtyping rules, and analyze the form of $\sigma_1$, and
+  $\sigma_2$. One key observation is that since $[\ctxl]\tctx \bysub [\ctxl]
+  \sigma_1 \lt [\ctxl]\sigma_2$ holds, $\ctxl$ is itself a feasible solution for
+  the algorithmic subtyping problem $\tctx
+  \bysub [\tctx] \sigma_1 \lt [\tctx]\sigma_2 \dashv ?$. However the algorithmic
+  system could have a slight different solution $\ctxl_2$, where some
+  unification variables could remain unsolved.Then both $\ctxl$ and
+  $\ctxl_2$ can extend to a same context $\ctxr$.
+\end{hproof}

@@ -1,0 +1,45 @@
+\section{Introduction}
+
+Dependently typed languages are currently increasingly adopted in many language
+designs due to its expressiveness[...]. However, there are little literatures on
+how to do type inference or unification on those languages. This is because
+more power a type system has, more sophisticated the type system
+becomes. The dependency between expressions and types bring lots of complexities
+for jobs like type inference or unification.
+
+Existing literatures [...] that tries to give specification for type inference
+or unification of
+a dependent language is complex in the sense it usually couples typing
+and unification, which makes proof of meta-theory difficult.
+Also the algorithm becomes non-intuitive or even unpredictable once it involves
+so many constructs or processes.
+
+In this paper, we presents an easy strategy to do unification for simple dependent
+types. Our notation is based on [Dunfield], in which the authors give a complete
+and easy algorithm for higher-ranked type inference. We come up with a new
+process called \textit{type sanitization} that helps resolve the dependency
+between expressions and types. Later on, the type sanitization process is
+extended to deal with restricted polymorphic types.
+Based on type sanitization, our algorithm
+decouples unification and subtyping from typing, which simplifies the
+meta-theory. Though there are no formal proofs for those meta-theory yet (which
+is still in progress),
+we give many conjectures that we think are intuitive.
+
+We expect our algorithm works as an attempt
+for a simple and predicative unification/subtyping algorithm for dependent
+types. This is also to
+fill the gap between
+delicate unification algorithms for simple types
+and
+complicated unification algorithm for dependent types.
+More precisely, our main contributions are:
+
+\begin{itemize}
+  \item A specification of an easy algorithm for unification algorithms for
+    simply dependent types.
+  \item A heuristic strategy \textit{type sanitization} that resolves the
+    dependency between expressions and types.
+  \item A specification of subtyping based on type sanitization that decouples
+      subtyping from typing in languages including restricted polymorphic types.
+\end{itemize}
