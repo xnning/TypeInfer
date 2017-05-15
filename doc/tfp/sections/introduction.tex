@@ -1,15 +1,15 @@
 \section{Introduction}
 
 Dependently typed languages are currently increasingly adopted in many language
-designs due to its expressiveness[...]. However, there are little literatures on
+designs due to its expressiveness[...]. However, there is little literature on
 how to do type inference or unification on those languages. This is because
 more power a type system has, more sophisticated the type system
 becomes. The dependency between expressions and types bring lots of complexities
 for jobs like type inference or unification.
 
-Existing literatures [...] that tries to give specification for type inference
+Existing literature [...] that tries to give specification for type inference
 or unification of
-a dependent language is complex in the sense it usually couples typing
+a dependent language is complex in the sense that it usually couples typing
 and unification, which makes proof of meta-theory difficult.
 Also the algorithm becomes non-intuitive or even unpredictable once it involves
 so many constructs or processes.
@@ -27,8 +27,8 @@ meta-theory. Though there are no formal proofs for those meta-theory yet (which
 is still in progress),
 we give many conjectures that we believe are intuitive.
 
-We expect our algorithm works as an attempt
-for a simple and predicative unification/subtyping algorithm for dependent
+We expect our algorithm serves as an attempt
+for a simple and predicatable unification/subtyping algorithm for dependent
 types. This is also to
 fill the gap between
 delicate unification algorithms for simple types
@@ -40,7 +40,7 @@ More precisely, our main contributions are:
   \item A specification of an easy algorithm for unification algorithms based on
     alpha equality for
     simple dependent types.
-  \item A heuristic strategy \textit{type sanitization} that resolves the
+  \item A heuristic strategy called \textit{type sanitization} that resolves the
     dependency between expressions and types.
   \item A specification of subtyping based on extended type sanitization that
     decouples

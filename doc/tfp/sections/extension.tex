@@ -29,7 +29,7 @@ The restriction on type variable $x$ is that it can only have type $\star$.
 
 \paragraph{Types.} The definition of types $\sigma$ is the same.
 Monotype $\tau$ is a special kind of $\sigma$ that
-contains no universal quantifiers. Therefore, only monotypes can be solutions of
+contains no universal quantifiers. Only monotypes can be solutions of
 unification variables.
 The well-termedness of polymorphic type is
 given in Figure \ref{fig:poly-wellform}.
@@ -105,7 +105,7 @@ all other cases, rule \rul{DS-AEq} requests two types to be alpha-equivalent.
 
 For the algorithmic system, we need to add consideration for unification
 variables in subtyping. Usually, in the case when a unification variable on one
-side, we will do unification:
+side in subtyping process, we will do unification:
 
 \[
   \inferrule{\tpreuni \genA \uni \sigma \toctx}{\tpresub \genA \lt \sigma \toctx}

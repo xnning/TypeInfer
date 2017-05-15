@@ -390,8 +390,8 @@
                                       \quad
                                       \inferrule{ %\inferrule{ }{\tctx,\genA_1 \bywf \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\tctx,\genA_1,x \bywf x}\rname{WF-Var}
                                                  }
-                                                {\tctx,\genA_1 \bywf \bpi x {\genA_1} x}}
-                               {\tctx,\genA,\genB \byuni \genA \lt \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1} \rname{U-EvarTy}}
+                                                {\tctx,\genA_1 \bywt \bpi x {\genA_1} x}}
+                               {\tctx,\genA,\genB \byuni \genA \uni \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1} \rname{U-EvarTy}}
 
 %%% Local Variables:
 %%% mode: latex

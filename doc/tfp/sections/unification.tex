@@ -17,8 +17,8 @@ unification variables solved. For example,
 $\genA \byuni \genA = \Int \dashv \genA = \Int$
 \end{lstlisting}
 
-For a valid unification problem, it must have the invariant: $[\tctx] \sigma_1 =
-\sigma_1$, and $[\tctx] \sigma_2 = \sigma_2$. Namely, the input types must be
+For a valid unification problem, it must have the invariant: $[\tctx] \tau_1 =
+\tau_1$, and $[\tctx] \tau_2 = \tau_2$. Namely, the input types must be
 fully applied under the input context. So the following is not a valid
 unification problem input:
 
@@ -38,9 +38,10 @@ with another type. We discuss those cases first.
 
 \paragraph{Variable Orders matter.}
 
-While unifying existential variable $\genA$ and type $\sigma$, we tends to
-directly derive that $\genA = \sigma$. But the orders in the context are
-important. Consider a unification example:
+While unifying existential variable $\genA$ and type $\tau$, we tends to
+directly derive that $\genA = \tau$. But $\tau$ may not be a valid type as the
+solution for $\genA$.
+Consider a unification example:
 
 \begin{lstlisting}
 $\tctx, \genA, x \byuni \genA \uni x$
@@ -52,23 +53,23 @@ $x$ since $x$ is not in the scope of $\genA$.
 From this observation, it seems whenever we have the unification problem as
 
 \begin{lstlisting}
-$\tctx, \genA, \ctxr \byuni \genA \uni \sigma$
+$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
 \end{lstlisting}
 
-\noindent we need to check $\sigma$ is in the scope of $\tctx$. Only if it
-satisfies the scope constraint, we can derive $\genA = \sigma$.
+\noindent we need to check if $\tau$ is in the scope of $\tctx$. Only if it
+satisfies the scope constraint, we can derive $\genA = \tau$.
 
 \paragraph{Unification variable orders do not matter.}
 
 However, there are unification problems that even if the type does not satisfies the
-scope constraint, it still has feasible solution. Consider:
+scope constraint, it still has feasible solutions. Consider:
 
 \begin{lstlisting}
 $\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
 \end{lstlisting}
 
-Here because $\genB$ appears after $\genA$, we cannot directly solve $\genA$
-by $\bpi x \genB x$ which is ill typed.
+Here because $\genB$ appears after $\genA$, we cannot directly derive $\genA =
+\bpi x \genB x$ which is ill typed.
 But this unification does have a solution context if we could sanitize the
 appearance of $\genB$ by solving it by a fresh unification variable $\genA_1$
 which is put in the scope of $\genA$, and then
@@ -89,10 +90,10 @@ matter because we can always solve it by a fresh unification variable that
 satisfies the scope constraint. So for a unification problem
 
 \begin{lstlisting}
-$\tctx, \genA, \ctxr \byuni \genA \uni \sigma$
+$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
 \end{lstlisting}
 
-\noindent we need to sanitize the unification variables in $\sigma$
+\noindent we need to sanitize the unification variables in $\tau$
 before we check the scope constraint. We call this process \textit{type
   sanitization}, which is given in Figure \ref{fig:algo-resolve}. The
 interesting cases are only \rul{I-EVar} and \rul{I-EVar2}. In \rul{I-EVar},
@@ -133,9 +134,10 @@ alpha-equivalent. Most of the rest rules are structural.
 Two most subtle ones are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which
 corresponding respectively to when the unification variable is on the left and on the
 right. We go through the first one. There are three preconditions.
-First is the occurs check, since no recursive
-types are allowed. After then we use type sanitization to make sure all the
-existential types in $\tau_1$ that are out of scope of $\genA$ are turned into
+First is the occurs check, which is to make sure $\genA$ does not appear in the
+free variables of $\tau_1$.
+Then we use type sanitization to make sure all the
+unification types in $\tau_1$ that are out of scope of $\genA$ are turned into
 fresh ones that are in the scope of $\genA$. This process gives us the output
 type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$. In this step, we
 eliminate the orders that do not matter. Finally, $\tau_2$ could also contain
@@ -163,34 +165,43 @@ easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 
 \paragraph{Comparison.}
 
-In [], they do not need to do type sanitization because they destruct function
-type into two unifications
+In [], they do not need to do type sanitization because if one side is
+a unification variable, and the other side is some type constructors, they will
+decompose the unification problem into several sub-unifications, until it cannot
+be decomposed. Then they check about the well-scopedness of the type. If both
+sides are unification variables, they will take two cases into consideration:
+the unification on the left appears first in the context, or the one on the
+right appears first in the context. For example, a decomposing rule for
+unification where the left hand side is a function type is:
+
 
 \[
   \inferrule{
-     \tctx [\genA_2, \genA_2, \genA = \genA_1 \to \genA_2] \byuni \genA_1 \uni \sigma_1
+     \tctx [\genA_2, \genA_2, \genA = \genA_1 \to \genA_2] \byuni \genA_1 \uni \tau_1
      \toctx
-  \\ \ctxl \byuni [\ctxl]\sigma_2 \uni \genA_2 \dashv \ctxr
+  \\ \ctxl \byuni [\ctxl]\tau_2 \uni \genA_2 \dashv \ctxr
   }{
-     \tpreuni[\genA] \sigma_1 \to \sigma_2 \uni \genA \dashv \ctxr
+     \tctx [\genA] \byuni \tau_1 \to \tau_2 \uni \genA \dashv \ctxr
   }
 \]
 
-\noindent until both sides are unification variables. Then they will take two
-cases into consideration: the unification variable on the left appears first, or
-the one on the right appear first.
+Here the original unification variable $\genA$ is solved by a function type
+consisting of two fresh
+unification variables $\genA_1$ and $\genA_2$, which are then unified with
+$\tau_1$ and $\tau_2$ sequentially.
 
-This cannot hold in dependent types. For example consider we apply this rule to
+However, this cannot hold in dependent types. For example consider we apply this rule to
 this specific unification:
 
 $\tpreuni \genA \uni \bpi x \star x $
 
 \noindent It is obviously $\genA_2$ should be unified with $x$. However, $x$ is
-not in put into the context, so it will be ill typed. One choice is to put $x$
-into the context, and it must be put before $\genA_2$ to make $\genA_2$ well
+not in the context, so it will be ill typed. One choice is to put $x$
+into the context, and it must be put before $\genA_2$ to make $\genA_2 = x$ well
 formed. However, this means $x$ will remains in the context, and it will make
-$x$ available for any unification variable after $\genA_2$ even though they may
-not have $x$ in their scope. More subtly, we can make a local context for each
+$x$ available for any unification variable after $\genA_2$ even though they
+should not have access to $x$.
+Or more subtly, we can make a local context for each
 unification variable. Then we can put $x$ into the local context of $\genA_2$.
 In this way, there will be a local context attached with each unification
 variable, which complicate the system.
