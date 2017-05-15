@@ -13,7 +13,9 @@ The new definition of syntax extends the original one:
 \begin{tabular}{lrcl}
   Type & $\sigma $ & \syndef & $\genA \mid e$ \\
   Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e$ \\
-       && \synor & $\bpi x {\sigma_1} \sigma_2 \mid \forall x: \star. \sigma$ \\
+       && \synor & $\bpi x {\sigma_1} \sigma_2$ \\
+       && \synor & $\erlam x e \equiv \blam x \genA e$ \\
+       && \synor & $\forall x: \star. \sigma$ \\
   Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
   Contexts &
              $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
@@ -31,7 +33,7 @@ The restriction on type variable $x$ is that it can only have type $\star$.
 Monotype $\tau$ is a special kind of $\sigma$ that
 contains no universal quantifiers. Only monotypes can be solutions of
 unification variables.
-The well-termedness of polymorphic type is
+The well-scopedness of polymorphic type is
 given in Figure \ref{fig:poly-wellform}.
 
 \begin{figure}[t]
@@ -47,7 +49,7 @@ given in Figure \ref{fig:poly-wellform}.
 \subsubsection{Declarative Subtyping}
 
 \begin{figure*}[t]
-    \headercapm{\dpreall \sigma_1 \dsub \sigma_2}
+    \headercapm{\tpresub \sigma_1 \dsub \sigma_2}
     \[\DSPolyR \quad \DSPolyL\]
     \[\DSPi \quad \DSAEq \]
     \\

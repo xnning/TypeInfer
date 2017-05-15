@@ -14,7 +14,7 @@ new unification variables or more existing
 unification variables solved. For example,
 
 \begin{lstlisting}
-$\genA \byuni \genA = \Int \dashv \genA = \Int$
+$\genA \byuni \genA \uni \Int \dashv \genA = \Int$
 \end{lstlisting}
 
 For a valid unification problem, it must have the invariant: $[\tctx] \tau_1 =
@@ -23,7 +23,7 @@ fully applied under the input context. So the following is not a valid
 unification problem input:
 
 \begin{lstlisting}
-$\genA = \String \byuni \genA = \Int$
+$\genA = \String \byuni \genA \uni \Int$
 \end{lstlisting}
 
 We assume this invariant is maintained through the whole
@@ -76,7 +76,7 @@ which is put in the scope of $\genA$, and then
 get an equivalent unification problem:
 
 \begin{lstlisting}
-$\tctx, \genA_1, \genA, \genB = \genA_1 \byuni \genA \lt \bpi x {\genA_1} x$
+$\tctx, \genA_1, \genA, \genB = \genA_1 \byuni \genA \uni \bpi x {\genA_1} x$
 \end{lstlisting}
 
 \noindent Then we can derive the solution of this equivalent unification problem:
@@ -96,7 +96,7 @@ $\tctx, \genA, \ctxr \byuni \genA \uni \tau$
 \noindent we need to sanitize the unification variables in $\tau$
 before we check the scope constraint. We call this process \textit{type
   sanitization}, which is given in Figure \ref{fig:algo-resolve}. The
-interesting cases are only \rul{I-EVar} and \rul{I-EVar2}. In \rul{I-EVar},
+interesting cases are \rul{I-EVar} and \rul{I-EVar2}. In \rul{I-EVar},
 because $\genB$ appears after $\genA$, so we create a fresh unification variable
 $\genA_1$, which is put before $\genA$, and solve $\genB$ by $\genA_1$. In
 \rul{I-EVar2}, because $\genB$ is in the scope of $\genA$, so we leave it
@@ -144,7 +144,7 @@ eliminate the orders that do not matter. Finally, $\tau_2$ could also contain
 variables of which the
 orders matter, so
 we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
-Unlike well-formedness $\tctx \bywf \sigma$, well-termedness $\tctx \bywt
+Unlike well-formedness $\tctx \bywf \sigma$, well-scopedness $\tctx \bywt
 \sigma$ is a
 relation that does not depend on typing. So there is no coupling between
 unification and typing.
@@ -166,9 +166,10 @@ easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 \paragraph{Comparison.}
 
 In [], they do not need to do type sanitization because if one side is
-a unification variable, and the other side is some type constructors, they will
-decompose the unification problem into several sub-unifications, until it cannot
-be decomposed. Then they check about the well-scopedness of the type. If both
+a unification variable $\genA$, and the other side is some type constructors, they will
+decompose the unification problem into several sub-unifications according to the
+type constructor, until type being unified is in the scope of $\genA$.
+If both
 sides are unification variables, they will take two cases into consideration:
 the unification on the left appears first in the context, or the one on the
 right appears first in the context. For example, a decomposing rule for
@@ -204,9 +205,9 @@ should not have access to $x$.
 Or more subtly, we can make a local context for each
 unification variable. Then we can put $x$ into the local context of $\genA_2$.
 In this way, there will be a local context attached with each unification
-variable, which complicate the system.
+variable, which complicates the system.
 
-Type sanitization solves thin problem in another way. We do not destruct Pi
+Type sanitization solves this problem in another way. We do not destruct Pi
 types but sanitize the unification variables that are out of scope.
 
 \subsection{Meta-theory}
