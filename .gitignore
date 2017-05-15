@@ -24,3 +24,6 @@ doc/**/auto
 *.vo
 *.glob
 doc/simple/coq/.depend
+
+*.bbl
+*.blg

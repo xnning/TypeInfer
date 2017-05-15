@@ -1,20 +1,24 @@
 \section{Introduction}
 
 Dependent types are currently increasingly adopted in many language
-designs due to its expressiveness[...]. However, there is little literature on
+designs due to its expressiveness \cite{xi1999dependent, licata2005formulation,
+  pasalic2006concoqtion, mckinna2006dependent}, including Agda
+\cite{norell2009dependently}, and Idris \cite{brady2013idris}.
+However, there is little literature on
 how to do type inference or unification on those languages. This is because
 more power a type system has, more sophisticated the type system
 becomes. The dependency between expressions and types bring lots of complexities
 for jobs like type inference or unification.
 
-Existing literature [...] that tries to give specification for type inference
+Existing literature \cite{ziliani2015unification}
+that tries to give specification for type inference
 or unification of
 a dependent language is complex in the sense that it usually couples typing
 and unification, which makes proof of meta-theory difficult.
 Also the algorithm becomes non-intuitive or even unpredictable once it involves
 so many constructs or processes.
 
-In this paper, we presents a heuristic and easy strategy to do unification based on
+In this paper, we presents an easy strategy to do unification based on
 alpha-equality for simple dependent
 types. This algorithm is based on alpha-equality for following reasons. Firstly,
 for unification algorithms based on beta-equality, if the system has strong
@@ -22,11 +26,13 @@ normalization, the algorithm usually reduces all types into normal forms and
 then compares the types using
 alpha-equality. Beta-reduction is standard so the problem is still in the
 alpha-equality based unification.
-Secondly, there are proposals [...] for type system without strong
-normalization, for example, doing type-level computations using casts[...]. For
+Secondly, there are proposals for type system without strong
+normalization, for example, doing type-level computations using casts
+\cite{van2013explicit, kimmell2012equational, sjoberg2012irrelevance}
+. For
 those systems, the unification is naturally based on alpha-equality.
 
-Our notations to do formalization are inspired by [Dunfield],
+Our notations to do formalization are inspired by \cite{dunfield2013complete},
 in which the authors give a complete
 and easy algorithm for higher-ranked type inference. We come up with a new
 process called \textit{type sanitization} that helps resolve the dependency
@@ -48,15 +54,16 @@ complicated unification algorithms for dependent types.
 More precisely, our main contributions are:
 
 \begin{itemize}
-  \item A heuristic strategy called \textit{type sanitization} that resolves the
+  \item We come up with a strategy called \textit{type sanitization}
+    that resolves the
     dependency between types.
-  \item Based on type sanitization, a specification of an alpha-equality based
-    unification algorithm
+  \item Based on type sanitization, we give a specification of an alpha-equality
+    based unification algorithm
     for simple dependent types, which
     decouples unification from typing.
-  \item Based on extended type sanitization, a specification of a subtyping algorithm
-    that
-    decouples
+  \item We show how to extend type sanitization for a specification of a
+    subtyping algorithm
+    that decouples
     subtyping from typing in a language including restricted polymorphic types.
 \end{itemize}
 

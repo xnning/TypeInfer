@@ -1,5 +1,5 @@
 % SIGPLAN format
-\documentclass[preprint, nocopyrightspace]{llncs}
+\documentclass[oribibl, citeauthoryear]{llncs}
 
 % AMS packages
 \usepackage{amsmath}
@@ -48,6 +48,8 @@
 \author{Ningning Xie \and Bruno C. d. S. Oliveira}
 \institute{The University of Hong Kong}
 
+\bibliographystyle{splncs}
+
 \newenvironment{hproof}{%
   \renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
 
@@ -59,7 +61,7 @@
 \setlength{\pdfpagewidth}{\paperwidth}
 
 
-\title{A Heuristic and Easy Strategy for Unification on Dependent Types}
+\title{Towards Unification for Dependent Types}
 \maketitle
 
 \begin{abstract}
@@ -75,8 +77,12 @@
 \input{sections/conclusion.tex}
 
 %% -- Appendix --
+\bibliography{sections/citation}
 
+\newpage
 \appendix
+
+\input{sections/appendix.tex}
 
 %% -- The end --
 

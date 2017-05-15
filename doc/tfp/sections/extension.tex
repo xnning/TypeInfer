@@ -13,7 +13,9 @@ The new definition of syntax extends the original one:
 \begin{tabular}{lrcl}
   Type & $\sigma $ & \syndef & $\genA \mid e$ \\
   Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e$ \\
-       && \synor & $\bpi x {\sigma_1} \sigma_2 \mid \forall x: \star. \sigma$ \\
+       && \synor & $\bpi x {\sigma_1} \sigma_2$ \\
+       && \synor & $\erlam x e \equiv \blam x \genA e$ \\
+       && \synor & $\forall x: \star. \sigma$ \\
   Monotype & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
   Contexts &
              $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
@@ -31,7 +33,7 @@ The restriction on type variable $x$ is that it can only have type $\star$.
 Monotype $\tau$ is a special kind of $\sigma$ that
 contains no universal quantifiers. Only monotypes can be solutions of
 unification variables.
-The well-termedness of polymorphic type is
+The well-scopedness of polymorphic type is
 given in Figure \ref{fig:poly-wellform}.
 
 \begin{figure}[t]
@@ -47,7 +49,7 @@ given in Figure \ref{fig:poly-wellform}.
 \subsubsection{Declarative Subtyping}
 
 \begin{figure*}[t]
-    \headercapm{\dpreall \sigma_1 \dsub \sigma_2}
+    \headercapm{\tpresub \sigma_1 \dsub \sigma_2}
     \[\DSPolyR \quad \DSPolyL\]
     \[\DSPi \quad \DSAEq \]
     \\
@@ -61,11 +63,11 @@ for a polymorphic language, we need to define the subtyping relationship.
 
 The subtyping relationship for polymorphic language is quite standard. The
 version extended with dependent type is shown
-in Figure \ref{fig:decl-subtyp}. This is a restricted version of subtyping,
+in Figure \ref{fig:decl-subtyp}. This is a simplified version of subtyping,
 where we do not consider the polymorphic relationship between constructs other
 than Pi types and polymorphic types. For
-example, in some type system, the following two types have polymorphic
-relationship:
+example, it is also possible to have subtyping
+relationship between those two types:
 
 \begin{lstlisting}
   $(\blam x \Int {\forall a. a \to a}) ~ 3$
@@ -73,7 +75,9 @@ relationship:
 \end{lstlisting}
 
 This simplification is acceptable since our purpose is to deal with unification
-variables in algorithmic subtyping.
+variables in algorithmic subtyping. Also we expect extending the subtyping to
+take other
+constructs like application into consideration will not cause any problem.
 
 Rule \rul{DS-PolyR} first put $x:\star$ to the context and continue subtyping.
 Rule \rul{DS-PolyL} guesses a monotype $\tau$ to instantiate $x$. The system
