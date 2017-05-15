@@ -23,7 +23,7 @@ alpha-equality for simple dependent
 types. This algorithm is based on alpha-equality for following reasons. Firstly,
 for unification algorithms based on beta-equality, if the system has strong
 normalization, the algorithm usually reduces all types into normal forms and
-then compares the types using
+then compares the normal forms using
 alpha-equality. Beta-reduction is standard so the problem is still in the
 alpha-equality based unification.
 Secondly, there are proposals for type system without strong
@@ -32,9 +32,8 @@ normalization, for example, doing type-level computations using casts
 . For
 those systems, the unification is naturally based on alpha-equality.
 
-Our notations to do formalization are inspired by \cite{dunfield2013complete},
-in which the authors give a complete
-and easy algorithm for higher-ranked type inference. We come up with a new
+Our notations to do formalization are inspired by \cite{dunfield2013complete}.
+We come up with a new
 process called \textit{type sanitization} that helps resolve the dependency
 between expressions and types. Later on, the type sanitization process is
 extended to deal with restricted polymorphic types.
@@ -67,8 +66,9 @@ More precisely, our main contributions are:
     subtyping from typing in a language including restricted polymorphic types.
 \end{itemize}
 
-In Section \ref{sec:language}, we present a overview of the language with simple
-dependent types. In Section \ref{sec:unification}, we formalize the unification
+In Section \ref{sec:language}, we present a overview of a simple dependently
+typed language.
+In Section \ref{sec:unification}, we formalize the unification
 problem and introduce the process of type sanitization and unification. In
 Section \ref{sec:extension}, we extend the language with a restricted
 polymorphic type, and then present the process of extended type sanitization

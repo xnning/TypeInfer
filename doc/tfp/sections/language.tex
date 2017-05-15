@@ -5,8 +5,7 @@ Below shows the syntax of the system.
 
 \begin{tabular}{lrcl}
   Type & $\sigma, \tau$ & \syndef & $\genA \mid e$ \\
-  Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e$ \\
-             && \synor & $\bpi x {\sigma_1} \sigma_2$ \\
+  Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e \mid \bpi x {\sigma_1} \sigma_2$ \\
              && \synor & $\erlam x e \equiv \blam x \genA e$ \\
   Contexts &
              $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
@@ -17,9 +16,8 @@ Below shows the syntax of the system.
 \begin{figure}[t]
     \headercapm{\tctx\wc}
 
-    \[\TWCEmpty \quad \TWCTVar\]
-    \[\TWCTypedVar \quad \TWCEVar\]
-    \[\TWCSolvedEVar\]
+    \[\TWCEmpty \quad \TWCTypedVar \]
+    \[\TWCEVar \quad \TWCSolvedEVar\]
 
     \headercapm{\tctx \bywf \sigma}
 
@@ -52,10 +50,10 @@ we only intend to use the calculus as an example for unification.
 \paragraph{Types.} Types $\sigma, \tau$ contain all expression forms, with an
 additional $\genA$ to denote unification variables.
 
-\paragraph{Context.} A context is an ordered list of variables, and all
-unification variables.
-Unification variables can either be unsolved
-(with form $\genA$) or solved by a type $\tau$ (with form $\genA = \tau$).
+\paragraph{Contexts.} A context is an ordered list of variables and
+unification variables, which
+can either be unsolved
+($\genA$) or solved by a type $\tau$ ($\genA = \tau$).
 
 It is important for a context to be ordered to solve the dependency between
 variables.
@@ -66,7 +64,7 @@ For example, the expression
 \end{lstlisting}
 
 \noindent cannot type check because $z$ cannot be of type $x$ since $x$
-appears after $z$ in the context.
+appears after $z$.
 
 Figure \ref{fig:wellform} gives the definition of well formedness of a context
 ($\tctx \wc$),
@@ -94,12 +92,12 @@ $\tctx[\genA = \star]$ means the context keeps unchanged except $\genA$
 now is solved by $\star$.
 
 \paragraph{Applying Context.} Since the context records all the solutions of
-solved unification variables, it can be used as a substitution on types. Figure
+solved unification variables, it can be used as a substitution. Figure
 \ref{fig:applyctx} defines the substitution process, where all solved
 unification variables are substituted by their solution.
 
 \begin{figure}[t]
-    \headercapm{[\tctx]\sigma_1 = \sigma_2}{}
+    % \headercapm{[\tctx]\sigma_1 = \sigma_2}{}
 
     \begin{mathpar}
     \begin{tabular}{r c l l}
@@ -109,6 +107,6 @@ unification variables are substituted by their solution.
         $[\tctx, \genA=\tau]e$ & = & $[\tctx](e[\genA \mapsto \tau])$
     \end{tabular}
     \end{mathpar}
-    \caption{Applying a context with existential variables.}
+    \caption{Applying a context.}
     \label{fig:applyctx}
 \end{figure}

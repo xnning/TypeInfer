@@ -312,7 +312,7 @@
 \newcommand*{\TWCVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx)}{\tctx, x \wc}\rname{WC-Var}}
 \newcommand*{\TWCTVar}{\inferrule{\tctx \wc \\ \typA \notin dom(\tctx)}{\tctx, \typA \wc}\rname{WC-TVar}}
 \newcommand*{\TWCTypedVar}{\inferrule{\tctx \wc\\ x \notin dom(\tctx) \\
-    \tctx \bywf \sigma}{\tctx, x: \sigma \wc}\rname{WC-TypedVar}}
+    \tctx \bywf \sigma}{\tctx, x: \sigma \wc}\rname{WC-Var}}
 \newcommand*{\TWCLetVar}{\inferrule{\tctx \wc \\ x \notin dom(\tctx) \\
     \tctx\bywf \sigma\\
     \sigma = \forall {\overbar {y:\star}}.\tau \\
@@ -321,8 +321,8 @@
 \newcommand*{\TWCEVar}{\inferrule{\tctx \wc\\ \genA \notin
     dom(\tctx)}{\tctx, \genA \wc }\rname{WC-EVar}}
 \newcommand*{\TWCSolvedEVar}{\inferrule{\tctx \wc\\ \genA \notin
-    dom(\tctx) \\ \tctx\bywf \sigma }{\tctx, \genA = \sigma \wc
-  }\rname{WC-SolvedEVar}}
+    dom(\tctx) \\ \tctx\bywf \tau }{\tctx, \genA = \tau \wc
+  }\rname{WC-S-EVar}}
 
 \newcommand*{\TWTVar}{\inferrule{x \in \tctx}{\tprewt x}\rname{WT-Var}}
 \newcommand*{\TWTEVar}{\inferrule{\genA \in \tctx}{\tprewt \genA}\rname{WT-EVar}}

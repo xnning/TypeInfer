@@ -1,7 +1,7 @@
 \section{Unification}
 \label{sec:unification}
 
-We first formalize the unification problem as:
+The unification problem is formalized as:
 
 \begin{lstlisting}
 $\tpreuni \tau_1 \uni \tau_2 \toctx$
@@ -47,8 +47,7 @@ Consider a unification example:
 $\tctx, \genA, x \byuni \genA \uni x$
 \end{lstlisting}
 
-\noindent which has no feasible solution. Because $\genA$ cannot be solved by
-$x$ since $x$ is not in the scope of $\genA$.
+\noindent which has no feasible solution. Because $x$ is not in the scope of $\genA$.
 
 From this observation, it seems whenever we have the unification problem as
 
@@ -56,7 +55,7 @@ From this observation, it seems whenever we have the unification problem as
 $\tctx, \genA, \ctxr \byuni \genA \uni \tau$
 \end{lstlisting}
 
-\noindent we need to check if $\tau$ is in the scope of $\tctx$. Only if it
+\noindent we need to check if $\tau$ is well-scoped in $\tctx$. Only if it
 satisfies the scope constraint, we can derive $\genA = \tau$.
 
 \paragraph{Unification variable orders do not matter.}
@@ -116,7 +115,7 @@ unchanged.
 \subsection{Unification}
 
 \begin{figure*}[t]
-\headercapm{\tpreuni \tau_1 \uni \tau_2 \toctx}{Unification of Types}
+\headercapm{\tpreuni \tau_1 \uni \tau_2 \toctx}{}
     \[\UAEq \quad \UEVarTy\]
     \[\UTyEVar\]
     \[\UApp\]
@@ -139,15 +138,11 @@ free variables of $\tau_1$.
 Then we use type sanitization to make sure all the
 unification types in $\tau_1$ that are out of scope of $\genA$ are turned into
 fresh ones that are in the scope of $\genA$. This process gives us the output
-type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$. In this step, we
-eliminate the orders that do not matter. Finally, $\tau_2$ could also contain
+type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$.
+Finally, $\tau_2$ could also contain
 variables of which the
 orders matter, so
 we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
-Unlike well-formedness $\tctx \bywf \sigma$, well-scopedness $\tctx \bywt
-\sigma$ is a
-relation that does not depend on typing. So there is no coupling between
-unification and typing.
 
 \paragraph{Example.} Below shows the process for the unification problem
 
@@ -165,15 +160,15 @@ easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 
 \paragraph{Comparison.}
 
-In \cite{dunfield2013complete}, they do not need to do type sanitization because
+In \cite{dunfield2013complete}, they have no type sanitization because
 if one side is
 a unification variable $\genA$, and the other side is some type constructors, they will
 decompose the unification problem into several sub-unifications according to the
 type constructor, until type being unified is in the scope of $\genA$.
 If both
 sides are unification variables, they will take two cases into consideration:
-the unification on the left appears first in the context, or the one on the
-right appears first in the context. For example, a decomposing rule for
+the left one appears first in the context, or the right one.
+For example, a decomposing rule for
 unification where the left hand side is a function type is:
 
 
@@ -191,30 +186,25 @@ Here the original unification variable $\genA$ is solved by a function type
 consisting of two fresh
 unification variables $\genA_1$ and $\genA_2$, which are then unified with
 $\tau_1$ and $\tau_2$ sequentially.
-
-However, this cannot hold in dependent types. For example consider we apply this rule to
+However, this cannot hold with dependent types. For example consider we apply this rule to
 this specific unification:
 
 $\tpreuni \genA \uni \bpi x \star x $
 
-\noindent It is obviously $\genA_2$ should be unified with $x$. However, $x$ is
-not in the context, so it will be ill typed. One choice is to put $x$
-into the context, and it must be put before $\genA_2$ to make $\genA_2 = x$ well
-formed. However, this means $x$ will remains in the context, and it will make
-$x$ available for any unification variable after $\genA_2$ even though they
+\noindent It is obvious that $\genA_2$ should be solved by $x$. So in order to make
+it well typed, we need to put $x$ before $\genA_2$
+into the context.
+However, this means $x$ will remain in the context, and it is available
+for any later unification variable that
 should not have access to $x$.
-Or more subtly, we can make a local context for each
-unification variable. Then we can put $x$ into the local context of $\genA_2$.
-In this way, there will be a local context attached with each unification
-variable, which complicates the system.
+One work around is to make a local context for each
+unification variable. Then $x$ can be put into the local context of $\genA_2$.
+However, this would complicate the system a lot.
 
 Type sanitization solves this problem in another way. We do not destruct Pi
 types but sanitize the unification variables that are out of scope.
 
 \subsection{Meta-theory}
-
-We do not give formal proofs for the following conjectures, but we believe most of
-them are quite intuitive:
 
 \begin{conjecture}
   if $\tctx[\genA] \bycg \sigma_1 \cgto \sigma_2 \toctx$,
@@ -239,8 +229,8 @@ them are quite intuitive:
   then $\ctxl \bywf \sigma_2$.
 \end{conjecture}
 \begin{hproof}
-  Type sanitization does nothing but replaces some unification variables with
-  fresh unification variables. And all fresh unification variables are in the
+  Type sanitization only replaces some unification variables with
+  fresh ones. And all fresh unification variables are in the
   scope of the output context. So the output type preserves the well formedness
   of the input type.
 \end{hproof}
@@ -255,10 +245,10 @@ them are quite intuitive:
 \begin{hproof}
   Unification extends the input context with more fresh unification variables
   and newly solved existing unification variables. Those updates will not change
-  the well formedness of the type. However, the key point here is to prove the rule
+  the well formedness of the type. The key point here is to prove  rule
   \rul{U-EVarTy} and \rul{E-TyEVar} give well-formed output contexts. This is
   based on Conjecture \ref{conj:correct_sani_2}, from where we know $\ctxl_1,
   \genA, \ctxl_2 \bywf \tau_2$. From another precondition $\ctxl_1 \bywt
-  \tau_2$, we know $\tau_2$ is well scoped in $\ctxl_1$. This means $\genA, \ctxl_2$
+  \tau_2$, we know $\genA, \ctxl_2$
   plays no role for the well formedness of $\tau_2$. So $\ctxl_1 \bywf \tau_2$.
 \end{hproof}
