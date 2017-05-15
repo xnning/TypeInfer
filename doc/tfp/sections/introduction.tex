@@ -1,6 +1,6 @@
 \section{Introduction}
 
-Dependently typed languages are currently increasingly adopted in many language
+Dependent types are currently increasingly adopted in many language
 designs due to its expressiveness[...]. However, there is little literature on
 how to do type inference or unification on those languages. This is because
 more power a type system has, more sophisticated the type system
@@ -14,9 +14,20 @@ and unification, which makes proof of meta-theory difficult.
 Also the algorithm becomes non-intuitive or even unpredictable once it involves
 so many constructs or processes.
 
-In this paper, we presents an easy strategy to do unification based on
+In this paper, we presents a heuristic and easy strategy to do unification based on
 alpha-equality for simple dependent
-types. Our notation is inspired by [Dunfield], in which the authors give a complete
+types. This algorithm is based on alpha-equality for following reasons. Firstly,
+for unification algorithms based on beta-equality, if the system has strong
+normalization, the algorithm usually reduces all types into normal forms and
+then compares the types using
+alpha-equality. Beta-reduction is standard so the problem is still in the
+alpha-equality based unification.
+Secondly, there are proposals [...] for type system without strong
+normalization, for example, doing type-level computations using casts[...]. For
+those systems, the unification is naturally based on alpha-equality.
+
+Our notations to do formalization are inspired by [Dunfield],
+in which the authors give a complete
 and easy algorithm for higher-ranked type inference. We come up with a new
 process called \textit{type sanitization} that helps resolve the dependency
 between expressions and types. Later on, the type sanitization process is
@@ -29,22 +40,24 @@ we give many conjectures that we believe are intuitive.
 
 We expect our algorithm serves as an attempt
 for a simple and predicatable unification/subtyping algorithm for dependent
-types. This is also to
-fill the gap between
+types. This is also for
+filling the gap between
 delicate unification algorithms for simple types
 and
-complicated unification algorithm for dependent types.
+complicated unification algorithms for dependent types.
 More precisely, our main contributions are:
 
 \begin{itemize}
-  \item A specification of an easy algorithm for unification algorithms based on
-    alpha equality for
-    simple dependent types.
   \item A heuristic strategy called \textit{type sanitization} that resolves the
-    dependency between expressions and types.
-  \item A specification of subtyping based on extended type sanitization that
+    dependency between types.
+  \item Based on type sanitization, a specification of an alpha-equality based
+    unification algorithm
+    for simple dependent types, which
+    decouples unification from typing.
+  \item Based on extended type sanitization, a specification of a subtyping algorithm
+    that
     decouples
-      subtyping from typing in a language including restricted polymorphic types.
+    subtyping from typing in a language including restricted polymorphic types.
 \end{itemize}
 
 In Section \ref{sec:language}, we present a overview of the language with simple

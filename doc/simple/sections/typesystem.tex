@@ -55,7 +55,10 @@ There are two forms of existential variables in context: unsolved form $\genA$ a
     \label{fig:existwellform}
 \end{figure}
 
-The change of corresponding well formedness for existential variables and context, with a new notation well-termedness are given in Figure \ref{fig:existwellform}. Well-termedness $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. The usage of well-termedness will become clear when we get into unification rules. Well formedness of a type now take existential variables into consideration. Existential variable is a well-formed type if it is contained in the context. An expression which is not a Pi type or a type scheme, is well-formed if it can be checked with $\star$.
+The change of corresponding well formedness for existential variables and
+context, with a new notation well-termedness are given in Figure
+\ref{fig:existwellform}.
+Well-termedness $\tctx \bywt \sigma$ means under context $\tctx$, $\sigma$ is a syntactically legal term with all variables bounded, but it does not concern about type. The usage of well-termedness will become clear when we get into unification rules. Well formedness of a type now take existential variables into consideration. Existential variable is a well-formed type if it is contained in the context. An expression which is not a Pi type or a type scheme, is well-formed if it can be checked with $\star$.
 
 Context substitution is extended smoothly with existential variables, as shown in Figure \ref{fig:applyctx}. Intuitively, once an existential variables is solved, we could substitute it with its solution. Different from declarative system, context substitution plays a more important role in algorithmic system, since some procedures only accept fully substituted expressions.
 
