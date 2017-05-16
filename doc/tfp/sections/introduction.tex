@@ -12,9 +12,8 @@ becomes. The dependency between expressions and types bring lots of complexities
 Existing literature \cite{ziliani2015unification, abel2011higher, elliott1989higher}
 that tries to give specification for type inference
 or unification of
-a dependent language is complex in the sense that it usually couples typing
-and unification, which makes proof of meta-theory difficult.
-Also the algorithm becomes non-intuitive or even unpredictable once it involves
+a dependent language is quite complicated,
+and even becomes non-intuitive or unpredictable once it involves
 so many constructs or features.
 
 In this paper, we presents an easy strategy to do unification based on
@@ -23,8 +22,7 @@ types. This algorithm is based on alpha-equality for following reasons. Firstly,
 for unification algorithms based on beta-equality, if the system has strong
 normalization, the algorithm usually reduces all types into normal forms and
 then compares the normal forms using
-alpha-equality. Beta-reduction is standard so the problem is still in the
-alpha-equality based unification.
+alpha-equality.
 Secondly, there are proposals for type system without strong
 normalization, for example, doing type-level computations using casts
 \cite{van2013explicit, kimmell2012equational, sjoberg2012irrelevance}
@@ -34,7 +32,7 @@ those systems, the unification is naturally based on alpha-equality.
 Our notations to do formalization are inspired by \cite{dunfield2013complete}.
 We come up with a new
 process called \textit{type sanitization} that helps resolve the dependency
-between expressions and types. Later on, the type sanitization process is
+problem. Later on, the type sanitization process is
 extended to deal with restricted polymorphic types.
 Based on type sanitization, our algorithm
 are remarkably simple and well-behaved.
@@ -48,7 +46,7 @@ dependent types. This is also for
 filling the gap between
 delicate unification algorithms for simple types
 and
-complicated unification algorithms for dependent types.
+sophisticated unification algorithms for dependent types.
 A non-goal of our work
 is to replace existing matured unification/subtyping algorithm.
 More precisely, our main contributions are:
