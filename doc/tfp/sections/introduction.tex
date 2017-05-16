@@ -4,22 +4,21 @@ Dependent types are currently increasingly adopted in many language
 designs due to its expressiveness \cite{xi1999dependent, licata2005formulation,
   pasalic2006concoqtion, mckinna2006dependent,
   norell2009dependently, brady2013idris}.
-However, there is little literature on
-how to do type inference or unification on those languages. This is because
+However, type inference or unification on those language is not easy.
+This is because
 more power a type system has, more sophisticated the type system
-becomes. The dependency between expressions and types bring lots of complexities
-for jobs like type inference or unification.
+becomes. The dependency between expressions and types bring lots of complexities.
 
-Existing literature \cite{ziliani2015unification}
+Existing literature \cite{ziliani2015unification, abel2011higher, elliott1989higher}
 that tries to give specification for type inference
 or unification of
 a dependent language is complex in the sense that it usually couples typing
 and unification, which makes proof of meta-theory difficult.
 Also the algorithm becomes non-intuitive or even unpredictable once it involves
-so many constructs or processes.
+so many constructs or features.
 
 In this paper, we presents an easy strategy to do unification based on
-alpha-equality for simple dependent
+alpha-equality for first-order dependent
 types. This algorithm is based on alpha-equality for following reasons. Firstly,
 for unification algorithms based on beta-equality, if the system has strong
 normalization, the algorithm usually reduces all types into normal forms and
@@ -38,19 +37,21 @@ process called \textit{type sanitization} that helps resolve the dependency
 between expressions and types. Later on, the type sanitization process is
 extended to deal with restricted polymorphic types.
 Based on type sanitization, our algorithm
-decouples unification and subtyping from typing, which simplifies the
-meta-theory. Though there are no formal proofs for those meta-theory yet (which
-is still in progress),
+are remarkably simple and well-behaved.
+Though there are no formal proofs for the meta-theory of the system yet
+(which is still in progress),
 we give many conjectures that we believe are intuitive.
 
-We expect our algorithm serves as an attempt
-for a simple and predicatable unification/subtyping algorithm for dependent
-types. This is also for
+We expect our algorithm serves as a footstone towards
+a simple and predictable unification/subtyping algorithm for
+dependent types. This is also for
 filling the gap between
 delicate unification algorithms for simple types
 and
 complicated unification algorithms for dependent types.
-Precisely, our contributions are:
+A non-goal of our work
+is to replace existing matured unification/subtyping algorithm.
+More precisely, our main contributions are:
 
 \begin{itemize}
   \item We come up with a strategy called \textit{type sanitization}
@@ -58,17 +59,17 @@ Precisely, our contributions are:
     dependency between types.
   \item Based on type sanitization, we give a specification of an alpha-equality
     based unification algorithm
-    for simple dependent types.
+    for first-order dependent types.
   \item We show how to extend type sanitization for a specification of a
     subtyping algorithm
     in a language including restricted polymorphic types.
 \end{itemize}
 
-In Section \ref{sec:language}, we present a overview of a simple dependently
+In Section \ref{sec:language}, we present a overview of a first-order dependently
 typed language.
 In Section \ref{sec:unification}, we formalize the unification
-problem and introduce the process of type sanitization and unification. In
-Section \ref{sec:extension}, we extend the language with a restricted
-polymorphic type, and then present the process of extended type sanitization
+problem and present the type sanitization and unification. In
+Section \ref{sec:extension}, we extend the language with
+polymorphic types, and then present the process of extended type sanitization
 along with subtyping rules. Finally Section \ref{sec:conclusion} concludes the
 paper.
