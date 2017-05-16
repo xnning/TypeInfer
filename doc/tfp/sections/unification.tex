@@ -104,9 +104,8 @@ unchanged.
 \begin{figure*}[t]
      \headercapm{\tctx[\genA] \bycg \tau_1 \cgto \tau_2 \toctx}{}
      \[\IEVarB \quad \IEVarA \]
-     \[\IVar \quad \IStar \]
-     \[\IApp\]
-     \[\ILam \]
+     \[\IStar \quad \IApp\]
+     \[\IVar \quad \ILam \]
      \[\IPi\]
     \caption{Type Sanitization}
     \label{fig:algo-resolve}
@@ -145,11 +144,7 @@ orders matter, so
 we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
 
 \paragraph{Example.} Below shows the process for the unification problem
-
-\begin{lstlisting}
-$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
-\end{lstlisting}
-
+$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$.
 For clarity, we denote $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1$. And it is
 easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 
@@ -197,12 +192,8 @@ into the context.
 However, this means $x$ will remain in the context, and it is available
 for any later unification variable that
 should not have access to $x$.
-One work around is to make a local context for each
-unification variable. Then $x$ can be put into the local context of $\genA_2$.
-However, this would complicate the system a lot.
-
-Type sanitization solves this problem in another way. We do not destruct Pi
-types but sanitize the unification variables that are out of scope.
+Type sanitization solves this problem by
+sanitizing Pi type instead of decomposing it.
 
 \subsection{Meta-theory}
 
@@ -237,7 +228,7 @@ types but sanitize the unification variables that are out of scope.
 
 \begin{conjecture}
   if $\tctx \byuni \sigma_1 \uni \sigma_2 \toctx$,
-  and $\tctx \bywf \sigma_1$,
+  $\tctx \bywf \sigma_1$,
   and $\tctx \bywf \sigma_2$,
   then $\ctxl \bywf \sigma_1$,
   and $\ctxl \bywf \sigma_2$.

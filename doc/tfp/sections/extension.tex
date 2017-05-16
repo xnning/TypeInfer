@@ -2,8 +2,8 @@
 \label{sec:extension}
 
 In this section, we discuss how to extends the type sanitization to deal with
-restricted polymorphic types. Our system has two simplifications: type variables
-in polymorphic types only have type $\star$, and subtyping only concerns Pi
+polymorphic types. Our system has two simplifications: polymorphic type variables
+are of type $\star$, and subtyping only concerns Pi
 types and polymorphic types.
 
 \subsection{Language}
@@ -60,8 +60,9 @@ Unification is only for monotypes. So the definition of unification for the new
 polymorphic language is the same as Figure \ref{fig:algo-unification}. However,
 for a polymorphic language, we need to define the subtyping relationship.
 
-The subtyping relationship for polymorphic language is quite standard. The
-version extended with dependent type is shown
+The subtyping relationship for polymorphic language is quite standard
+\cite{dunfield2013complete, jones2007practical}. We extends it with
+dependent type
 in Figure \ref{fig:decl-subtyp}. This is a simplified version of subtyping,
 where we do not consider the polymorphic relationship between constructs other
 than Pi types and polymorphic types. For
@@ -78,11 +79,12 @@ variables in algorithmic subtyping. Also we expect extending the subtyping
 with other
 constructs like application will not cause any problem.
 
-Rule \rul{DS-PolyR} first put $x:\star$ to the context and continue subtyping.
-Rule \rul{DS-PolyL} guesses a monotype $\tau$ to instantiate $x$.
-Rule \rul{DS-Pi} is contra-variant on argument, and co-variant on
-return type. Type variable $x$ is assigned the less general type $\sigma_1$. For
-all other cases, rule \rul{DS-AEq} requests two types to be alpha-equivalent.
+% Rule \rul{DS-PolyR} first put $x:\star$ to the context and continue subtyping.
+% Rule \rul{DS-PolyL} guesses a monotype $\tau$ to instantiate $x$.
+% Rule \rul{DS-Pi} is contra-variant on argument, and co-variant on
+% return type.
+% For
+% all other cases, rule \rul{DS-AEq} requests two types to be alpha-equivalent.
 
 \subsubsection{Algorithmic Subtyping}
 

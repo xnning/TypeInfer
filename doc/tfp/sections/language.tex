@@ -20,7 +20,6 @@ Below shows the syntax of the system.
     \[\TWCEVar \quad \TWCSolvedEVar\]
 
     \headercapm{\tctx \bywf \sigma}
-
     \[\TWFOther \]
 
     \headercapm{\tctx \bywt \sigma}
@@ -33,19 +32,13 @@ Below shows the syntax of the system.
 
 \paragraph{Expression. }
 Expressions $e$ are variables x, a single sort $\star$ to represent the type of
-types,
+types (with an impredicative axiom $\star : \star$),
 application $e_1~e_2$,
 function $\blam x \sigma e$,
 and Pi type
 $\bpi x {\tau_1} {\tau_2}$.
 The unannotated function $\erlam x e$ is equivalent to the same function with
 the bound variable annotated by a fresh unification variable $\genA$.
-
-Notice here we merge types and kinds together by an impredicative axiom $\star:\star$.
-This choice is
-ok for our
-purposes since
-we only intend to use the calculus as an example for unification.
 
 \paragraph{Types.} Types $\sigma, \tau$ contain all expression forms, with an
 additional $\genA$ to denote unification variables.

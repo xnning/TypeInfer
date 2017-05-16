@@ -2,8 +2,8 @@
 
 Dependent types are currently increasingly adopted in many language
 designs due to its expressiveness \cite{xi1999dependent, licata2005formulation,
-  pasalic2006concoqtion, mckinna2006dependent}, including Agda
-\cite{norell2009dependently}, and Idris \cite{brady2013idris}.
+  pasalic2006concoqtion, mckinna2006dependent,
+  norell2009dependently, brady2013idris}.
 However, there is little literature on
 how to do type inference or unification on those languages. This is because
 more power a type system has, more sophisticated the type system
@@ -50,7 +50,7 @@ filling the gap between
 delicate unification algorithms for simple types
 and
 complicated unification algorithms for dependent types.
-More precisely, our main contributions are:
+Precisely, our contributions are:
 
 \begin{itemize}
   \item We come up with a strategy called \textit{type sanitization}
@@ -58,12 +58,10 @@ More precisely, our main contributions are:
     dependency between types.
   \item Based on type sanitization, we give a specification of an alpha-equality
     based unification algorithm
-    for simple dependent types, which
-    decouples unification from typing.
+    for simple dependent types.
   \item We show how to extend type sanitization for a specification of a
     subtyping algorithm
-    that decouples
-    subtyping from typing in a language including restricted polymorphic types.
+    in a language including restricted polymorphic types.
 \end{itemize}
 
 In Section \ref{sec:language}, we present a overview of a simple dependently
