@@ -1,0 +1,526 @@
+\documentclass{beamer}
+
+\mode<presentation>{}
+
+\usetheme{Madrid}
+
+%% preamble
+\title{Towards Unification for Dependent Types}
+\author[N. Xie, B.C.d.S. Oliveira]
+{\textbf{Ningning Xie}, Bruno C. d. S. Oliveira}
+
+\institute[]{The University of Hong Kong}
+
+\date[TFP 2017]{June 2017}
+
+
+%% custom setting
+
+\usepackage{listings}
+\usepackage{fnpct}
+\setbeamerfont{footnote}{size=\tiny}
+\input{../paper_utility.tex}
+
+%% begin
+\begin{document}
+
+\input{../sections/formal.tex}
+
+%% title frame
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+\tableofcontents
+\end{frame}
+
+%% frame : Motivation
+\section{Motivation and Background}
+
+\begin{frame}{Outline}
+\tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}
+  \frametitle{Motivation}
+  \begin{itemize}
+    \item Developments on type unification techniques for sophisticated dependent
+      type systems.
+      \begin{itemize}
+        \item Features: higher-order, polymorphism, subtyping, etc.
+        \item powerful, but complicated, complex, and hard to reason.
+      \end{itemize}
+      \only<1-1>{
+        \begin{figure}[ht]
+            \includegraphics[width=0.8\textwidth]{fig/coq.png}
+            ~\footnote{Ziliani, Beta, and Matthieu Sozeau. "A unification
+              algorithm for Coq featuring universe polymorphism and
+              overloading." ACM SIGPLAN Notices. Vol. 50. No. 9. ACM, 2015.}
+        \end{figure}
+        }
+    \only<2->{
+    \item<2-> Developments on dependent type systems that give programmers more control.
+      \begin{itemize}
+        \item Manage type-level computations using explicit casts.
+          \only<2-2>{
+            \footnote{Yang, Yanpeng, Xuan Bi, and Bruno C. D. S. Oliveira.
+              "Unified Syntax with Iso-types." Asian Symposium on Programming
+              Languages and Systems. Springer International Publishing, 2016.}
+            \footnote{van Doorn, Floris, Herman Geuvers, and Freek Wiedijk.
+              "Explicit convertibility proofs in pure type systems." Proceedings
+              of the Eighth ACM SIGPLAN international workshop on Logical
+              frameworks \& meta-languages: theory \& practice. ACM, 2013.}
+            \footnote{Kimmell, Garrin, et al. "Equational reasoning about
+              programs with general recursion and call-by-value semantics."
+              Proceedings of the sixth workshop on Programming languages meets
+              program verification. ACM, 2012.}
+            \footnote{Sjöberg, Vilhelm, and Stephanie Weirich. "Programming up
+              to congruence." ACM SIGPLAN Notices. Vol. 50. No. 1. ACM, 2015.}
+            }
+        \item Decidable type checking based on alpha-equality.
+        \item Easy to combine recursive types.
+      \end{itemize}
+      \only<2-2>{
+        \begin{figure}[ht]
+          \begin{center}
+            \includegraphics[width=0.8\textwidth]{fig/cast.png}
+          \end{center}
+        \end{figure}
+      }
+    \item<3-> Question: can we get rid of the complication of the algorithms in
+      those systems?
+    }
+  \end{itemize}
+\end{frame}
+
+%% frame : Goals and non-goals
+
+\newcommand\hl[1]{{\color{blue} #1}}
+
+\begin{frame}
+  \frametitle{Goals}
+  Our goal is to
+  \begin{itemize}
+  \item present a \hl{simple and complete} unification algorithm for
+    \hl{first-order} dependent type systems with \hl{alpha-equality} based type
+    checking
+  \item fill the gap between delicate unification algorithms for simple types
+    and sophisticated unification algorithms for dependent types.
+  \end{itemize}
+  We do \textit{not} intend to
+  \begin{itemize}
+  \item solve more problems than existing unification algorithms.
+  \item serve for beta-equality based dependent type systems.
+  \end{itemize}
+\end{frame}
+
+%% frame : Contribution
+
+\begin{frame}
+  \frametitle{Contributions}
+  \begin{itemize}
+    \item \hl{Strategy}: \textit{type sanitization} that resolves the
+      dependency between types.
+    \item \hl{Algorithm}: an alpha-equality based unification algorithm for
+      first-order dependent types.
+    \item \hl{Extension}: subtyping in implicit polymorphism.
+    \item \hl{Meta-theory Study}: undergoing.
+  \end{itemize}
+\end{frame}
+
+%% frame : bg
+
+\begin{frame}[fragile]
+  \frametitle{Background: Dependent Types}
+  \begin{itemize}
+    \item Types depends on terms.
+    \item Vector of integers
+      \begin{itemize}
+        \item definition without dependent types:
+          $data ~ Vect = Nil~|~Cons~Int~Vect$
+          \begin{itemize}
+            \item<2-> one definition that could cause \hl{run-time error}\\
+              $head :: Vect \to Int$
+            \item<3-> make it \hl{total}\\
+              $head :: Vect \to Maybe~Int$
+          \end{itemize}
+        \item<4-> definition with dependent type: \hl{sized} Vector\\
+      \begin{lstlisting}
+data Vect :: Nat -> Type  =
+  | Nil :: Vect Z
+  | Cons :: Int -> Vect k -> Vect (S k)
+      \end{lstlisting}
+      \begin{overlayarea}{\linewidth}{1cm}
+        \begin{onlyenv}<5->
+          \begin{lstlisting}
+       head :: Vect (S k) -> Int
+          \end{lstlisting}
+      \end{onlyenv}
+      \end{overlayarea}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+%% frame : bg
+
+\begin{frame}
+  \frametitle{Background: Unification Problem}
+  \begin{block}{Unification}
+  Given \hl{two terms} containing some unification variables,
+  find the \hl{substitution}
+  which makes two terms \hl{equal}.
+  \end{block}
+
+  \uncover<2->{
+  \begin{itemize}
+    \item $\genA \to Int$
+    \item $Bool \to Int$
+  \end{itemize}
+  }
+
+  \uncover<3->{
+  Solution: $\genA = Bool$.
+  }
+\end{frame}
+
+%% frame : Unification Algorithm
+
+\section{Unification Algorithm}
+\begin{frame}{Outline}
+\tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{Language}
+  \begin{itemize}
+    \item \hl{Unified syntax} based on $\lambda C$
+  \begin{block}{Syntax}
+    \begin{tabular}{lrcl}
+  Type & $\sigma, \tau$ & \syndef & $\genA \mid e$ \\
+  Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e \mid \bpi x {\sigma_1} \sigma_2$ \\
+    \end{tabular}
+  \end{block}
+  \item $\erlam x e \equiv \blam x \genA e$
+  \item Example: $(\blam x \star {\blam y {\hl{x}} y}) :: \bpi x \star {\bpi y x x}$
+  \item $A \to B$ for $\bpi x A B$ if $x$ does not appear in $B$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Unification Algorithm}
+  Key ideas:
+  \begin{itemize}
+  \item \hl{ordered} algorithmic typing context
+    ~\footnote{Dunfield, Joshua, and Neelakantan R. Krishnaswami. "Complete and
+      easy bidirectional typechecking for higher-rank polymorphism." ACM SIGPLAN
+      Notices. Vol. 48. No. 9. ACM, 2013.}:
+    \begin{block}{Algorithmic typing context}
+      Contexts
+      $\tctx, \ctxl, \ctxr$  \syndef $\ctxinit \mid \tctx,x:\sigma
+      \mid \tctx, \hl{\genA}
+      \mid \tctx, \hl{\genA = \tau} $
+    \end{block}
+    scope constraint
+    \begin{itemize}
+      \item $\blam x \genA {\blam y \genB} y$
+      \item $\genA = y$ \alert{invalid}
+      \item $\genB = x$ \hl{valid}
+    \end{itemize}
+  \item<2-> \hl{judgment}: $\tctx \byuni \tau_1 \uni \tau_2 \hl{\toctx}$
+  \item<3-> invariant: inputs are already \hl{fully substituted} under current context.
+    \begin{itemize}
+      \item $\genA = \Int \byuni \genA \uni \Bool$ \alert{invalid}
+      \item $\genA = \Int \byuni \Int \uni \Bool$
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem}
+  The case when we have a unification variable on one side:
+  \begin{itemize}
+    \item $\hl{\tctx}, \genA, \ctxr \byinf \genA \uni \tau$
+    \item<2-> what we will do if $\tau$ is a function?
+       $\tctx_1, \genA, \tctx_2 \byuni \genA \uni A \to B$
+      \begin{itemize}
+        \item<3-> try directly scope constraint? \alert{No.}
+        \item<4-> $\genA, \hl{\genB} \byuni \genA \uni \Int \to \hl{\genB}$
+        \item<5-> $\hl{\genA_1}, \genA = \Int \to \hl{\genA_1}, \genB = \hl{\genA_1}$
+        \item<6-> \hl{unification variables need special treatments in scope constraint}!
+      \end{itemize}
+    \item<7-> In Dunfield and Krishnaswami 2013
+      ~\footnote{Dunfield, Joshua, and Neelakantan R. Krishnaswami. "Complete and
+        easy bidirectional typechecking for higher-rank polymorphism." ACM SIGPLAN
+        Notices. Vol. 48. No. 9. ACM, 2013.}:
+      \begin{itemize}
+        \item<8-> solve $\genA = \genA_1 \to \genA_2$.
+        \item<8-> unify
+          $\tctx_1, \genA_1, \genA_2, \genA = \genA_1 \to \genA_2, \tctx_2 \byuni \hl{\genA_1 \uni A}$\\
+          ~~~~~~~$\tctx_1, \genA_1, \genA_2, \genA = \genA_1 \to \genA_2, \tctx_2 \byuni \hl{\genA_2 \uni B}$
+      \end{itemize}
+    \item<9-> Then $\tctx_1, \genA, \tctx_2 \byuni \genA \uni \bpi x \star \hl{x}$?
+      \begin{itemize}
+        \item<10-> $\genA_2 = x$
+        \item<11-> $\tctx_1, \genA_1, \alert{x}, \genA_2, \genA = \genA_1 \to
+          \genA_2, \alert<12->{\tctx_2}.$ \uncover<13->{\alert{No.}}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem}
+  \begin{itemize}
+    \item can not use scope constraint directly because of unification variables
+      \begin{itemize}
+        \item $\genA, \hl{\genB} \byuni \genA \uni \Int \to \hl{\genB}$
+        \item $\hl{\genA_1}, \genA = \Int \to \hl{\genA_1}, \genB = \hl{\genA_1}$
+      \end{itemize}
+    \item cannot destruct a Pi type because of the type dependency
+      \begin{itemize}
+      \item $\tctx_1, \genA, \tctx_2 \byuni \genA \uni \bpi x \star \hl{x}$
+      \end{itemize}
+    \item<2-> observation: we can always solve it by \hl{a fresh unification
+      variable} that satisfies the scope constraint.
+    \item<3-> Our solution:
+        for unification problem
+        $\tctx, \genA, \ctxr \byinf \genA \uni \tau$,
+        we \hl{sanitize} the unification variables in $\tau$ before we check the
+        scope constraint.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Strategy}
+  \begin{block}{Type Sanitization}
+    Given $\genA, \tau$, solve unification variables in $\tau$ out of scope of
+    $\genA$ by fresh unification variables that in that scope of $\genA$.
+  \end{block}
+  \uncover<2->{Example}
+  \begin{itemize}
+  \item<3-> $\genA, \genB \byuni \genA \uni \Int \to \genB$
+    \begin{itemize}
+      \item type sanitization: $\genA, \genB \bycg \Int \to \genB \cgto \Int \to
+        \genA_1 \dashv \hl{\genA_1}, \genA, \hl{\genB = \genA_1}$
+      \item solution: $\genA_1, \genA = \Int \to \genA_1, \genB = \genA_1$
+    \end{itemize}
+  \item<4-> $\genA, \genB, x \byuni \genA \uni x \to \genB$
+    \begin{itemize}
+      \item<5-> type sanitization: $\genA, \genB \bycg \alert<6->{x} \to \genB
+        \cgto \alert<6->{x} \to
+        \genA_1 \dashv \hl{\genA_1}, \genA, \hl{\genB = \genA_1}$
+      \item<6-> solution: \alert{fail}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Unification}
+  Key ideas:
+  \begin{itemize}
+    \item \hl{ordered} algorithmic typing context. \hl{scope constraint}.
+    \item \hl{judgment}: $\tctx \byuni \tau_1 \uni \tau_2 \toctx$
+    \item invariant: inputs are already \hl{fully substituted} under current
+      context.
+    \item<2-> strategy: \hl{type sanitization}
+  \end{itemize}
+  \uncover<3->{...Find more explanations in the paper.}
+\end{frame}
+
+\section{Extension: Implicit polymorphism}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection]
+\end{frame}
+
+
+\begin{frame}{Language}
+    \begin{block}{Syntax}
+      \begin{tabular}{lrcl}
+        Type & $\sigma $ & \syndef & $\genA \mid e$ \\
+        Expr & $e$ & \syndef & $x \mid \star \mid e_1~e_2 \mid \blam x \sigma e \mid \bpi x {\sigma_1} \sigma_2$ \\
+             && \synor & $\hl{\forall x: \star. \sigma}$ \\
+        \hl{Monotype} & $\tau$ & \syndef & $ \{ \sigma' \in \sigma, \forall \notin \sigma'\} $ \\
+      \end{tabular}
+    \end{block}
+    \begin{itemize}
+    \item A \hl{restricted} version of polymorphic types.
+    \item We write $\forall a. a \to a$ for $\forall a: \star. a \to a$.
+    \item<2-> \hl{Predictivity}: universal quantifiers can only be instantiated by monotypes.
+    \item<3-> Unification is between monotypes.
+    \item<3-> Unification variables can only have monotypes.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Subtyping}
+  \begin{block}{Polymorphic Subtyping}
+    $\sigma_1$ is a subtype of $\sigma_2$, denoted by $\tctx \bysub \sigma_1 \lt
+    \sigma_2$,
+    if $\sigma_1$ is more polymorphic than $\sigma_2$ under $\tctx$.
+  \end{block}
+
+  \begin{itemize}
+  \item examples:
+    \begin{itemize}
+      \item $\tctx \bysub \forall a. a \to a \tsub \Int \to \Int$
+      \item $\tctx \bysub \Int \to (\forall a. a \to a) \tsub \Int \to (\Int \to
+        \Int)$
+      \item $\tctx \bysub (\Int \to \Int) \to \Int \tsub (\forall a. a \to a) \to \Int$
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem}
+  What happen if we have a unification variable on one side?
+  \begin{itemize}
+  \item<2-> do unification?
+\begin{mathpar}
+\inferrule{\tpreuni \genA \uni \sigma \toctx}{\tpresub \genA \lt \sigma \toctx}
+\end{mathpar}
+  \item<3-> unification variables can only be solved by \hl{monotypes}!
+  \item<4-> however, we cannot restrict $\sigma$ to be a monotype
+    \begin{mathpar}
+\tpresub \genA \lt \bpi x {(\forall y .y \to y)} \Int
+    \end{mathpar}
+    with solution $\genA = \bpi x {(\Int \to Int)} \Int$
+  \item <5-> again, we \hl{cannot} destruct pi type because of type
+    dependency.
+    \begin{mathpar}
+\tpresub \genA \lt \bpi x \star x
+    \end{mathpar}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Problem}
+  \begin{itemize}
+    \item $\tpresub \genA \lt \bpi x {\alert<2->{(\forall y .y \to y)}} \Int$\\
+      with solution $\genA = \bpi x {\alert<2->{(\Int \to Int)}} \Int$
+    \item<2-> Observation:
+      when the unification variable is \hl{on the left},
+      even though there can be polymorphic components \hl{on the right},
+      those polymorphic components must appear \hl{contra-variantly}.
+    \item<3-> similar observation for when the unification variable on the right,
+      polymorphic components must appear \hl{co-variantly}.
+    \item<4-> $\genA = \bpi x {\alert{(\Bool \to \Bool)}} \Int$
+    \item<5-> $\genA = \bpi x {\alert{(\genA_1 \to \genA_1)}} \Int$
+    \item<6-> How to turn $\bpi x {\hl{(\forall y .y \to y)}} \Int$
+      into $\bpi x {\hl{(\genA_1 \to \genA_1)}} \Int$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Strategy}
+  \begin{itemize}
+  \item How to turn $\bpi x {(\forall \hl{y} .\hl{y} \to \hl{y})} \Int$
+    into $\bpi x {(\hl{\genA_1} \to \hl{\genA_1})} \Int$
+  \item we can always replace universal quantifiers that appear contra-variantly
+    by a fresh unification variable.
+  \item<2-> our solution: for subtyping problem between $\genA$ and $\sigma$, we
+      \hl{sanitize} the contra-variant universal quantifiers in $\sigma$ before we
+      use unification.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Strategy}
+  \begin{block}{Polymorphic Type Sanitization}
+    Given $\genA, \sigma$, remove universal quantifiers appearing
+    contra-variantly, and replace corresponding type variables by a fresh
+    unification variable.
+  \end{block}
+  \uncover<2->{Example}
+  \begin{itemize}
+  \item<2-> $\genA \bysub \genA \tsub (\forall a. a \to a) \to \Int$
+    \begin{itemize}
+      \item<3-> polymorphic type sanitization: $\genA \bycg (\forall a. a \to a) \to
+        \Int \cgto (\hl{\genA_1} \to \hl{\genA_1}) \to \Int \dashv \hl{\genA_1}, \genA$
+      \item<4-> after unification: $\genA_1, \genA = (\hl{\genA_1} \to \hl{\genA_1})
+        \to \Int$
+    \end{itemize}
+  \item<5-> $\genA \bysub \genA \tsub (\forall a. a \to a)$
+    \begin{itemize}
+      \item<6-> polymorphic type sanitization \alert{fail.}
+    \end{itemize}
+  \item<7-> $\genA, \genB \bysub \genA \tsub \Int \to \genB$
+    \begin{itemize}
+      \item<8-> polymorphic type sanitization: $\genA, \genB \bycg \Int \to \genB
+        \cgto \Int \to \genB \dashv \genA, \genB$
+      \item<9-> unification: $\hl{\genA_1}, \genA = \Int \to \genA_1, \genB = \genA_1$
+    \end{itemize}
+  \item<10-> Find more explanations in the paper!
+  \end{itemize}
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}{Outline}
+\tableofcontents[currentsection]
+\end{frame}
+
+\begin{frame}{Related Work}
+  \begin{itemize}
+\item \hl{Powerful but complicated} unification algorithms for dependent types:
+  \begin{itemize}
+  \item Ziliani, B., Sozeau, M. (2015, August)
+  \footnote{Ziliani, Beta, and Matthieu Sozeau. "A unification algorithm for Coq
+    featuring universe polymorphism and overloading." ACM SIGPLAN Notices. Vol.
+    50. No. 9. ACM, 2015.};
+  Elliott, C. (1989).
+  \footnote{Elliott, Conal. "Higher-order unification with dependent function
+    types." Rewriting Techniques and Applications. Springer Berlin/Heidelberg,
+    1989.};
+  Abel, A., Pientka, B. (2011, June)
+  \footnote{Abel, Andreas, and Brigitte Pientka. "Higher-order dynamic pattern
+    unification for dependent types and records." International Conference on
+    Typed Lambda Calculi and Applications. Springer Berlin Heidelberg, 2011.}
+  \end{itemize}
+\item Complete and easy unification/subtyping algorithm for \hl{simple types and
+  System F types}:
+  \begin{itemize}
+  \item Hindley-Milner algorithm
+    \footnote{Damas, Luis, and Robin Milner. "Principal type-schemes for
+      functional programs." Proceedings of the 9th ACM SIGPLAN-SIGACT symposium
+      on Principles of programming languages. ACM, 1982.}
+    \footnote{Hindley, Roger. "The principal type-scheme of an object in
+      combinatory logic." Transactions of the american mathematical society 146
+      (1969): 29-60.};
+  Dunfield, J., Krishnaswami, N. R. (2013, September).
+    \footnote{Dunfield, Joshua, and Neelakantan R. Krishnaswami. "Complete and
+      easy bidirectional typechecking for higher-rank polymorphism." ACM SIGPLAN
+      Notices. Vol. 48. No. 9. ACM, 2013.};
+  Jones, S. P., Vytiniotis, D., Weirich, S., Shields, M. (2007)
+    \footnote{Jones, Simon Peyton, et al. "Practical type inference for
+      arbitrary-rank types." Journal of functional programming 17.01 (2007):
+      1-82.};
+  \end{itemize}
+\item Dependent type systems with \hl{alpha-equality} based type checking:
+  \begin{itemize}
+  \item type-level computation by explicit casts
+            \footnote{Yang, Yanpeng, Xuan Bi, and Bruno C. D. S. Oliveira.
+              "Unified Syntax with Iso-types." Asian Symposium on Programming
+              Languages and Systems. Springer International Publishing, 2016.}
+            \footnote{van Doorn, Floris, Herman Geuvers, and Freek Wiedijk.
+              "Explicit convertibility proofs in pure type systems." Proceedings
+              of the Eighth ACM SIGPLAN international workshop on Logical
+              frameworks \& meta-languages: theory \& practice. ACM, 2013.}
+            \footnote{Kimmell, Garrin, et al. "Equational reasoning about
+              programs with general recursion and call-by-value semantics."
+              Proceedings of the sixth workshop on Programming languages meets
+              program verification. ACM, 2012.}
+            \footnote{Sjöberg, Vilhelm, and Stephanie Weirich. "Programming up
+              to congruence." ACM SIGPLAN Notices. Vol. 50. No. 1. ACM, 2015.}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+  \item \hl{Strategy}: a both simple to understand and simple
+    to implement strategy called \textit{type sanitization}
+  \item \hl{Algorithm}: A simple and complete alpha-equality based unification
+    algorithm
+  \item \hl{Extension}: \textit{polymorphic type sanitization} to deal with
+    polymorphic subtyping.
+  \item \hl{Meta-theory}: proof sketches.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \begin{center}
+  \Huge Thanks for listening!
+  \end{center}
+\end{frame}
+
+\end{document}

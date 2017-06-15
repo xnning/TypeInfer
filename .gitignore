@@ -27,3 +27,10 @@ doc/simple/coq/.depend
 
 *.bbl
 *.blg
+
+*.toc
+*.nav
+*.dvi
+*.snm
+*.gz
+*.vrb
