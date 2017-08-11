@@ -209,7 +209,7 @@ data Vect :: Nat -> Type  =
 \begin{frame}{Unification Algorithm}
   Key ideas:
   \begin{itemize}
-  \item \hl{ordered} algorithmic typing context
+  \item \hl{ordered} typing context
     ~\footnote{Dunfield, Joshua, and Neelakantan R. Krishnaswami. "Complete and
       easy bidirectional typechecking for higher-rank polymorphism." ACM SIGPLAN
       Notices. Vol. 48. No. 9. ACM, 2013.}:
@@ -229,7 +229,7 @@ data Vect :: Nat -> Type  =
   \item<3-> invariant: inputs are already \hl{fully substituted} under current context.
     \begin{itemize}
       \item $\genA = \Int \byuni \genA \uni \Bool$ \alert{invalid}
-      \item $\genA = \Int \byuni \Int \uni \Bool$
+      \item $\genA = \Int \byuni \Int \uni \Bool$ \hl{valid}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -239,7 +239,7 @@ data Vect :: Nat -> Type  =
   \begin{itemize}
     \item $\hl{\tctx}, \genA, \ctxr \byinf \genA \uni \tau$
     \item<2-> what we will do if $\tau$ is a function?
-       $\tctx_1, \genA, \tctx_2 \byuni \genA \uni A \to B$
+       $\tctx, \genA, \ctxr \byuni \genA \uni A \to B$
       \begin{itemize}
         \item<3-> try directly scope constraint? \alert{No.}
         \item<4-> $\genA, \hl{\genB} \byuni \genA \uni \Int \to \hl{\genB}$
@@ -297,14 +297,14 @@ data Vect :: Nat -> Type  =
     \begin{itemize}
       \item type sanitization: $\genA, \genB \bycg \Int \to \genB \cgto \Int \to
         \genA_1 \dashv \hl{\genA_1}, \genA, \hl{\genB = \genA_1}$
-      \item solution: $\genA_1, \genA = \Int \to \genA_1, \genB = \genA_1$
+      \item after scope constraint: $\genA_1, \genA = \Int \to \genA_1, \genB = \genA_1$
     \end{itemize}
   \item<4-> $\genA, \genB, x \byuni \genA \uni x \to \genB$
     \begin{itemize}
-      \item<5-> type sanitization: $\genA, \genB \bycg \alert<6->{x} \to \genB
+      \item<5-> type sanitization: $\genA, \genB, x \bycg \alert<6->{x} \to \genB
         \cgto \alert<6->{x} \to
         \genA_1 \dashv \hl{\genA_1}, \genA, \hl{\genB = \genA_1}$
-      \item<6-> solution: \alert{fail}.
+      \item<6-> after scope constraint: \alert{fail}.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -312,7 +312,7 @@ data Vect :: Nat -> Type  =
 \begin{frame}{Unification}
   Key ideas:
   \begin{itemize}
-    \item \hl{ordered} algorithmic typing context. \hl{scope constraint}.
+    \item \hl{ordered} typing context. \hl{scope constraint}.
     \item \hl{judgment}: $\tctx \byuni \tau_1 \uni \tau_2 \toctx$
     \item invariant: inputs are already \hl{fully substituted} under current
       context.
