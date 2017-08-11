@@ -12,7 +12,6 @@
 *.pdf
 *.fdb_latexmk
 *.fls
-doc/**/appendix.tex
 doc/**/expcore.ott.tex
 doc/**/otthelper.tex
 doc/**/auto

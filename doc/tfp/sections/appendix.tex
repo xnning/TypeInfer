@@ -1,0 +1,67 @@
+\section{Appendix}
+
+\subsection{Typing}
+
+Typing is
+not one of the contributions this paper emphasizes. But because the well-formedness
+of types under contexts relies on typing, below we give the formalized definition
+of algorithmic typing used in this paper. Here $UV$ stands for unsolved
+unification variables.
+
+\begin{figure*}[h]
+  \headercapm{\tctx \byinf e : \sigma \toctx}{}
+\[\TAx \quad \TVar \quad \TEVar\]
+\[\TPi \]
+\[\TPoly \]
+\[\TLamAnnInf \]
+\[\TApp \]
+\[\APi\]
+\[\AEVar\]
+\[\APoly\]
+    \caption{Typing.}
+    \label{fig:typing}
+\end{figure*}
+
+\rul{T-Ax}, \rul{T-Var} and \rul{T-EVar} are standard, where the context has no change.
+
+In \rul{T-Pi} and \rul{T-Poly}, the context $\ctxr$ after $x$ is thrown because all those variables are out of scope, and all the existential variables in $\ctxr$ will not be refered again when this rule ends. It is safe to throw existential variables because we could assume all unsolved existential variables are solved by $\star$ which satisfys $\star:\star$.
+
+However, in \rul{T-LamAnn}, because $\ctxr$ may still contains unsolved
+unification variables that are referred in $\sigma_2$, we keep $UV(\ctxr)$ in
+the output context. But all reference to $x$ is out of scope, so we substitute
+all solved variables in $\sigma_2$.
+
+\rul{T-App} first infers the type of $e_1$ to get $\sigma_1$, then substitute the context on $\sigma_1$ and enter the application typing rules, which is defined by the A-rules. The judgement $\tctx \byapp \sigma_1 ~ e : \sigma_2 \toctx$ is interpreted as, in context $\tctx$, the type of the expression being applied is $\sigma_1$, the argument is $e_2$, and the output of the rule is the application result type $\sigma_2$ with context $\ctxl$.
+
+In \rul{A-Pi}, the type of $e_1$ is a Pi type, so we infer the type of $e_2$ and
+check the $\sigma_3$ is more polymorphic than $\sigma_1$.
+
+In \rul{A-EVar}, the type of $e_1$ is an unsolved existential variable $\genA$.
+It first destructs $\genA$ into a Pi type, and infers $e_2$ to have type
+$\sigma_1$, then check $\sigma_1$ is more polymorphic than $\genA_1$.
+\rul{A-Poly} is when the expression being applied has polymorphic type, then we
+instantiate the bound variable with a fresh unification variable.
+
+
+\subsection{Context Extension}
+
+We mentioned some context extends some context several times in the paper
+informally. Here is the formal definition of the context extension.
+
+\begin{figure*}[h]
+    \headercapm{\tctx \exto \ctxr}{}
+
+    \[\CEEmtpy \quad \CETypedVar\]
+    \[\CEEVar \quad \CESolvedEVar\]
+    \[\CESolve \quad\CEAdd \quad \CEAddSolved\]
+    \caption{Context Extension.}
+    \label{fig:ctx-extension}
+\end{figure*}
+
+All original information will be preserved during context extension, including
+the existence of variables, their relative orders, type annotations, and solutions for existential. In the meanwhile, information could be increased. Context extension could add more existential variables, or try to solve unsolved existential variables with proper types.
+
+\rul{CE-Empty} states that empty context could be extended to empty context. \rul{CE-TypedVar} is able to replace the type annotation with a contextually equivalent one. \rul{CE-EVar} and \rul{CE-SolvedEVar} keeps the existential variable. \rul{CE-SolvedEVar} solves existential variables with a type, requesting the type is well formed. \rul{CE-Add} and \rul{CE-AddSolved} adds new existential variable in unsolved and solved form respectively.
+
+It is easy
+to verify that the output context extends the input context in each relation.
