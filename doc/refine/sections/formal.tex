@@ -2,23 +2,6 @@
 \setlength{\tabcolsep}{2pt}
 
 % ------------------------------------------------------
-% DECLARATIVE WELL FORMEDNESS
-% ------------------------------------------------------
-
-\newcommand*{\DCEmpty}{\inferrule{
-            }{
-            \ctxinit \wc
-            }\rname{DC-Empty}}
-
-\newcommand*{\DCVar}{\inferrule{
-            \dctx \wc
-         \\ x \notin \dctx
-         \\ \dctx \bychk \sigma \chkby \star
-            }{
-            \dctx, x: \sigma \wc
-            }\rname{DC-Var}}
-
-% ------------------------------------------------------
 % DECLARATIVE TYPING
 % ------------------------------------------------------
 
@@ -43,45 +26,25 @@
             }\rname{D-Lam}}
 
 \newcommand*{\DLamAnn}{\inferrule{
-            \dctx \bychk \bpi x \sigma {\tau} \chkby \star
-         \\ \dctx, x : \sigma_1 \bychk e \chkby \tau
+            \dctx \byinf \sigma_1 \infto \star
+         \\ \dctx, x : \sigma_1 \byinf e \infto \sigma_2
             }{
-            \dctx \byinf \blam x {\sigma} e \infto \bpi x {\sigma} {\tau}
+            \dctx \byinf \blam x {\sigma_1} e \infto \bpi x {\sigma_1} {\sigma_2}
             }\rname{D-LamAnn}}
 
 \newcommand*{\DPi}{\inferrule{
-            \dctx \bychk \sigma_1 \chkby \star
-         \\ \dctx, x : \sigma_1 \bychk \sigma_2 \chkby \star
+            \dctx \byinf \sigma_1 \infto \star
+         \\ \dctx, x : \sigma_1 \byinf \sigma_2 \infto \star
             }{
             \dctx \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star
             }\rname{D-Pi}}
 
 \newcommand*{\DAll}{\inferrule{
-            \dctx \bychk \tau \chkby \star
-         \\ \dctx, x : \tau \bychk \sigma \chkby \star
+            \dctx \byinf \tau \infto \star
+         \\ \dctx, x : \tau \byinf \sigma \infto \star
             }{
             \dctx \byinf \forall x : {\tau} . {\sigma} \infto \star
             }\rname{D-All}}
-
-\newcommand*{\DAnn}{\inferrule{
-            \dctx \bychk \sigma \chkby \star
-         \\ \dctx \bychk e \chkby \sigma
-            }{
-            \dctx \byinf e : \sigma \infto \sigma
-            }\rname{D-Ann}}
-
-\newcommand*{\DCheckAll}{\inferrule{
-            \dctx, x : \tau \bychk e \chkby \sigma
-            }{
-            \dctx \bychk e \chkby \forall x : \tau. \sigma
-            }\rname{D-Check-All}}
-
-\newcommand*{\DSub}{\inferrule{
-            \dctx \byinf e \infto \sigma_1
-         \\ \dctx \bysub \sigma_1 \dsub \sigma_2
-            }{
-            \dctx \bychk e \chkby \sigma_2
-            }\rname{D-Sub}}
 
 \newcommand*{\DApp}{\inferrule{
             \dctx \byinf e_1 \infto \sigma_1
@@ -91,15 +54,16 @@
             }\rname{D-App}}
 
 \newcommand*{\DAppPi}{\inferrule{
-            \dctx \bychk e \chkby \sigma_1
+            \dctx \byinf e \infto \sigma_3
+         \\ \dctx \bysub \sigma_3 \dsub \sigma_1
             }{
             \dctx \byinf (\bpi x {\sigma_1} {\sigma_2}) \app e \infto \sigma_2
-            \subst x {(e:\sigma_1)}
+            \subst x e
             }\rname{D-App-Pi}}
 
 \newcommand*{\DAppPoly}{\inferrule{
-            \dctx \bychk \tau_2 \chkby \tau_1
-         \\ \dctx \byinf \sigma_1 \subst x {(\tau_2 : \tau_1)} \app e \infto \sigma_2
+            \dctx \byinf \tau_2 : \tau_1
+         \\ \dctx \byinf \sigma_1 \subst x {\tau_2} \app e \infto \sigma_2
             }{
             \dctx \byinf (\forall x:\tau_1 . \sigma_1) \app e \infto \sigma_2
             }\rname{D-App-Poly}}
@@ -122,8 +86,8 @@
             }\rname{DS-Var}}
 
 \newcommand*{\DSAllL}{\inferrule{
-            \dctx \bychk \tau_2 \chkby \tau_1
-         \\ \dctx \bysub \sigma_2 \subst x {(\tau_2: \tau_1)} \dsub \sigma
+            \dctx \byinf \tau_2 \infto \tau_1
+         \\ \dctx \bysub \sigma_2 \subst x {\tau_2} \dsub \sigma
             }{
             \dctx \bysub \forall x: \tau_1. \sigma_2 \dsub \sigma
             }\rname{DS-AllL}}
@@ -154,137 +118,3 @@
             }{
             \dctx \bysub e_1 ~ \sigma \dsub e_2 ~ \sigma
             }\rname{DS-App}}
-
-\newcommand*{\DSAnn}{\inferrule{
-            \dctx \bysub e_1 \dsub e_2
-            }{
-            \dctx \bysub e_1 : \sigma \dsub e_2 : \sigma
-            }\rname{DS-Ann}}
-
-% ------------------------------------------------------
-% ALGORITHMIC WELL FORMEDNESS
-% ------------------------------------------------------
-
-\newcommand*{\ACEmpty}{\inferrule{
-            }{
-            \ctxinit \wc
-            }\rname{AC-Empty}}
-
-\newcommand*{\ACVar}{\inferrule{
-            \tctx \wc
-         \\ x \notin \dctx
-         \\ \tctx \bychk \sigma \chkby \star
-            }{
-            \tctx, x: \sigma \wc
-            }\rname{AC-Var}}
-
-\newcommand*{\ACEVar}{\inferrule{
-            \tctx \wc
-         \\ \genA \notin \dctx
-         \\ \tctx \bychk \tau \chkby \star
-            }{
-            \tctx, \genA: \tau \wc
-            }\rname{AC-EVar}}
-
-\newcommand*{\ACSolvedEVar}{\inferrule{
-            \tctx \wc
-         \\ \genA \notin \dctx
-         \\ \tctx \bychk \tau_2 \chkby \star
-         \\ \tctx \bychk \tau_1 \chkby \tau_2
-            }{
-            \tctx, \genA = \tau_1: \tau_2 \wc
-            }\rname{AC-EVar}}
-
-% ------------------------------------------------------
-% ALGORITHMIC TYPING
-% ------------------------------------------------------
-
-\newcommand*{\AAx}{\inferrule{
-            \tctx \wc
-            }{
-            \tctx \byinf \star \infto \star \toctxo
-            }\rname{A-Ax}}
-
-\newcommand*{\AVar}{\inferrule{
-            \tctx \wc
-         \\ x: \sigma \in \tctx
-            }{
-            \tctx \byinf x \infto \sigma \toctxo
-            }\rname{A-Var}}
-
-\newcommand*{\AEVar}{\inferrule{
-            \tctx \wc
-         \\ \genA : \tau \in \tctx
-            }{
-            \tctx \byinf \genA \infto \tau \toctxo
-            }\rname{A-EVar}}
-
-\newcommand*{\ASolvedEVar}{\inferrule{
-            \tctx \wc
-         \\ \genA = \tau_1 : \tau_2 \in \tctx
-            }{
-            \tctx \byinf \genA \infto \tau_2 \toctxo
-            }\rname{A-SolvedEVar}}
-
-\newcommand*{\ALamAnn}{\inferrule{
-            \tctx, \genA, x : \sigma_1 \bychk e \chkby \genA \toctx, x:
-            \sigma_1, \ctxr
-            }{
-            \tctx \byinf \blam x {\sigma} e \infto \bpi x {\sigma} {\genA} \toctx
-            }\rname{A-LamAnn}}
-
-\newcommand*{\APi}{\inferrule{
-            \tctx \bychk \sigma_1 \chkby \star \toctx_1
-         \\ \ctxl_1, x : \sigma_1 \bychk \sigma_2 \chkby \star \toctx_2, x:
-         \sigma_1, \ctxr
-            }{
-            \tctx \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star \toctx_2
-            }\rname{A-Pi}}
-
-\newcommand*{\AAll}{\inferrule{
-            \tctx \bychk \tau \chkby \star \toctx_1
-         \\ \ctxl_1, x : \tau \bychk \sigma \chkby \star \toctx_2, x: \tau, \ctxr
-            }{
-            \tctx \byinf \forall x : {\tau} . {\sigma} \infto \star \toctx_2
-            }\rname{A-All}}
-
-\newcommand*{\AAnn}{\inferrule{
-            \tctx \bychk \sigma \chkby \star \toctx_1
-         \\ \ctxl_1 \bychk e \chkby \sigma \toctx_2
-            }{
-            \tctx \byinf e : \sigma \infto \sigma \toctx_2
-            }\rname{A-Ann}}
-
-\newcommand*{\ACheckAll}{\inferrule{
-            \tctx, x : \tau \bychk e \chkby \sigma \toctx
-            }{
-            \tctx \bychk e \chkby \forall x : \tau. \sigma \toctx
-            }\rname{A-Check-All}}
-
-\newcommand*{\ASub}{\inferrule{
-            \tctx \byinf e \infto \sigma_1 \toctx_1
-         \\ \ctxl_1 \bysub \applye {\ctxl_1} {\sigma_1} \tsub \applye
-         {\ctxl_1}{\sigma_2} \toctx_2
-            }{
-            \dctx \bychk e \chkby \sigma_2 \toctx_2
-            }\rname{A-Sub}}
-
-\newcommand*{\AApp}{\inferrule{
-            \tctx \byinf e_1 \infto \sigma_1 \toctx_1
-         \\ \ctxl_1 \byinf \applye {\ctxl_1} {\sigma_1} \app e_2 \infto \sigma_2 \toctx_2
-            }{
-            \dctx \byinf e_1 ~ e_2 \infto \sigma_2 \toctx_2
-            }\rname{A-App}}
-
-\newcommand*{\AAppPi}{\inferrule{
-            \tctx \bychk e \chkby \sigma_1 \toctx
-            }{
-            \tctx \byinf (\bpi x {\sigma_1} {\sigma_2}) \app e \infto \sigma_2
-            \subst x {(e:\sigma_1)} \toctx
-            }\rname{A-App-Pi}}
-
-\newcommand*{\AAppPoly}{\inferrule{
-         \\ \tctx, \genA : \tau_1 \byinf \sigma_1 \subst x \genA \app e \infto \sigma_2 \toctx
-            }{
-            \tctx \byinf (\forall x:\tau_1 . \sigma_1) \app e \infto \sigma_2 \toctx
-            }\rname{A-App-Poly}}
