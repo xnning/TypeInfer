@@ -1,0 +1,33 @@
+\section{Declarative System}
+
+\begin{tabular}{lrcl}
+  Type, Expr & $\sigma, e$ & \syndef & $x \mid \star
+                                       \mid e_1~e_2 \mid \blam x \sigma e
+                                       \mid \bpi x {\sigma_1} \sigma_2$ \\
+       && \synor & $\forall x: \tau. \sigma$ \\
+       % && \synor & $\genA$ \\
+  Monotype & $\tau$ & \syndef & $x \mid \star
+                                \mid \tau_1~\tau_2 \mid \blam x \sigma \tau
+                                \mid \bpi x {\tau_1} \tau_2$ \\
+  Contexts &
+             $\dctx$ & \syndef & $\ctxinit \mid \dctx,x:\sigma$\\
+             % \mid \tctx, \genA
+             % \mid \tctx, \genA = \tau $ \\
+\end{tabular}
+
+\begin{mathpar}
+  \framebox{$\dpreinf e \infto \sigma$}
+  {\quad Typing} \\
+  \DAx \and \DVar \and
+  \DLamAnn \and
+  \DPi \and \DAll \and
+  \DApp \and \DAppPi \and \DAppPoly
+\end{mathpar}
+
+\begin{mathpar}
+  \framebox{$\dpresub \sigma_1 \dsub \sigma_2$}
+  {\quad Subtyping} \\
+  \DSAx \and \DSVar \and
+  \DSAllL \and \DSAllR \and
+  \DSPi \and \DSLamAnn \and \DSApp
+\end{mathpar}

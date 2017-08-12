@@ -1,0 +1,120 @@
+% Setup spaces between column
+\setlength{\tabcolsep}{2pt}
+
+% ------------------------------------------------------
+% DECLARATIVE TYPING
+% ------------------------------------------------------
+
+\newcommand*{\DAx}{\inferrule{
+            \dctx \wc
+            }{
+            \dctx \byinf \star \infto \star
+            }\rname{D-Ax}}
+
+\newcommand*{\DVar}{\inferrule{
+            \dctx \wc
+         \\ x: \sigma \in \dctx
+            }{
+            \dctx \byinf x \infto \sigma
+            }\rname{D-Var}}
+
+\newcommand*{\DLam}{\inferrule{
+            \dctx \byinf \tau \infto \star
+         \\ \dctx, x : \tau \byinf e \infto \sigma
+            }{
+            \dctx \byinf \erlam x e \infto \bpi x \tau \sigma
+            }\rname{D-Lam}}
+
+\newcommand*{\DLamAnn}{\inferrule{
+            \dctx \byinf \sigma_1 \infto \star
+         \\ \dctx, x : \sigma_1 \byinf e \infto \sigma_2
+            }{
+            \dctx \byinf \blam x {\sigma_1} e \infto \bpi x {\sigma_1} {\sigma_2}
+            }\rname{D-LamAnn}}
+
+\newcommand*{\DPi}{\inferrule{
+            \dctx \byinf \sigma_1 \infto \star
+         \\ \dctx, x : \sigma_1 \byinf \sigma_2 \infto \star
+            }{
+            \dctx \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star
+            }\rname{D-Pi}}
+
+\newcommand*{\DAll}{\inferrule{
+            \dctx \byinf \tau \infto \star
+         \\ \dctx, x : \tau \byinf \sigma \infto \star
+            }{
+            \dctx \byinf \forall x : {\tau} . {\sigma} \infto \star
+            }\rname{D-All}}
+
+\newcommand*{\DApp}{\inferrule{
+            \dctx \byinf e_1 \infto \sigma_1
+         \\ \dctx \byinf \sigma_1 \app e_2 \infto \sigma_2
+            }{
+            \dctx \byinf e_1 ~ e_2 \infto \sigma_2
+            }\rname{D-App}}
+
+\newcommand*{\DAppPi}{\inferrule{
+            \dctx \byinf e \infto \sigma_3
+         \\ \dctx \bysub \sigma_3 \dsub \sigma_1
+            }{
+            \dctx \byinf (\bpi x {\sigma_1} {\sigma_2}) \app e \infto \sigma_2
+            \subst x e
+            }\rname{D-App-Pi}}
+
+\newcommand*{\DAppPoly}{\inferrule{
+            \dctx \byinf \tau_2 : \tau_1
+         \\ \dctx \byinf \sigma_1 \subst x {\tau_2} \app e \infto \sigma_2
+            }{
+            \dctx \byinf (\forall x:\tau_1 . \sigma_1) \app e \infto \sigma_2
+            }\rname{D-App-Poly}}
+
+% ------------------------------------------------------
+% DECLARATIVE SUBTYPING
+% ------------------------------------------------------
+
+\newcommand*{\DSAx}{\inferrule{
+            \dctx \wc
+            }{
+            \dctx \bysub \star \dsub \star
+            }\rname{DS-Ax}}
+
+\newcommand*{\DSVar}{\inferrule{
+            \dctx \wc
+         \\ x : \sigma \in \dctx
+            }{
+            \dctx \bysub x \dsub x
+            }\rname{DS-Var}}
+
+\newcommand*{\DSAllL}{\inferrule{
+            \dctx \byinf \tau_2 \infto \tau_1
+         \\ \dctx \bysub \sigma_2 \subst x {\tau_2} \dsub \sigma
+            }{
+            \dctx \bysub \forall x: \tau_1. \sigma_2 \dsub \sigma
+            }\rname{DS-AllL}}
+
+\newcommand*{\DSAllR}{\inferrule{
+            \dctx, x:\tau \bysub \sigma \dsub \sigma_2
+            }{
+            \dctx \bysub \sigma \dsub \forall x: \tau. \sigma_2
+            }\rname{DS-AllR}}
+
+\newcommand*{\DSPi}{\inferrule{
+            \dctx \bysub \sigma_3 \dsub \sigma_1
+         \\ \dctx, x : \sigma_1 \bysub \sigma_2 \dsub \sigma_4
+            }{
+              \dctx \bysub \bpi x {\sigma_1} {\sigma_2} \dsub
+              \bpi x {\sigma_3} {\sigma_4}
+            }\rname{DS-Pi}}
+
+\newcommand*{\DSLamAnn}{\inferrule{
+            \dctx, x : \sigma \bysub e_1 \dsub e_2
+            }{
+              \dctx \bysub \blam x {\sigma} {e_1} \dsub
+              \blam x {\sigma} {e_2}
+            }\rname{DS-LamAnn}}
+
+\newcommand*{\DSApp}{\inferrule{
+            \dctx \bysub e_1 \dsub e_2
+            }{
+            \dctx \bysub e_1 ~ \sigma \dsub e_2 ~ \sigma
+            }\rname{DS-App}}
