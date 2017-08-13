@@ -2,7 +2,7 @@ MAIN = main
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(wildcard sections/*.tex)
+$(MAIN).pdf: $(wildcard sections/*.tex) main.tex paper_utility.tex
 	@latexmk -pdf $(@:.pdf=.tex)
 
 clean:

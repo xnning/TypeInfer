@@ -2,6 +2,23 @@
 \setlength{\tabcolsep}{2pt}
 
 % ------------------------------------------------------
+% DECLARATIVE WELL FORMEDNESS
+% ------------------------------------------------------
+
+\newcommand*{\DCEmpty}{\inferrule{
+            }{
+            \ctxinit \wc
+            }\rname{DC-Empty}}
+
+\newcommand*{\DCVar}{\inferrule{
+            \dctx \wc
+         \\ x \notin \dctx
+         \\ \dctx \bychk \sigma \infto \star
+            }{
+            \dctx, x: \sigma \wc
+            }\rname{DC-Var}}
+
+% ------------------------------------------------------
 % DECLARATIVE TYPING
 % ------------------------------------------------------
 
@@ -62,11 +79,19 @@
             }\rname{D-App-Pi}}
 
 \newcommand*{\DAppPoly}{\inferrule{
-            \dctx \byinf \tau_2 : \tau_1
+            \dctx \byinf \tau_2 \infto \tau_1
          \\ \dctx \byinf \sigma_1 \subst x {\tau_2} \app e \infto \sigma_2
             }{
             \dctx \byinf (\forall x:\tau_1 . \sigma_1) \app e \infto \sigma_2
             }\rname{D-App-Poly}}
+
+\newcommand*{\DSub}{\inferrule{
+            \dctx \byinf e \infto \sigma_1
+         \\ \dctx \bysub \sigma_1 \dsub \sigma_2
+            }{
+            \dctx \byinf e \infto \sigma_2
+            }\rname{D-Sub}}
+
 
 % ------------------------------------------------------
 % DECLARATIVE SUBTYPING
@@ -86,16 +111,16 @@
             }\rname{DS-Var}}
 
 \newcommand*{\DSAllL}{\inferrule{
-            \dctx \byinf \tau_2 \infto \tau_1
-         \\ \dctx \bysub \sigma_2 \subst x {\tau_2} \dsub \sigma
+            \dctx \byinf \tau \infto \star
+         \\ \dctx \bysub \sigma_1 \subst x {\tau} \dsub \sigma_2
             }{
-            \dctx \bysub \forall x: \tau_1. \sigma_2 \dsub \sigma
+            \dctx \bysub \forall x. \sigma_1 \dsub \sigma_2
             }\rname{DS-AllL}}
 
 \newcommand*{\DSAllR}{\inferrule{
-            \dctx, x:\tau \bysub \sigma \dsub \sigma_2
+            \dctx, x:\star \bysub \sigma_1 \dsub \sigma_2
             }{
-            \dctx \bysub \sigma \dsub \forall x: \tau. \sigma_2
+            \dctx \bysub \sigma_1 \dsub \forall x. \sigma_2
             }\rname{DS-AllR}}
 
 \newcommand*{\DSPi}{\inferrule{
@@ -116,5 +141,376 @@
 \newcommand*{\DSApp}{\inferrule{
             \dctx \bysub e_1 \dsub e_2
             }{
-            \dctx \bysub e_1 ~ \sigma \dsub e_2 ~ \sigma
+            \dctx \bysub e_1 ~ e \dsub e_2 ~ e
             }\rname{DS-App}}
+
+% ------------------------------------------------------
+% EXTENSION WELL FORMEDNESS
+% ------------------------------------------------------
+
+\newcommand*{\ACEmpty}{\inferrule{
+            }{
+            \ctxinit \wc
+            }\rname{AC-Empty}}
+
+\newcommand*{\ACVar}{\inferrule{
+            \tctx \wc
+         \\ x \notin \dctx
+         \\ \tctx \byinf \sigma \infto \star
+            }{
+            \tctx, x: \sigma \wc
+            }\rname{AC-Var}}
+
+\newcommand*{\ACEVar}{\inferrule{
+            \tctx \wc
+         \\ \genA \notin \dctx
+            }{
+            \tctx, \genA \wc
+            }\rname{AC-EVar}}
+
+\newcommand*{\ACSolvedEVar}{\inferrule{
+            \tctx \wc
+         \\ \genA \notin \dctx
+         \\ \tctx \byinf \tau \infto \star
+            }{
+            \tctx, \genA : \tau \wc
+            }\rname{AC-EVar}}
+
+% ------------------------------------------------------
+% EXTENSION TYPING
+% ------------------------------------------------------
+
+\newcommand*{\AAx}{\inferrule{
+            \tctx \wc
+            }{
+            \tctx \byinf \star \infto \star
+            }\rname{A-Ax}}
+
+\newcommand*{\AVar}{\inferrule{
+            \tctx \wc
+         \\ x: \sigma \in \tctx
+            }{
+            \tctx \byinf x \infto \sigma
+            }\rname{A-Var}}
+
+\newcommand*{\AEVar}{\inferrule{
+            \tctx \wc
+         \\ \genA \in \tctx
+            }{
+            \tctx \byinf \genA \infto \star
+            }\rname{A-EVar}}
+
+\newcommand*{\ASolvedEVar}{\inferrule{
+            \tctx \wc
+         \\ \genA = \tau \in \tctx
+            }{
+            \tctx \byinf \genA \infto \star
+            }\rname{A-SolvedEVar}}
+
+\newcommand*{\ALamAnn}{\inferrule{
+            \tctx \byinf \sigma_1 \infto \star
+         \\ \tctx, x : \sigma_1 \byinf e \infto \sigma_2
+            }{
+            \tctx \byinf \blam x {\sigma_1} e \infto \bpi x {\sigma_1} {\sigma_2}
+            }\rname{A-LamAnn}}
+
+\newcommand*{\APi}{\inferrule{
+            \tctx \byinf \sigma_1 \infto \star
+         \\ \tctx, x : \sigma_1 \byinf \sigma_2 \infto \star
+            }{
+            \tctx \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star
+            }\rname{A-Pi}}
+
+\newcommand*{\AAll}{\inferrule{
+            \tctx \byinf \tau \infto \star
+         \\ \tctx, x : \tau \byinf \sigma \infto \star
+            }{
+            \tctx \byinf \forall x : {\tau} . {\sigma} \infto \star
+            }\rname{A-All}}
+
+\newcommand*{\AApp}{\inferrule{
+            \tctx \byinf e_1 \infto \sigma_1
+         \\ \tctx \byinf \applye \tctx {\sigma_1} \app e_2 \infto \sigma_2
+            }{
+            \tctx \byinf e_1 ~ e_2 \infto \sigma_2
+            }\rname{A-App}}
+
+\newcommand*{\AAppPi}{\inferrule{
+            \tctx \byinf e \infto \sigma_3
+         \\ \tctx \bysub \applye \tctx {\sigma_3} \dsub \applye \tctx {\sigma_1}
+            }{
+            \tctx \byinf (\bpi x {\sigma_1} {\sigma_2}) \app e \infto \sigma_2
+            \subst x e
+            }\rname{A-App-Pi}}
+
+\newcommand*{\AAppPoly}{\inferrule{
+            \tctx \byinf \tau_2 \infto \tau_1
+         \\ \tctx \byinf \sigma_1 \subst x {\tau_2} \app e \infto \sigma_2
+            }{
+            \tctx \byinf (\forall x:\tau_1 . \sigma_1) \app e \infto \sigma_2
+            }\rname{A-App-Poly}}
+
+\newcommand*{\ASub}{\inferrule{
+            \tctx \byinf e \infto \sigma_1
+         \\ \tctx \bysub \applye \tctx {\sigma_1} \dsub \applye \tctx {\sigma_2}
+            }{
+            \tctx \byinf e \infto \sigma_2
+            }\rname{D-Sub}}
+
+% ------------------------------------------------------
+% EXTENSION SUBTYPING
+% ------------------------------------------------------
+
+\newcommand*{\ASAx}{\inferrule{
+            \tctx \wc
+            }{
+            \tctx \bysub \star \tsub \star
+            }\rname{AS-Ax}}
+
+\newcommand*{\ASVar}{\inferrule{
+            \tctx \wc
+         \\ x : \sigma \in \tctx
+            }{
+            \tctx \bysub x \tsub x
+            }\rname{AS-Var}}
+
+\newcommand*{\ASEVar}{\inferrule{
+            \tctx \wc
+         \\ \genA \in \tctx
+            }{
+            \tctx \bysub \genA \tsub \genA
+            }\rname{DS-EVar}}
+
+\newcommand*{\ASAllL}{\inferrule{
+            \tctx \byinf \tau \infto \star
+         \\ \tctx \bysub \sigma_1 \subst x {\tau} \tsub \sigma_2
+            }{
+            \tctx \bysub \forall x. \sigma_1 \tsub \sigma_2
+            }\rname{AS-AllL}}
+
+\newcommand*{\ASAllR}{\inferrule{
+            \tctx, x:\star \bysub \sigma_1 \tsub \sigma_2
+            }{
+            \tctx \bysub \sigma_1 \tsub \forall x. \sigma_2
+            }\rname{AS-AllR}}
+
+\newcommand*{\ASPi}{\inferrule{
+            \tctx \bysub \sigma_3 \tsub \sigma_1
+         \\ \tctx, x : \sigma_1 \bysub \sigma_2 \tsub \sigma_4
+            }{
+              \tctx \bysub \bpi x {\sigma_1} {\sigma_2} \tsub
+              \bpi x {\sigma_3} {\sigma_4}
+            }\rname{AS-Pi}}
+
+\newcommand*{\ASLamAnn}{\inferrule{
+            \tctx, x : \sigma \bysub e_1 \tsub e_2
+            }{
+              \tctx \bysub \blam x {\sigma} {e_1} \tsub
+              \blam x {\sigma} {e_2}
+            }\rname{AS-LamAnn}}
+
+\newcommand*{\ASApp}{\inferrule{
+            \tctx \bysub e_1 \tsub e_2
+            }{
+            \tctx \bysub e_1 ~ e \tsub e_2 ~ e
+            }\rname{AS-App}}
+
+% ------------------------------------------------------
+% UNIFICATION
+% ------------------------------------------------------
+
+\newcommand*{\UAEq}{\inferrule{
+            }{
+            \tctx \bybuni \sigma \uni \sigma \toctxo
+            }\rname{U-AEq}}
+
+\newcommand*{\UEVarTy}{\inferrule{
+            \genA \notin FV(\tau_1)
+         \\ \tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx_1, \genA, \ctxl_2
+         \\ \ctxl_1 \bywt \tau_2
+            }{
+            \tctx[\genA] \bysuni \genA \uni \tau_1 \toctx_1, \genA = \tau_2, \ctxl_2
+            }\rname{U-EVarTy}}
+
+\newcommand*{\UTyEVar}{\inferrule{
+            \genA \notin FV(\tau_1)
+         \\ \tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx_1, \genA, \ctxl_2
+         \\ \ctxl_1 \bywt \tau_2
+            }{
+            \tctx[\genA] \bysuni \tau_1 \uni \genA \toctx_1, \genA = \tau_2, \ctxl_2
+            }\rname{U-TyEVar}}
+
+\newcommand*{\UApp}{\inferrule{
+            \tctx \byeuni \sigma_1 \uni \sigma_3 \toctx_1
+         \\ \ctxl_1 \byeuni \applye {\ctxl_1} {\sigma_2} \uni \applye {\ctxl_1} {\sigma_4} \toctx
+            }{
+            \tctx \bybuni \sigma_1 ~ \sigma_2 \uni \sigma_3 ~ \sigma_4 \toctx
+            }\rname{U-App}}
+
+\newcommand*{\ULamAnn}{\inferrule{
+            \tctx \bysuni \sigma_1 \uni \sigma_2 \toctx_1
+         \\ \ctxl_1, x:\sigma_1 \byeuni \applye {\ctxl_1} {e_1} \uni \applye {\ctxl_1} {e_2} \toctx, x:\sigma_1
+            }{
+            \tctx \byeuni \blam x {\sigma_1} {e_1} \uni \blam x {\sigma_2} {e_2}
+            }\rname{U-LamAnn}}
+
+\newcommand*{\UPi}{\inferrule{
+            \tctx \bysuni \sigma_1 \uni \sigma_3 \toctx_1
+         \\ \ctxl_1, x:\sigma_1 \bysuni \applye {\ctxl_1} {\sigma_2} \uni
+                \applye {\ctxl_1} {\sigma_4} \toctx, x:\sigma_1
+            }{
+            \tctx \bybuni \bpi x {\sigma_1} {\sigma_2} \uni \bpi x {\sigma_3} {\sigma_4}
+            }\rname{U-Pi}}
+
+\newcommand*{\UAll}{\inferrule{
+            \tctx, x:\star \bysuni \sigma_1 \uni \sigma_2 \toctx, x: \star
+            }{
+            \tctx \bybuni \forall x. \sigma_1 \uni \forall x. \sigma_2 \toctx
+            }\rname{U-All}}
+
+% ------------------------------------------------------
+% TYPE SANITIZATION
+% ------------------------------------------------------
+
+\newcommand*{\IEVarAfter}{\inferrule{
+            }{
+            \tctx[\genA][\genB] \bysa \genB \sa \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]
+            }\rname{I-EVarAfter}}
+
+\newcommand*{\IEVarBefore}{\inferrule{
+            }{
+            \tctx[\genB][\genA] \bysa \genB \sa \genB \toctxo[\genB][\genA]
+            }\rname{I-EVarBefore}}
+
+\newcommand*{\IStar}{\inferrule{
+            }{
+            \tctx \bysa \star \sa \star \toctxo
+            }\rname{I-Star}}
+
+\newcommand*{\IVar}{\inferrule{
+            }{
+            \tctx \bysa x \sa x \toctxo
+            }\rname{I-Var}}
+
+\newcommand*{\IApp}{\inferrule{
+            \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
+         \\ \ctxl_1 \bysa \tau_2 \sa \tau_4 \toctx
+            }{
+            \tctx \bysa \tau_1 ~ \tau_2 \sa \tau_3 ~ \tau_4 \toctx
+            }\rname{I-App}}
+
+\newcommand*{\ILamAnn}{\inferrule{
+            \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
+         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx
+            }{
+            \tctx \bysa \blam x {\tau_1} {\tau_2} \sa \blam x {\tau_3} {\tau_4} \toctx
+            }\rname{I-LamAnn}}
+
+\newcommand*{\IPi}{\inferrule{
+            \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
+         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx
+            }{
+            \tctx \bysa \bpi x {\tau_1} {\tau_2} \sa \bpi x {\tau_3} {\tau_4} \toctx
+            }\rname{I-Pi}}
+
+% ------------------------------------------------------
+% SUBTYPING FOR SIGMA
+% ------------------------------------------------------
+
+\newcommand*{\SAllR}{\inferrule{
+            \tctx, x : \star \byssub \sigma_1 \tsub \sigma_2 \toctx, x : \star, \ctxr
+            }{
+            \tctx \bybsub \sigma_1 \tsub \forall x. \sigma_2 \toctx
+            }\rname{S-AllR}}
+
+\newcommand*{\SAllL}{\inferrule{
+            \tctx, \genA \byssub \sigma_1 \subst x \genA \tsub \sigma_2 \toctx
+            }{
+            \tctx \bybsub \forall x. \sigma_1 \tsub \sigma_2 \toctx
+            }\rname{S-AllL}}
+
+\newcommand*{\SPi}{\inferrule{
+            \tctx \byssub \sigma_3 \tsub \sigma_1 \toctx_1
+         \\ \ctxl_1, x: \sigma_1 \byssub \applye {\ctxl_1} {\sigma_2} \tsub \applye
+                {\ctxl_1} {\sigma_4} \toctx, x:\sigma_1, \ctxr
+            }{
+            \tctx \bybsub \bpi x {\sigma_1} {\sigma_2} \tsub \bpi x {\sigma_3}
+            {\sigma_4 } \toctx
+            }\rname{S-Pi}}
+
+\newcommand*{\SApp}{\inferrule{
+            \tctx \byesub \sigma_1 \esub \sigma_3 \toctx_1
+         \\ \ctxl_1 \byeuni \applye {\ctxl_1} {\sigma_2} \uni \applye {\ctxl_1} {\sigma_4} \toctx
+            }{
+            \tctx \bybsub \sigma_1 ~ \sigma_2 \tsub \sigma_3 ~ \sigma_4 \toctx
+            }\rname{S-App}}
+
+\newcommand*{\SLamAnn}{\inferrule{
+            \tctx \bysuni \sigma_1 \uni \sigma_2 \toctx_1
+         \\ \ctxl_1, x: \sigma_1 \byesub \applye {\ctxl_1} {e_1} \esub \applye
+                {\ctxl_1} {e_2} \toctx, x:\sigma_1, \ctxr
+            }{
+            \tctx \byesub \blam x {\sigma_1} ~ {e_1} \tsub \blam x {\sigma_2} ~ {e_2} \toctx
+            }\rname{S-LamAnn}}
+
+\newcommand*{\SEVarTy}{\inferrule{
+            \tctx[\genA] \bypsa \sigma \sa \tau \toctx_1
+         \\ \ctxl_1 \bysuni \genA \uni \tau \toctx
+            }{
+            \tctx[\genA] \bybsub \genA \tsub \sigma \toctx
+            }\rname{S-EVarTy}}
+
+\newcommand*{\STyEVar}{\inferrule{
+            \tctx[\genA] \bymsa \sigma \sa \tau \toctx_1
+         \\ \ctxl_1 \bysuni \genA \uni \tau \toctx
+            }{
+            \tctx[\genA] \bybsub \sigma \tsub \genA \toctx
+            }\rname{S-TyEVar}}
+
+\newcommand*{\SUnify}{\inferrule{
+            \tctx \bybuni \sigma_1 \uni \sigma_2 \toctx
+            }{
+            \tctx \bybsub \sigma_1 \tsub \sigma_2 \toctx
+            }\rname{S-Unify}}
+
+% ------------------------------------------------------
+% POLYMORPHIC TYPE SANITIZATION
+% ------------------------------------------------------
+
+\newcommand*{\IAllPlus}{\inferrule{
+            \tctx[\genB, \genA] \bypsa \sigma \subst x {\genB} \sa \tau \toctx
+            }{
+            \tctx[\genA] \bypsa \forall x. \sigma \sa \tau \toctx
+            }\rname{I-All-Plus}}
+
+\newcommand*{\IAllMinus}{\inferrule{
+            x \notin FV(\sigma)
+         \\ \tctx, x: \star \bymsa \sigma \sa \tau \toctx, x:\star
+            }{
+            \tctx \bymsa \forall x. \sigma \sa \tau \toctx
+            }\rname{I-All-Minus}}
+
+\newcommand*{\IPiPoly}{\inferrule{
+            \tctx \bysa^{-s} \sigma_1 \sa \tau_1 \toctx_1
+         \\ \ctxl_1, x:\tau_1 \bybsa {\sigma_2} \sa \tau_2 \toctx, x:\tau_1
+            }{
+            \tctx \bybsa \bpi x {\sigma_1} {\sigma_2} \sa \bpi x {\tau_1}
+            {\tau_2} \toctx
+            }\rname{I-Pi-Poly}}
+
+\newcommand*{\ILamAnnPoly}{\inferrule{
+            \tctx, x:\tau_1 \bybsa e \sa \tau_2 \toctx, x: \tau_1
+            }{
+            \tctx \bybsa \blam x {\tau_1} e \sa \blam x {\tau_1} {\tau_2} \toctx
+            }\rname{I-LamAnn-Poly}}
+
+\newcommand*{\IAppPoly}{\inferrule{
+            \tctx \bybsa e \sa {\tau_1} \toctx
+            }{
+            \tctx \bybsa e ~ \tau_2 \sa \tau_1 ~ {\tau_2} \toctx
+            }\rname{I-App-Poly}}
+
+\newcommand*{\IMono}{\inferrule{
+            }{
+            \tctx \bybsa \tau \sa \tau \toctxo
+            }\rname{I-Mono}}

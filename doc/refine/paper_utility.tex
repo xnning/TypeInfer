@@ -158,6 +158,9 @@
 \newcommand{\ctxr}{\Delta}
 \newcommand{\cctx}{\Omega}
 \newcommand{\byuni}{\vdash}
+\newcommand{\byeuni}{\vdash_e}
+\newcommand{\bysuni}{\vdash_\sigma}
+\newcommand{\bybuni}{\vdash_\delta}
 \newcommand{\byinf}{\vdash}
 \newcommand{\byoinf}{\vdash^\lambda}
 \newcommand{\byfinf}{\vdash^F}
@@ -172,6 +175,9 @@
 \newcommand{\byinst}{\vdash_\Inst}
 \newcommand{\bygen}{\vdash_\Gen}
 \newcommand{\bysub}{\vdash}
+\newcommand{\byesub}{\vdash_e}
+\newcommand{\byssub}{\vdash_\sigma}
+\newcommand{\bybsub}{\vdash_\delta}
 \newcommand{\bydsub}{\vdash}
 \newcommand{\bycg}{\vdash}
 \newcommand{\byrf}{\vdash}
@@ -214,9 +220,10 @@
 \newcommand{\cgto}{\longmapsto}
 \newcommand{\rfto}{\rightsquigarrow}
 \newcommand{\aeq}{\equiv_\alpha}
-\newcommand{\uni}{\leqq}
-\newcommand{\dsub}{\leq}
+\newcommand{\uni}{{\color{RedOrange}~\simeq~}}
+\newcommand{\dsub}{{\color{BrickRed}~\leq~}}
 \newcommand{\tsub}{{\color{BrickRed}~<:~}}
+\newcommand{\esub}{{\color{BrickRed}~\sqsubseteq~}}
 \newcommand{\tsuper}{{\color{BrickRed}~:>~}}
 \newcommand{\tvarinst}{:\leqq}
 \newcommand{\tsubeither}{<:_m}
@@ -248,13 +255,20 @@
 \newcommand{\ato}{\hookrightarrow}
 \newcommand{\acons}{\cdot}
 \newcommand{\ex}[1]{\setminus_{#1}}
-\newcommand{\san}[3]{(\mathcal{S}_#1, \mathcal{A}_#2#3)}
 
 % Primitives
 \newcommand{\Int}{\var{Int}}
 \newcommand{\String}{\var{String}}
 
 \newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+\newcommand{\applye}[2]{[#1](#2)}
+\newcommand{\bysa}{\vdash}
+\newcommand{\bypsa}{\vdash^{+}}
+\newcommand{\bymsa}{\vdash^{-}}
+\newcommand{\bybsa}{\vdash^{s}}
+\newcommand{\sa}{\longrightarrow}
+
 
 %%% Local Variables:
 %%% mode: latex
