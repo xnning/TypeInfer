@@ -1085,6 +1085,16 @@ Proof.
   induction res; auto.
   apply IHres.
   rewrite <- concat_assoc. apply ok_insert. rewrite~ concat_assoc. auto.
+
+  lets: IHres okg.
+  pick_fresh y.
+  assert (ok (H1 & y ~ AC_Var)). apply~ ok_push.
+  lets: H2 H4; auto.
+
+  lets: IHres okg.
+  pick_fresh y.
+  assert (ok (H1 & y ~ AC_Var)). apply~ ok_push.
+  lets: H2 H4; auto.
 Qed.
 
 Lemma unify_ok_preservation: forall G s t H,
@@ -1209,6 +1219,16 @@ Proof.
   rewrite <- concat_assoc.
   apply~ awf_weakening_insert_unsolved.
   rewrite~ concat_assoc.
+
+  pick_fresh y. assert(y \notin L) by auto.
+  lets: H2 H3.
+  assert (AWf (H1 & y ~ AC_Var)) by apply* AWf_Var.
+  lets: H4 H5. apply AWf_left in H6. auto.
+
+  pick_fresh y. assert(y \notin L) by auto.
+  lets: H2 H3.
+  assert (AWf (H1 & y ~ AC_Var)) by apply* AWf_Var.
+  lets: H4 H5. apply AWf_left in H6. auto.
 Qed.
 
 Lemma resolve_evar_awf_preservation: forall G a s t H,
@@ -1402,6 +1422,7 @@ Proof.
   do 2 apply ok_concat_inv_l in H0. auto.
   do 1 apply ok_concat_inv_l in okg. apply ok_push_inv in okg. destruct okg. auto.
   do 1 apply ok_concat_inv_l in H0.  apply ok_push_inv in H0. destruct H0. auto.
+
   lets: resolve_evar_ok_preservation res okg.
   lets: IHres okg H4.
   pick_fresh y. assert (y \notin L) by auto.
@@ -1466,16 +1487,24 @@ Proof.
   rewrite hinfo in H0; auto.
 
   (* PI1 *)
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres1 okg H2.
-  lets: IHres2 H2 H0.
-  lets: weak_extension_transitivity H3 H4. auto.
+  lets: resolve_forall_ok_preservation res okg.
+  lets: IHres okg H4.
+  pick_fresh y. assert (y \notin L) by auto.
+  assert(ok (H1 & y ~ AC_Var)) by apply* ok_push.
+  assert(ok (H & y ~ AC_Var)) by apply* ok_push.
+  lets: H3 H6 H7 H8.
+  apply weak_extension_remove_var in H9.
+  lets: weak_extension_transitivity H5 H9. auto.
 
   (* PI2 *)
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres1 okg H2.
-  lets: IHres2 H2 H0.
-  lets: weak_extension_transitivity H3 H4. auto.
+  lets: resolve_forall_ok_preservation res okg.
+  lets: IHres okg H4.
+  pick_fresh y. assert (y \notin L) by auto.
+  assert(ok (H1 & y ~ AC_Var)) by apply* ok_push.
+  assert(ok (H & y ~ AC_Var)) by apply* ok_push.
+  lets: H3 H6 H7 H8.
+  apply weak_extension_remove_var in H9.
+  lets: weak_extension_transitivity H5 H9. auto.
 Qed.
 
 Lemma unify_wextctx: forall G s t H,
@@ -1957,30 +1986,46 @@ Lemma resolve_forall_inserts: forall G1 G2 a m e t H,
     ok (G1 & a ~ AC_Unsolved_EVar & G2) ->
     exists I, H = G1 & I & a ~ AC_Unsolved_EVar & G2.
 Proof.
-  introv res okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2). gen G1.
+  introv res okg. gen_eq S: (G1 & a ~ AC_Unsolved_EVar & G2). gen G1 G2.
   induction res; introv sinfo; subst; try(solve[exists~ empty]).
 
   apply ok_middle_eq2 in sinfo; auto.
   destruct sinfo as [? [? ?]]. subst.
-  assert(ok (G3 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2)).
+  assert(ok (G0 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G3)).
   rewrite <- concat_assoc. apply ok_insert; auto. rewrite~ concat_assoc.
   forwards*: IHres H1. destruct H3 as (I & hinfo).
   exists~ (a1 ~ AC_Unsolved_EVar & I). repeat rewrite~ concat_assoc.
   rewrite~ <- sinfo.
 
-  forwards*: IHres1 okg.
-  destruct H0 as (I1 & h1info).
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres2 H0 h1info.
-  destruct H2 as (I2 & ?).
-  exists~ (I1 & I2). repeat rewrite~ concat_assoc.
+  forwards*: IHres okg.
+  destruct H3 as (I1 & hinfo). subst. clear IHres.
+  lets: resolve_forall_ok_preservation res okg.
+  pick_fresh y. assert(y \notin L) by auto.
+  assert(ok (G1 & I1 & a ~ AC_Unsolved_EVar & G2 & y ~ AC_Var)) by apply* ok_push.
+  assert(G1 & I1 & a ~ AC_Unsolved_EVar & G2 & y ~ AC_Var =
+         (G1 & I1) & a ~ AC_Unsolved_EVar & (G2 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  forwards*: H2 H3 H4 H5.
+  destruct H6 as (I2 & ?).
+  repeat rewrite concat_assoc in H6.
+  apply eq_push_inv in H6.
+  destruct H6 as [_ [_ ?]]. subst.
+  exists~ (I1 & I2).
+  repeat rewrite~ concat_assoc.
 
-  forwards*: IHres1 okg.
-  destruct H0 as (I1 & h1info).
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres2 H0 h1info.
-  destruct H2 as (I2 & ?).
-  exists~ (I1 & I2). repeat rewrite~ concat_assoc.
+  forwards*: IHres okg.
+  destruct H3 as (I1 & hinfo). subst. clear IHres.
+  lets: resolve_forall_ok_preservation res okg.
+  pick_fresh y. assert(y \notin L) by auto.
+  assert(ok (G1 & I1 & a ~ AC_Unsolved_EVar & G2 & y ~ AC_Var)) by apply* ok_push.
+  assert(G1 & I1 & a ~ AC_Unsolved_EVar & G2 & y ~ AC_Var =
+         (G1 & I1) & a ~ AC_Unsolved_EVar & (G2 & y ~ AC_Var)) by repeat rewrite~ concat_assoc.
+  forwards*: H2 H3 H4 H5.
+  destruct H6 as (I2 & ?).
+  repeat rewrite concat_assoc in H6.
+  apply eq_push_inv in H6.
+  destruct H6 as [_ [_ ?]]. subst.
+  exists~ (I1 & I2).
+  repeat rewrite~ concat_assoc.
 
   exists~ (empty: ACtx).
   rewrite~ concat_empty_r.
@@ -2004,13 +2049,25 @@ Proof.
   rewrite~ concat_assoc.
   lets: IHres H1 H2. auto.
 
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres1 okg bd.
-  lets: IHres2 H0 H2. auto.
+  pick_fresh y.
+  assert(y \notin L) by auto.
+  lets: resolve_forall_ok_preservation res okg.
+  assert(ok (H1 & y ~ AC_Var)) by apply* ok_push.
+  lets: IHres okg bd.
+  assert (binds a AC_Unsolved_EVar (H1 & y ~ AC_Var)).
+  apply~ binds_push_neq.
+  lets: H2 H3 H5 H7.
+  apply binds_push_neq_inv in H8; auto.
 
-  lets: resolve_forall_ok_preservation res1 okg.
-  lets: IHres1 okg bd.
-  lets: IHres2 H0 H2. auto.
+  pick_fresh y.
+  assert(y \notin L) by auto.
+  lets: resolve_forall_ok_preservation res okg.
+  assert(ok (H1 & y ~ AC_Var)) by apply* ok_push.
+  lets: IHres okg bd.
+  assert (binds a AC_Unsolved_EVar (H1 & y ~ AC_Var)).
+  apply~ binds_push_neq.
+  lets: H2 H3 H5 H7.
+  apply binds_push_neq_inv in H8; auto.
 Qed.
 
 Lemma unify_inserts: forall G1 G2 a s H,
@@ -3013,9 +3070,3 @@ Proof.
   lets: resolve_evar_wextctx res H1.
   lets: weak_extension_to_extension H2 wf H0. auto.
 Qed.
-
-Theorem unify_extension: forall G s t H,
-    AUnify G s t H ->
-    AWf G ->
-    AWf H /\ ExtCtx G H.
-Admitted.

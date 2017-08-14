@@ -66,6 +66,7 @@ Proof.
 Qed.
 
 Hint Resolve dnotin_fv_fev dnotin_tfv_tfev dnotin_fv_ftv dnotin_tfv_tftv dnotin_fv_inv dnotin_tfv_inv.
+
 (** Substitution *)
 
 Hint Constructors DTerm DTermTy.

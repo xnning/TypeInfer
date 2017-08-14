@@ -13,7 +13,6 @@ Require Import UtilityAlgo.
 Require Import UnifEq.
 Require Import AWt.
 Require Import SoftExtension.
-Require Import AWfTyping.
 
 Set Implicit Arguments.
 
@@ -500,300 +499,50 @@ Proof.
   apply* ok_middle_change.
 Qed.
 
-Lemma atunify_awf: forall G t d H,
-    ATUnify UType G t d H ->
-    AWf G ->
+Inductive SubTTerm: AType -> AType -> Prop :=
+| STT_App1: forall t e1 e2,
+    SubTTerm t (AT_Expr e1) -> SubTTerm t (AT_Expr (AE_App e1 e2))
+| STT_App2: forall t e1 e2,
+    SubTTerm t (AT_Expr e2) -> SubTTerm t (AT_Expr (AE_App e1 e2))
+| STT_Lam: forall t L e,
+    (forall x, x \notin L -> SubTTerm  (t @' x) (AT_Expr (e @ x))) ->
+    SubTTerm t (AT_Expr (AE_Lam e))
+| STT_Pi1: forall t e1 e2,
+    SubTTerm t e1 -> SubTTerm t (AT_Expr (AE_Pi e1 e2))
+| STT_Pi2: forall t e1 e2 L,
+    (forall x, x \notin L -> SubTTerm (t @' x) (e2 @' x)) ->
+    SubTTerm t (AT_Expr (AE_Pi e1 e2)).
+
+Lemma atunify_awf: forall G H1 H2 I t d e,
+    AWfTyp G e ->
+    SubTTerm t e ->
+    ExtCtx G H1 ->
+    AWf (H1 & I) ->
+    AUnify (H1 & I) t d (H2 & I) ->
     t = ACtxTSubst G t ->
     d = ACtxTSubst G d ->
-    AWfTyp G t -> AWfTyp G d ->
-    AWf H /\ ExtCtx G H
+    AWf (H1 & I) /\ ExtCtx (H1 & I) (H2 & I).
+Proof.
+  introv wt sub ex wf uni sub_t sub_d.
+  gen_eq M1: (H1 & I).
+  gen_eq M2: (H2 & I). gen H1 H2 I.
+  induction uni; introv ex m2info m1info; try(subst).
+   admit.
+    admit.
+    admit.
+    admit.
+    admit.
+    admit.
+    admit.
+   admit.
+  gen_eq M1: (H1 & I).
+
 with atunify_awf_expr: forall G t d H,
     ATUnify UExpr G t d H ->
     AWf G ->
     t = ACtxTSubst G t ->
     d = ACtxTSubst G d ->
-    AWfTyping G t ->
-    AWfTyping G d ->
     AWf H /\ ExtCtx G H.
-Proof.
-  introv uni.
-  inversion uni; subst; introv wf sub1 sub2 awf1 awf2; auto.
-  split; auto. apply~ extension_reflexivity.
-  split; auto. apply~ extension_reflexivity.
-
-  (* *)
-  lets: resolve_evar_awf_preservation H3 wf.
-  assert (AWfTyp H1 t2).
-  lets: resolve_evar_extension H3 wf.
-  lets: extension_weakening_awftyp awf2 H5.
-  apply awftyp_subst in H6.
-  lets: awtermt_awftyp awf2.
-  lets: resolve_evar_invariance wf H3.
-  rewrite H8 in H6.
-  apply awftyp_subst in H6.
-  rewrite <- concat_assoc in H6.
-  lets: awftyp_remove H6 H4. auto.
-
-  assert (AWf (H1 & a ~ AC_Solved_EVar t2 & H2)).
-  apply awf_solve_middle with (t:=t2) in H; auto.
-  lets: resolve_evar_atmono_preservation H3; auto.
-
-  split; auto.
-
-  lets: resolve_evar_extension H3 wf.
-  assert (ExtCtx (H1 & a ~ AC_Unsolved_EVar & H2) (H1 & a ~ AC_Solved_EVar t2 & H2)).
-  apply~ extension_append.
-  apply ExtCtx_Solve. apply extension_reflexivity.
-  repeat apply AWf_left in H. auto.
-  apply AWf_left in H. auto.
-  apply AWf_left in H6. auto.
-  lets: extension_transitivity H7 H8. auto.
-
-  (* *)
-  lets: resolve_evar_awf_preservation H4 wf.
-  assert (AWfTyp H1 t2).
-  lets: resolve_evar_extension H4 wf.
-  lets: extension_weakening_awftyp awf1 H6.
-  apply awftyp_subst in H7.
-  lets: awtermt_awftyp awf1.
-  lets: resolve_evar_invariance wf H4.
-  rewrite H9 in H7.
-  apply awftyp_subst in H7.
-  rewrite <- concat_assoc in H7.
-  lets: awftyp_remove H7 H5. auto.
-
-  assert (AWf (H1 & a ~ AC_Solved_EVar t2 & H2)).
-  apply awf_solve_middle with (t:=t2) in H; auto.
-  lets: resolve_evar_atmono_preservation H4; auto.
-
-  split; auto.
-
-  lets: resolve_evar_extension H4 wf.
-  assert (ExtCtx (H1 & a ~ AC_Unsolved_EVar & H2) (H1 & a ~ AC_Solved_EVar t2 & H2)).
-  apply~ extension_append.
-  apply ExtCtx_Solve. apply extension_reflexivity.
-  repeat apply AWf_left in H. auto.
-  apply AWf_left in H. auto.
-  apply AWf_left in H7. auto.
-  lets: extension_transitivity H8 H9. auto.
-
-  lets: awftyp_is_awftyping awf1.
-  lets: awftyp_is_awftyping awf2.
-  lets: atunify_awf_expr H1 wf sub1 sub2 H0.
-  lets: H3 H2. auto.
-Proof.
-  clear atunify_awf_expr.
-  introv uni.
-  gen_eq M: UExpr.
-  induction uni; introv minfo; subst; introv wf sub1 sub2 awf1 awf2; auto;
-    try(solve[inversion minfo]);
-    try(solve[split; [auto | apply~ extension_reflexivity]]).
-
-  (* APP *)
-  inversion awf1; subst.
-  inversion awf2; subst.
-  rewrite actxtsubst_expr in sub1.
-  rewrite actxsubst_app in sub1.
-  inversion sub1.
-  rewrite actxtsubst_expr in sub2.
-  rewrite actxsubst_app in sub2.
-  inversion sub2.
-  assert (AT_Expr t1 = ACtxTSubst G (AT_Expr t1)).
-  rewrite actxtsubst_expr. f_equal ~.
-  assert (AT_Expr t2 = ACtxTSubst G (AT_Expr t2)).
-  rewrite actxtsubst_expr. f_equal ~.
-  lets: IHuni1 wf H0 H10 H4 H6. auto.
-  clear IHuni1.
-
-  destruct H11 as [wfh1 exgh1].
-  lets: extension_weakening_awftyping H5 exgh1.
-  apply awftyping_subst in H11; auto.
-  rewrite actxtsubst_expr in H11; auto.
-  lets: extension_weakening_awftyping H7 exgh1.
-  apply awftyping_subst in H12; auto.
-  rewrite actxtsubst_expr in H12.
-  assert (AT_Expr (ACtxSubst H1 t3) =
-          ACtxTSubst H1 (AT_Expr (ACtxSubst H1 t3))).
-  rewrite actxtsubst_expr. f_equal~.
-  rewrite~ ctxsubst_twice.
-  assert (AT_Expr (ACtxSubst H1 t4) =
-          ACtxTSubst H1 (AT_Expr (ACtxSubst H1 t4))).
-  rewrite actxtsubst_expr. f_equal ~.
-  rewrite~ ctxsubst_twice.
-  lets: IHuni2 wfh1 H13 H14 H11 H12; auto.
-
-  destruct H15.
-  lets: extension_transitivity exgh1 H16. split; auto.
-
-  (* LAM *)
-  inversion awf1; subst.
-  inversion awf2; subst.
-  rewrite actxtsubst_expr in sub1.
-  rewrite actxsubst_lam in sub1.
-  inversion sub1.
-  rewrite actxtsubst_expr in sub2.
-  rewrite actxsubst_lam in sub2.
-  inversion sub2.
-  pick_fresh y.
-  assert (notinl : y \notin L) by auto.
-  assert (notinl0 : y \notin L0) by auto.
-  assert (notinl1 : y \notin L1) by auto.
-  assert (AWf (G & y ~ AC_Var)) by apply~ AWf_Var.
-  lets: H4 notinl0.
-  lets: H5 notinl1.
-  assert(AT_Expr (t1 @@ AE_FVar y) =
-         ACtxTSubst (G & y ~ AC_Var) (AT_Expr (t1 @@ AE_FVar y))).
-  rewrite actxtsubst_expr. f_equal ~.
-  rewrite subst_add_var.
-  rewrite actxsubst_open. rewrite actxsubst_fvar. rewrite~ <- H3.
-  lets: AWf_left H2.  auto.
-  assert(AT_Expr (t2 @@ AE_FVar y) =
-         ACtxTSubst (G & y ~ AC_Var) (AT_Expr (t2 @@ AE_FVar y))).
-  rewrite actxtsubst_expr. f_equal ~.
-  rewrite subst_add_var.
-  rewrite actxsubst_open. rewrite actxsubst_fvar. rewrite~ <- H6.
-  lets: AWf_left H2.  auto.
-  lets: H1 H2 H9 H10 H7 H8; auto.
-
-  destruct H11 as [wfh exgh].
-  split.
-  apply AWf_left in wfh; auto.
-  apply extctx_remove_var in exgh. auto.
-
-  (* CASTUP *)
-  inversion awf1; subst.
-  inversion awf2; subst.
-  rewrite actxtsubst_expr in sub1. rewrite actxsubst_castup in sub1. inversion sub1.
-  assert (AT_Expr t1 = ACtxTSubst G (AT_Expr t1)).
-  rewrite actxtsubst_expr. f_equal~.
-  rewrite actxtsubst_expr in sub2. rewrite actxsubst_castup in sub2. inversion sub2.
-  assert (AT_Expr t2 = ACtxTSubst G (AT_Expr t2)).
-  rewrite actxtsubst_expr. f_equal~.
-  lets: IHuni wf H0 H4 H2 H3; auto.
-
-  (* CASTDOWN *)
-  inversion awf1; subst.
-  inversion awf2; subst.
-  rewrite actxtsubst_expr in sub1. rewrite actxsubst_castdn in sub1. inversion sub1.
-  assert (AT_Expr t1 = ACtxTSubst G (AT_Expr t1)).
-  rewrite actxtsubst_expr. f_equal~.
-  rewrite actxtsubst_expr in sub2. rewrite actxsubst_castdn in sub2. inversion sub2.
-  assert (AT_Expr t2 = ACtxTSubst G (AT_Expr t2)).
-  rewrite actxtsubst_expr. f_equal~.
-  lets: IHuni wf H0 H4 H2 H3; auto.
-
-  (* PI *)
-  inversion awf1; subst.
-  inversion awf2; subst.
-  clear H2 IHuni.
-  rewrite actxtsubst_expr in sub1. rewrite actxsubst_pi in sub1. inversion sub1.
-  rewrite actxtsubst_expr in sub2. rewrite actxsubst_pi in sub2. inversion sub2.
-
-  lets: atunify_awf uni wf H3 H6 H8; auto.
-  destruct H2.
-
-  pick_fresh y.
-  assert (notinl0: y \notin L0) by auto.
-  assert (notinl1: y \notin L1) by auto.
-  lets: H7 notinl0. clear H7.
-  lets: H9 notinl1. clear H9.
-  assert (ExtCtx (G & y ~ AC_Typ t1) (H1 & y ~ AC_Typ t1)).
-  apply~ ExtCtx_TypVar.
-  apply~ AWf_TyVar.
-  lets: extension_weakening_awftyp H6 H11. auto.
-  assert (ExtCtx (G & y ~ AC_Typ t3) (H1 & y ~ AC_Typ t3)).
-  apply~ ExtCtx_TypVar.
-  apply~ AWf_TyVar.
-  lets: extension_weakening_awftyp H8 H11. auto.
-  lets: extension_weakening_awftyp H12 H9.
-  lets: extension_weakening_awftyp H7 H13.
-  lets: awtermt_awftyp H6.
-  lets: atunify_is_aunify uni.
-  lets: awf_is_ok wf. auto.
-  lets: awf_is_awt wf.
-  symmetry in H3.
-  symmetry in H5.
-  lets: unify_invariance H18 H17 H3 H5.
-  assert (AWfTyp (H1 & y ~ AC_Typ t3 & empty) (t4 @@' AE_FVar y)) by rewrite~ concat_empty_r.
-  symmetry in H19.
-  lets: awftyp_middle_change_typvar H20 H19.
-  rewrite concat_empty_r in H21.
-
-  assert (notinl: y \notin L) by auto.
-  lets: H0 notinl. clear H0.
-  apply awftyp_subst in H21.
-  rewrite tsubst_add_typvar in H21.
-  apply awftyp_subst in H14.
-  rewrite tsubst_add_typvar in H14.
-  assert (ACtxTSubst H1 (t2 @@' AE_FVar y) =
-          ACtxTSubst (H1 & y ~ AC_Typ t1) (ACtxTSubst H1 (t2 @@' AE_FVar y))).
-  rewrite tsubst_add_typvar. rewrite~ ctxtsubst_twice.
-  assert (ACtxTSubst H1 (t4 @@' AE_FVar y) =
-         ACtxTSubst (H1 & y ~ AC_Typ t1) (ACtxTSubst H1 (t4 @@' AE_FVar y))).
-  rewrite tsubst_add_typvar. rewrite~ ctxtsubst_twice.
-  lets: atunify_awf H22 H14 H21; auto.
-  apply~ AWf_TyVar.
-  lets: extension_weakening_awftyp H6 H11. auto.
-
-  destruct H24.
-  split.
-  lets: AWf_left H24. auto.
-  lets: extension_remove_tyvar H25.
-  lets: extension_transitivity H11 H26. auto.
-
-  (* FORALL *)
-  clear H1.
-  inversion awf1; subst.
-  inversion awf2; subst.
-  pick_fresh y.
-  assert (y \notin L) by auto.
-  lets: H0 H1. clear H0.
-  assert (y \notin L0) by auto.
-  lets: H3 H0. clear H3.
-  assert (y \notin L1) by auto.
-  lets: H4 H3. clear H4.
-  assert (t1 @@#' AT_TFVar y = ACtxTSubst (G & y ~ AC_TVar) (t1 @@#' AT_TFVar y)).
-  rewrite tsubst_add_tvar. rewrite~ actxtsubst_topen.
-  rewrite~ actxtsubst_tfvar_notin.
-  rewrite actxtsubst_expr in sub1. rewrite actxsubst_forall in sub1. inversion~ sub1. repeat rewrite~ <- H7.
-  assert (t2 @@#' AT_TFVar y = ACtxTSubst (G & y ~ AC_TVar) (t2 @@#' AT_TFVar y)).
-  rewrite tsubst_add_tvar. rewrite~ actxtsubst_topen.
-  rewrite~ actxtsubst_tfvar_notin.
-  rewrite actxtsubst_expr in sub2. rewrite actxsubst_forall in sub2. inversion~ sub2. repeat rewrite~ <- H8.
-  lets: atunify_awf H2 H5 H6; auto.
-  destruct H8.
-  split.
-  lets: AWf_left H8. auto.
-  lets: extension_remove_tvar H9. auto.
-
-  (* ANN *)
-  clear IHuni2.
-  inversion awf1; subst.
-  inversion awf2; subst.
-  assert (AT_Expr t1 = ACtxTSubst G (AT_Expr t1)).
-  rewrite actxtsubst_expr. f_equal.
-  rewrite actxtsubst_expr in sub1. rewrite actxsubst_ann in sub1.
-  inversion~ sub1. rewrite~ <- H2.
-  assert (AT_Expr t2 = ACtxTSubst G (AT_Expr t2)).
-  rewrite actxtsubst_expr in sub2. rewrite actxsubst_ann in sub2.
-  inversion~ sub2. rewrite actxtsubst_expr. f_equal. rewrite~ <- H3.
-  lets: IHuni1 wf H0 H2 H4 H6; auto.
-
-  clear IHuni1 uni1.
-  destruct H3.
-  lets: extension_weakening_awftyp H5 H8.
-  apply awftyp_subst in H9.
-  lets: extension_weakening_awftyp H7 H8.
-  apply awftyp_subst in H10.
-  assert (ACtxTSubst H1 t3 = ACtxTSubst H1 (ACtxTSubst H1 t3)).
-  rewrite~ ctxtsubst_twice.
-  assert (ACtxTSubst H1 t4 = ACtxTSubst H1 (ACtxTSubst H1 t4)).
-  rewrite~ ctxtsubst_twice.
-  lets: atunify_awf uni2 H3 H11 H9 H10; auto.
-  destruct H13.
-  lets: extension_transitivity H8 H14.
-  split; auto.
-Qed.
 
 Theorem unify_extension: forall G s t H,
     AUnify G s t H ->
@@ -803,11 +552,7 @@ Theorem unify_extension: forall G s t H,
     AWfTyp G t -> AWfTyp G s ->
     AWf H /\ ExtCtx G H.
 Proof.
-  intros.
-  lets: aunify_is_atunify H0.
-  lets: awf_is_ok H1. auto.
-  apply* atunify_awf.
-Qed.
+Admitted.
 
 Theorem unify_extension_expr: forall G s t H,
     AUnify G (AT_Expr s) (AT_Expr t) H ->

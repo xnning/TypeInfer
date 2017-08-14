@@ -371,6 +371,18 @@ Proof.
   lets: awt_insert_evar a1 wt; auto.
   repeat rewrite concat_assoc in H1.
   apply* H1.
+
+  lets: IHres wt.
+  pick_fresh y.
+  assert (AWt (H1 & y ~ AC_Var)). apply~ AWt_Var.
+  lets: H2 H4. auto.
+  lets: awt_left H5; auto.
+
+  lets: IHres wt.
+  pick_fresh y.
+  assert (AWt (H1 & y ~ AC_Var)). apply~ AWt_Var.
+  lets: H2 H4. auto.
+  lets: awt_left H5; auto.
 Qed.
 
 Lemma unify_awt_preservation: forall G s t H,

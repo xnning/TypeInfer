@@ -1,6 +1,6 @@
 Require Import LibLN.
-Require Import AlgoDef.
 Require Import DeclDef.
+Require Import AlgoDef.
 Require Import AlgoInfra.
 Require Import DeclInfra.
 Require Import CtxExtension.
@@ -13,50 +13,30 @@ Require Import Subst.
 (* AWfTyping *)
 (***********************)
 
-Inductive AWfTyping : ACtx -> AType -> Prop :=
-| AWfTyping_Star: forall G,
-    AWf G ->
-    AWfTyping G (AT_Expr (AE_Star))
-| AWfTyping_Var: forall G x,
-    AWf G ->
-    binds x AC_Var G ->
-    AWfTyping G (AT_Expr (AE_FVar x))
-| AWfTyping_TypVar: forall G x t,
-    AWf G ->
-    binds x (AC_Typ t) G ->
-    AWfTyping G (AT_Expr (AE_FVar x))
-| AWfTyping_EVar: forall G x,
-    AWf G ->
-    binds x AC_Unsolved_EVar G ->
-    AWfTyping G (AT_EVar x)
-| AWfTyping_Solved_EVar: forall G x t,
-    AWf G ->
-    binds x (AC_Solved_EVar t) G ->
-    AWfTyping G (AT_EVar x)
-| AWfTyping_TVar: forall G x,
-    AWf G ->
-    binds x AC_TVar G ->
-    AWfTyping G (AT_TFVar x)
-| AWfTyping_Ann: forall G e1 e2,
-    AWfTyping G (AT_Expr e1) ->
-    AWfTyp G e2 ->
-    AWfTyping G (AT_Expr (AE_Ann e1 e2))
-| AWfTyping_Pi: forall G e1 e2 L,
-    AWfTyp G e1 ->
-    (forall x, x \notin L ->
-          AWfTyp (G & x ~ AC_Typ e1) (e2 @' x)) ->
-    AWfTyping G (AT_Expr (AE_Pi e1 e2))
+
+
+
+Inductive AWfTyping : ACtx -> ACtx -> AType -> ACtx -> Prop :=
+| AWfTyping_Ann: forall G1 H1 H2 H3 e1 e2,
+    ATyping Chk (G1 & H1) e2 (AT_Expr AE_Star) (G1 & H2) ->
+    AWfTyping (G1 & H2) (AT_Expr e1) (G1 & H3) ->
+    AWfTyping G1 H1 (AT_Expr (AE_Ann e1 e2)) H3
+| AWfTyping_Pi: forall G1 H1 H2 H3 e1 e2 x,
+    ATyping Chk (G1 & H1) e1 (AT_Expr AE_Star) (G1 & H2) ->
+    x # (G1 & H1 & H2 & H3) ->
+    ATyping Chk (G1 & H2 & x ~ AC_Typ e1) (e2 @' x) (AT_Expr AE_Star) (G1 & H3)->
+    AWfTyping G1 H1 (AT_Expr (AE_Pi e1 e2)) H3
 | AWfTyping_Lam: forall G e L,
     (forall x, x \notin L ->
-          AWfTyping (G & x ~ AC_Var) (AT_Expr (e @ x))) ->
-    AWfTyping G (AT_Expr (AE_Lam e))
+          AWfTyping (G1 & H1 & x ~ AC_Var) (AT_Expr (e @ x)) (G1 & H2))
+    AWfTyping (G1 & H1) (AT_Expr (AE_Lam e)) (G1 & H2)
 | AWfTyping_App: forall G e1 e2,
-    AWfTyping G (AT_Expr e1) ->
-    AWfTyping G (AT_Expr e2) ->
-    AWfTyping G (AT_Expr (AE_App e1 e2))
+    AWfTyping (G1 & H1) (AT_Expr e1) (G1 & H2) ->
+    AWfTyping (G1 & H2) (AT_Expr e2) (G1 & H3) ->
+    AWfTyping (G1 & H1) (AT_Expr (AE_App e1 e2)) (G1 & H3)
 | AWfTyping_CastDn: forall G e,
     AWfTyping G (AT_Expr e) ->
-    AWfTyping G (AT_Expr (AE_CastDn e))
+    AWfTyping (G1 & H1) (AT_Expr (AE_CastDn e))
 | AWfTyping_CastUp: forall G e,
     AWfTyping G (AT_Expr e) ->
     AWfTyping G (AT_Expr (AE_CastUp e))
@@ -65,13 +45,20 @@ Inductive AWfTyping : ACtx -> AType -> Prop :=
           AWfTyp (G & a ~ AC_TVar) (e @#' a)) ->
     AWfTyping G (AT_Expr (AE_Forall e)).
 
+
 (***********************)
 (* Admits *)
 (***********************)
 
 Lemma awftyp_is_awftyping: forall G e,
     AWfTyp G e ->
-    AWfTyping G e.
+    exists H, AWfTyping G e H.
+Proof.
+  introv wf.
+  inversion wf. subst.
+  exists~
+
+
 Admitted.
 
 (***********************)

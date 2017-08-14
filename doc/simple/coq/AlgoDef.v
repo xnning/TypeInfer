@@ -392,13 +392,13 @@ Inductive AResolveForall : ACtx -> var -> ARFMode -> AType -> AType -> ACtx -> P
       AResolveForall (G1 & a1 ~ AC_Unsolved_EVar & a ~ AC_Unsolved_EVar & G2)
                      a Plus (s @@#' (AT_EVar a1)) t H ->
       AResolveForall (G1 & a ~ AC_Unsolved_EVar & G2) a Plus (AT_Expr (AE_Forall s)) t H
-  | AResolveForall_Pi1: forall G s1 s2 t1 t2 H1 H a,
+  | AResolveForall_Pi1: forall G s1 s2 t1 t2 H1 H a L,
       AResolveForall G a Plus s1 t1 H1 ->
-      AResolveForall H1 a Minus s2 t2 H ->
+      (forall x, x \notin L -> AResolveForall (H1 & x ~ AC_Var) a Minus s2 t2 (H & x ~ AC_Var)) ->
       AResolveForall G a Minus (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi t1 t2)) H
-  | AResolveForall_Pi2: forall G s1 s2 t1 t2 H1 H a,
+  | AResolveForall_Pi2: forall G s1 s2 t1 t2 H1 H a L,
       AResolveForall G a Minus s1 t1 H1 ->
-      AResolveForall H1 a Plus s2 t2 H ->
+      (forall x, x \notin L -> AResolveForall (H1 & x ~ AC_Var) a Plus s2 t2 (H & x ~ AC_Var)) ->
       AResolveForall G a Plus (AT_Expr (AE_Pi s1 s2)) (AT_Expr (AE_Pi t1 t2)) H
   | AResolveForall_Mono : forall G a m t,
       ATMono t -> AResolveForall G a m t t G.

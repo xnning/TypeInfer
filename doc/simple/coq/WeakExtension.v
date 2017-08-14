@@ -1639,3 +1639,272 @@ Proof.
   rewrite hi in wf. apply* binds_middle_eq.
   apply* ok_middle_inv_r.
 Qed.
+
+Set Implicit Arguments.
+
+Lemma weak_declaration_order_preservation : forall G I G1 G2 G3 x y xv1 yv1,
+    WExtCtx G I ->
+    G = G1 & x ~ xv1 & G2 & y ~ yv1 & G3 ->
+    exists xv2 yv2 I1 I2 I3, I = I1 & x ~ xv2 & I2 & y ~ yv2 & I3.
+Proof.
+  introv HE HG.
+  gen G1 G2 G3 x y xv1 yv1.
+  assert (ok G). apply* weak_extension_ok.
+  induction HE; intros* HG.
+  (* ExtCtx_Empty *)
+  eapply empty_middle_inv in HG. inversion HG.
+
+  (* ExtCtx_Var  *)
+  assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec x y); subst.
+  assert (x0 \in (dom (G & y ~ AC_Var))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x0 HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H4'); subst.
+  exists v' AC_Var G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & x ~ AC_Var). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I3 & x ~ AC_Var). rewrite* concat_assoc.
+
+  (* ExtCtx_TypVar  *)
+  assert (x0 <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec x y); subst.
+  assert (x0 \in (dom (G & y ~ AC_Typ t))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x0 \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x0 HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Typ t) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & x ~ AC_Typ t). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I6 & x ~ AC_Typ t). rewrite* concat_assoc.
+
+  (* ExtCtx_TVar *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_TVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H6'); subst.
+  exists v' (AC_TVar) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_TVar). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I3 & a ~ AC_TVar). rewrite* concat_assoc.
+
+  (* Marker *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Marker))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H6'); subst.
+  exists v' (AC_Marker) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Marker). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I3 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I3 & a ~ AC_Marker). rewrite* concat_assoc.
+
+  (* ExtCtx_EVar *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Unsolved_EVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H4'); subst.
+  exists v' AC_Unsolved_EVar G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Unsolved_EVar). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I6 & a ~ AC_Unsolved_EVar). rewrite* concat_assoc.
+
+  (* ExtCtx_SolvedEVar *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Solved_EVar t))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Solved_EVar t) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Solved_EVar t). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I6 & a ~ AC_Solved_EVar t). rewrite* concat_assoc.
+
+  (* ExtCtx_Solve *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  destruct (eq_var_dec a y); subst.
+  assert (x \in (dom (G & y ~ AC_Unsolved_EVar))). rewrite HG. simpl_dom. apply union_left. apply union_left. apply union_left. apply union_right. apply in_singleton_self.
+  assert (x \in (dom G)). simpl_dom . rewrite in_union in H4. destruct H4 as [H11 | H12]. rewrite in_singleton in H11. apply H3 in H11. inversion H11. auto.
+  apply (weak_extension_var_preservation G H0 x HE) in H5.
+  apply split_context in H5. destruct H5 as (G1' & G2' & v' & H5'); subst.
+  exists v' (AC_Solved_EVar t) G1' G2' (empty: ACtx).
+  rewrite* concat_empty_r.
+
+  assert (exists G', G3 = G' & a ~ AC_Unsolved_EVar). apply (tail_exists_eq n) in HG. auto.
+  inversion H4. subst.
+  rewrite concat_assoc in HG.
+  apply eq_push_inv in HG.
+  destruct HG as [_ [_ HGG]].
+  apply (IHHE (weak_extension_ok G H0 HE)) in HGG.
+  destruct HGG as (xv2 & yv2 & I4 & I5 & I6 & HGG').
+  subst.
+  exists* xv2 yv2 I4 I5 (I6 & a ~ AC_Solved_EVar t). rewrite* concat_assoc.
+
+  (* ExtCtx_Add *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  apply (IHHE H) in HG.
+  destruct HG as (xv2 & yv2 & I1 & I2 & I3 & HH0); subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Unsolved_EVar).
+  rewrite* concat_assoc.
+
+  (* ExtCtx_AddSolved *)
+  assert (x <> y).  rewrite HG in H. apply (ok_non_eq H).
+  apply (IHHE H) in HG.
+  destruct HG as (xv2 & yv2 & I1 & I2 & I3 & HH0); subst.
+  exists* xv2 yv2 I1 I2 (I3 & a ~ AC_Solved_EVar t).
+  rewrite* concat_assoc.
+Qed.
+
+Lemma weak_extentension_reverse_var_preservation: forall G I x,
+    WExtCtx G I ->
+    binds x AC_Var I ->
+    binds x AC_Var G.
+Proof.
+  introv ex bd.
+  induction ex; auto;
+    try(destruct (binds_push_inv bd);
+        destruct H2;
+        [solve[false H3] |
+         lets: IHex H3; apply~ binds_push_neq]).
+
+  destruct (binds_push_inv bd).
+  destruct H2. subst. apply~ binds_push_eq.
+  destruct H2. lets: IHex H3. apply~ binds_push_neq.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+Qed.
+
+Lemma weak_extentension_reverse_typvar_preservation: forall G I x t,
+    WExtCtx G I ->
+    binds x (AC_Typ t) I ->
+    binds x (AC_Typ t) G.
+Proof.
+  introv ex bd.
+  induction ex; auto;
+    try(destruct (binds_push_inv bd);
+        destruct H2;
+        [solve[false H3] |
+         lets: IHex H3; apply~ binds_push_neq]).
+
+  destruct (binds_push_inv bd).
+  destruct H2. inversion H3. subst. apply~ binds_push_eq.
+  destruct H2. lets: IHex H3. apply~ binds_push_neq.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+Qed.
+
+Lemma weak_extentension_reverse_tvar_preservation: forall G I x,
+    WExtCtx G I ->
+    binds x AC_TVar I ->
+    binds x AC_TVar G.
+Proof.
+  introv ex bd.
+  induction ex; auto;
+    try(destruct (binds_push_inv bd);
+        destruct H2;
+        [solve[false H3] |
+         lets: IHex H3; apply~ binds_push_neq]).
+
+  destruct (binds_push_inv bd).
+  destruct H2. subst. apply~ binds_push_eq.
+  destruct H2. lets: IHex H3. apply~ binds_push_neq.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+Qed.
+
+Lemma weak_extentension_reverse_marker_preservation: forall G I x,
+    WExtCtx G I ->
+    binds x AC_Marker I ->
+    binds x AC_Marker G.
+Proof.
+  introv ex bd.
+  induction ex; auto;
+    try(destruct (binds_push_inv bd);
+        destruct H2;
+        [solve[false H3] |
+         lets: IHex H3; apply~ binds_push_neq]).
+
+  destruct (binds_push_inv bd).
+  destruct H2. subst. apply~ binds_push_eq.
+  destruct H2. lets: IHex H3. apply~ binds_push_neq.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+
+  destruct (binds_push_inv bd).
+  destruct H1. false H2.
+  destruct H1. lets: IHex H2. auto.
+Qed.
