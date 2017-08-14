@@ -86,8 +86,6 @@
 \newcommand{\Inf}{\Uparrow}
 \newcommand{\Inst}{{inst}}
 \newcommand{\Gen}{{gen}}
-\newcommand{\redto}{\hookrightarrow}
-\newcommand{\redton}{\hookrightarrow^*}
 \newcommand{\eq}{\sim}
 \newcommand{\lt}{\sqsubseteq}
 \newcommand{\sugar}{\triangleq}
@@ -259,6 +257,10 @@
 % Primitives
 \newcommand{\Int}{\var{Int}}
 \newcommand{\String}{\var{String}}
+
+\newcommand{\castup}[1][]{\fun{cast}_\uparrow^{#1}~}
+\newcommand{\castdn}[1][]{\fun{cast}_\downarrow^{#1}~}
+\newcommand{\redto}{\hookrightarrow}
 
 \newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
 

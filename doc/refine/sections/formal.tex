@@ -190,7 +190,7 @@
             \tctx \wc
          \\ x: \sigma \in \tctx
             }{
-            \tctx \byinf x \infto \sigma
+            \tctx \byinf x \infto \applye \tctx \sigma
             }\rname{A-Var}}
 
 \newcommand*{\AEVar}{\inferrule{
@@ -211,7 +211,7 @@
             \tctx \byinf \sigma_1 \infto \star
          \\ \tctx, x : \sigma_1 \byinf e \infto \sigma_2
             }{
-            \tctx \byinf \blam x {\sigma_1} e \infto \bpi x {\sigma_1} {\sigma_2}
+            \tctx \byinf \blam x {\sigma_1} e \infto \bpi x {\applye {\tctx} {\sigma_1}} {\sigma_2}
             }\rname{A-LamAnn}}
 
 \newcommand*{\APi}{\inferrule{
@@ -229,11 +229,10 @@
             }\rname{A-All}}
 
 \newcommand*{\AApp}{\inferrule{
-            \tctx \byinf e_1 \infto \sigma_1
+            \tctx \byinf e_1 \infto \bpi x {\sigma_1} {\sigma_2}
          \\ \tctx \byinf e_2 \infto \sigma_2
-         \\ \applye \tctx {\sigma_1} = \bpi x {\applye \tctx {\sigma_2}} {\sigma_3}
             }{
-            \tctx \byinf e_1 ~ e_2 \infto \sigma_3
+            \tctx \byinf e_1 ~ e_2 \infto \sigma_2
             }\rname{A-App}}
 
 \newcommand*{\AAppPi}{\inferrule{
@@ -256,7 +255,21 @@
          \\ \tctx \bysub \applye \tctx {\sigma_1} \dsub \applye \tctx {\sigma_2}
             }{
             \tctx \byinf e \infto \sigma_2
-            }\rname{D-Sub}}
+            }\rname{A-Sub}}
+
+\newcommand*{\ACastDn}{\inferrule{
+            \tctx \byinf e \infto \sigma_1
+         \\ \sigma_1 \redto \sigma_2
+            }{
+            \tctx \byinf \castdn e \infto \sigma_2
+            }\rname{A-CastDn}}
+
+\newcommand*{\ACastUp}{\inferrule{
+            \tctx \byinf e \infto \sigma_2
+         \\ \applye {\tctx} {\sigma_1} \redto \sigma_2
+            }{
+            \tctx \byinf \castup e \infto \applye {\tctx} {\sigma_1}
+            }\rname{A-CastUp}}
 
 % ------------------------------------------------------
 % EXTENSION SUBTYPING
@@ -359,6 +372,18 @@
             \tctx \bywt e_1 ~ e_2
             }\rname{WS-App}}
 
+\newcommand*{\WSCastUp}{\inferrule{
+            \tctx \bywf e
+            }{
+            \tctx \bywt \castup e
+            }\rname{WS-CastUp}}
+
+\newcommand*{\WSCastDn}{\inferrule{
+            \tctx \bywf e
+            }{
+            \tctx \bywt \castdn e
+            }\rname{WS-CastDn}}
+
 % ------------------------------------------------------
 % UNIFICATION
 % ------------------------------------------------------
@@ -412,6 +437,18 @@
             \tctx \bybuni \forall x. \sigma_1 \uni \forall x. \sigma_2 \toctx
             }\rname{U-All}}
 
+\newcommand*{\UCastDn}{\inferrule{
+            \tctx \byeuni e_1 \uni e_2 \toctx
+            }{
+            \tctx \bybuni \castdn {e_1} \uni \castdn {e_2} \toctx
+            }\rname{U-CastDn}}
+
+\newcommand*{\UCastUp}{\inferrule{
+            \tctx \byeuni {e_1} \uni {e_2} \toctx
+            }{
+            \tctx \bybuni \castup {e_1} \uni \castup {e_2} \toctx
+            }\rname{U-CastUp}}
+
 % ------------------------------------------------------
 % TYPE SANITIZATION
 % ------------------------------------------------------
@@ -456,6 +493,18 @@
             }{
             \tctx \bysa \bpi x {\tau_1} {\tau_2} \sa \bpi x {\tau_3} {\tau_4} \toctx
             }\rname{I-Pi}}
+
+\newcommand*{\ICastDn}{\inferrule{
+            \tctx \bysa e_1 \sa e_2  \toctx
+            }{
+            \tctx \bysa \castdn e_1 \uni \castdn e_2 \toctx
+            }\rname{I-CastDn}}
+
+\newcommand*{\ICastUp}{\inferrule{
+            \tctx \bysa e_1 \sa e_2  \toctx
+            }{
+            \tctx \bysa \castup e_1 \uni \castup e_2 \toctx
+            }\rname{I-CastUp}}
 
 % ------------------------------------------------------
 % SUBTYPING FOR SIGMA
@@ -624,3 +673,18 @@
             }{
             \tctx \exto \ctxr, \genA = \tau
             }\rname{CE-AddSolved}}
+
+% ------------------------------------------------------
+% REDUCTION RULE
+% ------------------------------------------------------
+
+\newcommand*{\RApp}{\inferrule{
+            e_1 \redto e_1'
+            }{
+            e_1 ~ e_2 \redto e_1' ~ e_2
+            }\rname{R-App}}
+
+\newcommand*{\RBeta}{\inferrule{
+            }{
+            (\blam x \sigma {e_1}) ~ e_2 \redto e_1 \subst x {e_2}
+            }\rname{R-Beta}}
