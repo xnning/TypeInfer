@@ -51,6 +51,15 @@
   \RApp \and \RBeta
 \end{mathpar}
 
+\subsection{Apply a Context}
+
+    \begin{tabular}{rll}
+        $\applye {\emptyset} \sigma$ & = & $\sigma$ \\
+        $\applye {\tctx, x: \tau} \sigma$ & = & $\applye \tctx \sigma$ \\
+        $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ \\
+        $\applye {\tctx, \genA = \tau} \sigma$ & = & $\applye \tctx {\sigma \subst \genA \tau}$\\
+    \end{tabular}
+
 \subsection{Algorithmic Unification}
 
 \begin{mathpar}
