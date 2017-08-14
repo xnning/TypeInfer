@@ -64,10 +64,10 @@
             }\rname{D-All}}
 
 \newcommand*{\DApp}{\inferrule{
-            \dctx \byinf e_1 \infto \sigma_1
-         \\ \dctx \byinf \sigma_1 \app e_2 \infto \sigma_2
+            \dctx \byinf e_1 \infto \bpi x {\sigma_1}  {\sigma_2}
+         \\ \dctx \byinf e_2 \infto \sigma_1
             }{
-            \dctx \byinf e_1 ~ e_2 \infto \sigma_2
+            \dctx \byinf e_1 ~ e_2 \infto \sigma_2 \subst x {e_2}
             }\rname{D-App}}
 
 \newcommand*{\DAppPi}{\inferrule{
@@ -230,9 +230,10 @@
 
 \newcommand*{\AApp}{\inferrule{
             \tctx \byinf e_1 \infto \sigma_1
-         \\ \tctx \byinf \applye \tctx {\sigma_1} \app e_2 \infto \sigma_2
+         \\ \tctx \byinf e_2 \infto \sigma_2
+         \\ \applye \tctx {\sigma_1} = \bpi x {\applye \tctx {\sigma_2}} {\sigma_3}
             }{
-            \tctx \byinf e_1 ~ e_2 \infto \sigma_2
+            \tctx \byinf e_1 ~ e_2 \infto \sigma_3
             }\rname{A-App}}
 
 \newcommand*{\AAppPi}{\inferrule{
@@ -316,6 +317,49 @@
             }\rname{AS-App}}
 
 % ------------------------------------------------------
+% EXTENSION WELL SCOPEDNESS
+% ------------------------------------------------------
+
+\newcommand*{\WSVar}{\inferrule{
+            x : \sigma \in \tctx
+            }{
+            \tctx \bywt x
+            }\rname{WS-Var}}
+
+\newcommand*{\WSEVar}{\inferrule{
+            \genA \in \tctx
+            }{
+            \tctx \bywt \genA
+            }\rname{WS-EVar}}
+
+\newcommand*{\WSSolvedEVar}{\inferrule{
+            \genA = \tau \in \tctx
+            }{
+            \tctx \bywt \genA
+            }\rname{WS-SolvedEVar}}
+
+\newcommand*{\WSLamAnn}{\inferrule{
+            \tctx \bywt \sigma
+         \\ \tctx, x: \sigma \bywt e
+            }{
+            \tctx \bywt \blam x {\sigma} e
+            }\rname{WS-LamAnn}}
+
+\newcommand*{\WSPi}{\inferrule{
+            \tctx \bywt \sigma_1
+         \\ \tctx, x: \sigma_1 \bywt \sigma_2
+            }{
+            \tctx \bywt \bpi x {\sigma_1} {\sigma_2}
+            }\rname{WS-Pi}}
+
+\newcommand*{\WSApp}{\inferrule{
+            \tctx \bywt e_1
+         \\ \tctx \bywt e_2
+            }{
+            \tctx \bywt e_1 ~ e_2
+            }\rname{WS-App}}
+
+% ------------------------------------------------------
 % UNIFICATION
 % ------------------------------------------------------
 
@@ -351,7 +395,7 @@
             \tctx \bysuni \sigma_1 \uni \sigma_2 \toctx_1
          \\ \ctxl_1, x:\sigma_1 \byeuni \applye {\ctxl_1} {e_1} \uni \applye {\ctxl_1} {e_2} \toctx, x:\sigma_1
             }{
-            \tctx \byeuni \blam x {\sigma_1} {e_1} \uni \blam x {\sigma_2} {e_2}
+            \tctx \byeuni \blam x {\sigma_1} {e_1} \uni \blam x {\sigma_2} {e_2} \toctx
             }\rname{U-LamAnn}}
 
 \newcommand*{\UPi}{\inferrule{
@@ -359,7 +403,7 @@
          \\ \ctxl_1, x:\sigma_1 \bysuni \applye {\ctxl_1} {\sigma_2} \uni
                 \applye {\ctxl_1} {\sigma_4} \toctx, x:\sigma_1
             }{
-            \tctx \bybuni \bpi x {\sigma_1} {\sigma_2} \uni \bpi x {\sigma_3} {\sigma_4}
+            \tctx \bybuni \bpi x {\sigma_1} {\sigma_2} \uni \bpi x {\sigma_3} {\sigma_4} \toctx
             }\rname{U-Pi}}
 
 \newcommand*{\UAll}{\inferrule{
@@ -514,3 +558,69 @@
             }{
             \tctx \bybsa \tau \sa \tau \toctxo
             }\rname{I-Mono}}
+
+\newcommand*{\IUnit}{\inferrule{
+            }{
+            \tctx \bybsa 1 \sa 1 \toctxo
+            }\rname{I-Unit}}
+
+\newcommand*{\IEVarAfterPoly}{\inferrule{
+            }{
+            \tctx[\genA][\genB] \bybsa \genB \sa \genA_1 \toctxo[\genA_1, \genA][\genB=\genA_1]
+            }\rname{I-EVarAfter-Poly}}
+
+\newcommand*{\IEVarBeforePoly}{\inferrule{
+            }{
+            \tctx[\genB][\genA] \bybsa \genB \sa \genB \toctxo[\genB][\genA]
+            }\rname{I-EVarBefore-Poly}}
+
+% ------------------------------------------------------------------------
+% CONTEXT EXTENSION
+% ------------------------------------------------------------------------
+
+\newcommand*{\CEEmpty}{\inferrule{
+            }{
+            \ctxinit \exto \ctxinit
+            }\rname{CE-Empty}}
+
+\newcommand*{\CEVar}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \applye {\ctxr} {\sigma_1} = \applye {\ctxr} {\sigma_2}
+            }{
+            \tctx, x:\sigma_1 \exto \ctxr, x:\sigma_2
+            }\rname{CE-TypedVar}}
+
+\newcommand*{\CEEVar}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx, \genA \exto \ctxr, \genA
+            }\rname{CE-EVar}}
+
+\newcommand*{\CESolvedEVar}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \applye {\ctxr} {\tau_1} = \applye {\ctxr} {\tau_2}
+            }{
+            \tctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2
+            }\rname{CE-SolvedEVar}}
+
+\newcommand*{\CESolve}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \ctxr \bywf \tau
+            }{
+            \tctx, \genA \exto \ctxr, \genA = \tau
+            }\rname{CE-Solve}}
+
+\newcommand*{\CEAdd}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \genA \notin \ctxr
+            }{
+            \tctx \exto \ctxr, \genA
+            }\rname{CE-Add}}
+
+\newcommand*{\CEAddSolved}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \genA \notin \ctxr
+         \\ \ctxr \bywf \tau
+            }{
+            \tctx \exto \ctxr, \genA = \tau
+            }\rname{CE-AddSolved}}

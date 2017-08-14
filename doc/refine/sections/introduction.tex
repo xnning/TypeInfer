@@ -1,59 +1,20 @@
-\section{Declarative System}
+\section{Unification for Dependent Type System}
+
+\subsection{Declarative System}
 
 \begin{tabular}{lrcl}
-  Type, Expr & $\sigma, e$ & \syndef & $x \mid \star
-                                       \mid e_1~e_2 \mid \blam x \sigma e
-                                       \mid \bpi x {\sigma_1} \sigma_2$ \\
-       && \synor & $\forall x: \tau. \sigma$ \\
-       % && \synor & $\genA$ \\
-  Monotype & $\tau$ & \syndef & $x \mid \star
-                                \mid \tau_1~\tau_2 \mid \blam x {\tau_1} {\tau_2}
-                                \mid \bpi x {\tau_1} \tau_2$ \\
-  Contexts &
-             $\dctx$ & \syndef & $\ctxinit \mid \dctx,x:\sigma$\\
-             % \mid \tctx, \genA
-             % \mid \tctx, \genA = \tau $ \\
-\end{tabular}
-
-\begin{mathpar}
-  \framebox{$\dctx \wc$}
-  {\quad Context~Well~Formedness} \\
-  \DCEmpty \and \DCVar
-\end{mathpar}
-
-\begin{mathpar}
-  \framebox{$\dpreinf e \infto \sigma$}
-  {\quad Typing} \\
-  \DAx \and \DVar \and
-  \DLamAnn \and
-  \DPi \and \DAll \and
-  \DApp \and \DAppPi \and \DAppPoly \and
-  \DSub
-\end{mathpar}
-
-\begin{mathpar}
-  \framebox{$\dpresub \sigma_1 \dsub \sigma_2$}
-  {\quad Subtyping} \\
-  \DSAx \and \DSVar \and
-  \DSAllL \and \DSAllR \and
-  \DSPi \and \DSLamAnn \and \DSApp
-\end{mathpar}
-
-\section{Declarative System Extended with Existential Variables}
-
-\begin{tabular}{lrcl}
-  Type & $\sigma, e$ & \syndef & $e \mid \genA$ \\
+  Type & $\tau, \sigma$ & \syndef & $e \mid \genA$ \\
   Expr & $e$ & \syndef & $x \mid \star
                          \mid e_1~e_2 \mid \blam x \sigma e
                          \mid \bpi x {\sigma_1} \sigma_2$ \\
-       && \synor & $\forall x. \sigma$ \\
+       % && \synor & $\forall x. \sigma$ \\
        % && \synor & $\genA$ \\
-  Monotype & $\tau$ & \syndef & $x \mid \star
-                                \mid \tau_1~\tau_2 \mid \blam x \sigma \tau
-                                \mid \bpi x {\tau_1} \tau_2
-                                \mid \genA
-                                $ \\
-  Contexts & $\tctx$ & \syndef & $\ctxinit \mid \dctx,x:\sigma
+  % Monotype & $\tau$ & \syndef & $x \mid \star
+  %                               \mid \tau_1~\tau_2 \mid \blam x \sigma \tau
+  %                               \mid \bpi x {\tau_1} \tau_2
+  %                               \mid \genA
+  %                               $ \\
+  Contexts & $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \dctx,x:\sigma
              \mid \tctx, \genA
              \mid \tctx, \genA = \tau $ \\
 \end{tabular}
@@ -69,28 +30,24 @@
   \framebox{$\tctx \byinf \sigma_1 \infto \sigma_2$}
   {\quad Typing} \\
   \AAx \and \AVar \and \AEVar \and \ASolvedEVar \and
-  \ALamAnn \and \APi \and \AAll \and
-  \ASub \and
-  \AApp \and \AAppPi \and \AAppPoly
+  \ALamAnn \and \APi \and \and
+  \AApp
 \end{mathpar}
-
 
 \begin{mathpar}
-  \framebox{$\tctx \bysub \sigma_1 \tsub \sigma_2$}
-  {\quad Subtyping} \\
-  \ASAx \and \ASVar \and \ASEVar \and
-  \ASAllL \and \ASAllR \and \ASPi \and
-  \ASLamAnn \and \ASApp
+  \framebox{$\tctx \bywt \sigma$}
+  {\quad Well~Scopedness} \\
+  \WSVar \and \WSEVar \and \WSSolvedEVar
+  \and \WSPi \and \WSLamAnn \and \WSApp
 \end{mathpar}
 
-\section{Algorithmic Unification}
+\subsection{Algorithmic Unification}
 
 \begin{mathpar}
   \framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$}
   {\quad Unification} \\
   \UAEq \and \UEVarTy \and \UTyEVar \and
-  \UApp \and \ULamAnn \and \UPi \and
-  \UAll
+  \UApp \and \ULamAnn \and \UPi
 \end{mathpar}
 
 \begin{mathpar}
@@ -101,20 +58,23 @@
   \IApp \and \ILamAnn \and \IPi
 \end{mathpar}
 
-\section{Algorithmic Subtyping}
+\subsection{Context Extension}
+
 
 \begin{mathpar}
-  \framebox{$\tctx \bybsub \sigma_1 \tsub \sigma_2 \toctx$}
-  {\quad Algorithmic~Subtyping} \\
-  \SAllR \and \SAllL \and \SPi \and
-  \SApp \and \SLamAnn \and
-  \SEVarTy \and \STyEVar \and \SUnify
+  \framebox{$\tctx \exto \ctxl$}
+  {\quad Context~ Extension} \\
+  \CEEmpty \and \CEVar \and \CEEVar \and
+  \CESolvedEVar \and \CESolve \and
+  \CEAdd \and \CEAddSolved
 \end{mathpar}
+
+\section{Polymorphic Type Sanitization For Implicit Polymorphic Calculus}
 
 \begin{mathpar}
   \framebox{$\tctx[\genA] \bybsa \sigma \sa \tau \toctx$}
   {\quad Polymorphic~Type~Sanitization} \\
   \IAllPlus \and \IAllMinus \and
-  \IPiPoly \and \ILamAnnPoly \and
-  \IAppPoly \and \IMono
+  \IPiPoly \and \IUnit \and
+  \IEVarAfterPoly \and \IEVarBeforePoly
 \end{mathpar}
