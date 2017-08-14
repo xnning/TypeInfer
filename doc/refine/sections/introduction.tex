@@ -7,6 +7,7 @@
   Expr & $e$ & \syndef & $x \mid \star
                          \mid e_1~e_2 \mid \blam x \sigma e
                          \mid \bpi x {\sigma_1} \sigma_2$ \\
+       && \synor & $\castup e \mid \castdn e$ \\
        % && \synor & $\forall x. \sigma$ \\
        % && \synor & $\genA$ \\
   % Monotype & $\tau$ & \syndef & $x \mid \star
@@ -31,7 +32,7 @@
   {\quad Typing} \\
   \AAx \and \AVar \and \AEVar \and \ASolvedEVar \and
   \ALamAnn \and \APi \and \and
-  \AApp
+  \AApp \and \ACastDn \and \ACastUp
 \end{mathpar}
 
 \begin{mathpar}
@@ -39,6 +40,15 @@
   {\quad Well~Scopedness} \\
   \WSVar \and \WSEVar \and \WSSolvedEVar
   \and \WSPi \and \WSLamAnn \and \WSApp
+  \and \WSCastDn \and \WSCastUp
+\end{mathpar}
+
+\subsection{Reduction Rule}
+
+\begin{mathpar}
+  \framebox{$\sigma_1 \redto \sigma_2$}
+  {\quad Reduction~ Rule} \\
+  \RApp \and \RBeta
 \end{mathpar}
 
 \subsection{Algorithmic Unification}
@@ -48,6 +58,7 @@
   {\quad Unification} \\
   \UAEq \and \UEVarTy \and \UTyEVar \and
   \UApp \and \ULamAnn \and \UPi
+  \and \UCastDn \and \UCastUp
 \end{mathpar}
 
 \begin{mathpar}
@@ -56,6 +67,7 @@
   \IEVarAfter \and \IEVarBefore \and
   \IVar \and \IStar \and
   \IApp \and \ILamAnn \and \IPi
+  \and \ICastDn \and \ICastUp
 \end{mathpar}
 
 \subsection{Context Extension}
