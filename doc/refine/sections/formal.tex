@@ -230,9 +230,9 @@
 
 \newcommand*{\AApp}{\inferrule{
             \tctx \byinf e_1 \infto \bpi x {\sigma_1} {\sigma_2}
-         \\ \tctx \byinf e_2 \infto \sigma_2
+         \\ \tctx \byinf e_2 \infto \sigma_1
             }{
-            \tctx \byinf e_1 ~ e_2 \infto \sigma_2
+            \tctx \byinf e_1 ~ e_2 \infto \sigma_2 \subst x {\applye \tctx {e_1}}
             }\rname{A-App}}
 
 \newcommand*{\AAppPi}{\inferrule{
@@ -688,3 +688,14 @@
             }{
             (\blam x \sigma {e_1}) ~ e_2 \redto e_1 \subst x {e_2}
             }\rname{R-Beta}}
+
+\newcommand*{\RCastDown}{\inferrule{
+            e \redto e'
+            }{
+            \castdn e \redto \castdn e'
+            }\rname{R-CastDown}}
+
+\newcommand*{\RCastDownUp}{\inferrule{
+            }{
+            \castdn (\castup e) \redto e
+            }\rname{R-CastDownUp}}

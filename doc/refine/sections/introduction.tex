@@ -31,7 +31,7 @@
   \framebox{$\tctx \byinf \sigma_1 \infto \sigma_2$}
   {\quad Typing} \\
   \AAx \and \AVar \and \AEVar \and \ASolvedEVar \and
-  \ALamAnn \and \APi \and \and
+  \ALamAnn \and \APi \and
   \AApp \and \ACastDn \and \ACastUp
 \end{mathpar}
 
@@ -48,17 +48,18 @@
 \begin{mathpar}
   \framebox{$\sigma_1 \redto \sigma_2$}
   {\quad Reduction~ Rule} \\
-  \RApp \and \RBeta
+  \RApp \and \RBeta \and
+  \RCastDown \and \RCastDownUp
 \end{mathpar}
 
 \subsection{Apply a Context}
 
-    \begin{tabular}{rll}
-        $\applye {\emptyset} \sigma$ & = & $\sigma$ \\
-        $\applye {\tctx, x: \tau} \sigma$ & = & $\applye \tctx \sigma$ \\
-        $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ \\
-        $\applye {\tctx, \genA = \tau} \sigma$ & = & $\applye \tctx {\sigma \subst \genA \tau}$\\
-    \end{tabular}
+\begin{tabular}{rll}
+  $\applye {\emptyset} \sigma$ & = & $\sigma$ \\
+  $\applye {\tctx, x: \tau} \sigma$ & = & $\applye \tctx \sigma$ \\
+  $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ \\
+  $\applye {\tctx, \genA = \tau} \sigma$ & = & $\applye \tctx {\sigma \subst \genA \tau}$\\
+\end{tabular}
 
 \subsection{Algorithmic Unification}
 
