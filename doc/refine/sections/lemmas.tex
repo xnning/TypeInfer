@@ -1,0 +1,176 @@
+
+\newcommand*{\ContextApplicationIsIdempotentName}{Context Application is Idempotent}
+\newcommand*{\ContextApplicationIsIdempotentBody}{
+  If $\tctx \wc$,
+  then $\applye \tctx {\applye \tctx \sigma} = \applye \tctx \sigma$.
+}
+
+\newcommand*{\ContextApplicationPreservesTypingName}{Context Application Preserves Typing}
+\newcommand*{\ContextApplicationPreservesTypingBody}{
+  If $\tctx \byinf \sigma_1 \infto \sigma_2$,
+  then $\tctx \byinf \applye \tctx {\sigma_1} \infto \sigma_2$.
+}
+
+\newcommand*{\OutputIsFullySubstitutedName}{Output is Fully Substituted}
+\newcommand*{\OutputIsFullySubstitutedBody}{
+  If $\tctx \byinf \sigma_1 \infto \sigma_2$,
+  then $\applye \tctx {\sigma_2} = \sigma_2$.
+}
+
+\newcommand*{\ReductionPreservesFullySubstitutionName}{Reduction Preserves Fully Substitution}
+\newcommand*{\ReductionPreservesFullySubstitutionBody}{
+  If $\tctx \wc$,
+  and $\applye \tctx {\sigma} = \sigma$,
+  and $\sigma \redto \tau$,
+  then $\applye \tctx \tau = \tau$.
+}
+
+\newcommand*{\ContextApplicationOverReductionName}{Context Application Over Reduction}
+\newcommand*{\ContextApplicationOverReductionBody}{
+  If $\sigma_1 \redto \sigma_2$,
+  and $\applye \tctx {\sigma_1} \redto \applye \tctx {\sigma_2}$.
+}
+
+\newcommand*{\ContextApplicationInContextName}{Context Application In Context}
+\newcommand*{\ContextApplicationInContextBody}{
+  If $\tctx_1, y: \tau, \tctx_2 \byinf \sigma_1 \infto \sigma_2$,
+  and $\tctx_1, y : \applye {\tctx_1} \tau, \tctx_2 \wc $,
+  then $\tctx_1, y : \applye {\tctx_1} \tau, \tctx_2 \byinf \sigma_1 \infto \sigma_2$.
+}
+
+\newcommand*{\TypingWeakeningName}{Typing Weakening}
+\newcommand*{\TypingWeakeningBody}{
+  If $\tctx_1, \tctx_2 \byinf \sigma_1 \infto \sigma_2$,
+  and $\tctx_1, \ctxl, \tctx_2 \wc$,
+  then $\tctx_1, \ctxl, \tctx_2 \byinf \sigma_1 \infto \sigma_2$.
+}
+
+\newcommand*{\TypingSubstitutionName}{Typing Substitution}
+\newcommand*{\TypingSubstitutionBody}{
+  If $\tctx \byinf \tau \infto \applye \tctx {\sigma_1}$,
+  and $\tctx, x : \sigma_1 \byinf \tau' \infto \sigma_2 $,
+  then $\tctx \byinf \tau' \subst x \tau \infto \sigma_2 $.
+}
+
+\newcommand*{\TypingContextWellFormednessName}{Typing Context Well Formedness}
+\newcommand*{\TypingContextWellFormednessBody}{
+  If $\tctx \byinf \tau \infto \sigma$,
+  then $\tctx \wc$.
+}
+
+\newcommand*{\TypingStrengtheningName}{Typing Strengthening}
+\newcommand*{\TypingStrengtheningBody}{
+  If $\tctx_1, x: \sigma_1, \tctx_2 \byinf \tau \infto \sigma$,
+  and $\tctx_1, \tctx_2 \wc $,
+  and $x \notin FV(\tau)$,
+  then $\tctx_1, \tctx_2 \byinf \tau \infto \sigma$.
+}
+
+\newcommand*{\TypingVariableExchangeName}{Typing Variable Exchange}
+\newcommand*{\TypingVariableExchangeBody}{
+  If $\tctx, x: \sigma_1, y :\sigma_2, \ctxl \byinf \tau_1 \infto \tau_2$,
+  and $\tctx, y: \sigma_2, x :\sigma_1, \ctxl \wc$,
+  then $\tctx, y: \sigma_2, x :\sigma_1, \ctxl \byinf \tau_1 \infto \tau_2$
+  with the same size of typing derivation.
+}
+
+\newcommand*{\DeclarationPreservationName}{Declaration Preservation}
+\newcommand*{\DeclarationPreservationBody}{
+  If $\tctx \exto \ctxr$,
+  and $u$ is a variable declared in $\tctx$,
+  then $u$ is declared in $\ctxr$.
+}
+
+\newcommand*{\DeclarationOrderPreservationName}{Declaration Order Preservation}
+\newcommand*{\DeclarationOrderPreservationBody}{
+  If $\tctx \exto \ctxr$,
+  and $u$ is declared to the left of $v$ in $\tctx$,
+  then $u$ is declared to the left of $v$ in the $\ctxr$.
+}
+
+\newcommand*{\ReverseDeclarationOrderPreservationName}{Reverse Declaration Order Preservation}
+\newcommand*{\ReverseDeclarationOrderPreservationBody}{
+  If $\tctx \exto \ctxr$,
+  and $u$ and $v$ are both declared in $\tctx$,
+  and $u$ is declared to the left of $v$ in $\ctxr$,
+  then $u$ is declared to the left of $v$ in the $\tctx$.
+}
+
+\newcommand*{\SubstitutionExtensionInvarianceName}{Substitution Extension Invariance}
+\newcommand*{\SubstitutionExtensionInvarianceBody}{
+  If $\tctx \byinf \sigma \infto \sigma'$,
+  and $\tctx \exto \ctxr$,
+  then $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$,
+  and $\applye \ctxr \sigma = \applye \tctx {\applye \ctxr \sigma}$.
+}
+
+\newcommand*{\ExtensionEqualityPreservationName}{Extension Equality Preservation}
+\newcommand*{\ExtensionEqualityPreservationBody}{
+  If $\tctx \byinf \sigma_1 \infto \tau_1$,
+  and $\tctx \byinf \sigma_2 \infto \tau_2$,
+  and $\applye \tctx {\sigma_1} = \applye \tctx {\sigma_2}$,
+  and $\tctx \exto \ctxr$,
+  then $\applye \ctxr {\sigma_1} = \applye \ctxr {\sigma_2}$.
+}
+
+\newcommand*{\ContextExtensionReflexivityName}{Reflexivity of Context Extension}
+\newcommand*{\ContextExtensionReflexivityBody}{
+  If $\tctx \wc$,
+  then $\tctx \exto \tctx$.
+}
+
+\newcommand*{\ContextExtensionTransitivityName}{Transitivity of Context Extension}
+\newcommand*{\ContextExtensionTransitivityBody}{
+  If $\ctxl \exto \tctx$,
+  and $\tctx \exto \ctxr$,
+  then $\ctxl \exto \ctxr$.
+}
+
+\newcommand*{\ContextExtensionPreservesContextWellFormednessName}{Context Extension Preserves Context Well Formedness}
+\newcommand*{\ContextExtensionPreservesContextWellFormednessBody}{
+  If $\tctx \wc$,
+  and $\tctx \exto \ctxl$,
+  then $\ctxr \wc$.
+}
+
+\newcommand*{\ReverseDeclarationPreservationName}{Reverse Declaration Preservation}
+\newcommand*{\ReverseDeclarationPreservationBody}{
+  If $\tctx \exto \ctxl$,
+  and $u$ is a variable that $u \notin \ctxl$,
+  then $u \notin \tctx$.
+}
+
+\newcommand*{\RightSoftnessName}{Right Softness}
+\newcommand*{\RightSoftnessBody}{
+  If $\tctx \exto \ctxr$,
+  and $\ctxl$ is soft,
+  and $\ctxr, \ctxl$ is well formed,
+  then $\tctx \exto \ctxr, \ctxl$.
+}
+
+\newcommand*{\ExtensionOrderName}{Extension Order}
+\newcommand*{\ExtensionOrderBody}{
+  \begin{itemize}
+  \item If $\tctx_L, y : \sigma, \tctx_R \exto \ctxr$,
+    then $\ctxr = \ctxr_L, y : \sigma, \ctxr_R$,
+    and $\tctx_L \exto \ctxr_L$,
+    and $\ctxr_R$ is soft if and only if $\tctx_R$ is soft.
+  \item If $\tctx_L, \genA , \tctx_R \exto \ctxr$,
+    then $\ctxr = \ctxr_L, \ctxl, \ctxr_R$,
+    and $\tctx_L \exto \ctxr_L$,
+    and $\ctxl$ is either $\genA$ or $\genA = \tau$ for some $\tau$,
+    and $\ctxr_R$ is soft if and only if $\tctx_R$ is soft.
+  \item If $\tctx_L, \genA = \sigma, \tctx_R \exto \ctxr$,
+    then $\ctxr = \ctxr_L, \genA = \sigma, \ctxr_R$,
+    and $\tctx_L \exto \ctxr_L$,
+    and $\ctxr_R$ is soft if and only if $\tctx_R$ is soft.
+  \end{itemize}
+}
+
+\newcommand*{\ExtensionWeakningName}{Extension Weakening}
+\newcommand*{\ExtensionWeakningBody}{
+  If $\tctx \byinf \tau_1 \infto \tau_2$,
+  and $\tctx \exto \ctxr$,
+  and $\ctxr \wc$,
+  then $\ctxr \byinf \tau_1 \infto \applye \ctxr {\tau_2}$.
+}

@@ -174,7 +174,7 @@
          \\ \tctx \byinf \tau \infto \star
             }{
             \tctx, \genA : \tau \wc
-            }\rname{AC-EVar}}
+            }\rname{AC-SolvedEVar}}
 
 % ------------------------------------------------------
 % EXTENSION TYPING
@@ -634,26 +634,27 @@
 
 \newcommand*{\CEVar}{\inferrule{
             \tctx \exto \ctxr
-         \\ \applye {\ctxr} {\sigma_1} = \applye {\ctxr} {\sigma_2}
             }{
-            \tctx, x:\sigma_1 \exto \ctxr, x:\sigma_2
-            }\rname{CE-TypedVar}}
+            \tctx, x:\sigma \exto \ctxr, x:\sigma
+            }\rname{CE-Var}}
 
 \newcommand*{\CEEVar}{\inferrule{
             \tctx \exto \ctxr
+         \\ \genA \notin \ctxr
             }{
             \tctx, \genA \exto \ctxr, \genA
             }\rname{CE-EVar}}
 
 \newcommand*{\CESolvedEVar}{\inferrule{
             \tctx \exto \ctxr
-         \\ \applye {\ctxr} {\tau_1} = \applye {\ctxr} {\tau_2}
+         \\ \genA \notin \ctxr
             }{
-            \tctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2
+            \tctx, \genA = \tau \exto \ctxr, \genA = \tau
             }\rname{CE-SolvedEVar}}
 
 \newcommand*{\CESolve}{\inferrule{
             \tctx \exto \ctxr
+         \\ \genA \notin \ctxr
          \\ \ctxr \bywf \tau
             }{
             \tctx, \genA \exto \ctxr, \genA = \tau

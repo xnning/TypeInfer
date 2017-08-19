@@ -1,0 +1,950 @@
+\newpage
+\section{Dependent Type System}
+
+\subsection{Properties of Context Application}
+
+\begin{lemma}[\ContextApplicationIsIdempotentName]
+  \label{lemma:\ContextApplicationIsIdempotentName}
+  \ContextApplicationIsIdempotentBody
+\end{lemma}
+\proof
+By induction on the well formedness of context. Case \rul{AC-Empty},
+\rul{AC-Var}, and \rul{AC-EVar} are trivial. We discuss \rul{AC-SolvedEVar} below.
+
+\begin{itemize}
+  \item Case \[\ACSolvedEVar\]
+    \begin{longtable}[l]{lll}
+      & $ \applye {\tctx, \genA = \tau} {\applye {\tctx, \genA = \tau} \sigma} =
+      \applye {\tctx, \genA = \tau} {\applye \tctx {\sigma \subst \genA
+          \tau}} $ & By definition \\
+      & $\tctx \byinf \tau \infto \star$ & Given \\
+      & $\genA \notin \tctx$ & Given \\
+      & $\genA \notin FV(\tau)$ & By above propositions \\
+      & $\genA \notin FV(\sigma \subst \genA \tau)$ & Follows directly \\
+      & $\genA \notin FV(\applye \tctx {\sigma \subst \genA \tau})$ & Follows
+      directly \\
+      & $\applye {\tctx, \genA = \tau} {\applye \tctx {\sigma \subst \genA
+          \tau}} = \applye {\tctx} {\applye \tctx {\sigma \subst \genA \tau}}$ &
+      Substitute fresh variable \\
+      & $ = \applye \tctx {\sigma \subst \genA \tau}$ & By induction hypothesis
+      \\
+      & $ = \applye {\tctx, \genA = \tau} \sigma$ & By definition of context application
+    \end{longtable}
+\end{itemize}
+\qed
+
+\begin{lemma}[\ReductionPreservesFullySubstitutionName]
+  \label{lemma:\ReductionPreservesFullySubstitutionName}
+  \ReductionPreservesFullySubstitutionBody
+\end{lemma}
+\proof
+Follows directly from the definition of context substitution and reduction.
+\qed
+
+\begin{lemma}[\ContextApplicationOverReductionName]
+  \label{lemma:\ContextApplicationOverReductionName}
+  \ContextApplicationOverReductionBody
+\end{lemma}
+\proof
+
+By induction on the reduction derivation.
+
+\begin{itemize}
+  \item Case \[\RApp\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {e_1} \redto \applye \tctx {e_1'}$& By induction
+      hypothesis \\
+      & $\applye \tctx {e_1~ e_2}$ & \\
+      & $ = \applye \tctx {e_1} ~ \applye \tctx {e_2}$ & By property of
+      substitution  \\
+      & $\redto \applye \tctx {e_1'} ~ \applye \tctx {e_2}$& By \rul{R-App} \\
+      & $= \applye \tctx {e_1' ~ e_2}$& By property of substitution
+    \end{longtable}
+  \item Case \[\RBeta\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {(\blam x \sigma {e_1}) ~ e_2}$ & \\
+      & $= {(\blam x {\applye \tctx \sigma} {\applye \tctx {e_1}}) ~
+        \applye \tctx {e_2}}$ & By
+      definition of substitution \\
+      & $\redto (\applye \tctx {e_1}) \subst x {\applye \tctx {e_2}}$& By
+      \rul{R-Beta} \\
+      & $= \applye \tctx {e_1 \subst x {e_2}}$& By property of substitution
+    \end{longtable}
+  \item Case \[\RCastDown\]
+    Follows directly from induction hypothesis.
+  \item Case \[\RCastDownUp\]
+    Follows directly from induction hypothesis.
+\end{itemize}
+
+\qed
+
+\begin{lemma}[\OutputIsFullySubstitutedName]
+  \label{lemma:OutputIsFullySubstituted}
+  \OutputIsFullySubstitutedBody
+\end{lemma}
+\proof
+By induction on typing derivation.
+\begin{itemize}
+  \item Case \rul{A-Ax}, \rul{A-EVar}, \rul{A-SolvedEVar}, \rul{A-Pi} follows
+    directly from $\applye \tctx \star = \star$.
+  \item Case \[\AVar\]
+    \begin{longtable}[l]{lll}
+    & $\applye \tctx {\applye \tctx \sigma} = \applye \tctx \sigma$ & By
+    Lemma~\ref{lemma:\ContextApplicationIsIdempotentName}\\
+    \end{longtable}
+  \item Case \[\ALamAnn\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {\bpi x {\applye \tctx {\sigma_1}} {\sigma_2}} =
+      \bpi x {\applye \tctx {\applye \tctx {\sigma_1}}} {\applye \tctx
+        {\sigma_2}}$
+      & Follows from definition of context substitution \\
+      &$=\bpi x {\applye \tctx {\sigma_1}} {\applye \tctx {\sigma_2}}$& By Lemma~\ref{lemma:\ContextApplicationIsIdempotentName}\\
+      &$\applye {\tctx, x: \sigma_1} {\sigma_2} = \sigma_2$ & By hypothesis\\
+      &$\applye {\tctx} {\sigma_2} = \sigma_2$& Follows from definition of
+      context substitution\\
+      &$\applye \tctx {\bpi x {\applye \tctx {\sigma_1}} {\sigma_2}} =
+      {\bpi x {\applye \tctx {\sigma_1}} {\sigma_2}}
+      $ & By above equalities
+    \end{longtable}
+  \item Case \[\AApp\]
+    \begin{longtable}[l]{lll}
+      &$\applye \tctx {\bpi x {\sigma_1} {\sigma_2}} = \bpi x {\sigma_1}
+      {\sigma_2}$ & By hypothesis\\
+      &$\applye \tctx {\sigma_2} = \sigma_2$& Follows directly from above\\
+      &$\applye \tctx {\applye \tctx e} = \applye \tctx e$& By
+      Lemma~\ref{lemma:\ContextApplicationIsIdempotentName} \\
+      &$\applye \tctx {\sigma_2 \subst x {\applye \tctx {e_1}}}$ & \\
+      &$=\applye \tctx {\sigma_2} \subst x {\applye \tctx {\applye \tctx {e_1}}}$&
+      Context application is distributed over substitution \\
+      &$={\sigma_2} \subst x {\applye \tctx{e_1}}$& By above equalities
+    \end{longtable}
+  \item Case \[\ACastDn\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {\sigma_1} = {\sigma_1}$ & By hypothesis \\
+      & $\applye \tctx {\sigma_2} = {\sigma_2}$ & By Lemma~\ref{lemma:\ReductionPreservesFullySubstitutionName} \\
+    \end{longtable}
+  \item Case \[\ACastUp\]
+    Follows directly from Lemma~\ref{lemma:\ContextApplicationIsIdempotentName}
+\end{itemize}
+\qed
+
+\begin{lemma}[\ContextApplicationInContextName]
+  \label{lemma:\ContextApplicationInContextName}
+  \ContextApplicationInContextBody
+\end{lemma}
+\proof
+By induction on the typing relation.
+\begin{itemize}
+\item Case \rul{A-AX}, \rul{A-EVar} and \rul{A-SolvedEVar} follows directly.
+\item Case \[\AVar\]
+  If $x = y$, then result type is $\applye {\tctx} {\applye \tctx \tau} =
+  \applye \tctx \tau$ by Lemma~\ref{lemma:\ContextApplicationIsIdempotentName}.
+  Otherwise the result is the same.
+\item The rest cases follows directly from the hypothesis.
+\end{itemize}
+\qed
+
+\begin{definition}[Typing Size], The size of typing derivation
+  $\tctx \byinf \sigma \infto \tau$,
+  defined based on typing process in Figure~\ref{},
+  written as $\sizet {\tctx \byinf \sigma \infto \tau}$,
+  is defined as:
+  \begin{center}
+  \begin{tabular}{rll}
+    $\sizet {\tctx \byinf \star \infto \star}$ & = & 1 \\
+    $\sizet {\tctx \byinf x \infto \applye \tctx \sigma}$ & = & 1 \\
+    $\sizet {\tctx \byinf \genA \infto \star}$ & = & 1 if $\genA \in \tctx$\\
+    $\sizet {\tctx \byinf \genA \infto \star}$ & = & $1 + \sizet{\tctx_1 \byinf \tau \infto \star}$ if $\tctx = \tctx_1, \genA = \tau, \tctx2$\\
+    $\sizet {\tctx \byinf \blam x {\sigma_1} e \infto \bpi x {\applye {\tctx} {\sigma_1}} {\sigma_2}}$
+                                               & = &
+                                                     $1 + \sizet{\tctx \byinf \sigma_1 \infto \star}
+                                                     + \sizet{\tctx, x : \sigma_1 \byinf e \infto \sigma_2}$  \\
+    $\sizet{\tctx \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star}$
+                                               & = &
+                                                     $1 + \sizet{\tctx \byinf \sigma_1 \infto \star}
+                                                     + \sizet{\tctx, x : \sigma_1 \byinf \sigma_2 \infto \star}
+                                                     $\\
+    $\sizet{\tctx \byinf \castdn e \infto \sigma_2}$
+                                               & = &
+                                                     $1 + \sizet{\tctx \byinf e \infto \sigma_1}$ \\
+    $\sizet{\tctx \byinf \castup e \infto \applye {\tctx} {\sigma_1}}$
+                                               & = &
+                                                     $1 + \sizet {\tctx \byinf e \infto \sigma_2} $
+  \end{tabular}
+  \end{center}
+\end{definition}
+
+\begin{lemma}[\ContextApplicationPreservesTypingName]
+  \label{lemma:\ContextApplicationPreservesTypingName}
+  \ContextApplicationPreservesTypingBody
+\end{lemma}
+\proof
+By induction on the typing size.
+
+\begin{itemize}
+  \item Case \[\AAx\]
+    \begin{longtable}[l]{lll}
+      & $ \applye \tctx \star = \star$ & Directly from the definition of context
+      application\\
+      & $ \tctx \byinf \star \infto \star$ & By \rul{A-Ax}
+    \end{longtable}
+  \item Case \rul{AVar}, \rul{AEVar} are similar as \rul{AAx}, which follows
+    from definition directly.
+  \item Case \[\ASolvedEVar\]
+    \begin{longtable}[l]{lll}
+      & let $\tctx = \tctx_1, \genA = \tau, \tctx_2$& \\
+      & $\applye \tctx \genA = \applye {\tctx_1} \tau$& Follows from definition of context
+      application\\
+      & $\tctx_1 \byinf \applye {\tctx_1} \tau \infto \star$& By hypothesis\\
+      & $\tctx_1, \genA = \tau, \tctx_2 \byinf \applye {\tctx_1} \tau \infto
+      \star$ & By Lemma~\ref{lemma:\TypingWeakeningName} \\
+    \end{longtable}
+  \item Case \[\ALamAnn\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {\blam x {\sigma_1} e} = \blam x {\applye \tctx
+        {\sigma_1}} {\applye \tctx e} $ & Follows from definition of context application \\
+      & $\tctx \byinf \applye \tctx {\sigma_1} \infto \star$ & By hypothesis \\
+      & $\tctx, x : \sigma_1 \byinf \applye {\tctx, x: \sigma_1} e \infto \sigma_2$ & By hypothesis \\
+      & $\tctx, x : \sigma_1 \byinf \applye {\tctx} e \infto \sigma_2$ & By
+      definition of context application \\
+      & $\tctx, x : \applye \tctx {\sigma_1} \byinf \applye {\tctx} e \infto
+      \sigma_2$ & By Lemma~\ref{lemma:\ContextApplicationInContextName}\\
+    \end{longtable}
+
+  \item Case \[\APi\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx {\bpi x {\sigma_1} {\sigma_2}} = \bpi x {\applye \tctx
+        {\sigma_1}} {\applye \tctx {\sigma_2}} $ & Follows from definition of context application \\
+      & $\tctx \byinf \applye \tctx {\sigma_1} \infto \star$ & By hypothesis \\
+      & $\tctx, x : \sigma_1 \byinf \applye {\tctx, x: \sigma_1} {\sigma_2} \infto \star$ & By hypothesis \\
+      & $\tctx, x : \sigma_1 \byinf \applye {\tctx} {\sigma_2} \infto \star$ & By
+      definition of context application \\
+      & $\tctx, x : \applye \tctx {\sigma_1} \byinf \applye {\tctx} {\sigma_2}
+      \infto \star$ & By Lemma~\ref{lemma:\ContextApplicationInContextName}\\
+    \end{longtable}
+  \item Case \rul{A-App}, \rul{A-CastDn}, \rul{A-CastUp} follows directly from
+    the hypothesis.
+\end{itemize}
+\qed
+
+\subsection{Properties of Declarative Typing}
+
+\begin{lemma}[\TypingContextWellFormednessName]
+  \label{lemma:\TypingContextWellFormednessName}
+  \TypingContextWellFormednessBody
+\end{lemma}
+\proof
+
+By a straightforward induction on the typing derivation.
+
+\qed
+
+\begin{lemma}[\TypingWeakeningName]
+  \label{lemma:\TypingWeakeningName}
+  \TypingWeakeningBody
+\end{lemma}
+\proof
+
+By induction on the typing derivation.
+\begin{itemize}
+  \item Case \rul{A-Ax}, \rul{A-Var}, \rul{A-EVar} and \rul{A-SolvedEVar}
+    follows directly.
+  \item Case \[\ALamAnn\]
+    \begin{longtable}[l]{lll}
+      &$\tctx_1, \ctxl, \tctx_2 \byinf \sigma_1 \infto \star$ & By hypothesis\\
+      &$\tctx_1, \ctxl, \tctx_2, x:\sigma_1 \wc$& Follows from the definition of
+      context well formedness\\
+      &$\tctx_1, \ctxl, \tctx_2, x: \sigma_1 \byinf e \infto \sigma_2$& By
+      hypothesis
+    \end{longtable}
+  \item Case \rul{A-Pi} is similar as \rul{A-LamAnn}.
+    \item Case \rul{A-App}, \rul{A-CastDn} and \rul{A-CastUp} follows directly
+      from hypothesis.
+\end{itemize}
+\qed
+
+\begin{lemma}[\TypingStrengtheningName]
+  \label{lemma:\TypingStrengtheningName}
+  \TypingStrengtheningBody
+\end{lemma}
+\proof
+By induction on the typing derivation.
+
+\begin{itemize}
+  \item Case \rul{A-Ax}, \rul{A-EVar} and \rul{A-SolvedEVar} follows directly
+    from typing.
+  \item Case \[\AVar\]
+    Because we know $x \notin FV(\tau)$, so $\tau = y$, where $y \neq x$ and $y
+    :\sigma \in \tctx_1, \tctx_2$. Follows by \rul{A-Var}.
+  \item All rest cases follow from induction hypothesis directly.
+\end{itemize}
+\qed
+
+\begin{lemma}[\TypingVariableExchangeName]
+  \label{lemma:\TypingVariableExchangeName}
+  \TypingVariableExchangeBody
+\end{lemma}
+\proof
+
+By straightforward induction on the typing derivation.
+
+\qed
+
+\begin{lemma}[\TypingSubstitutionName]
+  \label{lemma:\TypingSubstitutionName}
+  \TypingSubstitutionBody
+\end{lemma}
+\proof
+
+By induction on the size of second typing derivation.
+
+\begin{itemize}
+  \item Case \rul{A-Ax}, \rul{A-EVar} and \rul{A-SolvedEVar} follows from typing
+    rules directly.
+  \item Case \[\AVar\]
+    If two $x$'s are the same, then $\sigma_2 = \applye \tctx {\sigma_1}$. The
+    goal follows directly from given conditions. If two variables are not the
+    same, then it follows directly from \rul{A-Var}.
+  \item Case \[\ALamAnn\]
+    Let the expression be $\blam y {\sigma'} e$ to avoid name conflicts.
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf \sigma' \subst x \tau \infto \star$ & By induction hypothesis \\
+      & $\tctx, x:\sigma_1, y: \sigma' \subst x \tau \byinf e \infto \sigma_3$ & Given, notice
+      we use $\sigma_3$ to avoid name conflicts \\
+      & $\tctx \byinf \sigma_1 \infto \star$ & Given \\
+      & $\tctx, y: \sigma' \subst x \tau \byinf \sigma_1 \infto \star$ & By
+      Lemma~\ref{lemma:\TypingWeakeningName}\\
+      & $\tctx, y: \sigma' \subst x \tau, x:\sigma_1 \wc$ & By above hypothesis \\
+      & $\tctx, y: \sigma' \subst x \tau, x:\sigma_1 \byinf e \infto \sigma_3$ &
+      By Lemma~\ref{lemma:\TypingVariableExchangeName} \\
+      & $\tctx \byinf \tau \infto \applye \tctx {\sigma_1}$ & Given \\
+      & $\tctx, y: \sigma_1 \subst x \tau \byinf \tau \infto \applye \tctx
+      {\sigma_1}$ & By Lemma~\ref{lemma:\TypingWeakeningName}  \\
+      & $\tctx, y: \sigma_1 \subst x \tau \byinf e \subst x \tau \infto
+      \sigma_3$ & By induction hypothesis \\
+    \end{longtable}
+  \item Case \rul{A-Pi} is similar as \rul{A-LamAnn}.
+  \item Rest cases follow directly from hypothesis.
+\end{itemize}
+\qed
+
+Type Safety
+
+\subsection{Properties of Context Extension}
+
+\begin{lemma}[\DeclarationPreservationName]
+  \label{lemma:\DeclarationPreservationName}
+  \DeclarationPreservationBody
+\end{lemma}
+\proof
+
+By a straightforward induction on the context application.
+
+\qed
+
+\begin{lemma}[\ReverseDeclarationPreservationName]
+  \label{lemma:\ReverseDeclarationPreservationName}
+  \ReverseDeclarationPreservationBody
+\end{lemma}
+\proof
+
+By a straightforward induction on the context application.
+
+\qed
+
+
+\begin{lemma}[\DeclarationOrderPreservationName]
+  \label{lemma:\DeclarationOrderPreservationName}
+  \DeclarationOrderPreservationBody
+\end{lemma}
+\proof
+
+By induction on the context application.
+\begin{itemize}
+  \item Case \[\CEEmpty\]
+    Impossible case.
+  \item Case \[\CEVar\]
+    \begin{itemize}
+    \item SubCase $v = x$.
+      \begin{longtable}[l]{lll}
+        & $u \in \tctx$ & Given \\
+        & $u \in \ctxr$ & By Lemma~\ref{lemma:\DeclarationPreservationName} \\
+        & So $u$ is to the left of $x$ in $\tctx, x$ &
+      \end{longtable}
+    \item SubCase $v \neq x$.
+      \begin{longtable}[l]{lll}
+        & $u$ is declared to the left of $v$ in $\tctx$ & Given \\
+        & $u$ is declared to the left of $v$ in $\ctxr$ & By induction hypothesis \\
+        & $u$ is declared to the left of $v$ in $\ctxr, x: \sigma$ &
+      \end{longtable}
+    \end{itemize}
+  \item Case \rul{CE-EVar}, \rul{CE-SolvedEVar}, \rul{CE-Solve} are
+    similar as Case \rul{CE-Var}.
+  \item Case \[\CEAdd\]
+      \begin{longtable}[l]{lll}
+        & $u$ is declared to the left of $v$ in $\ctxr$ & By induction
+        hypothesis \\
+        & So $u$ is declared to the left of $v$ in $\ctxr, \genA$ &
+      \end{longtable}
+  \item Case \[\CEAddSolved\]
+      \begin{longtable}[l]{lll}
+        & $u$ is declared to the left of $v$ in $\ctxr$ & By induction
+        hypothesis \\
+        & So $u$ is declared to the left of $v$ in $\ctxr, \genA = \tau$ &
+      \end{longtable}
+\end{itemize}
+\qed
+
+\begin{lemma}[\ReverseDeclarationOrderPreservationName]
+  \label{lemma:\ReverseDeclarationOrderPreservationName}
+  \ReverseDeclarationOrderPreservationBody
+\end{lemma}
+\proof
+
+We can prove this lemma by contradiction. Suppose $u$ is declared to the right
+of $v$ in $\tctx$, then by Lemma~\ref{lemma:\DeclarationOrderPreservationName},
+we have that $u$ is declared to the right of $v$ in $\tctx$. Because we already
+have $u$ is declared to the left of $v$, we have a contradiction. Therefore, $u$
+is declared to the left of $v$ in $\tctx$.
+
+\qed
+
+\begin{lemma}[\SubstitutionExtensionInvarianceName]
+  \label{lemma:\SubstitutionExtensionInvarianceName}
+  \SubstitutionExtensionInvarianceBody
+\end{lemma}
+
+\proof
+
+We first prove $\applye \ctxr \sigma = \applye \tctx {\applye \ctxr \sigma}$,
+then prove $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$.
+
+\begin{description}
+\item [Part 1]
+  We do induction on the context extension.
+  \begin{itemize}
+    \item Case \[\CEEmpty\]
+      Trivial case.
+    \item Case \[\CEVar\]
+      We use $\sigma_1$ to replace the $\sigma$ in \rul{CE-Var}.
+      \begin{longtable}[l]{lll}
+        & $\applye {\ctxr, x: \sigma_1} \sigma $ & \\
+        & $= \applye \ctxr \sigma$ & Follows by definition of context application
+        \\
+        & $= \applye \tctx {\applye \ctxr \sigma}$ & By induction hypothesis \\
+        & $= \applye {\tctx, x: \sigma_1} {\applye {\ctxr, x: \sigma_1} \sigma}$& By definition of context application
+      \end{longtable}
+    \item Case \[\CEEVar\]
+      Similar as Case \rul{CE-Var}.
+    \item Case \[\CESolvedEVar\]
+      \begin{longtable}[l]{lll}
+        & $\applye {\ctxr, \genA = \tau} \sigma $ & \\
+        & $ = \applye {\ctxr} {\sigma \subst \genA \tau} $ & By definition of
+        context application \\
+        & $ = \applye \tctx {\applye {\ctxr} {\sigma \subst \genA \tau}} $ & By
+        induction hypothesis \\
+        & $ = \applye {\tctx, \genA = \tau} {\applye {\ctxr} {\sigma \subst \genA \tau}}$ & $\genA \notin FV(\applye \ctxr {\sigma \subst \genA \tau})$ \\
+        & $ = \applye {\tctx, \genA = \tau} {\applye {\ctxr, \genA = \tau}
+          \sigma}$ & By definition of context application
+      \end{longtable}
+    \item Case \[\CESolve\]
+      \begin{longtable}[l]{lll}
+        & $\applye {\ctxr, \genA = \tau} \sigma $ & \\
+        & $ = \applye {\ctxr} {\sigma \subst \genA \tau} $ & By definition of
+        context application \\
+        & $ = \applye \tctx {\applye {\ctxr} {\sigma \subst \genA \tau}} $ & By
+        induction hypothesis \\
+        & $ = \applye {\tctx, \genA} {\applye {\ctxr} {\sigma \subst \genA
+            \tau}} $ & By definition of context application\\
+        & $ = \applye {\tctx, \genA} {\applye {\ctxr, \genA = \tau} {\sigma}} $
+        & By definition of context application
+      \end{longtable}
+    \item Case \[\CEAdd\]
+      \begin{longtable}[l]{lll}
+        & $\applye {\ctxr, \genA} \sigma $ & \\
+        & $ = \applye {\ctxr} \sigma $ & By definition of
+        context application \\
+        & $ = \applye \tctx {\applye {\ctxr} \sigma} $ & By
+        induction hypothesis \\
+        & $ = \applye \tctx {\applye {\ctxr, \genA} \sigma} $ & By definition of
+        context application
+      \end{longtable}
+    \item Case \[\CEAddSolved\]
+      \begin{longtable}[l]{lll}
+        & $\applye {\ctxr, \genA = \tau} \sigma $ & \\
+        & $ = \applye {\ctxr} {\sigma \subst \genA \tau} $ & By definition of
+        context application \\
+        & $ = \applye \tctx {\applye {\ctxr} {\sigma \subst \genA \tau}} $ & By
+        induction hypothesis \\
+        & $ = \applye \tctx {\applye {\ctxr, \genA = \tau} \sigma} $ & By
+        definition of context application
+      \end{longtable}
+  \end{itemize}
+
+
+\item [Part 2]
+  By induction on the size of the typing derivation.
+
+  \begin{itemize}
+  \item Case \[\AAx\]
+    Follows directly by for all context $\tctx$, $\applye \tctx \star = \star$.
+  \item Case \[\AVar\]
+    Follows directly by for all context $\tctx$, $\applye \tctx x = x$.
+  \item Case \[\AEVar\]
+    \begin{longtable}[l]{lll}
+      & $\applye \tctx \genA = \genA$& \\
+      & $\applye \ctxr {\applye \tctx \genA} = \applye \ctxr \genA$ & Follows
+      directly \\
+    \end{longtable}
+  \item Case \[\ASolvedEVar\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \exto \ctxr$ & Given \\
+      & $\genA = \tau \in \tctx$ & Given \\
+      & $\ctxr = \ctxr_1, \genA = \tau, \ctxr_2$ & By inversion \\
+      & $\applye \ctxr \genA$ & \\
+      & $= \applye \ctxr \tau$ & By definition of context application \\
+      & $= \applye \ctxr {\applye \tctx \tau}$ & By induction hypothesis \\
+      & $= \applye \ctxr {\applye \tctx \genA}$ & By definition of context application
+    \end{longtable}
+  \item Case \[\ALamAnn\]
+    \begin{longtable}[l]{lll}
+      & $\applye \ctxr {\sigma} = \applye \ctxr {\applye \tctx {\sigma_1}}$& By
+      induction hypothesis \\
+      & $\tctx \exto \ctxr$ & Given \\
+      & $\tctx, x: \sigma_1 \exto \ctxr, x : \sigma_1 $ & By \rul{CE-Var}\\
+      & $\applye {\ctxr, x: \sigma_1} e = \applye {\ctxr, x: \sigma_1} {\applye
+        {\tctx, x: \sigma_1} e}$ & By induction hypothesis \\
+      & $\applye \ctxr e = \applye \ctxr {\applye \tctx e}$ & By definition of
+      context application \\
+    \end{longtable}
+  \item Case \[\APi\]
+    Similar as Case \rul{A-LamAnn}.
+  \item Case \[\AApp\]
+    Follows directly from induction hypothesis.
+  \item Case \[\ACastDn\]
+    Follows directly from induction hypothesis.
+  \item Case \[\ACastUp\]
+    Follows directly from induction hypothesis.
+\end{itemize}
+\end{description}
+
+\qed
+
+\begin{lemma}[\ExtensionEqualityPreservationName]
+  \label{lemma:\ExtensionEqualityPreservationName}
+  \ExtensionEqualityPreservationBody
+\end{lemma}
+
+\proof
+
+\mbox{} % an empty line to make sure long table appear after proof
+\begin{longtable}[l]{lll}
+  & $\applye \ctxr {\sigma_1}$ & \\
+  & $= \applye \ctxr {\applye \tctx {\sigma_1}}$& By
+  Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName}\\
+  & $= \applye \ctxr {\applye \tctx {\sigma_2}}$ & Given \\
+  & $= \applye \ctxr {\sigma_2}$ & By
+  Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName}
+\end{longtable}
+
+\qed
+
+\begin{lemma}[\ContextExtensionReflexivityName]
+  \label{lemma:\ContextExtensionReflexivityName}
+  \ContextExtensionReflexivityBody
+\end{lemma}
+
+\proof
+
+By induction on the well-formedness of context.
+
+\begin{itemize}
+  \item Case \[\ACEmpty\]
+    Follows directly from \rul{CE-Empty}.
+  \item Case \[\ACVar\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \exto \tctx$ & By induction hypothesis \\
+      & $\tctx, x : \sigma \exto \tctx, x : \sigma$ & By \rul{CE-Var}
+    \end{longtable}
+  \item Case \[\ACEVar\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \exto \tctx$ & By induction hypothesis \\
+      & $\genA \notin \tctx$ & Given \\
+      & $\tctx, \genA \exto \tctx, \genA$ & By \rul{CE-EVar}
+    \end{longtable}
+  \item Case \[\ACSolvedEVar\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \exto \tctx$ & By induction hypothesis \\
+      & $\genA \notin \tctx$ & Given \\
+      & $\tctx, \genA = \tau \exto \tctx, \genA = \tau$ & By \rul{CE-SolvedEVar}
+    \end{longtable}
+\end{itemize}
+
+\qed
+
+\begin{lemma}[\ContextExtensionTransitivityName]
+  \label{lemma:\ContextExtensionTransitivityName}
+  \ContextExtensionTransitivityBody
+\end{lemma}
+
+\proof
+
+By induction on the derivation $\tctx \exto \ctxr$.
+
+\begin{itemize}
+  \item Case \[\CEEmpty\]
+    Our goal $\ctxl \exto \ctxinit $ is given.
+  \item Case \[\CEVar\]
+    \begin{longtable}[l]{lll}
+      & $\ctxl \exto \tctx, x: \sigma$ & Given \\
+      & $\ctxl = \ctxl', x: \sigma$ & By inversion \\
+      & $\ctxl' \exto \tctx$ & By inversion \\
+      & $\ctxl' \exto \ctxr$ & By induction hypothesis \\
+      & $\ctxl', x: \sigma \exto \ctxr, x: \sigma$ & By \rul{CE-Var} \\
+      & $\ctxl \exto \ctxr, x: \sigma$ & Namely
+    \end{longtable}
+  \item Case \[\CEEVar\]
+    We are given $\ctxl \exto \tctx, \genA$.
+    By inversion, we have two subcases.
+    \begin{itemize}
+    \item SubCase  \[ \inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+            }{
+            \ctxl, \genA \exto \tctx, \genA
+            }\rname{CE-EVar}\]
+      \begin{longtable}[l]{lll}
+        & $\ctxl \exto \tctx$ & Given\\
+        & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+        & $\ctxl, \genA \exto \ctxr, \genA$ & By \rul{CE-EVar} \\
+      \end{longtable}
+    \item SubCase \[\inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+            }{
+            \ctxl \exto \tctx, \genA
+            }\rname{CE-Add}\]
+      \begin{longtable}[l]{lll}
+        & $\ctxl \exto \tctx$ & Given\\
+        & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+        & $\ctxl \exto \ctxr, \genA$ & By \rul{CE-Add} \\
+      \end{longtable}
+    \end{itemize}
+  \item Case \[\CESolvedEVar\]
+    We are given $\ctxl \exto \tctx, \genA= \tau$.
+    By inversion, we have three subcases.
+    \begin{itemize}
+    \item SubCase \[\inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+            }{
+            \ctxl, \genA = \tau \exto \tctx, \genA = \tau
+            }\rname{CE-SolvedEVar} \]
+      \begin{longtable}[l]{lll}
+        & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+        & $\ctxl, \genA = \tau \exto \ctxr, \genA = \tau$ & By \rul{CE-SolvedEVar} \\
+      \end{longtable}
+    \item SubCase \[\inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+         \\ \tctx \bywf \tau
+            }{
+            \ctxl, \genA \exto \tctx, \genA = \tau
+            }\rname{CE-Solve} \]
+          \begin{longtable}[l]{lll}
+            & $\ctxl \exto \tctx$ & Given \\
+            & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+            & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-Add} \\
+          \end{longtable}
+          TODO: ???/
+    \end{itemize}
+  \item Case \[\CESolve\]
+    We are given $\ctxl \exto \tctx, \genA$.
+    By induction, we have two subcases.
+    \begin{itemize}
+    \item SubCase \[\inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+            }{
+            \ctxl, \genA \exto \tctx, \genA
+            }\rname{CE-EVar} \]
+      \begin{longtable}[l]{lll}
+        & $\ctxl \exto \tctx$ & Given \\
+        & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+        & $\ctxl, \genA \exto \ctxr, \genA = \tau$ & By \rul{CE-Solve} \\
+      \end{longtable}
+    \item SubCase \[\inferrule{
+            \ctxl \exto \tctx
+         \\ \genA \notin \tctx
+            }{
+            \ctxl \exto \tctx, \genA
+            }\rname{CE-Add} \]
+      \begin{longtable}[l]{lll}
+        & $\ctxl \exto \tctx$ & Given \\
+        & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+        & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-AddSolved} \\
+      \end{longtable}
+    \end{itemize}
+  \item Case \[\CEAdd\]
+    \begin{longtable}[l]{lll}
+      & $\ctxl \exto \tctx$ & Given \\
+      & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+      & $\ctxl \exto \ctxr, \genA$ & By \rul{CE-Add} \\
+    \end{longtable}
+  \item Case \[\CEAddSolved\]
+    \begin{longtable}[l]{lll}
+      & $\ctxl \exto \tctx$ & Given \\
+      & $\ctxl \exto \ctxr$ & By induction hypothesis \\
+      & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-Add} \\
+    \end{longtable}
+\end{itemize}
+
+\begin{definition}[Softness]
+  A Context $\tctx$ is soft if and only if it consists only of $\genA$ and
+  $\genA = \tau$ declarations.
+\end{definition}
+
+\begin{lemma}[\RightSoftnessName]
+  \label{lemma:\RightSoftnessName}
+  \RightSoftnessBody
+\end{lemma}
+
+\proof
+
+By induction on $\ctxl$, and apply rule \rul{CE-Add} and \rul{CE-AddSolved} as needed.
+
+\qed
+
+\begin{lemma}[\ExtensionOrderName]\leavevmode
+  \label{lemma:\ExtensionOrderName}
+  \ExtensionOrderBody
+\end{lemma}
+
+\proof
+
+\begin{description}
+\item [Part 1]
+  By induction on the context extension $\tctx_L, y : \sigma, \tctx_R \exto
+  \ctxr$.
+  \begin{itemize}
+    \item Case \[\CEEmpty\]
+      Impossible case.
+    \item Case \[\CEVar\]
+      Depending on whether $x = y$, we have two subcases.
+      \begin{itemize}
+        \item SubCase $x = y$.
+          Therefore $\tctx_R = \ctxr_R = \ctxinit$,
+          and $\tctx_L = \tctx, \ctxr_L = \ctxr$.
+          All goal follows directly.
+        \item SubCase $x \neq y$.
+          Then we have
+          \[\inferrule{
+            \tctx, y:\sigma, \tctx_R' \exto \ctxr
+            }{
+            \tctx, y:\sigma, \tctx_R', x:\sigma \exto \ctxr, x:\sigma
+            }\rname{CE-Var}
+          \]
+          \begin{longtable}[l]{lll}
+            & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+            & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+            & $\tctx_R', x: \sigma$ & is not soft\\
+            & $\ctxr_R', x: \sigma$ & is not soft
+          \end{longtable}
+        \end{itemize}
+      \item Case \[\inferrule{
+            \tctx_L, y: \sigma, \tctx_R' \exto \ctxr
+            \\ \genA \notin \ctxr
+          }{
+            \tctx_L, y:\sigma, \tctx_R', \genA \exto \ctxr, \genA
+          }\rname{CE-EVar} \]
+        \begin{longtable}[l]{lll}
+          & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+          & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+          & $\tctx_R'$ is soft  iff $\ctxr_R'$ is soft & By induction
+          hypothesis \\
+          & $\tctx_R', \genA $ is soft  iff $\ctxr_R', \genA$ is soft &
+          Follows directly
+        \end{longtable}
+      \item Case \[\inferrule{
+            \tctx_L, y: \sigma, \tctx_R' \exto \ctxr
+         \\ \genA \notin \ctxr
+            }{
+            \tctx_L, y:\sigma, \tctx_R', \genA = \tau \exto \ctxr, \genA = \tau
+            }\rname{CE-SolvedEVar}\]
+        \begin{longtable}[l]{lll}
+          & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+          & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+          & $\tctx_R'$ is soft  iff $\ctxr_R'$ is soft & By induction
+          hypothesis \\
+          & $\tctx_R', \genA = \tau$ is soft  iff $\ctxr_R', \genA = \tau$ is soft &
+          Follows directly
+        \end{longtable}
+      \item Case \[\inferrule{
+            \tctx_L, y: \sigma, \tctx_R' \exto \ctxr
+         \\ \genA \notin \ctxr
+         \\ \ctxr \bywf \tau
+            }{
+            \tctx_L, y: \sigma, \tctx_R', \genA \exto \ctxr, \genA = \tau
+            }\rname{CE-Solve} \]
+        \begin{longtable}[l]{lll}
+          & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+          & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+          & $\tctx_R'$ is soft  iff $\ctxr_R'$ is soft & By induction
+          hypothesis \\
+          & $\tctx_R', \genA $ is soft  iff $\ctxr_R', \genA = \tau$ is soft &
+          Follows directly
+        \end{longtable}
+      \item Case \[\inferrule{
+            \tctx_L, y:\sigma, \tctx_R \exto \ctxr
+         \\ \genA \notin \ctxr
+            }{
+            \tctx_L, y:\sigma, \tctx_R \exto \ctxr, \genA
+            }\rname{CE-Add}
+        \]
+        \begin{longtable}[l]{lll}
+          & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+          & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+          & $\tctx_R$ is soft  iff $\ctxr_R'$ is soft & By induction
+          hypothesis \\
+          & $\tctx_R $ is soft  iff $\ctxr_R', \genA$ is soft &
+          Follows directly
+        \end{longtable}
+      \item Case \[
+          \inferrule{
+            \tctx_L, y :\sigma, \tctx_R \exto \ctxr
+         \\ \genA \notin \ctxr
+         \\ \ctxr \bywf \tau
+            }{
+            \tctx_L, y:\sigma, \tctx_R \exto \ctxr, \genA = \tau
+            }\rname{CE-AddSolved} \]
+        \begin{longtable}[l]{lll}
+          & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
+          & $\tctx_L \exto \ctxr_L$ & By induction hypothesis\\
+          & $\tctx_R$ is soft  iff $\ctxr_R'$ is soft & By induction
+          hypothesis \\
+          & $\tctx_R $ is soft  iff $\ctxr_R', \genA = \tau$ is soft &
+          Follows directly
+        \end{longtable}
+  \end{itemize}
+  \item [Part 2] Similar to Part 1.
+  \item [Part 3] Similar to Part 1.
+\end{description}
+
+\qed
+
+\begin{lemma}[\ExtensionWeakningName]
+  \label{lemma:\ExtensionWeakningName}
+  \ExtensionWeakningBody
+\end{lemma}
+
+\proof
+
+By induction on the typing derivation.
+
+\begin{itemize}
+\item Case \[\AAx\]
+  Follows directly by \rul{A-Ax}.
+\item Case \[\AVar\]
+  \begin{longtable}[l]{lll}
+    & $x : \sigma \in \tctx$ & Given \\
+    & $x : \sigma \in \ctxr$ & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+    & $\ctxr \byinf x \infto \applye \ctxr \sigma$ & By \rul{A-Var} \\
+    & $\tau_2 = \applye \tctx \sigma$ & Given \\
+    & $\applye \ctxr \sigma $ & \\
+    & $= \applye \ctxr {\applye \tctx \sigma} $ & By
+    Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName}\\
+    & $= \applye \ctxr {\tau_2} $ & Substitute above equality
+  \end{longtable}
+\item Case \[\AEVar\]
+  By Lemma~\ref{lemma:\ExtensionOrderName},
+  we have either $\genA$ or $\genA = \tau$ in $\ctxr$.
+  Then by rule \rul{A-EVar} or \rul{A-SolvedEVar}, we have
+  $\ctxr \byinf \genA \infto \star$ directly.
+\item Case \[\ASolvedEVar\]
+  By Lemma~\ref{lemma:\ExtensionOrderName},
+  and rule \rul{A-SolveEVar}, we have
+  $\ctxr \byinf \genA \infto \star$ directly.
+\item Case \[\ALamAnn\]
+  \begin{longtable}[l]{lll}
+    & $\ctxr \byinf \sigma_1 \infto \star$ & By induction hypothesis \\
+    & $\tctx, x: \sigma_1 \exto \ctxr, x: \sigma_1$ & By \rul{CE-Var} \\
+    & $\ctxr, x: \sigma_1 \byinf e \infto \applye {\ctxr, x: \sigma_1}
+    {\sigma_2}$ & By induction hypothesis \\
+    & $\ctxr, x: \sigma_1 \byinf e \infto \applye \ctxr
+    {\sigma_2}$ & By definition of context substitution \\
+    & $\ctxr \byinf \blam x {\sigma_1} e \infto \bpi x {\applye \ctxr {\sigma_1}}
+    {\applye \ctxr {\sigma_2}}$& By \rul{A-LamAnn} \\
+    & $\applye \ctxr {\sigma_1} = \applye \ctxr {\applye \tctx {\sigma_1}}$ & By
+    Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+    & $\ctxr \byinf \blam x {\sigma_1} e \infto \bpi x {\applye \ctxr {\applye
+        \tctx {\sigma_1}}}
+    {\applye \ctxr {\sigma_2}}$& Substitute above equality \\
+    & $\ctxr \byinf \blam x {\sigma_1} e \infto \applye \ctxr {\bpi x {\applye
+        \tctx {\sigma_1}} {\sigma_2}}$& Follows directly
+  \end{longtable}
+\item Case \[\APi\]
+  \begin{longtable}[l]{lll}
+    & $\ctxr \byinf \sigma_1 \infto \star$ & By induction hypothesis \\
+    & $\tctx, x: \sigma_1 \exto \ctxr, x: \sigma_1$ & By \rul{CE-Var} \\
+    & $\ctxr, x: \sigma_1 \byinf \sigma_2 \infto \star$ & By induction
+    hypothesis \\
+    & $\ctxr \byinf \bpi x {\sigma_1} {\sigma_2} \infto \star$ & By \rul{A-Pi}
+  \end{longtable}
+\item Case \[\AApp\]
+  \begin{longtable}[l]{lll}
+    & $\ctxr \byinf e_1 \infto \applye \ctxr {\bpi x {\sigma_1} {\sigma_2}}$ &
+    By induction hypothesis \\
+    & $\ctxr \byinf e_1 \infto {\bpi x {\applye \ctxr {\sigma_1}} {\applye \ctxr
+        {\sigma_2}}}$ &
+    Follows directly \\
+    & $\ctxr \byinf e_2 \infto \applye \ctxr {\sigma_1}$ &
+    By induction hypothesis \\
+    & $\ctxr \byinf e_1 ~ e_2 \infto
+    (\applye \ctxr {\sigma_2}) \subst x {\applye \ctxr {e_1}}$ &
+    By \rul{A-App} \\
+    & $(\applye \ctxr {\sigma_2}) \subst x {\applye \ctxr {e_1}}$ & \\
+    & $ = (\applye \ctxr {\sigma_2}) \subst x {\applye \ctxr {\applye \tctx
+        {e_1}}}$ & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName}\\
+    & $ = \applye \ctxr {\sigma_2 \subst x {\applye \tctx {e_1}}}$ & Property of
+    substitution \\
+  \end{longtable}
+\item Case \[\ACastDn\]
+  \begin{longtable}[l]{lll}
+    & $\ctxr \byinf e \infto \applye \ctxr {\sigma_1}$& By induction
+    hypothesis \\
+    & $\applye \ctxr {\sigma_1} \redto \applye \ctxr {\sigma_2}$& By
+    Lemma~\ref{lemma:\ContextApplicationOverReductionName} \\
+    & $\ctxr \byinf \castdn e \infto \applye \ctxr {\sigma_2}$& By \rul{A-CastDn}
+  \end{longtable}
+
+\item Case \[\ACastUp\]
+  \begin{longtable}[l]{lll}
+    & $\ctxr \byinf e \infto \applye \ctxr {\sigma_2}$& By induction
+    hypothesis \\
+    & $\applye \ctxr {\sigma_1} $ & \\
+    & $ = \applye \ctxr {\applye \tctx {\sigma_1}} $ & By
+    Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+    & $ \redto \applye \ctxr {\sigma_2}$& By
+    Lemma~\ref{lemma:\ContextApplicationOverReductionName} \\
+    & $\ctxr \byinf \castup e \infto \applye \ctxr {\sigma_1}$& By \rul{A-CastUp}
+  \end{longtable}
+\end{itemize}
+
+\qed
+
+\begin{lemma}[\ContextExtensionPreservesContextWellFormednessName]
+  \label{lemma:\ContextExtensionPreservesContextWellFormednessName}
+  \ContextExtensionPreservesContextWellFormednessBody
+\end{lemma}
+
+
+
+
+\subsection{Properties of Unification}
+
+equivalence
+
+well typed
+
+
+\section{Implicit Polymorphic Type System}

@@ -1,5 +1,5 @@
 % SIGPLAN format
-\documentclass[acmlarge, dvipsnames]{acmart}
+\documentclass[acmsmall, 10pt, review, dvipsnames]{acmart}
 
 % AMS packages
 \usepackage{amsmath}
@@ -30,6 +30,7 @@
 \usepackage{comment}
 
 \usepackage{algpseudocode}
+\usepackage{longtable}
 
 \renewcommand\authornote[3]{\textcolor{#2}{#1: #3}}
 \newcommand\bruno[1]{\authornote{Bruno}{red}{#1}}
@@ -46,8 +47,13 @@
 \title{Type Inference for Dependent Types}
 
 \input{sections/formal.tex}
+\input{sections/lemmas.tex}
 
 \input{sections/introduction.tex}
+
+\appendix
+
+\input{sections/appendix.tex}
 
 \end{document}
 
