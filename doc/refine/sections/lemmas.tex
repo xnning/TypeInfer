@@ -129,7 +129,7 @@
 \newcommand*{\ContextExtensionPreservesContextWellFormednessName}{Context Extension Preserves Context Well Formedness}
 \newcommand*{\ContextExtensionPreservesContextWellFormednessBody}{
   If $\tctx \wc$,
-  and $\tctx \exto \ctxl$,
+  and $\tctx \exto \ctxr$,
   then $\ctxr \wc$.
 }
 
@@ -173,4 +173,36 @@
   and $\tctx \exto \ctxr$,
   and $\ctxr \wc$,
   then $\ctxr \byinf \tau_1 \infto \applye \ctxr {\tau_2}$.
+}
+
+\newcommand*{\ExtensionWeakningWellFormednessName}{Extension Weakening Well Formedness}
+\newcommand*{\ExtensionWeakningWellFormednessBody}{
+  If $\tctx \bywf \tau$,
+  and $\tctx \exto \ctxr$,
+  and $\ctxr \wc$,
+  then $\ctxr \bywf \tau$.
+}
+
+\newcommand*{\SolutionAdmissibilityForExtensionName}{Solution Admissibility for Extension}
+\newcommand*{\SolutionAdmissibilityForExtensionBody}{
+  If $\tctx_L, \genA, \tctx_R \wc$,
+  and $\tctx_L \bywf \tau$,
+  then $\tctx_L, \genA, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$.
+}
+
+\newcommand*{\UnsolvedVariableAdditionForExtensionName}
+{Unsolved Variable Addition for Extension}
+\newcommand*{\UnsolvedVariableAdditionForExtensionBody}{
+  If $\tctx_L, \tctx_R \wc$,
+  and $\genA \notin \tctx_L, \tctx_R$,
+  then $\tctx_L, \tctx_R \exto \tctx_L, \genA, \tctx_R$.
+}
+
+\newcommand*{\SolvedVariableAdditionForExtensionName}
+{Solved Variable Addition for Extension}
+\newcommand*{\SolvedVariableAdditionForExtensionBody}{
+  If $\tctx_L, \tctx_R \wc$,
+  and $\genA \notin \tctx_L, \tctx_R$,
+  and $\tctx_L \bywf \tau$,
+  then $\tctx_L, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$.
 }

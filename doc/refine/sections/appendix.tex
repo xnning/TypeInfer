@@ -654,9 +654,15 @@ By induction on the derivation $\tctx \exto \ctxr$.
           \begin{longtable}[l]{lll}
             & $\ctxl \exto \tctx$ & Given \\
             & $\ctxl \exto \ctxr$ & By induction hypothesis \\
-            & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-Add} \\
+            & $\tctx \bywf \tau$ & Given \\
+            & $\tctx \wc$ & By
+            Lemma~\ref{lemma:\TypingContextWellFormednessName} \\
+            & $\ctxr \wc$ & By
+            Lemma~\ref{lemma:\ContextExtensionPreservesContextWellFormednessName}\\
+            & $\ctxr \bywf \tau$ & By
+            Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+            & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-AddSolved} \\
           \end{longtable}
-          TODO: ???/
     \end{itemize}
   \item Case \[\CESolve\]
     We are given $\ctxl \exto \tctx, \genA$.
@@ -698,6 +704,8 @@ By induction on the derivation $\tctx \exto \ctxr$.
       & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-Add} \\
     \end{longtable}
 \end{itemize}
+
+\qed
 
 \begin{definition}[Softness]
   A Context $\tctx$ is soft if and only if it consists only of $\genA$ and
@@ -932,12 +940,187 @@ By induction on the typing derivation.
 
 \qed
 
+\begin{corollary}[\ExtensionWeakningWellFormednessName]
+  \label{lemma:\ExtensionWeakningWellFormednessName}
+  \ExtensionWeakningWellFormednessBody
+\end{corollary}
+
+\proof
+
+Follows directly by Lemma~\ref{lemma:\ExtensionWeakningName} since $\applye
+\ctxr \star = \star$.
+
+\qed
+
 \begin{lemma}[\ContextExtensionPreservesContextWellFormednessName]
   \label{lemma:\ContextExtensionPreservesContextWellFormednessName}
   \ContextExtensionPreservesContextWellFormednessBody
 \end{lemma}
 
+\proof
 
+By induction on the context extension.
+
+\begin{itemize}
+\item Case \[\CEEmpty\]
+  Here we have $\tctx = \ctxr$, so our goal is given.
+\item Case \[\CEVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \bywf \sigma$ & By hypothesis \\
+    & $x \notin \tctx$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\ctxr \bywf \sigma$& By
+    Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+    & $x \notin \ctxr$ & Context extension add no variables\\
+    & $\ctxr, x :\sigma \wc$ & By \rul{AC-Var}
+  \end{longtable}
+
+\item Case \[\CEEVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\genA \notin \ctxr$ & Given \\
+    & $\ctxr, \genA \wc$ & By \rul{AC-EVar}
+  \end{longtable}
+
+\item Case \[\CESolvedEVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \bywf \tau$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\ctxr \bywf \tau$ & By
+    Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+    & $\ctxr, \genA = \tau$ & By \rul{AC-SolvedEVar}
+  \end{longtable}
+\item Case \[\CESolve\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\ctxr, \genA = \tau$ & By \rul{AC-SolvedEVar}
+  \end{longtable}
+\item Case \[\CEAdd\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\ctxr, \genA$ & By \rul{AC-EVar}
+  \end{longtable}
+\item Case \[\CEAddSolved\]
+  \begin{longtable}[l]{lll}
+    & $\tctx \wc$ & By hypothesis \\
+    & $\ctxr \wc$& By induction hypothesis \\
+    & $\ctxr, \genA = \tau$ & By \rul{AC-EVar}
+  \end{longtable}
+\end{itemize}
+
+\qed
+
+\begin{lemma}[\SolutionAdmissibilityForExtensionName]
+  \label{lemma:\SolutionAdmissibilityForExtensionName}
+  \SolutionAdmissibilityForExtensionBody
+\end{lemma}
+
+\proof
+
+By induction on $\tctx_R$.
+
+\begin{itemize}
+\item Case $\ctxinit$.
+  \begin{longtable}[l]{lll}
+    & $\tctx_L \exto \tctx_L $ & By
+    Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
+    & $\tctx_L, \genA \exto \tctx_L, \genA = \tau$ & By \rul{CE-Solve}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', x: \sigma$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \genA, \tctx_R' \exto \tctx_L, \genA = \tau, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \genA, \tctx_R', x: \sigma \exto \tctx_L, \genA = \tau,
+    \tctx_R', x: \sigma $ & By \rul{CE-Var}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', \genB$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \genA, \tctx_R' \exto \tctx_L, \genA = \tau, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \genA, \tctx_R', \genB \exto \tctx_L, \genA = \tau,
+    \tctx_R', \genB $ & By \rul{CE-EVar}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', \genB = \sigma$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \genA, \tctx_R' \exto \tctx_L, \genA = \tau, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \genA, \tctx_R' \byinf \sigma \infto \star$ & Given\\
+    & $\tctx_L, \genA = \tau, \tctx_R' \byinf \sigma \infto \star$ & By
+    Lemma~\ref{lemma:\ExtensionWeakningName}\\
+    & $\tctx_L, \genA, \tctx_R', \genB = \sigma \exto \tctx_L, \genA = \tau,
+    \tctx_R', \genB=\sigma $ & By \rul{CE-SolvedEVar}
+  \end{longtable}
+\end{itemize}
+\qed
+
+\begin{lemma}[\UnsolvedVariableAdditionForExtensionName]
+  \label{lemma:\UnsolvedVariableAdditionForExtensionName}
+  \UnsolvedVariableAdditionForExtensionBody
+\end{lemma}
+
+\proof
+
+By induction on $\tctx_R$.
+
+\begin{itemize}
+\item Case $\ctxinit$.
+  \begin{longtable}[l]{lll}
+    & $\tctx_L \exto \tctx_L $ & By
+    Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
+    & $\tctx_L \exto \tctx_L, \genA$ & By \rul{CE-Add}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', x: \sigma$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \tctx_R' \exto \tctx_L, \genA, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \tctx_R', x: \sigma \exto \tctx_L, \genA,
+    \tctx_R', x: \sigma $ & By \rul{CE-Var}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', \genB$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \tctx_R' \exto \tctx_L, \genA, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \tctx_R', \genB \exto \tctx_L, \genA,
+    \tctx_R', \genB $ & By \rul{CE-EVar}
+  \end{longtable}
+\item Case $\tctx_R = \tctx_R', \genB = \sigma$
+  \begin{longtable}[l]{lll}
+    & $\tctx_L, \tctx_R' \exto \tctx_L, \genA, \tctx_R' $ & By
+    induction hypothesis \\
+    & $\tctx_L, \tctx_R' \byinf \sigma \infto \star$ & Given\\
+    & $\tctx_L, \genA , \tctx_R' \byinf \sigma \infto \star$ & By
+    Lemma~\ref{lemma:\ExtensionWeakningName}\\
+    & $\tctx_L, \tctx_R', \genB = \sigma \exto \tctx_L, \genA,
+    \tctx_R', \genB=\sigma $ & By \rul{CE-SolvedEVar}
+  \end{longtable}
+\end{itemize}
+\qed
+
+\begin{lemma}[\SolvedVariableAdditionForExtensionName]
+  \label{lemma:\SolvedVariableAdditionForExtensionName}
+  \SolvedVariableAdditionForExtensionBody
+\end{lemma}
+
+\proof
+
+\mbox{} % an empty line to make sure long table appear after proof
+\begin{longtable}[l]{lll}
+  & $\tctx_L, \tctx_R \exto \tctx_L, \genA, \tctx_R $ & By
+  Lemma~\ref{lemma:\UnsolvedVariableAdditionForExtensionName} \\
+  & $\tctx_L, \genA, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R $ & By
+  Lemma~\ref{lemma:\SolutionAdmissibilityForExtensionName} \\
+  & $\tctx_L, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$ &
+  By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
+\end{longtable}
+
+\qed
+
+\subsection{Properties of Type Sanitization}
 
 
 \subsection{Properties of Unification}
