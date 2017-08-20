@@ -173,7 +173,7 @@
          \\ \genA \notin \tctx
          \\ \tctx \byinf \tau \infto \star
             }{
-            \tctx, \genA : \tau \wc
+            \tctx, \genA = \tau \wc
             }\rname{AC-SolvedEVar}}
 
 % ------------------------------------------------------
@@ -482,14 +482,14 @@
 
 \newcommand*{\ILamAnn}{\inferrule{
             \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
-         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx
+         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx, x:\tau_1
             }{
             \tctx \bysa \blam x {\tau_1} {\tau_2} \sa \blam x {\tau_3} {\tau_4} \toctx
             }\rname{I-LamAnn}}
 
 \newcommand*{\IPi}{\inferrule{
             \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
-         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx
+         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx, x: \tau_1
             }{
             \tctx \bysa \bpi x {\tau_1} {\tau_2} \sa \bpi x {\tau_3} {\tau_4} \toctx
             }\rname{I-Pi}}
