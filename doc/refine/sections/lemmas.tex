@@ -38,6 +38,14 @@
   then $\tctx_1, y : \applye {\tctx_1} \tau, \tctx_2 \byinf \sigma_1 \infto \sigma_2$.
 }
 
+\newcommand*{\ReverseContextApplicationInContextName}{Reverse Context
+  Application In Context}
+\newcommand*{\ReverseContextApplicationInContextBody}{
+  If $\tctx_1, y: \applye {\tctx_1} \tau, \tctx_2 \byinf \sigma_1 \infto \sigma_2$,
+  and $\tctx_1, y : \tau, \tctx_2 \wc $,
+  then $\tctx_1, y : \tau, \tctx_2 \byinf \sigma_1 \infto \sigma_2$.
+}
+
 \newcommand*{\TypingWeakeningName}{Typing Weakening}
 \newcommand*{\TypingWeakeningBody}{
   If $\tctx_1, \tctx_2 \byinf \sigma_1 \infto \sigma_2$,
@@ -205,4 +213,28 @@
   and $\genA \notin \tctx_L, \tctx_R$,
   and $\tctx_L \bywf \tau$,
   then $\tctx_L, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$.
+}
+
+\newcommand*{\TypeSanitizationExtensionName}
+{Type Sanitization Extension}
+\newcommand*{\TypeSanitizationExtensionBody}{
+  If $\tctx \bysa \tau_1 \sa \tau_2 \toctx$,
+  and $\tctx \byinf \tau_1 \infto \sigma$,
+  then $\tctx \exto \ctxl$.
+}
+
+\newcommand*{\TypeSanitizationEquivalenceName}
+{Type Sanitization Equivalence}
+\newcommand*{\TypeSanitizationEquivalenceBody}{
+  If $\tctx \bysa \tau_1 \sa \tau_2 \toctx$,
+  and $\tctx \byinf \tau_1 \infto \sigma$,
+  then $\applye \ctxl {\tau_1} = \applye \ctxl {\tau_2}$.
+}
+
+\newcommand*{\TypeSanitizationWellFormednessName}
+{Type Sanitization Well Formedness}
+\newcommand*{\TypeSanitizationWellFormednessBody}{
+  If $\tctx \bysa \tau_1 \sa \tau_2 \toctx$,
+  and $\tctx \byinf \tau_1 \infto \sigma$,
+  then $\ctxl \byinf \tau_2 \infto \applye \ctxl \sigma$.
 }
