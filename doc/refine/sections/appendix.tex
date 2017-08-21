@@ -1171,9 +1171,9 @@ By induction on type sanitization.
   \item Case \[\IApp\]
     \begin{longtable}[l]{lll}
       & $\tctx \exto \ctxl_1$ & By induction hypothesis \\
-      & $\tctx \byinf \tau_1 ~ \tau_2 \infto \sigma $ & Given \\
-      & $\tctx \byinf \tau_2 \infto \sigma' $ & By inversion \\
-      & $\ctxl_1 \byinf \tau_2 \infto \applye {\ctxl_1} {\sigma'} $
+      & $\tctx \byinf e_1 ~ e_2 \infto \sigma $ & Given \\
+      & $\tctx \byinf e_2 \infto \sigma' $ & By inversion \\
+      & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma'} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName}
       \\
       & $\ctxl_1 \exto \ctxl$ & By induction hypothesis \\
@@ -1183,10 +1183,10 @@ By induction on type sanitization.
   \item Case \[\ILamAnn\]
     \begin{longtable}[l]{lll}
       & $\tctx \exto \ctxl_1$ & By induction hypothesis \\
-      & $\tctx \byinf \blam x {\tau_1} {\tau_2} \infto \sigma $ & Given \\
-      & $\tctx, {x : \tau_1} \byinf {\tau_2} \infto \sigma' $ & By inversion \\
+      & $\tctx \byinf \blam x {\tau_1} {e_1} \infto \sigma $ & Given \\
+      & $\tctx, {x : \tau_1} \byinf {e_1} \infto \sigma' $ & By inversion \\
       & $\tctx, {x : \tau_1} \exto \ctxl_1, x : \tau_1 $ & By \rul{CE-Var} \\
-      & $\ctxl_1, {x : \tau_1} \byinf {\tau_2} \infto \applye {\ctxl_1, x:
+      & $\ctxl_1, {x : \tau_1} \byinf {e_1} \infto \applye {\ctxl_1, x:
         \tau_1} {\sigma'} $ & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1, x: \tau_1 \exto \ctxl, x: \tau_1$ & By induction hypothesis \\
       & $\ctxl_1 \exto \ctxl$ & By inversion \\
@@ -1228,48 +1228,48 @@ By induction on type sanitization.
     Follows trivially.
   \item Case \[\IApp\]
     \begin{longtable}[l]{lll}
-      & $\applye {\ctxl_1} {\tau_1} = \applye {\ctxl_1} {\tau_3}$
+      & $\applye {\ctxl_1} {e_1} = \applye {\ctxl_1} {e_3}$
       & By induction hypothesis \\
-      & $\tctx \byinf \tau_1 ~ \tau_2 \infto \sigma $ & Given \\
-      & $\tctx \byinf \tau_1 \infto \sigma' $ & By inversion \\
-      & $\tctx \byinf \tau_2 \infto \sigma'' $ & By inversion \\
+      & $\tctx \byinf e_1 ~ e_2 \infto \sigma $ & Given \\
+      & $\tctx \byinf e_1 \infto \sigma' $ & By inversion \\
+      & $\tctx \byinf e_2 \infto \sigma'' $ & By inversion \\
       & $\tctx \exto \ctxl_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\ctxl_1 \byinf \tau_2 \infto \applye {\ctxl_1} {\sigma''} $
+      & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma''} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1 \exto \ctxl$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\applye {\ctxl} {\tau_2} = \applye {\ctxl} {\tau_4}$
+      & $\applye {\ctxl} {e_2} = \applye {\ctxl} {e_4}$
       & By induction hypothesis \\
-      & $\applye \ctxl {\tau_3} $& \\
-      & $= \applye \ctxl {\applye {\ctxl_1} {\tau_3}} $
+      & $\applye \ctxl {e_3} $& \\
+      & $= \applye \ctxl {\applye {\ctxl_1} {e_3}} $
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $= \applye \ctxl {\applye {\ctxl_1} {\tau_1}} $
+      & $= \applye \ctxl {\applye {\ctxl_1} {e_1}} $
       & By above equalities \\
-      & $= \applye \ctxl {\tau_1} $
+      & $= \applye \ctxl {e_1} $
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
     \end{longtable}
   \item Case \[\ILamAnn\]
     \begin{longtable}[l]{lll}
-      & $\tctx \byinf \blam x {\tau_1} {\tau_2} \infto \sigma$
+      & $\tctx \byinf \blam x {\tau_1} {e_1} \infto \sigma$
       & Given \\
       & $\tctx \byinf \tau_1 \infto \star$
       & By inversion\\
       & $\tctx \exto \ctxl_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\applye {\ctxl_1} {\tau_1} = \applye {\ctxl_1} {\tau_3}$
+      & $\applye {\ctxl_1} {\tau_1} = \applye {\ctxl_1} {\tau_2}$
       & By induction hypothesis \\
       & $\tctx, x: \tau_1 \exto \ctxl_1, x : \tau_1$
       & By \rul{CE-Var} \\
-      & $\tctx \byinf \tau_2 \infto \sigma'$
+      & $\tctx \byinf e_1 \infto \sigma'$
       & By inversion\\
-      & $\ctxl_1 \byinf \tau_2 \infto \applye {\ctxl_1} {\sigma'}$
+      & $\ctxl_1 \byinf e_1 \infto \applye {\ctxl_1} {\sigma'}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName}\\
       & $\ctxl_1 \exto \ctxl$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\applye {\ctxl} {\tau_2} = \applye {\ctxl} {\tau_4}$
+      & $\applye {\ctxl} {e_1} = \applye {\ctxl} {e_2}$
       & By induction hypothesis \\
-      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_3}$
+      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_2}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
     \end{longtable}
   \item Case \[\IPi\]
@@ -1304,70 +1304,70 @@ By induction on the type sanitization.
     Holds trivially.
   \item Case \[\IApp\]
     \begin{longtable}[l]{lll}
-      & $\tctx \byinf \tau_1 \infto \bpi x {\sigma_1} {\sigma_2}$ & By inversion \\
-      & $\tctx \byinf \tau_2 \infto \sigma_1$ & By inversion \\
-      & $\sigma = \sigma_2 \subst x {\applye \tctx {\tau_2}}$ & By inversion \\
-      & $\ctxl_1 \byinf \tau_3 \infto \applye {\ctxl_1} {\bpi x {\sigma_1} {\sigma_2}}$
+      & $\tctx \byinf e_1 \infto \bpi x {\sigma_1} {\sigma_2}$ & By inversion \\
+      & $\tctx \byinf e_2 \infto \sigma_1$ & By inversion \\
+      & $\sigma = \sigma_2 \subst x {\applye \tctx {e_2}}$ & By inversion \\
+      & $\ctxl_1 \byinf e_3 \infto \applye {\ctxl_1} {\bpi x {\sigma_1} {\sigma_2}}$
       & By induction hypothesis \\
       & $\tctx \exto \ctxl_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\ctxl_1 \byinf \tau_2 \infto \applye {\ctxl_1} {\sigma_1}$
+      & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma_1}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
-      & $\ctxl \byinf \tau_4 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
+      & $\ctxl \byinf e_4 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
       & By induction hypothesis \\
       & $\ctxl_1 \exto \ctxl$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\ctxl \byinf \tau_4 \infto \applye {\ctxl} {\sigma_1}$
+      & $\ctxl \byinf e_4 \infto \applye {\ctxl} {\sigma_1}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $\ctxl \byinf \tau_3 \infto \applye \ctxl {\applye {\ctxl_1} {\bpi x {\sigma_1} {\sigma_2}}}$
+      & $\ctxl \byinf e_3 \infto \applye \ctxl {\applye {\ctxl_1} {\bpi x {\sigma_1} {\sigma_2}}}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
-      & $\ctxl \byinf \tau_3 \infto \applye \ctxl {\bpi x {\sigma_1} {\sigma_2}}$
+      & $\ctxl \byinf e_3 \infto \applye \ctxl {\bpi x {\sigma_1} {\sigma_2}}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $\ctxl \byinf \tau_3 ~ \tau_4 \infto (\applye \ctxl {\sigma_2}) \subst x
-      {\applye \ctxl {\tau_4}} $
+      & $\ctxl \byinf e_3 ~ e_4 \infto (\applye \ctxl {\sigma_2}) \subst x
+      {\applye \ctxl {e_4}} $
       & By \rul{A-App} \\
-      & $\applye \ctxl {\tau_2} = \applye \ctxl {\tau_4} $
+      & $\applye \ctxl {e_2} = \applye \ctxl {e_4} $
       & By Lemma~\ref{lemma:\TypeSanitizationEquivalenceName} \\
-      & $\ctxl \byinf \tau_3 ~ \tau_4 \infto (\applye \ctxl {\sigma_2}) \subst x
-      {\applye \ctxl {\tau_2}} $
+      & $\ctxl \byinf e_3 ~ e_4 \infto (\applye \ctxl {\sigma_2}) \subst x
+      {\applye \ctxl {e_2}} $
       & By substituting above equality \\
       & $\tctx \exto \ctxl$
       & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
-      & $\applye \ctxl {\tau_2} = \applye \ctxl {\applye {\tctx} {\tau_2}}$
+      & $\applye \ctxl {e_2} = \applye \ctxl {\applye {\tctx} {e_2}}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $\ctxl \byinf \tau_3 ~ \tau_4 \infto (\applye \ctxl {\sigma_2}) \subst x
-      {\applye \ctxl {\applye \tctx {\tau_2}}} $
+      & $\ctxl \byinf e_3 ~ e_4 \infto (\applye \ctxl {\sigma_2}) \subst x
+      {\applye \ctxl {\applye \tctx {e_2}}} $
       & By substituting above equality \\
-      & $\ctxl \byinf \tau_3 ~ \tau_4 \infto \applye \ctxl
-      {\sigma_2 \subst x {\applye \tctx {\tau_2}}} $
+      & $\ctxl \byinf e_3 ~ e_4 \infto \applye \ctxl
+      {\sigma_2 \subst x {\applye \tctx {e_2}}} $
       & By property of substitution
     \end{longtable}
   \item Case \[\ILamAnn\]
     \begin{longtable}[l]{lll}
       & $\tctx \byinf \tau_1 \infto \star $ & By inversion \\
-      & $\tctx, x: \tau_1 \byinf \tau_2 \infto \sigma_1$ & By inversion \\
+      & $\tctx, x: \tau_1 \byinf e_1 \infto \sigma_1$ & By inversion \\
       & $\sigma = \bpi x {\applye \tctx {\tau_1}} {\sigma_1}$ & By inversion \\
-      & $\ctxl_1 \byinf \tau_3 \infto \star$
+      & $\ctxl_1 \byinf \tau_2 \infto \star$
       & By induction hypothesis \\
       & $\tctx \exto \ctxl_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
       & $\tctx, x: \tau_1 \exto \ctxl_1, x:\tau_1$
       & By \rul{CE-Var} \\
-      & $\ctxl_1, x: \tau_1 \byinf \tau_2 \infto \applye {\ctxl_1, x: \tau_1} {\sigma_1}$
+      & $\ctxl_1, x: \tau_1 \byinf e_1 \infto \applye {\ctxl_1, x: \tau_1} {\sigma_1}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
-      & $\ctxl_1, x: \tau_1 \byinf \tau_2 \infto \applye {\ctxl_1} {\sigma_1}$
+      & $\ctxl_1, x: \tau_1 \byinf e_1 \infto \applye {\ctxl_1} {\sigma_1}$
       & By definition of context substitution \\
-      & $\ctxl, x:\tau_1 \byinf \tau_4 \infto \applye {\ctxl, x :\tau_1} {\applye {\ctxl_1} {\sigma_1}}$
+      & $\ctxl, x:\tau_1 \byinf e_2 \infto \applye {\ctxl, x :\tau_1} {\applye {\ctxl_1} {\sigma_1}}$
       & By induction hypothesis \\
-      & $\ctxl, x:\tau_1 \byinf \tau_4 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
+      & $\ctxl, x:\tau_1 \byinf e_2 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
       & By definition of context substitution \\
       & $\ctxl_1, x:\tau_1 \exto \ctxl, x : \tau_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
       & $\ctxl_1 \exto \ctxl$
       & By inversion \\
-      & $\ctxl, x: \tau_1 \byinf \tau_4 \infto \applye {\ctxl} {\sigma_1}$
+      & $\ctxl, x: \tau_1 \byinf e_2 \infto \applye {\ctxl} {\sigma_1}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $\ctxl \byinf \tau_3 \infto \star$
+      & $\ctxl \byinf \tau_2 \infto \star$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
       & $\tctx \exto \ctxl$
       & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
@@ -1375,24 +1375,24 @@ By induction on the type sanitization.
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl \byinf \applye {\ctxl} {\tau_1} \infto \star$
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
-      & $\ctxl, x: \applye \ctxl {\tau_1} \byinf \tau_4 \infto \applye {\ctxl} {\sigma_1}$
+      & $\ctxl, x: \applye \ctxl {\tau_1} \byinf e_2 \infto \applye {\ctxl} {\sigma_1}$
       & By Lemma~\ref{lemma:\ContextApplicationInContextName} \\
-      & $\applye {\ctxl_1} {\tau_1} = \applye {\ctxl_1} {\tau_3} $
+      & $\applye {\ctxl_1} {\tau_1} = \applye {\ctxl_1} {\tau_2} $
       & By Lemma~\ref{lemma:\TypeSanitizationEquivalenceName} \\
-      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_3} $
+      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_2} $
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $\ctxl, x: \applye \ctxl {\tau_3} \byinf \tau_4 \infto \applye {\ctxl} {\sigma_1}$
+      & $\ctxl, x: \applye \ctxl {\tau_2} \byinf e_2 \infto \applye {\ctxl} {\sigma_1}$
       & By substituting above equality \\
-      & $\ctxl, x: {\tau_3} \byinf \tau_4 \infto \applye {\ctxl} {\sigma_1}$
+      & $\ctxl, x: {\tau_2} \byinf e_2 \infto \applye {\ctxl} {\sigma_1}$
       & By Lemma~\ref{lemma:\ReverseContextApplicationInContextName}\\
-      & $\ctxl \byinf \blam x {\tau_3} {\tau_4} \infto \bpi x {\applye \ctxl
-        {\tau_3}} {\applye \ctxl {\sigma_1}} $
+      & $\ctxl \byinf \blam x {\tau_2} {e_2} \infto \bpi x {\applye \ctxl
+        {\tau_2}} {\applye \ctxl {\sigma_1}} $
       & By \rul{A-LamAnn} \\
-      & $\bpi x {\applye \ctxl {\tau_3}} {\applye \ctxl {\sigma_1}}$ & \\
-      & $= \bpi x {\applye \ctxl {\applye {\tctx} {\tau_3}}} {\applye \ctxl
+      & $\bpi x {\applye \ctxl {\tau_2}} {\applye \ctxl {\sigma_1}}$ & \\
+      & $= \bpi x {\applye \ctxl {\applye {\tctx} {\tau_2}}} {\applye \ctxl
         {\sigma_1}}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
-      & $= \applye \ctxl {\bpi x {\applye {\tctx} {\tau_3}} {\sigma_1}}$
+      & $= \applye \ctxl {\bpi x {\applye {\tctx} {\tau_2}} {\sigma_1}}$
       & By property of substitution
     \end{longtable}
   \item Case \[\IPi\]

@@ -474,17 +474,17 @@
             }\rname{I-Var}}
 
 \newcommand*{\IApp}{\inferrule{
-            \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
-         \\ \ctxl_1 \bysa \tau_2 \sa \tau_4 \toctx
+            \tctx \bysa e_1 \sa e_3 \toctx_1
+         \\ \ctxl_1 \bysa e_2 \sa e_4 \toctx
             }{
-            \tctx \bysa \tau_1 ~ \tau_2 \sa \tau_3 ~ \tau_4 \toctx
+            \tctx \bysa e_1 ~ e_2 \sa e_3 ~ e_4 \toctx
             }\rname{I-App}}
 
 \newcommand*{\ILamAnn}{\inferrule{
-            \tctx \bysa \tau_1 \sa \tau_3 \toctx_1
-         \\ \ctxl_1, x: \tau_1 \bysa \tau_2 \sa \tau_4 \toctx, x:\tau_1
+            \tctx \bysa \tau_1 \sa \tau_2 \toctx_1
+         \\ \ctxl_1, x: \tau_1 \bysa e_1 \sa e_2 \toctx, x:\tau_1
             }{
-            \tctx \bysa \blam x {\tau_1} {\tau_2} \sa \blam x {\tau_3} {\tau_4} \toctx
+            \tctx \bysa \blam x {\tau_1} {e_1} \sa \blam x {\tau_2} {e_2} \toctx
             }\rname{I-LamAnn}}
 
 \newcommand*{\IPi}{\inferrule{
