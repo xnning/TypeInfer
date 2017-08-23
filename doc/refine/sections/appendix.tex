@@ -287,15 +287,89 @@ By induction on the typing derivation.
   \TypingStrengtheningBody
 \end{lemma}
 \proof
+
 By induction on the typing derivation.
 
 \begin{itemize}
-  \item Case \rul{A-Ax}, \rul{A-EVar} and \rul{A-SolvedEVar} follows directly
-    from typing.
-  \item Case \[\AVar\]
-    Because we know $x \notin FV(\tau)$, so $\tau = y$, where $y \neq x$ and $y
-    :\sigma \in \tctx_1, \tctx_2$. Follows by \rul{A-Var}.
-  \item All rest cases follow from induction hypothesis directly.
+\item Case \rul{A-Ax}
+  Follows trivially.
+\item Case \[\AVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt x$ & Given \\
+    & $x:\sigma \in \tctx_1, \tctx_3$ & By inversion \\
+    & $\tctx_1, \tctx_3 \byinf x \infto \applye {\tctx_1, \tctx_3} \sigma$
+    & By \rul{A-Var} \\
+    & $\tctx_1, \tctx_3 \wc$ & Given \\
+    & $\tctx_1, \tctx_3$ & does not contain any existential variable in $\tctx_2$ \\
+    & $\applye {\tctx_1, \tctx_3} \sigma = \applye {\tctx_1, \tctx_2, \tctx_3}
+    \sigma $
+    & Follows directly
+  \end{longtable}
+\item \[\AEVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt \genA$ & Given \\
+    & $\genA \in \tctx_1, \tctx_3$ & By inversion \\
+    & $\tctx_1, \tctx_3 \byinf \genA \infto \star$
+    & By \rul{A-EVar} \\
+  \end{longtable}
+\item \[\ASolvedEVar\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt \genA$ & Given \\
+    & $\genA = \tau \in \tctx_1, \tctx_3$ & By inversion \\
+    & $\tctx_1, \tctx_3 \byinf \genA \infto \star$
+    & By \rul{A-EVar} \\
+  \end{longtable}
+\item \[\ALamAnn\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt \sigma_1$ & Given \\
+    & $\tctx_1, \tctx_3 \byinf \sigma_1 \infto \star $
+    & By induction hypothesis \\
+    & $\tctx_1, \tctx_3, x : \sigma_1 \wc $
+    & By \rul{AC-Var} \\
+    & $\tctx_1, \tctx_3, x: \sigma_1 \bywt e$ & Given \\
+    & $\tctx_1, \tctx_3, x: \sigma_1 \byinf e \infto \sigma_2 $
+    & By induction hypothesis \\
+    & $\tctx_1, \tctx_3 \byinf \blam x {\sigma_1} e \infto
+    \bpi x {\applye {\tctx_1, \tctx_3} {\sigma_1}} \sigma_2 $
+    & By \rul{A-LamAnn} \\
+    & $\tctx_1, \tctx_3 \wc$ & Given \\
+    & $\tctx_1, \tctx_3$ & does not contain any existential variable in $\tctx_2$ \\
+    & $\applye {\tctx_1, \tctx_3} {\sigma_1}
+    = \applye {\tctx_1, \tctx_2, \tctx_3} {\sigma_1} $
+    & Follows directly
+  \end{longtable}
+\item \[\APi\]
+  Similar as Case \rul{A-LamAnn}.
+\item \[\AApp\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt e_1$ & Given \\
+    & $\tctx_1, \tctx_3 \byinf e_1 \infto \bpi x {\sigma_1} {\sigma_2} $
+    & By induction hypothesis \\
+    & $\tctx_1, \tctx_3 \bywt e_2$ & Given \\
+    & $\tctx_1, \tctx_3 \byinf e_2 \infto {\sigma_1} $
+    & By induction hypothesis \\
+    & $\tctx_1, \tctx_3 \byinf e_1 ~ e_2 \infto
+    {\sigma_2 \subst x {\applye {\tctx_1, \tctx_3} {e_1}}} $
+    & By \rul{A-App} \\
+    & $\tctx_1, \tctx_3 \bywt e_1$ & Given \\
+    & $\tctx_1, \tctx_3 \wc$ & Given \\
+    & $\tctx_1, \tctx_3, e_1$ & does not contain any existential variable in $\tctx_2$ \\
+    & $\applye {\tctx_1, \tctx_3} {e_1}
+    = \applye {\tctx_1, \tctx_2, \tctx_3} {\sigma_1} $
+    & Follows directly
+  \end{longtable}
+\item \[\ACastDn\]
+  \begin{longtable}[l]{lll}
+    & $\tctx_1, \tctx_3 \bywt e$ & Given \\
+    & $\tctx_1, \tctx_3 \byinf e \infto \sigma_1 $
+    & By induction hypothesis \\
+    & $\sigma_1 \redto \sigma_2$
+    & Given \\
+    & $\tctx_1, \tctx_3 \byinf \castdn e \infto {\sigma_2} $
+    & By \rul{A-CastDn}
+  \end{longtable}
+\item \[\ACastUp\]
+  Similar as Case \rul{A-CastDn}.
 \end{itemize}
 \qed
 
@@ -333,7 +407,7 @@ By induction on the size of second typing derivation.
       & $\tctx \byinf \sigma_1 \infto \star$ & Given \\
       & $\tctx, y: \sigma' \subst x \tau \byinf \sigma_1 \infto \star$ & By
       Lemma~\ref{lemma:\TypingWeakeningName}\\
-      & $\tctx, y: \sigma' \subst x \tau, x:\sigma_1 \wc$ & By above hypothesis \\
+      & $\tctx, y: \sigma' \subst x \tau, x:\sigma_1 \wc$ & By \rul{AC-Var} \\
       & $\tctx, y: \sigma' \subst x \tau, x:\sigma_1 \byinf e \infto \sigma_3$ &
       By Lemma~\ref{lemma:\TypingVariableExchangeName} \\
       & $\tctx \byinf \tau \infto \applye \tctx {\sigma_1}$ & Given \\
@@ -1416,9 +1490,300 @@ By induction on the type sanitization.
 
 \subsection{Properties of Unification}
 
-equivalence
+\begin{lemma}[\UnificationExtensionName]\leavevmode
+  \label{lemma:\UnificationExtensionName}
+  \UnificationExtensionBody
+\end{lemma}
 
-well typed
+\proof
 
+By induction on the height of unification derivation.
+Two parts reply on each
+other but the size of derivation is decreasing.
+So the proof can terminate.
+
+\begin{description}
+\item [Part 1] In Part 1, we regard all $\delta = e$.
+  \begin{itemize}
+  \item Case \[\UAEq\]
+    Follows trivially by Lemma~\ref{lemma:\ContextExtensionReflexivityName}.
+  \item Case \[\UApp\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf e_1 ~ e_2 \infto \sigma_1' $ & Given \\
+      & $\tctx \byinf e_3 ~ e_4 \infto \sigma_2' $ & Given \\
+      & $\tctx \byinf e_1 \infto \sigma_1'' $ & By inversion \\
+      & $\tctx \byinf e_3 \infto \sigma_2'' $ & By inversion \\
+      & $\tctx \exto \ctxl_1 $ & By induction hypothesis \\
+      & $\tctx \byinf e_2 \infto \sigma_1''' $ & By inversion \\
+      & $\tctx \byinf e_4 \infto \sigma_2''' $ & By inversion \\
+      & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma_1'''} $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf e_4 \infto \applye {\ctxl_1} {\sigma_2'''} $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
+      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_1'''}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_4} \infto
+      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_2'''}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1 \exto \ctxl$
+      & By induction hypothesis \\
+      & $\tctx \exto \ctxl$
+      & By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
+    \end{longtable}
+  \item Case \[\ULamAnn\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf \blam x {\sigma_1} {e_1} \infto \sigma_1' $ & Given \\
+      & $\tctx \byinf \sigma_1 \infto \star $ & By inversion \\
+      & $\tctx \byinf \blam x {\sigma_2} {e_2} \infto \sigma_2' $ & Given \\
+      & $\tctx \byinf \sigma_2 \infto \star $ & By inversion \\
+      & $\tctx \exto \ctxl_1 $ & By Part 2 \\
+      & $\tctx, x:\sigma_1 \exto \ctxl_1, x:\sigma_1 $
+      & By \rul{CE-Var} \\
+      & $\tctx, x:\sigma_1 \byinf e_1 \infto \sigma_1'' $ & By inversion \\
+      & $\ctxl_1, x: \sigma_1 \byinf e_1 \infto \applye {\ctxl_1, x:\sigma_1} {\sigma_1''} $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1, x: \sigma_1} {e_1} \infto
+      \applye {\ctxl_1, x: \sigma_1} {\applye {\ctxl_1, x:\sigma_1} {\sigma_1''}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1} {e_1} \infto
+      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_1''}} $
+      & By definition of context substitution \\
+      & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1} {e_2} \infto
+      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_2''}} $
+      & Similarly \\
+      & $\ctxl_1, x:\sigma_1 \exto \ctxl, x:\sigma_1 $
+      & By induction hypothesis \\
+      & $\ctxl_1 \exto \ctxl $
+      & By inversion \\
+      & $\tctx \exto \ctxl$
+      & By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
+    \end{longtable}
+  \item Case \[\UPi\]
+    Similar as Case \rul{U-LamAnn}.
+    The difference is that instead of using induction hypothesis,
+    two subgoals all use Part 2.
+  \item Case \[\UCastDn\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf \castdn {e_1} \infto \sigma_1'$ & Given \\
+      & $\tctx \byinf e_1 \infto \sigma_1''$ & By inversion \\
+      & $\tctx \byinf e_2 \infto \sigma_2''$ & Similarly \\
+      & $\tctx \exto \ctxl$ & By induction hypothesis
+    \end{longtable}
+  \item Case \[\UCastUp\]
+    Similar as Case \rul{U-CastDn}.
+  \end{itemize}
+\item [Part 2]
+  \begin{itemize}
+  \item Case \[\UAEq\]
+    Follows trivially by Lemma~\ref{lemma:\ContextExtensionReflexivityName}.
+  \item Case \[\UEVarTy\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\genA] \byinf \tau_1 \infto \star $& Given \\
+      & $\tctx[\genA] \exto \ctxl_1, \genA, \ctxl_2 $
+      & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
+      & $\ctxl_1, \genA, \ctxl_2 \byinf \tau_2 \infto \star $
+      & By Lemma~\ref{lemma:\TypeSanitizationWellFormednessName} \\
+      & $\ctxl_1 \bywt \tau_2$
+      & Given \\
+      & $\ctxl_1 \byinf \tau_2 \infto \star $
+      & By Lemma~\ref{lemma:\TypingStrengtheningName} \\
+      & $\ctxl_1, \genA, \ctxl_2 \exto \ctxl_1, \genA = \tau_2, \ctxl_2$
+      & By Lemma~\ref{lemma:\SolvedVariableAdditionForExtensionName} \\
+      & $\tctx[\genA] \exto \ctxl_1, \genA = \tau_2, \ctxl_2$
+      & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
+    \end{longtable}
+  \item Case \[\UTyEVar\]
+    Similar as Case \rul{U-EVarTy}.
+  \item Case \[\UApp\]
+    Similar as Case \rul{U-App} in Part 1.
+  \item Case \[\UPi\]
+    Similar as Case \rul{U-Pi} in Part 1.
+  \item Case \[\UCastDn\]
+    Similar as Case \rul{U-CastDn} in Part 1.
+  \end{itemize}
+\end{description}
+
+\qed
+
+\begin{lemma}[\UnificationEquivalenceName]\leavevmode
+  \label{lemma:\UnificationEquivalenceName}
+  \UnificationEquivalenceBody
+\end{lemma}
+
+\proof
+
+By induction on unification derivation.
+
+\begin{itemize}
+  \item Case \[\UAEq\]
+    The goal holds trivially.
+  \item Case \[\UEVarTy\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\genA] \byinf \tau_1 \infto \sigma_2' $ & Given \\
+      & $\applye {\ctxl_1, \genA, \ctxl_2} {\tau_1}
+      = \applye {\ctxl_1, \genA, \ctxl_2} {\tau_2} $
+      & By Lemma~\ref{lemma:\TypeSanitizationEquivalenceName} \\
+      & $\applye {\ctxl_1, \genA = \tau_2, \ctxl_2} \genA $ & \\
+      & $ = \applye {\ctxl_1} {\tau_2} $
+      & By definition of context substitution \\
+      & $\applye {\ctxl_1, \genA = \tau_2, \ctxl_2} {\tau_1}$ & \\
+      & $= \applye {\ctxl_1, \genA = \tau_2} {\applye {\ctxl_2} {\tau_1}} $
+      & By definition of context application \\
+      & $= \applye {\ctxl_1} {(\applye {\ctxl_2} {\tau_1}) \subst \genA
+        {\tau_2}} $
+      & By definition of context application \\
+      & $= (\applye {\ctxl_1} {\applye {\ctxl_2} {\tau_1}}) \subst \genA
+        {\applye {\ctxl_1} {\tau_2}} $
+      & By property of context application and substitution \\
+      & $= (\applye {\ctxl_1, \ctxl_2} {\tau_1}) \subst \genA
+        {\applye {\ctxl_1} {\tau_2}} $
+      & By definition of context application \\
+      & $= (\applye {\ctxl_1, \genA, \ctxl_2} {\tau_1}) \subst \genA
+        {\applye {\ctxl_1} {\tau_2}} $
+      & By definition of context application \\
+      & $= (\applye {\ctxl_1, \genA, \ctxl_2} {\tau_2}) \subst \genA
+        {\applye {\ctxl_1} {\tau_2}} $
+      & By substituting the equality \\
+      & $\ctxl_1 \bywt \tau_2 $ & Given \\
+      & $\tctx[\genA] \wc$
+      & By Lemma~\ref{lemma:\TypingContextWellFormednessName} \\
+      & $\tctx[\genA] \exto \ctxl_1, \genA, \ctxl_2 $
+      & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
+      & $\ctxl_1, \genA, \ctxl_2 \wc $
+      & By Lemma~\ref{lemma:\ContextExtensionPreservesContextWellFormednessName}\\
+      & $\genA \notin \ctxl_1 \cup FV(\tau_2)$
+      & Follows directly \\
+      & $\tau_2$ contains no existential variable in $\ctxl_2$
+      & Follows directly \\
+      & $\applye {\ctxl_1, \genA = \tau_2, \ctxl_2} {\tau_1}$ & \\
+      & $= (\applye {\ctxl_1, \genA, \ctxl_2} {\tau_2}) \subst \genA
+      {\applye {\ctxl_1} {\tau_2}} $
+      & Known \\
+      & $= (\applye {\ctxl_1} {\tau_2}) \subst \genA {\applye {\ctxl_1} {\tau_2}}$
+      & Substitute fresh context \\
+      & $= (\applye {\ctxl_1} {\tau_2})$
+      & Substitute fresh variable \\
+    \end{longtable}
+  \item Case \[\UTyEVar\]
+    Similar as Case \rul{U-EVarTy}.
+  \item Case \[\UApp\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf e_1 ~ e_2 \infto \sigma_1'$ & Given \\
+      & $\tctx \byinf e_1 \infto \sigma_1''$ & By inversion \\
+      & $\tctx \byinf e_2 \infto \sigma_1'''$ & By inversion \\
+      & $\tctx \byinf e_3 ~ e_4 \infto \sigma_2'$ & Given \\
+      & $\tctx \byinf e_3 \infto \sigma_2''$ & By inversion \\
+      & $\tctx \byinf e_4 \infto \sigma_2'''$ & By inversion \\
+      & $\applye {\ctxl_1} {e_1} = \applye {\ctxl_1} {e_3}$
+      & By induction hypothesis \\
+      & $\tctx \exto \ctxl_1$
+      & By Lemma~\ref{lemma:\UnificationExtensionName} \\
+      & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma_1'''}$
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto \applye {\ctxl_1}
+      {\applye {\ctxl_1} {\sigma_1'''}}$
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto \applye {\ctxl_1}
+      {\sigma_1'''}$
+      & By Lemma~\ref{lemma:\ContextApplicationIsIdempotentName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_4} \infto \applye {\ctxl_1}
+      {\sigma_2'''}$
+      & Similarly \\
+      & $\applye \ctxl {\applye {\ctxl_1} {e_2}}
+      = \applye \ctxl {\applye {\ctxl_1} {e_4}} $
+      & By induction hypothesis \\
+      & $\ctxl_1 \exto \ctxl $
+      & By Lemma~\ref{lemma:\UnificationExtensionName} \\
+      & $\applye \ctxl {e_2} = \applye \ctxl {e_4} $
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+      & $\applye \ctxl {e_1} = \applye \ctxl {e_3} $
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+    \end{longtable}
+  \item Case \[\ULamAnn\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf \blam x {\sigma_1} {e_1} \infto \sigma_1' $
+      & Given \\
+      & $\tctx \byinf {\sigma_1} \infto \star $
+      & By inversion \\
+      & $\tctx, x: \sigma_1 \byinf {e_1} \infto \sigma_1'' $
+      & By inversion \\
+      & $\tctx \byinf {\sigma_2} \infto \star $
+      & Similarly \\
+      & $\tctx, x: \sigma_2 \byinf {e_2} \infto \sigma_2'' $
+      & Similarly \\
+      & $\applye {\ctxl_1} {\sigma_1} = \applye {\ctxl_1} {\sigma_2} $
+      & By induction hypothesis \\
+      & $\tctx \exto \ctxl_1 $
+      & By Lemma~\ref{lemma:\UnificationExtensionName} \\
+      & $\tctx, x: \sigma_1 \exto \ctxl_1, x:\sigma_1 $
+      & By \rul{CE-Var} \\
+      & $\ctxl_1, x: \sigma_1 \byinf {e_1} \infto \applye {\ctxl_1, x: \sigma_1}
+      {\sigma_1''} $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1, x: \sigma_1} {e_1}}
+      \infto \applye {\ctxl_1, x: \sigma_1} {\applye {\ctxl_1, x: \sigma_1} {\sigma_1''} }$
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1, x: \sigma_1} {e_1}}
+      \infto \applye {\ctxl_1, x: \sigma_1} {\sigma_1''}$
+      & By Lemma~\ref{lemma:\ContextApplicationIsIdempotentName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1} {e_1}}
+      \infto \applye {\ctxl_1} {\sigma_1''}$
+      & By definition of context substitution\\
+      & $\tctx, x: \sigma_2 \exto \ctxl_1, x:\sigma_2 $
+      & By \rul{CE-Var} \\
+      & $\ctxl_1, x: \sigma_2 \byinf \applye {\ctxl_1} {e_2} \infto \applye
+      {\ctxl_1} {\sigma_2''} $
+      & Similarly \\
+      & $\ctxl_1 \byinf {\sigma_2} \infto \star $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {\sigma_2} \infto \star $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1, x: \applye {\ctxl_1} {\sigma_2} \byinf \applye {\ctxl_1} {e_2} \infto \applye
+      {\ctxl_1} {\sigma_2''} $
+      & By Lemma~\ref{lemma:\ContextApplicationInContextName} \\
+      & $\ctxl_1, x: \applye {\ctxl_1} {\sigma_1} \byinf \applye {\ctxl_1} {e_2} \infto \applye
+      {\ctxl_1} {\sigma_2''} $
+      & By substituting the equality \\
+      & $\ctxl_1 \byinf {\sigma_1} \infto \star $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1} {e_2} \infto \applye
+      {\ctxl_1} {\sigma_2''} $
+      & By Lemma~\ref{lemma:\ReverseContextApplicationInContextName} \\
+      & $\applye {\ctxl, x:\sigma_1} {\applye {\ctxl_1} {e_1}}
+      = \applye {\ctxl, x: \sigma_1} {\applye {\ctxl_1} {e_2}} $
+      & By induction hypothesis \\
+      & $\applye {\ctxl} {\applye {\ctxl_1} {e_1}}
+      = \applye {\ctxl} {\applye {\ctxl_1} {e_2}} $
+      & By definition of context application \\
+      & $\ctxl_1, x: \sigma_1 \exto \ctxl, x: \sigma_1 $
+      & By Lemma~\ref{lemma:\UnificationExtensionName} \\
+      & $\ctxl_1 \exto \ctxl $
+      & By inversion \\
+      & $\applye {\ctxl} {e_1}
+      = \applye {\ctxl} {e_2} $
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+      & $\applye {\ctxl} {\sigma_1}
+      = \applye {\ctxl} {\sigma_2} $
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+    \end{longtable}
+  \item Case \[\UPi\]
+    Similar as Case \rul{U-LamAnn}.
+  \item Case \[\UCastDn\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \byinf \castdn e_1 \infto \sigma_1' $
+      & Given \\
+      & $\tctx \byinf e_1 \infto \sigma_1'' $
+      & By inversion \\
+      & $\tctx \byinf e_2 \infto \sigma_2'' $
+      & Similarly \\
+      & $\applye \ctxl {e_1} = \applye \ctxl {e_2} $
+      & By induction hypothesis
+    \end{longtable}
+  \item Case \[\UCastUp\]
+    Similar as Case \rul{U-CastDn}.
+\end{itemize}
+
+\qed
 
 \section{Implicit Polymorphic Type System}

@@ -410,10 +410,10 @@
             }\rname{U-TyEVar}}
 
 \newcommand*{\UApp}{\inferrule{
-            \tctx \byeuni \sigma_1 \uni \sigma_3 \toctx_1
-         \\ \ctxl_1 \byeuni \applye {\ctxl_1} {\sigma_2} \uni \applye {\ctxl_1} {\sigma_4} \toctx
+            \tctx \byeuni e_1 \uni e_3 \toctx_1
+         \\ \ctxl_1 \byeuni \applye {\ctxl_1} {e_2} \uni \applye {\ctxl_1} {e_4} \toctx
             }{
-            \tctx \bybuni \sigma_1 ~ \sigma_2 \uni \sigma_3 ~ \sigma_4 \toctx
+            \tctx \bybuni e_1 ~ e_2 \uni e_3 ~ e_4 \toctx
             }\rname{U-App}}
 
 \newcommand*{\ULamAnn}{\inferrule{
@@ -446,7 +446,7 @@
 \newcommand*{\UCastUp}{\inferrule{
             \tctx \byeuni {e_1} \uni {e_2} \toctx
             }{
-            \tctx \bybuni \castup {e_1} \uni \castup {e_2} \toctx
+            \tctx \byeuni \castup {e_1} \uni \castup {e_2} \toctx
             }\rname{U-CastUp}}
 
 % ------------------------------------------------------

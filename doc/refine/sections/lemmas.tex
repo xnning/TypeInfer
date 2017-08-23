@@ -68,10 +68,10 @@
 
 \newcommand*{\TypingStrengtheningName}{Typing Strengthening}
 \newcommand*{\TypingStrengtheningBody}{
-  If $\tctx_1, x: \sigma_1, \tctx_2 \byinf \tau \infto \sigma$,
-  and $\tctx_1, \tctx_2 \wc $,
-  and $x \notin FV(\tau)$,
-  then $\tctx_1, \tctx_2 \byinf \tau \infto \sigma$.
+  If $\tctx_1, \tctx_2, \tctx_3 \byinf \tau \infto \sigma$,
+  and $\tctx_1, \tctx_3 \wc $,
+  and $\tctx_1, \tctx_3 \bywt \tau $,
+  then $\tctx_1, \tctx_3 \byinf \tau \infto \sigma$.
 }
 
 \newcommand*{\TypingVariableExchangeName}{Typing Variable Exchange}
@@ -237,4 +237,29 @@
   If $\tctx \bysa \tau_1 \sa \tau_2 \toctx$,
   and $\tctx \byinf \tau_1 \infto \sigma$,
   then $\ctxl \byinf \tau_2 \infto \applye \ctxl \sigma$.
+}
+
+\newcommand*{\UnificationExtensionName}
+{Unification Extension}
+\newcommand*{\UnificationExtensionBody}{
+  \begin{itemize}
+  \item If $\tctx \byeuni e_1 \uni e_2 \toctx$,
+    and $\tctx \byinf e_1 \infto \sigma_1'$,
+    and $\tctx \byinf e_2 \infto \sigma_2'$,
+    then $\tctx \exto \ctxl$.
+  \item If $\tctx \bysuni \tau_1 \uni \tau_2 \toctx$,
+    and $\tctx \byinf \tau_1 \infto \star $,
+    and $\tctx \byinf \tau_2 \infto \star $,
+    then $\tctx \exto \ctxl$.
+  \end{itemize}
+}
+
+
+\newcommand*{\UnificationEquivalenceName}
+{Unification Equivalence}
+\newcommand*{\UnificationEquivalenceBody}{
+  If $\tctx \bybuni \tau_1 \uni \tau_2 \toctx$,
+  and $\tctx \byinf \tau_1 \infto \sigma_1'$,
+  and $\tctx \byinf \tau_2 \infto \sigma_2'$,
+  then $\applye \ctxl {\tau_1} = \applye \ctxl {\tau_2}$.
 }
