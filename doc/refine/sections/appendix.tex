@@ -1248,8 +1248,10 @@ By induction on type sanitization.
       & $\tctx \byinf e_1 ~ e_2 \infto \sigma $ & Given \\
       & $\tctx \byinf e_2 \infto \sigma' $ & By inversion \\
       & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma'} $
-      & By Lemma~\ref{lemma:\ExtensionWeakningName}
-      \\
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
+      {\applye {\ctxl_1} {\sigma'}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1 \exto \ctxl$ & By induction hypothesis \\
       & $\tctx \exto \ctxl $ & By
       Lemma~\ref{lemma:\ContextExtensionTransitivityName}
@@ -1261,7 +1263,14 @@ By induction on type sanitization.
       & $\tctx, {x : \tau_1} \byinf {e_1} \infto \sigma' $ & By inversion \\
       & $\tctx, {x : \tau_1} \exto \ctxl_1, x : \tau_1 $ & By \rul{CE-Var} \\
       & $\ctxl_1, {x : \tau_1} \byinf {e_1} \infto \applye {\ctxl_1, x:
-        \tau_1} {\sigma'} $ & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+        \tau_1} {\sigma'} $
+      & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1, {x : \tau_1} \byinf \applye {\ctxl_1, x: \tau_1} {e_1} \infto
+      {\applye {\ctxl_1, x: \tau_1} {\sigma'}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1, {x : \tau_1} \byinf \applye {\ctxl_1} {e_1} \infto
+      {\applye {\ctxl_1} {\sigma'}} $
+      & By definition of context application \\
       & $\ctxl_1, x: \tau_1 \exto \ctxl, x: \tau_1$ & By induction hypothesis \\
       & $\ctxl_1 \exto \ctxl$ & By inversion \\
       & $\tctx \exto \ctxl $ & By
@@ -1311,10 +1320,15 @@ By induction on type sanitization.
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
       & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma''} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
+      {\applye {\ctxl_1} {\sigma''}} $
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1 \exto \ctxl$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\applye {\ctxl} {e_2} = \applye {\ctxl} {e_4}$
+      & $\applye {\ctxl} {\applye {\ctxl_1} {e_2}} = \applye {\ctxl} {e_4}$
       & By induction hypothesis \\
+      & $\applye {\ctxl} {e_2} = \applye {\ctxl} {e_4}$
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
       & $\applye \ctxl {e_3} $& \\
       & $= \applye \ctxl {\applye {\ctxl_1} {e_3}} $
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
@@ -1335,16 +1349,32 @@ By induction on type sanitization.
       & By induction hypothesis \\
       & $\tctx, x: \tau_1 \exto \ctxl_1, x : \tau_1$
       & By \rul{CE-Var} \\
-      & $\tctx \byinf e_1 \infto \sigma'$
+      & $\tctx, x:\tau_1 \byinf e_1 \infto \sigma'$
       & By inversion\\
-      & $\ctxl_1 \byinf e_1 \infto \applye {\ctxl_1} {\sigma'}$
+      & $\ctxl_1, x: \tau_1 \byinf e_1 \infto
+      \applye {\ctxl_1, x: \tau_1} {\sigma'}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName}\\
-      & $\ctxl_1 \exto \ctxl$
+      & $\ctxl_1, x: \tau_1 \byinf \applye {\ctxl_1, x: \tau_1} {e_1} \infto
+      \applye {\ctxl_1, x: \tau_1} {\sigma'}$
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName}\\
+      & $\ctxl_1, x: \tau_1 \byinf \applye {\ctxl_1} {e_1} \infto
+      \applye {\ctxl_1} {\sigma'}$
+      & By definition of context application \\
+      & $\ctxl_1, x: \tau_1 \exto \ctxl, x:\tau_1$
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
-      & $\applye {\ctxl} {e_1} = \applye {\ctxl} {e_2}$
+      & $\ctxl_1 \exto \ctxl$
+      & By inversion \\
+      & $\applye {\ctxl, x: \tau_1} {\applye {\ctxl_1} {e_1}}
+      = \applye {\ctxl, x: \tau_1} {e_2}$
       & By induction hypothesis \\
-      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_2}$
+      & $\applye {\ctxl} {\applye {\ctxl_1} {e_1}}
+      = \applye {\ctxl} {e_2}$
+      & By definition of context application \\
+      & $\applye {\ctxl} {e_1}
+      = \applye {\ctxl} {e_2}$
       & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+      & $\applye {\ctxl} {\tau_1} = \applye {\ctxl} {\tau_2}$
+      & Similarly
     \end{longtable}
   \item Case \[\IPi\]
     Similar as Case \rul{I-LamAnn}.
@@ -1387,6 +1417,9 @@ By induction on the type sanitization.
       & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
       & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma_1}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
+      {\applye {\ctxl_1} {\sigma_1}}$
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl \byinf e_4 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
       & By induction hypothesis \\
       & $\ctxl_1 \exto \ctxl$
@@ -1400,8 +1433,10 @@ By induction on the type sanitization.
       & $\ctxl \byinf e_3 ~ e_4 \infto (\applye \ctxl {\sigma_2}) \subst x
       {\applye \ctxl {e_4}} $
       & By \rul{A-App} \\
-      & $\applye \ctxl {e_2} = \applye \ctxl {e_4} $
+      & $\applye \ctxl {\applye {\ctxl_1} {e_2}} = \applye \ctxl {e_4} $
       & By Lemma~\ref{lemma:\TypeSanitizationEquivalenceName} \\
+      & $\applye \ctxl {e_2} = \applye \ctxl {e_4} $
+      & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
       & $\ctxl \byinf e_3 ~ e_4 \infto (\applye \ctxl {\sigma_2}) \subst x
       {\applye \ctxl {e_2}} $
       & By substituting above equality \\
@@ -1429,8 +1464,12 @@ By induction on the type sanitization.
       & By \rul{CE-Var} \\
       & $\ctxl_1, x: \tau_1 \byinf e_1 \infto \applye {\ctxl_1, x: \tau_1} {\sigma_1}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
-      & $\ctxl_1, x: \tau_1 \byinf e_1 \infto \applye {\ctxl_1} {\sigma_1}$
-      & By definition of context substitution \\
+      & $\ctxl_1, x: \tau_1 \byinf \applye {\ctxl_1, x: \tau_1} {e_1}
+      \infto \applye {\ctxl_1, x : \tau_1} {\sigma_1}$
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+      & $\ctxl_1, x: \tau_1 \byinf \applye {\ctxl_1} {e_1}
+      \infto \applye {\ctxl_1} {\sigma_1}$
+      & By definition on context application \\
       & $\ctxl, x:\tau_1 \byinf e_2 \infto \applye {\ctxl, x :\tau_1} {\applye {\ctxl_1} {\sigma_1}}$
       & By induction hypothesis \\
       & $\ctxl, x:\tau_1 \byinf e_2 \infto \applye {\ctxl} {\applye {\ctxl_1} {\sigma_1}}$
