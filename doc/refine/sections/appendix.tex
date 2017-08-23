@@ -1250,7 +1250,7 @@ By induction on type sanitization.
       & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma'} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
-      {\applye {\ctxl_1} {\sigma'}} $
+      {\sigma'} $
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1 \exto \ctxl$ & By induction hypothesis \\
       & $\tctx \exto \ctxl $ & By
@@ -1560,10 +1560,10 @@ So the proof can terminate.
       & $\ctxl_1 \byinf e_4 \infto \applye {\ctxl_1} {\sigma_2'''} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
-      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_1'''}} $
+      \applye {\ctxl_1} {\sigma_1'''} $
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1 \byinf \applye {\ctxl_1} {e_4} \infto
-      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_2'''}} $
+      {\applye {\ctxl_1} {\sigma_2'''}} $
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1 \exto \ctxl$
       & By induction hypothesis \\
@@ -1583,13 +1583,13 @@ So the proof can terminate.
       & $\ctxl_1, x: \sigma_1 \byinf e_1 \infto \applye {\ctxl_1, x:\sigma_1} {\sigma_1''} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1, x: \sigma_1} {e_1} \infto
-      \applye {\ctxl_1, x: \sigma_1} {\applye {\ctxl_1, x:\sigma_1} {\sigma_1''}} $
+       {\applye {\ctxl_1, x:\sigma_1} {\sigma_1''}} $
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1} {e_1} \infto
-      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_1''}} $
+      {\applye {\ctxl_1} {\sigma_1''}} $
       & By definition of context substitution \\
       & $\ctxl_1, x: \sigma_1 \byinf \applye {\ctxl_1} {e_2} \infto
-      \applye {\ctxl_1} {\applye {\ctxl_1} {\sigma_2''}} $
+      {\applye {\ctxl_1} {\sigma_2''}} $
       & Similarly \\
       & $\ctxl_1, x:\sigma_1 \exto \ctxl, x:\sigma_1 $
       & By induction hypothesis \\
@@ -1720,12 +1720,9 @@ By induction on unification derivation.
       & By Lemma~\ref{lemma:\UnificationExtensionName} \\
       & $\ctxl_1 \byinf e_2 \infto \applye {\ctxl_1} {\sigma_1'''}$
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
-      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto \applye {\ctxl_1}
+      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto
       {\applye {\ctxl_1} {\sigma_1'''}}$
       & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
-      & $\ctxl_1 \byinf \applye {\ctxl_1} {e_2} \infto \applye {\ctxl_1}
-      {\sigma_1'''}$
-      & By Lemma~\ref{lemma:\ContextApplicationIsIdempotentName} \\
       & $\ctxl_1 \byinf \applye {\ctxl_1} {e_4} \infto \applye {\ctxl_1}
       {\sigma_2'''}$
       & Similarly \\
@@ -1761,11 +1758,8 @@ By induction on unification derivation.
       {\sigma_1''} $
       & By Lemma~\ref{lemma:\ExtensionWeakningName} \\
       & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1, x: \sigma_1} {e_1}}
-      \infto \applye {\ctxl_1, x: \sigma_1} {\applye {\ctxl_1, x: \sigma_1} {\sigma_1''} }$
-      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
-      & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1, x: \sigma_1} {e_1}}
       \infto \applye {\ctxl_1, x: \sigma_1} {\sigma_1''}$
-      & By Lemma~\ref{lemma:\ContextApplicationIsIdempotentName} \\
+      & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
       & $\ctxl_1, x: \sigma_1 \byinf {\applye {\ctxl_1} {e_1}}
       \infto \applye {\ctxl_1} {\sigma_1''}$
       & By definition of context substitution\\
