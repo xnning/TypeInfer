@@ -1820,3 +1820,278 @@ By induction on unification derivation.
 \qed
 
 \section{Implicit Polymorphic Type System}
+
+\subsection{Referred Lemmas}
+
+\begin{lemma}[Unsolved Variable Addition For Extension]
+  \label{lemma:dunfield:UnsolvedVariableAdditionForExtension}
+  $\tctx_L, \tctx_R \exto \tctx_L, \genA, \tctx_R $.
+\end{lemma}
+
+\begin{lemma}[Solution Admissibility for Extension]
+  \label{lemma:dunfield:SolutionAdmissibilityForExtension}
+  If $\tctx \bywf \tau$,
+  then $\tctx_L, \genA, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R $.
+\end{lemma}
+
+\begin{lemma}[Transitivity]
+  \label{lemma:dunfield:Transitivity}
+  If $\tctx \exto \ctxr$,
+  and $\ctxr \exto \ctxl$,
+  then $\tctx \exto \ctxl$.
+\end{lemma}
+
+\begin{lemma}[Reflexivity]
+  \label{lemma:dunfield:Reflexivity}
+  If $\tctx$ is well-formed,
+  then $\tctx \exto \tctx$.
+\end{lemma}
+
+\begin{lemma}[Confluence of Completeness]
+  \label{lemma:dunfield:ConfluenceOfCompleteness}
+  If $\ctxr_1 \exto \cctx$,
+  and $\ctxr_2 \exto \cctx$,
+  then $\applye \cctx {\ctxr_1} = \applye \cctx {\ctxr_2} $.
+\end{lemma}
+
+\begin{lemma}[Substitution Extension Invariance]
+  \label{lemma:dunfield:ConfluenceOfCompleteness}
+  If $\ctxl \bywf A $,
+  and $\ctxl \exto \tctx $,
+  then $\applye \tctx A = \applye \tctx {\applye \ctxl A} $,
+  and $\applye \tctx A = \applye \ctxl {\applye \tctx A} $.
+\end{lemma}
+
+\begin{lemma}[Reflexivity of Declarative Subtyping]
+  \label{lemma:dunfield:ReflexivityOfDeclarativeSubtyping}
+  If $\dctx \bywf A$,
+  then $\dctx \bysub A \dsub A $.
+\end{lemma}
+
+\subsection{Properties of Polymorphic Type Sanitization}
+
+\begin{lemma}[\PolymorphicTypeSanitizationExtensionName]\leavevmode
+  \label{lemma:\PolymorphicTypeSanitizationExtensionName}
+  \PolymorphicTypeSanitizationExtensionBody
+\end{lemma}
+
+\proof
+
+By induction on polymorphic type sanitization derivation.
+
+\begin{itemize}
+  \item Case \[\IAllPlus\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\genB, \genA] \exto \ctxl $
+      & By induction hypothesis\\
+      & $\tctx[\genA] \exto \tctx[\genB, \genA] $
+      & By Lemma~\ref{lemma:dunfield:UnsolvedVariableAdditionForExtension} \\
+      & $\tctx[\genA] \exto  \ctxl $
+      & By Lemma~\ref{lemma:dunfield:Transitivity}
+    \end{longtable}
+  \item Case \[\IAllMinus\]
+    \begin{longtable}[l]{lll}
+      & $\tctx, \varA \exto \ctxl, \varA$
+      & By induction hypothesis \\
+      & $\tctx \exto \ctxl$
+      & By inversion
+    \end{longtable}
+  \item Case \[\IPiPoly\]
+    \begin{longtable}[l]{lll}
+      & $\tctx \exto \ctxl_1$
+      & By induction hypothesis \\
+      & $\ctxl_1 \exto \ctxl$
+      & By induction hypothesis \\
+      & $\tctx \exto \ctxl$
+      & By Lemma~\ref{lemma:dunfield:Transitivity}
+    \end{longtable}
+  \item Case \[\IUnit\]
+    \begin{longtable}[l]{lll}
+      & $\tctx$ is well-formed
+      & By implicit assumption \\
+      & $\tctx \exto \tctx$
+      & By Lemma~\ref{lemma:dunfield:Reflexivity}
+    \end{longtable}
+  \item Case \[\ITVar\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\varA]$ is well-formed
+      & By implicit assumption \\
+      & $\tctx[\varA] \exto \tctx[\varA]$
+      & By Lemma~\ref{lemma:dunfield:Reflexivity}
+    \end{longtable}
+  \item Case \[\IEVarAfterPoly\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\genA][\genB] \exto \tctx[\genA_1, \genA][\genB] $
+      & By Lemma~\ref{lemma:dunfield:UnsolvedVariableAdditionForExtension} \\
+      & $\tctx[\genA_1, \genA] \bywf \genA_1$
+      & By \rul{EvarWF} \\
+      & $\tctx[\genA_1, \genA][\genB] \exto \tctx[\genA_1, \genA][\genB = \genA_1] $
+      & By Lemma~\ref{lemma:dunfield:SolutionAdmissibilityForExtension} \\
+      & $\tctx[\genA][\genB] \exto \tctx[\genA_1, \genA][\genB = \genA_1] $
+      & By Lemma~\ref{lemma:dunfield:Transitivity}
+    \end{longtable}
+  \item Case \[\IEVarBeforePoly\]
+    \begin{longtable}[l]{lll}
+      & $\tctx[\genB][\genA]$ is well-formed
+      & By implicit assumption \\
+      & $\tctx[\genB][\genA] \exto \tctx[\genB][\genA] $
+      & By Lemma~\ref{lemma:dunfield:Reflexivity}
+    \end{longtable}
+\end{itemize}
+
+\qed
+
+\begin{lemma}[\PolymorphicTypeSanitizationSoundnessName]\leavevmode
+  \label{lemma:\PolymorphicTypeSanitizationSoundnessName}
+  \PolymorphicTypeSanitizationSoundnessBody
+\end{lemma}
+
+\proof
+
+By induction on the polymorphic type sanitization derivation. These two parts
+rely on each other, but the derivation get smaller so the proof terminates.
+
+\begin{description}
+  \item [Part 1] In this part, we regard $s = +$.
+    \begin{itemize}
+      \item \[\IAllPlus\]
+        \begin{longtable}[l]{lll}
+          & $\ctxl \exto \cctx$
+          & Given \\
+          & $\applye {\tctx[\genA]} {\forall \varA. A } = \forall \varA . A $
+          & Given \\
+          & $\applye {\tctx[\genB, \genA]} {A \subst \varA \genB}
+          = A \subst \varA \genB $
+          & Follows directly \\
+          & $\applye \cctx \ctxl \bysub \applye \cctx {A \subst \varA \genB}
+          \dsub \applye \cctx \sigma $
+          & By induction hypothesis \\
+          & $\applye \cctx \ctxl \bysub {\applye \cctx A}
+          \subst \varA {\applye \cctx \genB}
+          \dsub \applye \cctx \sigma $
+          & By property of substitution \\
+          & $\applye \cctx \ctxl \bysub
+          {\applye \cctx {\forall \varA. A}}
+          \dsub \applye \cctx \sigma $
+          & By \rul{$\dsub \forall$ L} with $\tau = \applye \cctx \genB$
+        \end{longtable}
+      \item \[\IPiPoly\]
+        \begin{longtable}[l]{lll}
+          & $\applye \tctx {A_1 \to A_2} = A_1 \to A_2 $
+          & Given \\
+          & $\applye \tctx {A_1} = A_1 $
+          & Follows directly \\
+          & $\ctxl_1 \exto \ctxl $
+          & By Lemma~\ref{lemma:\PolymorphicTypeSanitizationExtensionName} \\
+          & $\ctxl \exto \cctx $
+          & Given \\
+          & $\ctxl_1 \exto \cctx $
+          & By Lemma~\ref{lemma:dunfield:Transitivity} \\
+          & $\applye \cctx {\ctxl_1} \bysub
+          \applye \cctx {\sigma_1}
+          \dsub
+          \applye \cctx {A_1}
+          $
+          & By Part 2 \\
+          & $\applye \cctx {\ctxl} \bysub
+          \applye \cctx {\sigma_1}
+          \dsub
+          \applye \cctx {A_1}
+          $
+          & By Lemma~\ref{lemma:dunfield:ConfluenceOfCompleteness} \\
+          & $\applye {\ctxl_1} {\applye {\ctxl_1} {A_2}}
+          = {\applye {\ctxl_1} {A_2}} $
+          & \\
+          & $\applye \cctx {\ctxl} \bysub
+          \applye \cctx {\applye {\ctxl_1} {A_2}}
+          \dsub
+          \applye \cctx {\sigma_2}
+          $
+          & By induction hypothesis \\
+          & $\applye \cctx {\ctxl} \bysub
+          \applye \cctx {A_2}
+          \dsub
+          \applye \cctx {\sigma_2}
+          $
+          & By Lemma~\ref{lemma:dunfield:ConfluenceOfCompleteness} \\
+          & $\applye \cctx {\ctxl} \bysub
+          \applye \cctx {A_1 \to A_2}
+          \dsub
+          \applye \cctx {\sigma_1 \to \sigma_2}
+          $
+          & By \rul{$\dsub \to$}
+        \end{longtable}
+      \item \[\IUnit\]
+        \begin{longtable}[l]{lll}
+          & $\applye \cctx \tctx \bysub \Unit \dsub \Unit $
+          & By \rul{$\dsub$Unit}
+        \end{longtable}
+      \item \[\ITVar\]
+        \begin{longtable}[l]{lll}
+          & $\applye \cctx {\tctx[\genA]} \bysub
+          \applye \cctx \genA \dsub \applye \cctx \genA $
+          & By Lemma~\ref{lemma:dunfield:ReflexivityOfDeclarativeSubtyping}
+        \end{longtable}
+      \item \[\IEVarAfterPoly\]
+        \begin{longtable}[l]{lll}
+          & $\applye {\tctx[\genA_1, \genA][\genB = \genA_1]} {\genA_1}$ & \\
+          & $= \applye {\tctx[\genA_1, \genA][\genB = \genA_1]} \genB$ & \\
+          & $= \genA_1 $
+          & By definition of context application \\
+          & $\tctx[\genA_1, \genA][\genB = \genA_1] \exto \cctx $
+          & Given \\
+          & $\applye \cctx \genB = \applye \cctx {\genA_1} $
+          & By Lemma~\ref{lemma:dunfield:ConfluenceOfCompleteness} \\
+          & $\applye \cctx \tctx \bysub \applye \cctx \genB \dsub
+          \applye \cctx {\genA_1} $
+          & By Lemma~\ref{lemma:dunfield:ReflexivityOfDeclarativeSubtyping}
+        \end{longtable}
+      \item \[\IEVarBeforePoly\]
+        \begin{longtable}[l]{lll}
+          & $\applye \cctx {\tctx[\genA]} \bysub
+          \applye \cctx \genB \dsub \applye \cctx \genB $
+          & By Lemma~\ref{lemma:dunfield:ReflexivityOfDeclarativeSubtyping}
+        \end{longtable}
+    \end{itemize}
+  \item [Part 2] In this part, we regard $s = -$.
+    \begin{itemize}
+      \item \[\IAllMinus\]
+        \begin{longtable}[l]{lll}
+          & $\ctxl \exto \cctx $
+          & Given \\
+          & $\ctxl, \varA \exto \cctx, \varA $
+          & By \rul{$\exto$ Uvar} \\
+          & $\applye \tctx {\forall \varA. A} = \forall \varA . A $
+          & Given \\
+          & $\applye {\tctx, \varA} A = A $
+          & Follows directly \\
+          & $\applye {\cctx, \varA} {\tctx, \varA} \bysub
+          \applye {\cctx, \varA} A \dsub
+          \applye {\cctx, \varA} \sigma
+          $
+          & By induction hypothesis \\
+          & $\applye {\cctx} {\tctx}, \varA \bysub
+          \applye {\cctx} A \dsub
+          \applye {\cctx} \sigma
+          $
+          & By definition of context application \\
+          & $\applye {\cctx} {\tctx} \bysub
+          \applye {\cctx} {\forall \varA. A} \dsub
+          \applye {\cctx} \sigma
+          $
+          & By \rul{$\dsub \forall$ L}
+        \end{longtable}
+      \item \[\IPiPoly\]
+        Similar as in Part 1.
+      \item \[\IUnit\]
+        Similar as in Part 1.
+      \item \[\ITVar\]
+        Similar as in Part 1.
+      \item \[\IEVarAfterPoly\]
+        Similar as in Part 1.
+      \item \[\IEVarBeforePoly\]
+        Similar as in Part 1.
+    \end{itemize}
+\end{description}
+
+\qed

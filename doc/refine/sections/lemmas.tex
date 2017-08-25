@@ -263,3 +263,29 @@
   and $\tctx \byinf \tau_2 \infto \sigma_2'$,
   then $\applye \ctxl {\tau_1} = \applye \ctxl {\tau_2}$.
 }
+
+% ------------------------------------------------------
+% POLYMORPHIC TYPE SANITIZATION
+% ------------------------------------------------------
+
+\newcommand*{\PolymorphicTypeSanitizationExtensionName}
+{Polymorphic Type Sanitization Extension}
+\newcommand*{\PolymorphicTypeSanitizationExtensionBody}{
+  If $\tctx \bybsa A \sa \sigma \toctx$,
+  then $\tctx \exto \ctxl$.
+}
+
+\newcommand*{\PolymorphicTypeSanitizationSoundnessName}
+{Polymorphic Type Sanitization Soundness}
+\newcommand*{\PolymorphicTypeSanitizationSoundnessBody}{
+  Given $\ctxl \exto \cctx$,
+  and $\applye \tctx A = A$:
+  \begin{itemize}
+  \item
+    If $\tctx[\genA] \bypsa A \sa \sigma \toctx$,
+    then $\applye \cctx \ctxl \bysub \applye \cctx A \dsub \applye \cctx \sigma$.
+  \item
+    If $\tctx[\genA] \bymsa A \sa \sigma \toctx$,
+    then $\applye \cctx \ctxl \bysub \applye \cctx \sigma \dsub \applye \cctx A$.
+  \end{itemize}
+}
