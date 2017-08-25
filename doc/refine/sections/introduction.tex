@@ -93,10 +93,48 @@
 
 \section{Polymorphic Type Sanitization For Implicit Polymorphic Calculus}
 
+\begin{tabular}{lrcl}
+  Type & $A, B$ & \syndef & $\Unit \mid \varA \mid \forall \varA. A \mid A \to B $ \\
+  Monotype & $\sigma, \tau$ & \syndef & $\Unit \mid \varA \mid \sigma \to \tau $ \\
+  Contexts & $\dctx$ & \syndef & $\ctxinit \mid \tctx, \varA
+                                               \mid \tctx, x: A $\\
+\end{tabular}
+
 \begin{mathpar}
-  \framebox{$\tctx[\genA] \bybsa \sigma \sa \tau \toctx$}
+  \framebox{$\tctx \bysub A \dsub B$}
+  {\quad Declarative~Subtyping} \\
+  \DDunVar \and \DDunUnit
+  \and \DDunArrow \and \DDunForallL
+  \and \DDunForallR
+\end{mathpar}
+
+\begin{tabular}{lrcl}
+  Type & $A, B$ & \syndef & $\Unit \mid \varA \mid \genA \mid \forall \varA. A \mid A \to B $ \\
+  Monotype & $\sigma, \tau$ & \syndef & $\Unit \mid \varA \mid \genA \mid \sigma \to \tau $ \\
+  Contexts & $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx, \varA
+                                               \mid \tctx, x: A
+                                               \mid \tctx, \genA
+                                               \mid \tctx, \genA = \tau
+                                               \mid \tctx, \marker \genA $\\
+  Complete Contexts & $\cctx$ & \syndef & $\ctxinit \mid \cctx, \varA
+                                          \mid \cctx, x: A
+                                          \mid \cctx, \genA = \tau
+                                          \mid \cctx, \marker \genA $\\
+\end{tabular}
+
+\begin{mathpar}
+  \framebox{$\tctx \bysub A \tsub B \toctx$}
+  {\quad Algorithmic~Subtyping} \\
+  \ADunVar \and \ADunUnit \and
+  \ADunExvar \and \ADunArrow \and
+  \ADunForallL \and \ADunForallR \and
+  \ADunInstL \and \ADunInstR
+\end{mathpar}
+
+\begin{mathpar}
+  \framebox{$\tctx[\genA] \bybsa A \sa \sigma \toctx$}
   {\quad Polymorphic~Type~Sanitization} \\
   \IAllPlus \and \IAllMinus \and
-  \IPiPoly \and \IUnit \and
+  \IPiPoly \and \IUnit \and \ITVar \and
   \IEVarAfterPoly \and \IEVarBeforePoly
 \end{mathpar}

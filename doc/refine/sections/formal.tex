@@ -571,24 +571,23 @@
 % ------------------------------------------------------
 
 \newcommand*{\IAllPlus}{\inferrule{
-            \tctx[\genB, \genA] \bypsa \sigma \subst x {\genB} \sa \tau \toctx
+            \tctx[\genB, \genA] \bypsa A \subst \varA {\genB} \sa \sigma \toctx
             }{
-            \tctx[\genA] \bypsa \forall x. \sigma \sa \tau \toctx
+            \tctx[\genA] \bypsa \forall \varA. A \sa \sigma \toctx
             }\rname{I-All-Plus}}
 
 \newcommand*{\IAllMinus}{\inferrule{
-            x \notin FV(\sigma)
-         \\ \tctx, x: \star \bymsa \sigma \sa \tau \toctx, x:\star
+            \varA \notin FV(\sigma)
+         \\ \tctx, \varA \bymsa A \sa \sigma \toctx, \varA
             }{
-            \tctx \bymsa \forall x. \sigma \sa \tau \toctx
+            \tctx \bymsa \forall \varA. A \sa \sigma \toctx
             }\rname{I-All-Minus}}
 
 \newcommand*{\IPiPoly}{\inferrule{
-            \tctx \bysa^{-s} \sigma_1 \sa \tau_1 \toctx_1
-         \\ \ctxl_1, x:\tau_1 \bybsa {\sigma_2} \sa \tau_2 \toctx, x:\tau_1
+            \tctx \bysa^{-s} A_1 \sa \sigma_1 \toctx_1
+         \\ \ctxl_1 \bybsa \applye {\ctxl_1} {A_2} \sa \sigma_2 \toctx
             }{
-            \tctx \bybsa \bpi x {\sigma_1} {\sigma_2} \sa \bpi x {\tau_1}
-            {\tau_2} \toctx
+            \tctx \bybsa A_1 \to A_2 \sa \sigma_1 \to \sigma_2 \toctx
             }\rname{I-Pi-Poly}}
 
 \newcommand*{\ILamAnnPoly}{\inferrule{
@@ -612,6 +611,11 @@
             }{
             \tctx \bybsa 1 \sa 1 \toctxo
             }\rname{I-Unit}}
+
+\newcommand*{\ITVar}{\inferrule{
+            }{
+            \tctx[\varA] \bybsa \varA \sa \varA \toctxo[\varA]
+            }\rname{I-TVar}}
 
 \newcommand*{\IEVarAfterPoly}{\inferrule{
             }{
@@ -700,3 +704,129 @@
             }{
             \castdn (\castup e) \redto e
             }\rname{R-CastDownUp}}
+
+% ------------------------------------------------------
+% DECLARATIVE SUBTYPING IN DUNFIELD
+% ------------------------------------------------------
+
+\newcommand*{\DDunVar}{\inferrule{
+            \varA \in \dctx
+            }{
+            \dctx \bysub \varA \dsub \varA
+            }\rname{$\dsub$Var}}
+
+\newcommand*{\DDunUnit}{\inferrule{
+            }{
+            \dctx \bysub \Unit \dsub \Unit
+            }\rname{$\dsub$Unit}}
+
+\newcommand*{\DDunArrow}{\inferrule{
+            \dctx \bysub B_1 \dsub A_1
+         \\ \dctx \bysub A_2 \dsub B_2
+            }{
+            \dctx \bysub A_1 \to A_2 \tsub B_1 \to B_2
+            }\rname{$\dsub \to$}}
+
+\newcommand*{\DDunForallL}{\inferrule{
+            \dctx \bywf \tau
+         \\ \dctx \bysub A \subst \varA \tau \tsub B
+            }{
+            \dctx \bysub \forall \varA. A \tsub B
+            }\rname{$\dsub \forall$L}}
+
+\newcommand*{\DDunForallR}{\inferrule{
+            \dctx, \varA \bysub A \tsub B
+            }{
+            \dctx \bysub A \tsub \forall \varA. B
+            }\rname{$\dsub \forall$R}}
+
+% ------------------------------------------------------
+% ALGORITHMIC SUBTYPING IN DUNFIELD
+% ------------------------------------------------------
+
+\newcommand*{\ADunVar}{\inferrule{
+            }{
+            \tctx[\varA] \bysub \varA \tsub \varA \toctxo[\varA]
+            }\rname{$\tsub$Var}}
+
+\newcommand*{\ADunUnit}{\inferrule{
+            }{
+            \tctx \bysub \Unit \tsub \Unit \toctxo
+            }\rname{$\tsub$Unit}}
+
+\newcommand*{\ADunExvar}{\inferrule{
+            }{
+            \tctx[\genA] \bysub \genA \tsub \genA \toctxo[\genA]
+            }\rname{$\tsub$Exvar}}
+
+\newcommand*{\ADunArrow}{\inferrule{
+            \tctx \bysub B_1 \tsub A_1 \toctx
+         \\ \ctxl \bysub \applye \ctxl {A_2} \tsub \applye \ctxl {B_2} \toctxr
+            }{
+            \tctx \bysub A_1 \to A_2 \tsub B_1 \to B_2 \toctxr
+            }\rname{$\tsub \to$}}
+
+\newcommand*{\ADunForallL}{\inferrule{
+            \tctx, \marker \genA, \genA \bysub A \subst \genA \varA \tsub B \toctxr, \marker \genA, \ctxl
+            }{
+            \tctx \bysub \forall \varA. A \tsub B \toctxr
+            }\rname{$\tsub \forall$L}}
+
+\newcommand*{\ADunForallR}{\inferrule{
+            \tctx, \varA \bysub A \tsub B \toctxr, \varA, \ctxl
+            }{
+            \tctx \bysub A \tsub \forall \varA. B \toctxr
+            }\rname{$\tsub \forall$R}}
+
+\newcommand*{\ADunInstL}{\inferrule{
+            \genA \notin FV(A)
+         \\ \tctx[\genA] \bymsa A \sa \sigma \toctx, \genA, \ctxr
+         \\ \ctxl \bywf \sigma
+            }{
+            \tctx[\genA] \bysub \genA \tsub A \toctx, \genA = \sigma, \ctxr
+            }\rname{$\tsub$InstL}}
+
+\newcommand*{\ADunInstR}{\inferrule{
+            \genA \notin FV(A)
+         \\ \tctx[\genA] \bypsa A \sa \sigma \toctx, \genA, \ctxr
+         \\ \ctxl \bywf \sigma
+            }{
+            \tctx[\genA] \bysub A \tsub \genA \toctx, \genA = \sigma, \ctxr
+            }\rname{$\tsub$InstR}}
+
+% ------------------------------------------------------------------------
+% DUNFIELD WELL FORMEDNESS
+% ------------------------------------------------------------------------
+
+\newcommand*{\UvarWF}{\inferrule{
+            }{
+            \tctx[\varA] \bywf \varA
+            }\rname{UvarWF}}
+
+\newcommand*{\UnitWF}{\inferrule{
+            }{
+            \tctx \bywf \Unit
+            }\rname{UnitWF}}
+
+\newcommand*{\ArrowWF}{\inferrule{
+            \tctx \bywf A
+         \\ \tctx \bywf B
+            }{
+            \tctx \bywf A \to B
+            }\rname{ArrowWF}}
+
+\newcommand*{\ForallWF}{\inferrule{
+            \tctx, \varA \bywf A
+            }{
+            \tctx \bywf \forall \varA. A
+            }\rname{ForallWF}}
+
+\newcommand*{\EvarWF}{\inferrule{
+            }{
+            \tctx[\genA] \bywf \genA
+            }\rname{EvarWF}}
+
+\newcommand*{\SolvedEvarWF}{\inferrule{
+            }{
+            \tctx[\genA = \tau] \bywf \genA
+            }\rname{SolvedEvarWF}}
