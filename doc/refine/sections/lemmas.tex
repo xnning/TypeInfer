@@ -289,3 +289,67 @@
     then $\applye \cctx \ctxl \bysub \applye \cctx \sigma \dsub \applye \cctx A$.
   \end{itemize}
 }
+
+\newcommand*{\PolymorphicTypeSanitizationCompletenessName}
+{Polymorphic Type Sanitization Completeness}
+\newcommand*{\PolymorphicTypeSanitizationCompletenessBody}{
+  Given $\tctx \exto \cctx $,
+  and $\applye \tctx A = A $,
+  and $\genA \in unsolved(\tctx)$,
+  and $\genA \notin FV(A)$:
+  \begin{itemize}
+  \item
+    If $\applye \cctx \tctx \bysub \applye \cctx A \dsub \applye \cctx \genA$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bysub A \tsub \genA \toctxr$.
+  \item
+    If $\applye \cctx \tctx \bysub \applye \cctx \genA \dsub \applye \cctx A$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bysub \genA \tsub A \toctxr$.
+  \end{itemize}
+}
+
+\newcommand*{\PolymorphicTypeSanitizationCompletenessTwoName}
+{Polymorphic Type Sanitization Completeness}
+\newcommand*{\PolymorphicTypeSanitizationCompletenessTwoBody}{
+  Given $\tctx \exto \cctx $,
+  where $\tctx = \tctx_1, \genA, \tctx_2$,
+  and $\applye \tctx A = A $,
+  and $\applye \cctx {\tau} = \tau $,
+  and $\genA \notin FV(A)$,
+  and ${\tctx_1} \bywf \tau $
+  :
+  \begin{itemize}
+  \item
+    If $\applye \cctx \tctx \bysub \tau \dsub \applye \cctx A$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bymsa A \sa \sigma \toctxr$,
+    where $\ctxr = \ctxr_1, \genA, \ctxr_2$ ,
+    and $\ctxr_1 \bywf \sigma$.
+  \item
+    If $\applye \cctx \tctx \bysub \applye \cctx A \dsub \tau$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bypsa A \sa \sigma \toctxr$,
+    where $\ctxr = \ctxr_1, \genA, \ctxr_2$ ,
+    and $\ctxr_1 \bywf \sigma$.
+  \end{itemize}
+}
+
+% ------------------------------------------------------
+% ALGORITHMIC SUBTYPING
+% ------------------------------------------------------
+
+\newcommand*{\AlgorithmicSubtypingExtensionName}
+{Algorithmic Subtyping Extension}
+\newcommand*{\AlgorithmicSubtypingExtensionBody}{
+  If $\tctx \bysub A \tsub B \toctx$,
+  then $\tctx \exto \ctxl$.
+}
