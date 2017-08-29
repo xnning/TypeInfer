@@ -308,7 +308,8 @@
     and $\ctxr \exto \cctx'$,
     and $\tctx[\genA] \bymsa A \sa \sigma \toctxr$,
     where $\ctxr = \ctxr_1, \genA, \ctxr_2$ ,
-    and $\ctxr_1 \bywf \sigma$.
+    and $\ctxr_1 \bywf \sigma$,
+    and $\applye {\cctx'} \sigma = \tau$.
   \item
     If $\applye \cctx \tctx \bysub \applye \cctx A \dsub \tau$,
     then there are $\ctxr, \cctx'$
@@ -316,17 +317,31 @@
     and $\ctxr \exto \cctx'$,
     and $\tctx[\genA] \bypsa A \sa \sigma \toctxr$,
     where $\ctxr = \ctxr_1, \genA, \ctxr_2$ ,
-    and $\ctxr_1 \bywf \sigma$.
+    and $\ctxr_1 \bywf \sigma$,
+    and $\applye {\cctx'} \sigma = \tau$.
   \end{itemize}
 }
 
-% ------------------------------------------------------
-% ALGORITHMIC SUBTYPING
-% ------------------------------------------------------
-
-\newcommand*{\AlgorithmicSubtypingExtensionName}
-{Algorithmic Subtyping Extension}
-\newcommand*{\AlgorithmicSubtypingExtensionBody}{
-  If $\tctx \bysub A \tsub B \toctx$,
-  then $\tctx \exto \ctxl$.
+\newcommand*{\PolymorphicTypeSanitizationCompletenessSubtypingName}
+{Polymorphic Type Sanitization Completeness w.r.t Subtyping}
+\newcommand*{\PolymorphicTypeSanitizationCompletenessSubtypingBody}{
+  Given $\tctx \exto \cctx $,
+  and $\applye \tctx A = A $,
+  and $\genA \notin FV(A)$,
+  and $\genA \in unsolved(\tctx)$
+  :
+  \begin{itemize}
+  \item
+    If $\applye \cctx \tctx \bysub \applye \cctx \genA \dsub \applye \cctx A$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bysub \genA \tsub A \toctxr$.
+  \item
+    If $\applye \cctx \tctx \bysub \applye \cctx A \dsub \applye \cctx \genA$,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \bysub A \tsub \genA \toctxr$.
+  \end{itemize}
 }

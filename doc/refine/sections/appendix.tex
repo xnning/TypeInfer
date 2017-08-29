@@ -1963,6 +1963,18 @@ By induction on unification derivation.
   then  $\ctxr \bywf A$.
 \end{lemma}
 
+\begin{lemma}[Substitution Typing]
+  \label{lemma:dunfield:SubstitutionTyping}
+  If $\tctx \bywf A$,
+  then  $\tctx \bywf \applye \tctx A$.
+\end{lemma}
+
+\begin{proposition}[Weakening]
+  \label{lemma:dunfield:Weakening}
+  If $\dctx \bywf A$,
+  then  $\dctx, \dctx' \bywf A$ by a derivation of the same size.
+\end{proposition}
+
 \subsection{Properties of Polymorphic Type Sanitization}
 
 \begin{lemma}[\PolymorphicTypeSanitizationExtensionName]\leavevmode
@@ -2256,7 +2268,9 @@ By induction on the height of subtyping derivation.
           & $\cctx' = \cctx[\genA_1 = \tau, \genA = \tau']$
           & Choose \\
           & $\cctx[\genA = \tau'] \exto \cctx[\genA_1 = \tau, \genA = \tau']$
-          & By Lemma~\ref{lemma:dunfield:SolvedVariableAdditionForExtension}
+          & By Lemma~\ref{lemma:dunfield:SolvedVariableAdditionForExtension} \\
+          & $\applye {\cctx'} {\genA_1} = \tau $
+          & Follows directly
         \end{longtable}
       \item SubCase $\tctx = \tctx_1, \genB, \tctx_3, \genA, \tctx_4 $.
         \begin{longtable}[l]{lll}
@@ -2267,7 +2281,11 @@ By induction on the height of subtyping derivation.
           & $\tctx_1, \genB, \tctx_3, \genA, \tctx_4 \exto \cctx $
           & Given \\
           & $\cctx' = \cctx$
-          & Choose
+          & Choose \\
+          & $\cctx \exto \cctx'$
+          & By Lemma~\ref{lemma:dunfield:Reflexivity} \\
+          & $\applye {\cctx'} \genB = \tau$
+          & Known \\
         \end{longtable}
       \end{itemize}
     \item Case $A = \varA$.
@@ -2285,6 +2303,10 @@ By induction on the height of subtyping derivation.
         & By \rul{I-TVar} \\
         & $\cctx' = \cctx$
         & Choose \\
+        & $\cctx \exto \cctx'$
+        & By Lemma~\ref{lemma:dunfield:Reflexivity} \\
+        & $\applye {\cctx'} \varA = \varA$
+        & By definition of context application
       \end{longtable}
     \item Case $A = \Unit$.
       \begin{longtable}[l]{lll}
@@ -2298,6 +2320,10 @@ By induction on the height of subtyping derivation.
         & By \rul{I-Unit} \\
         & $\cctx' = \cctx$
         & Choose \\
+        & $\cctx \exto \cctx'$
+        & By Lemma~\ref{lemma:dunfield:Reflexivity} \\
+        & $\applye {\cctx'} \varA = \varA$
+        & By definition of context application
       \end{longtable}
     \item Case $A = A_1 \to A_2$
       \begin{longtable}[l]{lll}
@@ -2321,6 +2347,8 @@ By induction on the height of subtyping derivation.
         & $\ctxl \exto \cctx_1 $
         & As above \\
         & $\cctx \exto \cctx_1$
+        & As above \\
+        & $\applye {\cctx_1} {\sigma_1} = \tau_1$
         & As above \\
         & $\tctx \exto \ctxl$
         & By Lemma~\ref{lemma:\PolymorphicTypeSanitizationExtensionName}\\
@@ -2356,6 +2384,10 @@ By induction on the height of subtyping derivation.
         & As above \\
         & $\ctxr_1 \bywf \sigma_2$
         & As above \\
+        & $\applye {\cctx_2} {\sigma_2} = \tau_2$
+        & As above \\
+        & $\applye {\cctx_2} {\sigma_1} = \tau_1$
+        & By Lemma~\ref{lemma:dunfield:FinishingTypes} \\
         & $\ctxl_1 \exto \ctxr_1$
         & By Lemma~\ref{lemma:dunfield:ExtensionOrder}\\
         & $\ctxr_1 \bywf \sigma_1 $
@@ -2372,6 +2404,8 @@ By induction on the height of subtyping derivation.
         & By Lemma~\ref{lemma:dunfield:Transitivity} \\
         & $\cctx' = \cctx_2$
         & Choose \\
+        & $\applye {\cctx'} {\sigma_1 \to \sigma_2} = \tau_1 \to \tau_2$
+        & By definition of context application
       \end{longtable}
     \item Case $A = \forall \varA.  A_1$
       \begin{longtable}[l]{lll}
@@ -2399,12 +2433,20 @@ By induction on the height of subtyping derivation.
         & As above \\
         & $\cctx, \varA \exto \cctx_1 $
         & As above \\
+        & $\applye {\cctx_1} \sigma = \tau$
+        & As above \\
         & $\cctx_1  = \cctx_2, \varA, \cctx_3 $
         & By Lemma~\ref{lemma:dunfield:ExtensionOrder} \\
         & $\ctxl_1, \genA, \ctxl_2  \exto \cctx_2 $
         & As above \\
         & $\cctx \exto \cctx_2$
         & As above \\
+        & $\ctxl_1, \genA, \ctxl_2 \bywf \sigma$
+        & By Lemma~\ref{lemma:dunfield:Weakening} \\
+        & $\cctx_2 \bywf \sigma$
+        & By Lemma~\ref{lemma:dunfield:ExtensionWeakening} \\
+        & $\applye {\cctx_1} \sigma = \applye {\cctx_2} \sigma = \tau$
+        & Follows directly \\
         & $\tctx  \bymsa \forall \varA. A_1 \sa \sigma \toctx_1, \genA, \ctxl_2 $
         & By \rul{I-All-Minus} \\
         & $\cctx' = \cctx_2$
@@ -2463,6 +2505,8 @@ By induction on the height of subtyping derivation.
         & As above \\
         & $\cctx[\genB = \tau_1, \genA = \tau'] \exto \cctx_1 $
         & As above \\
+        & $\applye {\cctx_1} \sigma = \tau$
+        & As above \\
         & $\tctx_1, \genA, \tctx_2 \bypsa \forall \varA. A_1 \sa \sigma \toctxr $
         & By \rul{I-All-Plus} \\
         & $\cctx' = \cctx_1$
@@ -2477,11 +2521,62 @@ By induction on the height of subtyping derivation.
 
 \qed
 
+\begin{corollary}[\PolymorphicTypeSanitizationCompletenessSubtypingName]
+  \label{lemma:\PolymorphicTypeSanitizationCompletenessSubtypingName}
+  \PolymorphicTypeSanitizationCompletenessSubtypingBody
+\end{corollary}
 
+\begin{description}
+  \item [Part 1]
+    \mbox{} % an empty line to make sure long table appear after proof
+    \begin{longtable}[l]{lll}
+      & $\applye \cctx \genA = \tau$
+      & Assume \\
+      & $\applye \cctx \tau = \tau$
+      & Since $\tau$ contains no existential variables\\
+      & $\genA \in unsolved(\tctx)$
+      & Given \\
+      & $\tctx = \tctx_1, \genA, \tctx_2$
+      & Assume \\
+      & $\cctx = \cctx_1, \genA = \tau', \cctx_2$
+      & By Lemma~\ref{lemma:dunfield:ExtensionOrder} \\
+      & $\tctx_1 \exto \cctx_1$
+      & Same as above \\
+      & $\applye \cctx \genA = \applye {\cctx_1} \genA = \tau$
+      & By definition of context application \\
+      & $\cctx_1 \bywf \tau$
+      & By Lemma~\ref{lemma:dunfield:SubstitutionTyping} \\
+      & Since $\tau$ contains no existential variables\\
+      & And $\tctx_1$ contains all type variables in $\cctx_1$\\
+      & $\tctx_1 \bywf \tau$
+      & Follows directly \\
+      & $\applye \cctx \tctx \bysub \tau \dsub \applye \cctx A $
+      & Given \\
+      & $\tctx[\genA] \bymsa A \sa \sigma \toctxr $
+      & By Lemma~\ref{lemma:\PolymorphicTypeSanitizationCompletenessName} \\
+      & $\ctxr = \ctxr_1, \genA, \ctxr_2 $
+      & As above \\
+      & $\ctxr_1 \bywf \sigma$
+      & As above \\
+      & $\ctxr \exto \cctx'$
+      & As above \\
+      & $\cctx \exto \cctx'$
+      & As above \\
+      & $\applye {\cctx'} \sigma =\tau$
+      & As above \\
+      & $\applye {\cctx'} \genA =\tau$
+      & By Lemma~\ref{lemma:dunfield:FinishingTypes} \\
+      & $\tctx[\genA] \bysub \genA \tsub A \toctxr_1, \genA = \sigma,
+      \ctxr_2 $
+      & By \rul{$\tsub$ InstL} \\
+      & $\ctxr_1, \genA = \sigma, \ctxr_2
+      \exto \cctx'
+      $
+      & By Lemma~\ref{lemma:dunfield:ParallelExtensionSolution}
+    \end{longtable}
+  \item [Part 2]
+    Similar as Part 1.
+\end{description}
 
-\subsection{Properties of Algorithmic Subtyping}
+\qed
 
-\begin{lemma}[\AlgorithmicSubtypingExtensionName]
-  \label{lemma:\AlgorithmicSubtypingExtensionName}
-  \AlgorithmicSubtypingExtensionBody
-\end{lemma}
