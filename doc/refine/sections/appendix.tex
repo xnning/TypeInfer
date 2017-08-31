@@ -1043,6 +1043,17 @@ Follows directly by Lemma~\ref{lemma:\ExtensionWeakningName} since $\applye
 
 \qed
 
+\begin{lemma}[\ExtensionWeakeningWellScopednessName]
+  \label{lemma:\ExtensionWeakeningWellScopednessName}
+  \ExtensionWeakeningWellScopednessBody
+\end{lemma}
+
+\proof
+
+By a straightforward induction on the context extension.
+
+\qed
+
 \begin{lemma}[\ContextExtensionPreservesContextWellFormednessName]
   \label{lemma:\ContextExtensionPreservesContextWellFormednessName}
   \ContextExtensionPreservesContextWellFormednessBody
@@ -1210,6 +1221,41 @@ By induction on $\tctx_R$.
 \end{longtable}
 
 \qed
+
+\begin{lemma}[\ParallelAdmissibilityName]\leavevmode
+  \label{lemma:\ParallelAdmissibilityName}
+  \ParallelAdmissibilityBody
+\end{lemma}
+
+\begin{lemma}[\ParallelExtensionSolutionName]\leavevmode
+  \label{lemma:\ParallelExtensionSolutionName}
+  \ParallelExtensionSolutionBody
+\end{lemma}
+
+\begin{lemma}[\StabilityOfCompleteContextsName]
+  \label{lemma:\StabilityOfCompleteContextsName}
+  \StabilityOfCompleteContextsBody
+\end{lemma}
+
+\begin{lemma}[\FinishingTypesName]
+  \label{lemma:\FinishingTypesName}
+  \FinishingTypesBody
+\end{lemma}
+
+\begin{lemma}[\FinishingCompletionsName]
+  \label{lemma:\FinishingCompletionsName}
+  \FinishingCompletionsBody
+\end{lemma}
+
+\begin{lemma}[\ConfluenceOfCompletenessName]
+  \label{lemma:\ConfluenceOfCompletenessName}
+  \ConfluenceOfCompletenessBody
+\end{lemma}
+
+\begin{lemma}[\CompleteContextApplicationExtensionName]
+  \label{lemma:\CompleteContextApplicationExtensionName}
+  \CompleteContextApplicationExtensionBody
+\end{lemma}
 
 \subsection{Properties of Type Sanitization}
 
@@ -1524,6 +1570,338 @@ By induction on the type sanitization.
 \end{itemize}
 
 \qed
+
+\begin{lemma}[\TypeSanitizationTailUnchangedName]
+  \label{lemma:\TypeSanitizationTailUnchangedName}
+  \TypeSanitizationTailUnchangedBody
+\end{lemma}
+
+\proof
+
+By a straightforward induction on the type sanitization derivation.
+
+\qed
+
+We use the notation $\tctx \bywf \tau_1 = \tau_2$ to mean that
+$\tctx \byinf \tau_1 \infto \sigma$, $\tctx \byinf \tau_2 \infto \sigma$,
+and $\tau_1 = \tau_2$.
+
+\begin{lemma}[\TypeSanitizationCompletenessName]\leavevmode
+  \label{lemma:\TypeSanitizationCompletenessName}
+  \TypeSanitizationCompletenessBody
+\end{lemma}
+
+By induction on the type $\tau$.
+
+We then case analyze the shape of $\sigma_1$.
+
+\begin{itemize}
+  \item $\sigma_1 = \genB$
+      \begin{longtable}[l]{lll}
+        & $\genA \notin FV(\sigma_1)$
+        & Given \\
+        & $\genA \neq \genB$
+        & Follows directly \\
+        & $\applye \cctx \genB = \tau$
+        & Given \\
+        & $\cctx \byinf \genB \infto \star$
+        & By \rul{A-SolvedEVar} \\
+        & $\cctx \byinf \tau \infto \star$
+        & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+        & $\applye \tctx \genB = \genB$
+        & Given \\
+        & $\genB \in unsolved(\tctx)$
+        & Follows directly \\
+      \end{longtable}
+      According to whether $\genB$ is on the left of $\genA$ or right, we have
+      two cases.
+      \begin{itemize}
+      \item SubCase $\tctx = \tctx_1, \genA, \tctx_3, \genB, \tctx_4 $.
+        \begin{longtable}[l]{lll}
+          & $\tctx_1, \genA, \tctx_3, \genB, \tctx_4 \bysa \genB \sa \genA_1
+          \toctxo_1, \genA_1, \genA, \tctx_3, \genB = \genA_1, \tctx_4
+          $
+          & By \rul{I-EVarAfter} \\
+          & $\tctx_1, \genA, \tctx_3, \genB, \tctx_4 \exto \cctx $
+          & Given \\
+          & $\cctx = \cctx_1, \genA = \tau', \cctx_2$
+          & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+          & $\tctx_1 \exto \cctx_1$
+          & As above \\
+          & $\tctx_1 \bywt \tau$
+          & Given \\
+          & $\cctx_1 \bywt \tau$
+          & By Lemma~\ref{lemma:\ExtensionWeakeningWellScopednessName} \\
+          & $\cctx_1, \genA = \tau', \cctx_2 \byinf \tau \infto \star$
+          & Known \\
+          & $\cctx_1 \byinf \tau \infto \star$
+          & By Lemma~\ref{lemma:\TypingStrengtheningName} \\
+          & $\tctx_1 \bywt \tau$
+          & Known \\
+          & $\tctx_1 \byinf \tau \infto \star$
+          & By repeating Lemma~\ref{lemma:\TypingStrengtheningName} \\
+          & $\tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB, \tctx_4 \exto
+          \cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2 $
+          & By Lemma~\ref{lemma:\ParallelAdmissibilityName} \\
+          & $\applye {\cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2} \genB = \tau $
+          & Known \\
+          & $\tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB = \genA_1, \tctx_4 \exto
+          \cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2 $
+          & By Lemma~\ref{lemma:\ParallelExtensionSolutionName} \\
+          & $\tctx_1, \genA_1, \genA , \tctx_3, \genB = \genA_1,
+          \tctx_4
+          \exto
+          \tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB =
+          \genA_1, \tctx_4 $
+          &  By Lemma~\ref{lemma:\SolutionAdmissibilityForExtensionName} \\
+          & $\tctx_1, \genA_1, \genA, \tctx_3, \genB = \genA_1,
+          \tctx_4
+          \exto
+          \cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2
+          $
+          & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
+          & $\cctx' =
+          \cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2
+          $
+          & Choose \\
+          & $\cctx_1, \genA = \tau', \cctx_2 \exto \cctx_1, \genA_1 = \tau,
+          \genA = \tau', \cctx_2$
+          & By Lemma~\ref{lemma:\SolvedVariableAdditionForExtensionName} \\
+        \end{longtable}
+      \item SubCase $\tctx = \tctx_1, \genB, \tctx_3, \genA, \tctx_4 $.
+        \begin{longtable}[l]{lll}
+          & $\tctx_1, \genB, \tctx_3, \genA, \tctx_4 \bysa \genB \sa \genB
+          \toctxo_1, \genB, \tctx_3, \genA, \tctx_4
+          $
+          & By \rul{I-EVarBefore} \\
+          & $\tctx_1, \genB, \tctx_3, \genA, \tctx_4 \exto \cctx $
+          & Given \\
+          & $\cctx' = \cctx$
+          & Choose \\
+          & $\cctx \exto \cctx'$
+          & By Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
+        \end{longtable}
+      \end{itemize}
+    \item Case $\sigma_1 = x$.
+      \begin{longtable}[l]{lll}
+        & $\applye \cctx x = x$
+        & By definition of context application \\
+        & $\tau = x$
+        & Given \\
+        & $\tctx_1 \bywt x$
+        & Given \\
+        & $\tctx_1, \genA, \tctx_2 \bysa x \sa x \toctxo_1, \genA, \tctx_2 $
+        & By \rul{I-Var} \\
+        & $\cctx' = \cctx$
+        & Choose \\
+        & $\cctx \exto \cctx'$
+        & By Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
+      \end{longtable}
+    \item Case $\sigma_1 = \star$.
+      \begin{longtable}[l]{lll}
+        & $\applye \cctx \star = \star$
+        & By definition of context application \\
+        & $\tau = \star$
+        & Given \\
+        & $\tctx_1 \bywt \star$
+        & Given \\
+        & $\tctx_1, \genA, \tctx_2 \bysa \star \sa \star \toctxo_1, \genA, \tctx_2 $
+        & By \rul{I-Star} \\
+        & $\cctx' = \cctx$
+        & Choose \\
+        & $\cctx \exto \cctx'$
+        & By Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
+      \end{longtable}
+    \item Case $\sigma_1 = e_1 ~ e_2$.
+      \begin{longtable}[l]{lll}
+        & $\applye \cctx {e_1 ~ e_2} = {\applye \cctx {e_1}} ~ {\applye \cctx {e_2}}$
+        & By definition of context application \\
+        & $\tau = \tau_1 ~ \tau_2$
+        & By inversion \\
+        & $ \applye {\cctx} \tctx \bywf \tau_1 = {\applye \cctx {e_1}}$
+        & As above \\
+        & $ \applye {\cctx} \tctx \bywf \tau_2 = {\applye \cctx {e_2}}$
+        & As above \\
+        & $\tctx \bysa e_1 \sa e_3 \toctx $
+        & By induction hypothesis \\
+        & $\ctxl = \ctxl_1, \genA, \ctxl_2 $
+        & As above \\
+        & $\ctxl_1 \bywt e_3$
+        & As above \\
+        & $\ctxl \exto \cctx_1$
+        & As above \\
+        & $\cctx \exto \cctx_1$
+        & As above \\
+        & $\tctx \exto \ctxl$
+        & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
+        & $\tctx \exto \cctx_1$
+        & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
+        & $\applye {\cctx} \cctx \bywf \tau_2 = {\applye \cctx {e_2}}$
+        & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+        & $\applye {\cctx_1} {\cctx_1} \bywf \tau_2 = {\applye \cctx {e_2}}$
+        & By Lemma~\ref{lemma:\FinishingCompletionsName} \\
+        & $\applye {\cctx_1} {\cctx_1} \bywf \tau_2 = {\applye {\cctx_1} {e_2}}$
+        & By Lemma~\ref{lemma:\FinishingTypesName} \\
+        & $\applye {\cctx_1} {\ctxl} \bywf \tau_2 = {\applye {\cctx_1} {e_2}}$
+        & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+        & $\applye {\cctx_1} {\ctxl} \bywf \tau_2 =
+        {\applye {\cctx_1} {\applye \ctxl {e_2}}}$
+        & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+        & $\ctxl \bysa \applye \ctxl {e_2} \sa e_4 \toctxr $
+        & By induction hypothesis \\
+        & $\ctxr = \ctxr_1, \genA, \ctxr_2$
+        & As above \\
+        & $\ctxr \exto \cctx_2$
+        & As above \\
+        & $\cctx_1 \exto \cctx_2$
+        & As above \\
+        & $\ctxr_1 \bywt e_4$
+        & As above \\
+        & $\ctxl_1 \exto \ctxr_1$
+        & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+        & $\ctxr_1 \bywt e_3$
+        & By Lemma~\ref{lemma:\ExtensionWeakeningWellScopednessName} \\
+        & $\ctxr_1 \bywt e_3 ~ e_4$
+        & Follows directly \\
+        & $\tctx \bysa e_1~e_2 \sa e_3~e_4 \toctxr$
+        & By \rul{I-App} \\
+        & $\cctx' = \cctx_2$
+        & Choose \\
+        & $\cctx \exto \cctx_2$
+        & By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
+      \end{longtable}
+    \item Case $\sigma_1 = \blam x \sigma e$.
+      \begin{longtable}[l]{lll}
+        & $\applye \cctx {\blam x \sigma e} = \blam x {\applye \cctx {\sigma}} {\applye \cctx {e}}$
+        & By definition of context application \\
+        & $\tau = \blam x {\tau_1} {\tau_2}$
+        & By inversion \\
+        & $ \applye {\cctx} \tctx \bywf \tau_1 = {\applye \cctx {\sigma}}$
+        & As above \\
+        & $ \applye {\cctx} \tctx, x: \tau_1 \bywf \tau_2 = {\applye \cctx {e}}$
+        & As above \\
+        & $\tctx \bysa \sigma \sa \sigma' \toctx $
+        & By induction hypothesis \\
+        & $\ctxl = \ctxl_1, \genA, \ctxl_2 $
+        & As above \\
+        & $\ctxl_1 \bywt e_3$
+        & As above \\
+        & $\ctxl \exto \cctx_1$
+        & As above \\
+        & $\cctx \exto \cctx_1$
+        & As above \\
+        & $\tctx \exto \ctxl$
+        & By Lemma~\ref{lemma:\TypeSanitizationExtensionName} \\
+        & $\tctx \exto \cctx_1$
+        & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
+        % & $ \applye {\cctx, x: \tau_1} {\tctx, x: \tau_1} \bywf
+        % \tau_2 = {\applye {\cctx, x: \tau_1} {e}}$
+        % & By definition of context application \\
+        & $\applye \cctx \tctx \bywf \tau_1$
+        & Known \\
+        & $\applye \cctx \tctx \exto \cctx $
+        & By Lemma~\ref{lemma:\CompleteContextApplicationExtensionName} \\
+        & $\cctx \bywf \tau_1$
+        & By Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+        & $\cctx = \cctx_{01}, \genA = \tau', \cctx_{02} $
+        & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+        & $\tctx_1 \exto \cctx_{01}$
+        & As above \\
+        & $\tctx_1 \bywt \tau_1 $
+        & Known \\
+        & $\cctx_1 = \cctx_{11}, \genA = \tau', \cctx_{12} $
+        & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+        & $\tctx_1 \exto \cctx_{11}$
+        & As above \\
+        & $\cctx_{11} \bywt \tau_1 $
+        & By Lemma~\ref{lemma:\ExtensionWeakeningWellScopednessName} \\
+        & $\cctx_{11} \bywf \tau_1 $
+        & By Lemma~\ref{lemma:\TypingStrengtheningName} \\
+        & $\tau_1$ contains no existential variables
+        & Known \\
+        & $\tctx_{11} \bywf \tau_1 $
+        & By repeating Lemma~\ref{lemma:\TypingStrengtheningName} \\
+        & $\tctx_1, x: \tau_1, \genA = \tau', \tctx_2 \exto
+        \cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02} $
+        & By Lemma~\ref{lemma:\ParallelAdmissibilityName} \\
+        & $\tctx_1, x: \tau_1, \genA = \tau', \tctx_2 \exto
+        \cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12} $
+        & Similarly \\
+        & $\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02} \exto
+        \cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12} $
+        & Similarly \\
+        & $\ctxl_1, x: \tau_1, \genA = \tau', \ctxl_{2} \exto
+        \cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12} $
+        & Similarly \\
+        & $ \applye {\cctx} \tctx, x: \tau_1 \bywf \tau_2 = {\applye \cctx {e}}$
+        & Known \\
+        & $ \applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}} {\tctx_1, x:
+          \tau_1, \genA, \tctx_2} \bywf
+        \tau_2 = {\applye {\cctx} {e}}$
+        & By repeating Lemma~\ref{lemma:\TypingVariableExchangeName} \\
+        & $ \applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}} {\tctx_1, x:
+          \tau_1, \genA, \tctx_2} $\\
+        & $\bywf
+        \tau_2 = {\applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}}
+          {e}}$
+        & By definition of context application \\
+        & $\applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}}
+        {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}}$\\
+        & $ \bywf
+        \tau_2 = {\applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}} {e}}$
+        & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+        & $\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}
+        {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}$\\
+        & $ \bywf
+        \tau_2 = {\applye {\cctx_{01}, x: \tau_1, \genA = \tau', \cctx_{02}} {e}}$
+        & By Lemma~\ref{lemma:\FinishingCompletionsName} \\
+        & $\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}
+        {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}$\\
+        & $ \bywf \tau_2
+        = {\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}} {e}}$
+        & By Lemma~\ref{lemma:\FinishingTypesName} \\
+        & $\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}
+        {\ctxl_1, x: \tau_1, \genA = \tau', \ctxl_{2}}$\\
+        & $ \bywf \tau_2
+        = {\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}} {e}}$
+        & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+        & $\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}
+        {\ctxl_1, x: \tau_1, \genA = \tau', \ctxl_{2}}$\\
+        & $ \bywf \tau_2
+        = {\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}} {
+            \applye {{\ctxl_1, x: \tau_1, \genA = \tau', \ctxl_{2}}} e}}$
+        & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+        & $\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}}
+        {\ctxl_1, x: \tau_1, \genA = \tau', \ctxl_{2}}$\\
+        & $ \bywf \tau_2
+        = {\applye {\cctx_{11}, x: \tau_1, \genA = \tau', \cctx_{12}} {
+            \applye {\ctxl} e}}$
+        & By definition of context application \\
+        & $\ctxl_1, x: \tau_1,\genA = \tau', \ctxl_2 \bysa \applye \ctxl {e} \sa e' \toctxr $
+        & By induction hypothesis \\
+        & $\ctxr = \ctxr_1, x: \tau_1, \ctxr_2, \genA, \ctxr_3 $
+        & As above and Lemma~\ref{lemma:\TypeSanitizationExtensionName} and
+        Lemma~\ref{lemma:\ExtensionOrderName}\\
+        & $\ctxr \exto \cctx_2$
+        & As above \\
+        & $\cctx_1, x: \tau_1 \exto \cctx_2$
+        & As above \\
+        & $\ctxr_1 \bywt e'$
+        & As above \\
+        & $\ctxl_1 \exto \ctxr_1$
+        & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+        & $\ctxr_1 \bywt \sigma'$
+        & By Lemma~\ref{lemma:\ExtensionWeakeningWellScopednessName} \\
+        & $\ctxr_1 \bywt e_3 ~ e_4$
+        & Follows directly \\
+        & $\tctx \bysa e_1~e_2 \sa e_3~e_4 \toctxr$
+        & By \rul{I-App} \\
+        & $\cctx' = \cctx_2$
+        & Choose \\
+        & $\cctx \exto \cctx_2$
+        & By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
+      \end{longtable}
+\end{itemize}
 
 \subsection{Properties of Unification}
 

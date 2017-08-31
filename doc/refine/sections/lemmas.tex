@@ -191,6 +191,15 @@
   then $\ctxr \bywf \tau$.
 }
 
+\newcommand*{\ExtensionWeakeningWellScopednessName}
+{Extension Weakening Well Scopedness}
+\newcommand*{\ExtensionWeakeningWellScopednessBody}{
+  If $\tctx \bywt \tau$,
+  and $\tctx \exto \ctxr$,
+  then $\ctxr \bywt \tau$.
+}
+
+
 \newcommand*{\SolutionAdmissibilityForExtensionName}{Solution Admissibility for Extension}
 \newcommand*{\SolutionAdmissibilityForExtensionBody}{
   If $\tctx_L, \genA, \tctx_R \wc$,
@@ -215,6 +224,81 @@
   then $\tctx_L, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$.
 }
 
+\newcommand*{\ParallelAdmissibilityName}
+{Parallel Admissibility}
+\newcommand*{\ParallelAdmissibilityBody}{
+  If $\tctx_L \exto \ctxr_L $,
+  and $\tctx_L, \tctx_R \exto \ctxr_L, \ctxr_R $,
+  and $\tctx_R$ has no variable overlapped with $\ctxr_L$,
+  and $\genA \notin \tctx_L, \tctx_R, \ctxr_L, \ctxr_R $,
+  then:
+  \begin{itemize}
+  \item $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA, \ctxr_R $.
+  \item If $\ctxr_L \bywf \tau$,
+    then $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
+  \item If $\tctx_L \bywf \tau_1$,
+    and $\ctxr_L \bywf \tau_2$,
+    and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
+    then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
+  \item If $\tctx_L \bywf \tau$,
+    then $\tctx_L, x : \tau, \tctx_R \exto \ctxr_L, x: \tau, \ctxr_R $.
+  \end{itemize}
+}
+
+\newcommand*{\ParallelExtensionSolutionName}
+{Parallel Extension Solution}
+\newcommand*{\ParallelExtensionSolutionBody}{
+  If $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $,
+  and $\tctx_L \bywf \tau_1$,
+  and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
+  then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
+}
+
+\newcommand*{\CompleteContextApplicationExtensionName}
+{Complete Context Application Extension}
+\newcommand*{\CompleteContextApplicationExtensionBody}{
+  If $\tctx \exto \cctx$,
+  then $\applye \cctx \tctx \exto \cctx$.
+}
+
+% ------------------------------------------------------
+% COMPLETE CONTEXTS
+% ------------------------------------------------------
+
+\newcommand*{\StabilityOfCompleteContextsName}
+{Stability of Complete Contexts}
+\newcommand*{\StabilityOfCompleteContextsBody}{
+  If $\tctx \exto \cctx$,
+  then $\applye \cctx \cctx = \applye \cctx \tctx$.
+}
+
+\newcommand*{\FinishingTypesName}
+{Finishing Types}
+\newcommand*{\FinishingTypesBody}{
+  If $\cctx \bywt \sigma$,
+  and $\cctx \exto \cctx'$,
+  then $\applye \cctx \sigma = \applye {\cctx'} \sigma$.
+}
+
+\newcommand*{\FinishingCompletionsName}
+{Finishing Completions}
+\newcommand*{\FinishingCompletionsBody}{
+  If $\cctx \exto \cctx'$,
+  then $\applye \cctx \cctx = \applye {\cctx'} {\cctx'}$.
+}
+
+\newcommand*{\ConfluenceOfCompletenessName}
+{Confluence of Completeness}
+\newcommand*{\ConfluenceOfCompletenessBody}{
+  If $\ctxr_1 \exto \cctx$,
+  and $\ctxr_2 \exto \cctx$,
+  then $\applye \cctx {\ctxr_1} = \applye \cctx {\ctxr_2}$.
+}
+
+% ------------------------------------------------------
+% TYPE SANITIZATION
+% ------------------------------------------------------
+
 \newcommand*{\TypeSanitizationExtensionName}
 {Type Sanitization Extension}
 \newcommand*{\TypeSanitizationExtensionBody}{
@@ -237,6 +321,32 @@
   If $\tctx \bysa \tau_1 \sa \tau_2 \toctx$,
   and $\tctx \byinf \tau_1 \infto \sigma$,
   then $\ctxl \byinf \tau_2 \infto \applye \ctxl \sigma$.
+}
+
+\newcommand*{\TypeSanitizationTailUnchangedName}
+{Type Sanitization Tail Unchanged}
+\newcommand*{\TypeSanitizationTailUnchangedBody}{
+  If $v$ is a binding,
+  and $\tctx, v \bysa \tau_1 \sa \tau_2 \toctx$,
+  then $\ctxl = \ctxl', v$.
+}
+
+\newcommand*{\TypeSanitizationCompletenessName}
+{Type Sanitization Completeness}
+\newcommand*{\TypeSanitizationCompletenessBody}{
+  Given $\tctx \exto \cctx$,
+  where $\tctx = \tctx_1, \genA, \tctx_2$,
+  and $\applye \tctx {\sigma_1} = \sigma_1$,
+  and $\applye \cctx \tau = \tau$,
+  and $\genA \notin FV(\sigma_1)$,
+  and $\tctx_1 \bywt \tau $.
+  If $\applye \cctx \tctx \bywf \tau = \applye \cctx {\sigma_1} $,
+  then there are $\ctxr, \cctx'$
+  such that $\cctx \exto \cctx'$,
+  and $\ctxr \exto \cctx'$,
+  and $\tctx[\genA] \bysa \sigma_1 \sa \sigma_2 \toctxr$,
+  where $\ctxr = \ctxr_1, \genA ,\ctxr_2$,
+  and $\ctxr_1 \bywt \sigma_2$.
 }
 
 \newcommand*{\UnificationExtensionName}
