@@ -335,6 +335,25 @@
 {Type Sanitization Completeness}
 \newcommand*{\TypeSanitizationCompletenessBody}{
   Given $\tctx \exto \cctx$,
+  where $\tctx = \tctx_1, \genA, \tctx_2, \tctx_0$,
+  and $\tctx_0$ only contains variables,
+  and $\applye \tctx {\sigma_1} = \sigma_1$,
+  and $\applye \cctx \tau = \tau$,
+  and $\genA \notin FV(\sigma_1)$,
+  and $\tctx_1, \tctx_0 \bywt \tau $.
+  If $\applye \cctx \tctx \bywf \tau = \applye \cctx {\sigma_1} $,
+  then there are $\ctxr, \cctx'$
+  such that $\cctx \exto \cctx'$,
+  and $\ctxr \exto \cctx'$,
+  and $\tctx[\genA] \bysa \sigma_1 \sa \sigma_2 \toctxr$,
+  where $\ctxr = \ctxr_1, \genA ,\ctxr_2, \tctx_0$,
+  and $\ctxr_1, \tctx_0 \bywt \sigma_2$.
+}
+
+\newcommand*{\TypeSanitizationCompletenessPrettyName}
+{Type Sanitization Completeness Pretty}
+\newcommand*{\TypeSanitizationCompletenessPrettyBody}{
+  Given $\tctx \exto \cctx$,
   where $\tctx = \tctx_1, \genA, \tctx_2$,
   and $\applye \tctx {\sigma_1} = \sigma_1$,
   and $\applye \cctx \tau = \tau$,
@@ -348,6 +367,33 @@
   where $\ctxr = \ctxr_1, \genA ,\ctxr_2$,
   and $\ctxr_1 \bywt \sigma_2$.
 }
+
+\newcommand*{\TypeSanitizationCompletenessUnificationName}
+{Type Sanitization Completeness w.r.t. Unification}
+\newcommand*{\TypeSanitizationCompletenessUnificationBody}{
+  Given $\tctx \exto \cctx$,
+  where $\tctx = \tctx_1, \genA, \tctx_2$,
+  and $\applye \tctx {\sigma_1} = \sigma_1$,
+  and $\genA \notin FV(\sigma_1)$.
+  \begin{itemize}
+  \item If $\applye \cctx \tctx \bywf \applye \cctx \genA
+    = \applye \cctx {\sigma_1} $,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \byuni \genA \uni \sigma_1 \toctxr$.
+  \item If $\applye \cctx \tctx \bywf \applye \cctx {\sigma_1}
+    = \applye \cctx {\genA} $,
+    then there are $\ctxr, \cctx'$
+    such that $\cctx \exto \cctx'$,
+    and $\ctxr \exto \cctx'$,
+    and $\tctx[\genA] \byuni \sigma_1 \uni \genA \toctxr$.
+  \end{itemize}
+}
+
+% ------------------------------------------------------
+% UNIFICATION
+% ------------------------------------------------------
 
 \newcommand*{\UnificationExtensionName}
 {Unification Extension}
@@ -372,6 +418,21 @@
   and $\tctx \byinf \tau_1 \infto \sigma_1'$,
   and $\tctx \byinf \tau_2 \infto \sigma_2'$,
   then $\applye \ctxl {\tau_1} = \applye \ctxl {\tau_2}$.
+}
+
+\newcommand*{\UnificationCompletenessName}
+{Unification Completeness}
+\newcommand*{\UnificationCompletenessBody}{
+  Given $\tctx \exto \cctx$,
+  and $\applye \tctx {\sigma_1} = \sigma_1$,
+  and $\applye \tctx {\sigma_2} = \sigma_2$.
+  If $\applye \cctx \tctx \byinf
+  \applye \cctx {\sigma_1} = \applye \cctx {\sigma_2} \infto \tau $,
+  then there are $\ctxr, \cctx'$ such that
+  $\cctx \exto \cctx'$,
+  and $\ctxr \exto \cctx'$,
+  and $\tctx \bybuni \sigma_1 \uni \sigma_2 \toctxr$
+  for any $\delta$ suitable.
 }
 
 % ------------------------------------------------------
