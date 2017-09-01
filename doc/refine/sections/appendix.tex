@@ -1227,35 +1227,205 @@ By induction on $\tctx_R$.
   \ParallelAdmissibilityBody
 \end{lemma}
 
+\proof
+
+\begin{description}
+  \item [Part 1] By induction on $\ctxr_R$.
+    \begin{itemize}
+    \item Case $\ctxr_R = \ctxinit$.
+      Since $\tctx_R$ has no variable overlapped with $\ctxr_L$,
+      we have $\tctx_R = \ctxinit$.
+      Therefore, $\tctx_L \exto \ctxr_L$.
+      By applying \rul{CE-EVar} we are done.
+    \item Case $\ctxr_R = \ctxr_R', \genB$.
+      We have $\tctx_L, \tctx_R \exto \ctxr_L, \ctxr_R', \genB$.
+      By inversion, we have two subcases.
+      \begin{itemize}
+      \item SubCase $\tctx_R = \tctx_R', \genB$,
+        and $\tctx_L, \tctx_R' \exto \ctxr_L, \ctxr_R'$.
+        Notice here we assume $\tctx_R$ is a non-empty context.
+        Since if it is empty, then $\genB \in \tctx_L$.
+        Then according to Lemma~\ref{lemma:\DeclarationPreservationName},
+        we have $\genB \in \ctxr_L$, which should not be right because we
+        implicitly assume $\ctxr_L, \ctxr_R$ is well-formed.
+        By induction hypothesis,
+        we have $\tctx_L, \genA, \tctx_R' \exto \ctxr_L, \genA, \ctxr_R'$.
+        Then by \rul{CE-EVar}
+        we have $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA, \ctxr_R$.
+      \item SubCase $\tctx_L, \tctx_R \exto \ctxr_L, \ctxr_R$.
+        Then by induction hypothesis we have
+        $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA, \ctxr_R$.
+        By \rul{CE-Add} we are done.
+      \end{itemize}
+    \item All rest cases are similar as last case.
+    \end{itemize}
+  \item [Part 2] All rest parts are similar as Part 1.
+\end{description}
+
+\qed
+
 \begin{lemma}[\ParallelExtensionSolutionName]\leavevmode
   \label{lemma:\ParallelExtensionSolutionName}
   \ParallelExtensionSolutionBody
 \end{lemma}
+
+\proof
+
+By induction on $\ctxr_R$.
+
+Similar to the proof of
+Lemma~\ref{lemma:\ParallelAdmissibilityName}.
+
+\qed
 
 \begin{lemma}[\StabilityOfCompleteContextsName]
   \label{lemma:\StabilityOfCompleteContextsName}
   \StabilityOfCompleteContextsBody
 \end{lemma}
 
+\proof
+
+By induction on the derivation $\tctx \exto \cctx$.
+
+\begin{itemize}
+  \item Case \[\CEEmpty\]
+    Holds trivially.
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+      }{
+        \tctx', x: \sigma \exto \cctx', x: \sigma
+      }\rname{CE-Var}
+    \]
+    \begin{longtable}[l]{lll}
+      & $\applye \cctx \cctx$
+      & \\
+      & $= \applye {\cctx'} {\cctx'}, x:\sigma $
+      & By definition of context application \\
+      & $= \applye {\cctx'} {\tctx'}, x:\sigma $
+      & By induction hypothesis \\
+      & $= \applye {\cctx} {\tctx}$
+      & By definition of context application \\
+    \end{longtable}
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+        \\ \genA \notin \cctx'
+      }{
+        \tctx', \genA \exto \cctx', \genA
+      }\rname{CE-EVar}
+    \]
+    Similar as Case \rul{CE-Var}.
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+        \\ \genA \notin \cctx'
+      }{
+        \tctx', \genA = \tau \exto \cctx', \genA = \tau
+      }\rname{CE-SolvedEVar}
+    \]
+    Similar as Case \rul{CE-Var}.
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+        \\ \genA \notin \cctx'
+        \\ \cctx' \bywf \tau
+      }{
+        \tctx', \genA \exto \cctx', \genA = \tau
+      }\rname{CE-Solve}
+    \]
+    \begin{longtable}[l]{lll}
+      & $\applye \cctx \cctx$
+      & \\
+      & $= \applye {\cctx'} {\cctx'} $
+      & By definition of context application \\
+      & $= \applye {\cctx'} {\tctx'} $
+      & By induction hypothesis \\
+      & $= \applye {\cctx} {\tctx}$
+      & By definition of context application \\
+    \end{longtable}
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+      \\ \genA \notin
+      }{
+        \tctx' \exto \cctx', \genA
+      }\rname{CE-Add}
+    \]
+    Impossible since $\cctx$ is a complete context.
+  \item Case \[
+      \inferrule{\tctx' \exto \cctx'
+      \\ \genA \notin
+      \\ \cctx' \bywf \tau
+      }{
+        \tctx' \exto \cctx', \genA = \tau
+      }\rname{CE-AddSolved}
+    \]
+    \begin{longtable}[l]{lll}
+      & $\applye \cctx \cctx$
+      & \\
+      & $= \applye {\cctx'} {\cctx'} $
+      & By definition of context application \\
+      & $= \applye {\cctx'} {\tctx'} $
+      & By induction hypothesis \\
+      & $= \applye {\cctx} {\tctx}$
+      & By definition of context application \\
+    \end{longtable}
+\end{itemize}
+
+\qed
+
 \begin{lemma}[\FinishingTypesName]
   \label{lemma:\FinishingTypesName}
   \FinishingTypesBody
 \end{lemma}
+
+\proof
+\mbox{} % an empty line to make sure long table appear after proof
+
+\begin{longtable}[l]{lll}
+  & $\applye {\cctx'} \sigma $
+  & \\
+  & $= \applye {\cctx'} {\applye \cctx \sigma} $
+  & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+  & $\applye \cctx \sigma$ contains no existential variables
+  & \\
+  & $\applye {\cctx'} {\applye \cctx \sigma} $
+  & \\
+  & $= \applye {\cctx} \sigma $
+  & Follows directly
+\end{longtable}
+
+\qed
 
 \begin{lemma}[\FinishingCompletionsName]
   \label{lemma:\FinishingCompletionsName}
   \FinishingCompletionsBody
 \end{lemma}
 
+\proof
+
+By a straightforward induction on the derivation $\cctx \exto \cctx'$.
+
+The case analysis is like
+Lemma~\ref{lemma:\StabilityOfCompleteContextsName}.
+
+\qed
+
 \begin{lemma}[\ConfluenceOfCompletenessName]
   \label{lemma:\ConfluenceOfCompletenessName}
   \ConfluenceOfCompletenessBody
 \end{lemma}
 
-\begin{lemma}[\CompleteContextApplicationExtensionName]
-  \label{lemma:\CompleteContextApplicationExtensionName}
-  \CompleteContextApplicationExtensionBody
-\end{lemma}
+\proof
+
+\mbox{} % an empty line to make sure long table appear after proof
+
+\begin{longtable}[l]{lll}
+  & $\applye \cctx {\ctxr_1} $
+  & \\
+  & $= \applye \cctx \cctx $
+  & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+  & $= \applye \cctx {\ctxr_2} $
+  & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
+\end{longtable}
+
+\qed
 
 \subsection{Properties of Type Sanitization}
 

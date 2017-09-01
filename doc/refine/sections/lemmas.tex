@@ -236,10 +236,8 @@
   \item $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA, \ctxr_R $.
   \item If $\ctxr_L \bywf \tau$,
     then $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
-  \item If $\tctx_L \bywf \tau_1$,
-    and $\ctxr_L \bywf \tau_2$,
-    and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
-    then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
+  \item If $\tctx_L \bywf \tau$,
+    then $\tctx_L, \genA = \tau, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
   \item If $\tctx_L \bywf \tau$,
     then $\tctx_L, x : \tau, \tctx_R \exto \ctxr_L, x: \tau, \ctxr_R $.
   \end{itemize}
@@ -248,17 +246,9 @@
 \newcommand*{\ParallelExtensionSolutionName}
 {Parallel Extension Solution}
 \newcommand*{\ParallelExtensionSolutionBody}{
-  If $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $,
-  and $\tctx_L \bywf \tau_1$,
-  and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
-  then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
-}
-
-\newcommand*{\CompleteContextApplicationExtensionName}
-{Complete Context Application Extension}
-\newcommand*{\CompleteContextApplicationExtensionBody}{
-  If $\tctx \exto \cctx$,
-  then $\applye \cctx \tctx \exto \cctx$.
+  If $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $,
+  and $\tctx_L \bywf \tau$,
+  then $\tctx_L, \genA = \tau, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
 }
 
 % ------------------------------------------------------
@@ -275,7 +265,7 @@
 \newcommand*{\FinishingTypesName}
 {Finishing Types}
 \newcommand*{\FinishingTypesBody}{
-  If $\cctx \bywt \sigma$,
+  If $\cctx \byinf \sigma \infto \tau$,
   and $\cctx \exto \cctx'$,
   then $\applye \cctx \sigma = \applye {\cctx'} \sigma$.
 }
