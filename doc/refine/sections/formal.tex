@@ -651,8 +651,9 @@
 \newcommand*{\CESolvedEVar}{\inferrule{
             \tctx \exto \ctxr
          \\ \genA \notin \ctxr
-            }{
-            \tctx, \genA = \tau \exto \ctxr, \genA = \tau
+         \\ \applye \ctxr {\tau_1} = \applye \ctxr {\tau_2}
+             }{
+            \tctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2
             }\rname{CE-SolvedEVar}}
 
 \newcommand*{\CESolve}{\inferrule{

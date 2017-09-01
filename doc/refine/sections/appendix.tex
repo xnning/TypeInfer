@@ -246,6 +246,104 @@ By induction on the typing size.
 \end{itemize}
 \qed
 
+\begin{lemma}[\ReverseContextApplicationPreservesTypingName]
+  \label{lemma:\ReverseContextApplicationPreservesTypingName}
+  \ReverseContextApplicationPreservesTypingBody
+\end{lemma}
+
+\proof
+
+By induction on the typing derivation.
+
+Then we analyze the shape of $\sigma_1$.
+Because when we do inversion, there is always one case that $\sigma_1 = \genA$
+for some $\genA$, we deal with the case first and then ignore all the cases when
+$\sigma$ is an existential variable.
+
+\begin{itemize}
+  \item Case $\sigma = \genA$.
+    According to $\genA$ is solved or not in $\tctx$,
+    we have two subcases.
+    \begin{itemize}
+    \item $\tctx = \tctx_1, \genA, \tctx_2$.
+      Then $\applye \tctx \genA = \genA$.
+      Therefore the goal follows trivially.
+    \item $\tctx = \tctx_1, \genA = \tau, \tctx_2 $.
+      \begin{longtable}[l]{lll}
+        & $\tctx \wc$
+        & By Lemma~\ref{lemma:\TypingContextWellFormednessName} \\
+        & $\tctx \byinf \genA \infto \star$
+        & By \rul{A-SolvedEVar}
+      \end{longtable}
+    \end{itemize}
+  \item Case $\applye \tctx {\sigma_1} = \star$
+      \begin{longtable}[l]{lll}
+        & $\sigma_1 = \star$
+        & By inversion \\
+        & $\tctx \byinf \star \infto \star$
+        & By \rul{A-Ax}
+      \end{longtable}
+  \item Case $\applye \tctx {\sigma_1} = x$
+      \begin{longtable}[l]{lll}
+        & $\sigma_1 = x$
+        & By inversion \\
+        & $\tctx \byinf x \infto \sigma_2$
+        & By \rul{A-Var}
+      \end{longtable}
+  \item Case $\applye \tctx {\sigma_1} = \genA$
+    Then we have $\sigma_1 = \genB$ for some $\genB$.
+    We can prove it as in the first case.
+  \item Case $\applye \tctx {\sigma_1} = \blam x {\tau_1} {e_1} $
+      \begin{longtable}[l]{lll}
+        & $\sigma_1 = \blam x {\tau_2} {e_2}$
+        & By inversion \\
+        & $\applye  \tctx {\tau_2} = \tau_1 $
+        & As above \\
+        & $\applye  \tctx {e_2} = e_1 $
+        & As above \\
+        & $\tctx \byinf \tau_1 \infto \star$
+        & By inversion \\
+        & $\tctx, x : \tau_1 \byinf e_1 \infto \sigma$
+        & As above \\
+        & $\sigma_2 = \bpi x {\applye \tctx {\tau_1}} {\sigma} $
+        & Given \\
+        & $\tctx \byinf \tau_2 \infto \star$
+        & By induction hypothesis \\
+        & $\tctx, x : \tau_1 \byinf e_2 \infto \sigma$
+        & By induction hypothesis \\
+        & $\tctx, x : \applye {\tctx} {\tau_2} \byinf {e_2} \infto \sigma$
+        & By substituting the equality \\
+        & $\tctx, x : {\tau_2} \byinf {e_2} \infto \sigma$
+        & By Lemma~\ref{lemma:\ReverseContextApplicationInContextName} \\
+        & $\tctx \byinf \sigma_1 \infto \bpi x {\applye \tctx {\tau_2}} \sigma $
+        & By \rul{A-LamAnn} \\
+        & $\applye \tctx \tau_1 = \tau_1$
+        & By \ref{lemma:\ContextApplicationIsIdempotentName} \\
+        & $\tctx \byinf \sigma_1 \infto \sigma_2 $
+        & By substituting the equalities
+      \end{longtable}
+  \item Case \rul{A-Pi} and \rul{A-App} are similar as last case.
+  \item Case $\sigma_1 = \castdn e_1$
+      \begin{longtable}[l]{lll}
+        & $\sigma_1 = \castdn e_2$
+        & By inversion \\
+        & $\applye  \tctx {e_2} = e_1 $
+        & As above \\
+        & $\tctx \byinf e_1 \infto \sigma$
+        & By inversion \\
+        & $\sigma \redto \sigma_2$
+        & As above \\
+        & $\tctx \byinf e_2 \infto \sigma$
+        & By induction hypothesis \\
+        & $\tctx \byinf \castdn e_2 \infto \sigma_2$
+        & By \rul{A-CastDn}
+      \end{longtable}
+    \item Case $\sigma_1 = \castup e_1$
+      Similar as last case.
+\end{itemize}
+
+\qed
+
 \subsection{Properties of Declarative Typing}
 
 \begin{lemma}[\TypingContextWellFormednessName]
@@ -529,13 +627,15 @@ then prove $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$.
       Similar as Case \rul{CE-Var}.
     \item Case \[\CESolvedEVar\]
       \begin{longtable}[l]{lll}
-        & $\applye {\ctxr, \genA = \tau} \sigma $ & \\
-        & $ = \applye {\ctxr} {\sigma \subst \genA \tau} $ & By definition of
+        & $\applye {\ctxr, \genA = \tau_2} \sigma $ & \\
+        & $ = \applye {\ctxr} {\sigma \subst \genA {\tau_2}} $ & By definition of
         context application \\
-        & $ = \applye \tctx {\applye {\ctxr} {\sigma \subst \genA \tau}} $ & By
+        & $ = \applye \tctx {\applye {\ctxr} {\sigma \subst \genA {\tau_2}}} $ & By
         induction hypothesis \\
-        & $ = \applye {\tctx, \genA = \tau} {\applye {\ctxr} {\sigma \subst \genA \tau}}$ & $\genA \notin FV(\applye \ctxr {\sigma \subst \genA \tau})$ \\
-        & $ = \applye {\tctx, \genA = \tau} {\applye {\ctxr, \genA = \tau}
+        & $ = \applye {\tctx, \genA = \tau_1} {\applye {\ctxr} {\sigma \subst
+            \genA {\tau_2}}}$
+        & $\genA \notin FV(\applye \ctxr {\sigma \subst \genA {\tau_2}})$ \\
+        & $ = \applye {\tctx, \genA = \tau_1} {\applye {\ctxr, \genA = \tau_2}
           \sigma}$ & By definition of context application
       \end{longtable}
     \item Case \[\CESolve\]
@@ -591,9 +691,15 @@ then prove $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$.
     \begin{longtable}[l]{lll}
       & $\tctx \exto \ctxr$ & Given \\
       & $\genA = \tau \in \tctx$ & Given \\
-      & $\ctxr = \ctxr_1, \genA = \tau, \ctxr_2$ & By inversion \\
+      & $\ctxr = \ctxr_1, \genA = \tau_2, \ctxr_2$
+      & By Lemma~\ref{lemma:\ExtensionOrderName} \\
+      & $\applye {\ctxr_1} {\tau} = \applye {\ctxr_1} {\tau_2}$
+      & As above \\
+      & $\applye \ctxr {\tau} = \applye {\ctxr} {\tau_2}$
+      & Since $\genA, \ctxr_2$ should be fresh contexts for $\tau, \tau_2$\\
       & $\applye \ctxr \genA$ & \\
-      & $= \applye \ctxr \tau$ & By definition of context application \\
+      & $= \applye {\ctxr} {\tau_2}$ & By definition of context application \\
+      & $= \applye {\ctxr} {\tau}$ & Known \\
       & $= \applye \ctxr {\applye \tctx \tau}$ & By induction hypothesis \\
       & $= \applye \ctxr {\applye \tctx \genA}$ & By definition of context application
     \end{longtable}
@@ -722,18 +828,34 @@ By induction on the derivation $\tctx \exto \ctxr$.
       \end{longtable}
     \end{itemize}
   \item Case \[\CESolvedEVar\]
-    We are given $\ctxl \exto \tctx, \genA= \tau$.
+    We are given $\ctxl \exto \tctx, \genA= \tau_1$.
     By inversion, we have three subcases.
     \begin{itemize}
     \item SubCase \[\inferrule{
             \ctxl \exto \tctx
          \\ \genA \notin \tctx
+         \\ \applye \tctx {\tau_1} = \applye \tctx {\tau_3}
             }{
-            \ctxl, \genA = \tau \exto \tctx, \genA = \tau
+            \ctxl, \genA = \tau_3 \exto \tctx, \genA = \tau_1
             }\rname{CE-SolvedEVar} \]
       \begin{longtable}[l]{lll}
         & $\ctxl \exto \ctxr$ & By induction hypothesis \\
-        & $\ctxl, \genA = \tau \exto \ctxr, \genA = \tau$ & By \rul{CE-SolvedEVar} \\
+        & $\ctxl, \genA = \tau_3 \wc$
+        & Given \\
+        & $\ctxl \bywf \tau_3$
+        & By inversion \\
+        & $\tctx \bywf \tau_3$
+        & By Corollary ~\ref{lemma:\ContextExtensionPreservesContextWellFormednessName} \\
+        & $\applye \ctxr {\tau_3} $ \\
+        & $= \applye \ctxr {\applye \tctx {\tau_3}} $
+        & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+        & $= \applye \ctxr {\applye \tctx {\tau_1}} $
+        & Given \\
+        & $= \applye \ctxr {\tau_1} $
+        & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
+        & $= \applye \ctxr {\tau_2} $
+        & Known\\
+        & $\ctxl, \genA = \tau_3 \exto \ctxr, \genA = \tau_2$ & By \rul{CE-SolvedEVar} \\
       \end{longtable}
     \item SubCase \[\inferrule{
             \ctxl \exto \tctx
@@ -867,8 +989,9 @@ By induction on $\ctxl$, and apply rule \rul{CE-Add} and \rul{CE-AddSolved} as n
       \item Case \[\inferrule{
             \tctx_L, y: \sigma, \tctx_R' \exto \ctxr
          \\ \genA \notin \ctxr
+         \\ \applye {\ctxr} {\tau_1} = \applye \ctxr {\tau_2}
             }{
-            \tctx_L, y:\sigma, \tctx_R', \genA = \tau \exto \ctxr, \genA = \tau
+            \tctx_L, y:\sigma, \tctx_R', \genA = \tau_1 \exto \ctxr, \genA = \tau_2
             }\rname{CE-SolvedEVar}\]
         \begin{longtable}[l]{lll}
           & $\ctxr = \ctxr_L, y:\sigma, \ctxr_R'$ & By induction hypothesis \\
@@ -1068,8 +1191,8 @@ By induction on the context extension.
   Here we have $\tctx = \ctxr$, so our goal is given.
 \item Case \[\CEVar\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
-    & $\tctx \bywf \sigma$ & By hypothesis \\
+    & $\tctx \wc$ & Given \\
+    & $\tctx \bywf \sigma$ & Given \\
     & $x \notin \tctx$ & By hypothesis \\
     & $\ctxr \wc$& By induction hypothesis \\
     & $\ctxr \bywf \sigma$& By
@@ -1080,7 +1203,7 @@ By induction on the context extension.
 
 \item Case \[\CEEVar\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \wc$ & Given \\
     & $\ctxr \wc$& By induction hypothesis \\
     & $\genA \notin \ctxr$ & Given \\
     & $\ctxr, \genA \wc$ & By \rul{AC-EVar}
@@ -1088,34 +1211,55 @@ By induction on the context extension.
 
 \item Case \[\CESolvedEVar\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
-    & $\tctx \bywf \tau$ & By hypothesis \\
+    & $\tctx \wc$ & Given \\
+    & $\tctx \bywf \tau_1$ & Given \\
     & $\ctxr \wc$& By induction hypothesis \\
-    & $\ctxr \bywf \tau$ & By
-    Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+    & $\ctxr \bywf \tau_1$
+    & By Corollary~\ref{lemma:\ExtensionWeakningWellFormednessName} \\
+    & $\ctxr \bywf \applye \ctxr {\tau_1}$
+    & By Lemma~\ref{lemma:\ContextApplicationPreservesTypingName} \\
+    & $\ctxr \bywf \applye \ctxr {\tau_2}$
+    & Known \\
+    & $\ctxr \bywf {\tau_2}$
+    & By Lemma~\ref{lemma:\ReverseContextApplicationPreservesTypingName} \\
     & $\ctxr, \genA = \tau$ & By \rul{AC-SolvedEVar}
   \end{longtable}
 \item Case \[\CESolve\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \wc$ & Given \\
     & $\ctxr \wc$& By induction hypothesis \\
     & $\ctxr, \genA = \tau$ & By \rul{AC-SolvedEVar}
   \end{longtable}
 \item Case \[\CEAdd\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \wc$ & Given \\
     & $\ctxr \wc$& By induction hypothesis \\
     & $\ctxr, \genA$ & By \rul{AC-EVar}
   \end{longtable}
 \item Case \[\CEAddSolved\]
   \begin{longtable}[l]{lll}
-    & $\tctx \wc$ & By hypothesis \\
+    & $\tctx \wc$ & Given  \\
     & $\ctxr \wc$& By induction hypothesis \\
     & $\ctxr, \genA = \tau$ & By \rul{AC-EVar}
   \end{longtable}
 \end{itemize}
 
 \qed
+
+Notice since this lemma holds, many preconditions
+in previous lemmas are hold automatically.
+For example,
+Lemma~\ref{lemma:\ExtensionWeakningName}
+requests $\ctxr$ is a well-formed context,
+which is automatically satisfied given $\tctx$ is well-formed
+and this lemma.
+Therefore, while applying those kind of lemmas, we will ignore
+this kind of ``self-hold'' preconditions.
+
+Furthermore, from now on, we will sometimes implicitly assume
+the contexts we mentioned are well-formed.
+Since we have already dealt with the dependency between well-formedness
+and typing through previous lemmas.
 
 \begin{lemma}[\SolutionAdmissibilityForExtensionName]
   \label{lemma:\SolutionAdmissibilityForExtensionName}
@@ -1317,8 +1461,9 @@ By induction on the derivation $\tctx \exto \cctx$.
   \item Case \[
       \inferrule{\tctx' \exto \cctx'
         \\ \genA \notin \cctx'
+        \\ \applye {\cctx'} {\tau_1} = \applye {\cctx'} {\tau_2}
       }{
-        \tctx', \genA = \tau \exto \cctx', \genA = \tau
+        \tctx', \genA = \tau_1 \exto \cctx', \genA = \tau_2
       }\rname{CE-SolvedEVar}
     \]
     Similar as Case \rul{CE-Var}.
@@ -1342,7 +1487,7 @@ By induction on the derivation $\tctx \exto \cctx$.
     \end{longtable}
   \item Case \[
       \inferrule{\tctx' \exto \cctx'
-      \\ \genA \notin
+      \\ \genA \notin \cctx'
       }{
         \tctx' \exto \cctx', \genA
       }\rname{CE-Add}
@@ -1350,7 +1495,7 @@ By induction on the derivation $\tctx \exto \cctx$.
     Impossible since $\cctx$ is a complete context.
   \item Case \[
       \inferrule{\tctx' \exto \cctx'
-      \\ \genA \notin
+      \\ \genA \notin \cctx'
       \\ \cctx' \bywf \tau
       }{
         \tctx' \exto \cctx', \genA = \tau

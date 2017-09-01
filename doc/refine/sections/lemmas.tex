@@ -11,6 +11,13 @@
   then $\tctx \byinf \applye \tctx {\sigma_1} \infto \sigma_2$.
 }
 
+\newcommand*{\ReverseContextApplicationPreservesTypingName}
+{Reverse Context Application Preserves Typing}
+\newcommand*{\ReverseContextApplicationPreservesTypingBody}{
+  If $\tctx \byinf \applye \tctx {\sigma_1} \infto \sigma_2$,
+  then $\tctx \byinf \sigma_1 \infto \sigma_2$.
+}
+
 \newcommand*{\OutputIsFullySubstitutedName}{Output is Fully Substituted}
 \newcommand*{\OutputIsFullySubstitutedBody}{
   If $\tctx \byinf \sigma_1 \infto \sigma_2$,
@@ -129,7 +136,8 @@
 
 \newcommand*{\ContextExtensionTransitivityName}{Transitivity of Context Extension}
 \newcommand*{\ContextExtensionTransitivityBody}{
-  If $\ctxl \exto \tctx$,
+  Given $\ctxl, \tctx, \ctxr$ are all well-formed contexts,
+  if $\ctxl \exto \tctx$,
   and $\tctx \exto \ctxr$,
   then $\ctxl \exto \ctxr$.
 }
@@ -168,9 +176,10 @@
     and $\tctx_L \exto \ctxr_L$,
     and $\ctxl$ is either $\genA$ or $\genA = \tau$ for some $\tau$,
     and $\ctxr_R$ is soft if and only if $\tctx_R$ is soft.
-  \item If $\tctx_L, \genA = \sigma, \tctx_R \exto \ctxr$,
-    then $\ctxr = \ctxr_L, \genA = \sigma, \ctxr_R$,
+  \item If $\tctx_L, \genA = \sigma_1, \tctx_R \exto \ctxr$,
+    then $\ctxr = \ctxr_L, \genA = \sigma_2, \ctxr_R$,
     and $\tctx_L \exto \ctxr_L$,
+    and $\applye {\ctxr_L} {\sigma_1} = \applye {\ctxr_L} {\sigma_2}$,
     and $\ctxr_R$ is soft if and only if $\tctx_R$ is soft.
   \end{itemize}
 }
@@ -237,7 +246,10 @@
   \item If $\ctxr_L \bywf \tau$,
     then $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
   \item If $\tctx_L \bywf \tau$,
-    then $\tctx_L, \genA = \tau, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
+    and $\tctx_L \bywf \tau_1$,
+    and $\ctxr_L \bywf \tau_2$,
+    and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
+    then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
   \item If $\tctx_L \bywf \tau$,
     then $\tctx_L, x : \tau, \tctx_R \exto \ctxr_L, x: \tau, \ctxr_R $.
   \end{itemize}
@@ -246,9 +258,10 @@
 \newcommand*{\ParallelExtensionSolutionName}
 {Parallel Extension Solution}
 \newcommand*{\ParallelExtensionSolutionBody}{
-  If $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $,
-  and $\tctx_L \bywf \tau$,
-  then $\tctx_L, \genA = \tau, \tctx_R \exto \ctxr_L, \genA = \tau, \ctxr_R $.
+  If $\tctx_L, \genA, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $,
+  and $\tctx_L \bywf \tau_1$,
+  and $\applye {\ctxr_L} {\tau_1} = \applye {\ctxr_L} {\tau_2}$,
+  then $\tctx_L, \genA = \tau_1, \tctx_R \exto \ctxr_L, \genA = \tau_2, \ctxr_R $.
 }
 
 % ------------------------------------------------------
