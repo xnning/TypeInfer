@@ -271,8 +271,8 @@ By induction on the typing derivation.
   \item Case \[\ALamAnn\]
     \begin{longtable}[l]{lll}
       &$\tctx_1, \ctxl, \tctx_2 \byinf \sigma_1 \infto \star$ & By hypothesis\\
-      &$\tctx_1, \ctxl, \tctx_2, x:\sigma_1 \wc$& Follows from the definition of
-      context well formedness\\
+      &$\tctx_1, \ctxl, \tctx_2, x:\sigma_1 \wc$
+      & By \rul{AC-Var} \\
       &$\tctx_1, \ctxl, \tctx_2, x: \sigma_1 \byinf e \infto \sigma_2$& By
       hypothesis
     \end{longtable}
