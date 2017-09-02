@@ -356,6 +356,13 @@ By a straightforward induction on the typing derivation.
 
 \qed
 
+Notice since we have this lemma hold,
+if we have $\tctx \byinf \sigma_1 \infto \sigma_2$ in the context,
+we will implicitly assume we already have $\tctx \wc$.
+Therefore, to apply lemmas that request the well-formedness of contexts,
+which is automatically hold given the typing derivation,
+we will sometimes not explicitly provide that the context is well formed.
+
 \begin{lemma}[\TypingWeakeningName]
   \label{lemma:\TypingWeakeningName}
   \TypingWeakeningBody
@@ -1964,35 +1971,24 @@ We then case analyze the shape of $\sigma_1$.
           & Known \\
           & $\cctx_1 \byinf \tau \infto \star$
           & By Lemma~\ref{lemma:\TypingStrengtheningName} \\
-          & $\tctx_1 \bywt \tau$
-          & Known \\
-          & $\tctx_1 \byinf \tau \infto \star$
-          & By repeating Lemma~\ref{lemma:\TypingStrengtheningName} \\
           & $\cctx' =
           \cctx_1, \genA_1 = \tau, \genA = \tau', \cctx_2, \genB = \tau'',
           \cctx_3, \tctx_0, \cctx_4
           $
           & Choose \\
-          & $\tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB, \tctx_4, \tctx_0 \exto
+          & $\tctx_1, \genA, \tctx_3, \genB, \tctx_4, \tctx_0 \exto
+          \cctx_1, \genA = \tau', \cctx_2, \genB = \tau'', \cctx_3, \tctx_0, \cctx_4 $
+          & Known \\
+          & $\tctx_1, \genA_1, \genA, \tctx_3, \genB, \tctx_4, \tctx_0 \exto
           \cctx'$
           & By Lemma~\ref{lemma:\ParallelAdmissibilityName} \\
           & $\applye {\cctx'} \genB = \tau$
           & Known \\
-          & $\tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB = \genA_1, \tctx_4, \tctx_0 \exto
+          & $\applye {\cctx'} {\genA_1} = \tau$
+          & Known \\
+          & $\tctx_1, \genA_1, \genA, \tctx_3, \genB = \genA_1, \tctx_4, \tctx_0 \exto
           \cctx'$
           & By Lemma~\ref{lemma:\ParallelExtensionSolutionName} \\
-          & $\tctx_1, \genA_1, \genA , \tctx_3, \genB = \genA_1,
-          \tctx_4, \tctx_0
-          \exto
-          \tctx_1, \genA_1 = \tau, \genA, \tctx_3, \genB =
-          \genA_1, \tctx_4, \tctx_0 $
-          &  By Lemma~\ref{lemma:\SolutionAdmissibilityForExtensionName} \\
-          & $\tctx_1, \genA_1, \genA, \tctx_3, \genB = \genA_1,
-          \tctx_4
-          \exto
-          \cctx'
-          $
-          & By Lemma~\ref{lemma:\ContextExtensionTransitivityName} \\
           & $\cctx \exto \cctx'$
           & By Lemma~\ref{lemma:\SolvedVariableAdditionForExtensionName} \\
         \end{longtable}
@@ -2142,10 +2138,13 @@ We then case analyze the shape of $\sigma_1$.
         \bywf \tau_2 = {\applye {\cctx, x : \tau_1} {e}}$
         & By Lemma~\ref{lemma:\ConfluenceOfCompletenessName} \\
         & $ \applye {\cctx_1, x : \tau_1} {\ctxl, x: \tau_1}
-        \bywf \tau_2 = {\applye {\cctx, x : \tau_1} {\applye {\ctxl, x: \tau_1}{e}}}$
+        \bywf \tau_2 = {\applye {\cctx_1, x : \tau_1} {e}}$
+        & By Lemma~\ref{lemma:\FinishingTypesName} \\
+        & $ \applye {\cctx_1, x : \tau_1} {\ctxl, x: \tau_1}
+        \bywf \tau_2 = {\applye {\cctx_1, x : \tau_1} {\applye {\ctxl, x: \tau_1}{e}}}$
         & By Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName} \\
         & $ \applye {\cctx_1, x : \tau_1} {\ctxl, x: \tau_1}
-        \bywf \tau_2 = {\applye {\cctx, x : \tau_1} {\applye {\ctxl}{e}}}$
+        \bywf \tau_2 = {\applye {\cctx_1, x : \tau_1} {\applye {\ctxl}{e}}}$
         & By definition of context application \\
         & $\ctxl, x: \tau_1 \bysa \applye \ctxl e \sa e' \toctxr, x: \tau_1$
         & By induction hypothesis \\
