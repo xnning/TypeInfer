@@ -76,7 +76,6 @@ By induction on the reduction derivation.
   \item Case \[\RCastDownUp\]
     Follows directly from induction hypothesis.
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\OutputIsFullySubstitutedName]
@@ -250,7 +249,6 @@ By induction on the typing size.
   \label{lemma:\ReverseContextApplicationPreservesTypingName}
   \ReverseContextApplicationPreservesTypingBody
 \end{lemma}
-
 \proof
 
 By induction on the typing derivation.
@@ -341,7 +339,6 @@ $\sigma$ is an existential variable.
     \item Case $\sigma_1 = \castup e_1$
       Similar as last case.
 \end{itemize}
-
 \qed
 
 \subsection{Properties of Declarative Typing}
@@ -353,7 +350,6 @@ $\sigma$ is an existential variable.
 \proof
 
 By a straightforward induction on the typing derivation.
-
 \qed
 
 Notice since we have this lemma hold,
@@ -485,7 +481,6 @@ By induction on the typing derivation.
 \proof
 
 By straightforward induction on the typing derivation.
-
 \qed
 
 \begin{lemma}[\TypingSubstitutionName]
@@ -535,7 +530,6 @@ By induction on the size of second typing derivation.
 \proof
 
 By a straightforward induction on the context application.
-
 \qed
 
 \begin{lemma}[\ReverseDeclarationPreservationName]
@@ -545,7 +539,6 @@ By a straightforward induction on the context application.
 \proof
 
 By a straightforward induction on the context application.
-
 \qed
 
 
@@ -609,7 +602,6 @@ is declared to the left of $v$ in $\tctx$.
   \label{lemma:\SubstitutionExtensionInvarianceName}
   \SubstitutionExtensionInvarianceBody
 \end{lemma}
-
 \proof
 
 We first prove $\applye \ctxr \sigma = \applye \tctx {\applye \ctxr \sigma}$,
@@ -731,14 +723,12 @@ then prove $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$.
     Follows directly from induction hypothesis.
 \end{itemize}
 \end{description}
-
 \qed
 
 \begin{lemma}[\ExtensionEqualityPreservationName]
   \label{lemma:\ExtensionEqualityPreservationName}
   \ExtensionEqualityPreservationBody
 \end{lemma}
-
 \proof
 
 \mbox{} % an empty line to make sure long table appear after proof
@@ -750,14 +740,12 @@ then prove $\applye \ctxr \sigma = \applye \ctxr {\applye \tctx \sigma}$.
   & $= \applye \ctxr {\sigma_2}$ & By
   Lemma~\ref{lemma:\SubstitutionExtensionInvarianceName}
 \end{longtable}
-
 \qed
 
 \begin{lemma}[\ContextExtensionReflexivityName]
   \label{lemma:\ContextExtensionReflexivityName}
   \ContextExtensionReflexivityBody
 \end{lemma}
-
 \proof
 
 By induction on the well-formedness of context.
@@ -783,14 +771,12 @@ By induction on the well-formedness of context.
       & $\tctx, \genA = \tau \exto \tctx, \genA = \tau$ & By \rul{CE-SolvedEVar}
     \end{longtable}
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\ContextExtensionTransitivityName]
   \label{lemma:\ContextExtensionTransitivityName}
   \ContextExtensionTransitivityBody
 \end{lemma}
-
 \proof
 
 By induction on the derivation $\tctx \exto \ctxr$.
@@ -924,7 +910,6 @@ By induction on the derivation $\tctx \exto \ctxr$.
       & $\ctxl \exto \ctxr, \genA = \tau$ & By \rul{CE-Add} \\
     \end{longtable}
 \end{itemize}
-
 \qed
 
 \begin{definition}[Softness]
@@ -936,18 +921,15 @@ By induction on the derivation $\tctx \exto \ctxr$.
   \label{lemma:\RightSoftnessName}
   \RightSoftnessBody
 \end{lemma}
-
 \proof
 
 By induction on $\ctxl$, and apply rule \rul{CE-Add} and \rul{CE-AddSolved} as needed.
-
 \qed
 
 \begin{lemma}[\ExtensionOrderName]\leavevmode
   \label{lemma:\ExtensionOrderName}
   \ExtensionOrderBody
 \end{lemma}
-
 \proof
 
 \begin{description}
@@ -1058,14 +1040,12 @@ By induction on $\ctxl$, and apply rule \rul{CE-Add} and \rul{CE-AddSolved} as n
   \item [Part 2] Similar to Part 1.
   \item [Part 3] Similar to Part 1.
 \end{description}
-
 \qed
 
 \begin{lemma}[\ExtensionWeakningName]
   \label{lemma:\ExtensionWeakningName}
   \ExtensionWeakningBody
 \end{lemma}
-
 \proof
 
 By induction on the typing derivation.
@@ -1158,37 +1138,31 @@ By induction on the typing derivation.
     & $\ctxr \byinf \castup e \infto \applye \ctxr {\sigma_1}$& By \rul{A-CastUp}
   \end{longtable}
 \end{itemize}
-
 \qed
 
 \begin{corollary}[\ExtensionWeakningWellFormednessName]
   \label{lemma:\ExtensionWeakningWellFormednessName}
   \ExtensionWeakningWellFormednessBody
 \end{corollary}
-
 \proof
 
 Follows directly by Lemma~\ref{lemma:\ExtensionWeakningName} since $\applye
 \ctxr \star = \star$.
-
 \qed
 
 \begin{lemma}[\ExtensionWeakeningWellScopednessName]
   \label{lemma:\ExtensionWeakeningWellScopednessName}
   \ExtensionWeakeningWellScopednessBody
 \end{lemma}
-
 \proof
 
 By a straightforward induction on the context extension.
-
 \qed
 
 \begin{lemma}[\ContextExtensionPreservesContextWellFormednessName]
   \label{lemma:\ContextExtensionPreservesContextWellFormednessName}
   \ContextExtensionPreservesContextWellFormednessBody
 \end{lemma}
-
 \proof
 
 By induction on the context extension.
@@ -1250,7 +1224,6 @@ By induction on the context extension.
     & $\ctxr, \genA = \tau$ & By \rul{AC-EVar}
   \end{longtable}
 \end{itemize}
-
 \qed
 
 Notice since this lemma holds, many preconditions
@@ -1272,7 +1245,6 @@ and typing through previous lemmas.
   \label{lemma:\SolutionAdmissibilityForExtensionName}
   \SolutionAdmissibilityForExtensionBody
 \end{lemma}
-
 \proof
 
 By induction on $\tctx_R$.
@@ -1315,7 +1287,6 @@ By induction on $\tctx_R$.
   \label{lemma:\UnsolvedVariableAdditionForExtensionName}
   \UnsolvedVariableAdditionForExtensionBody
 \end{lemma}
-
 \proof
 
 By induction on $\tctx_R$.
@@ -1358,7 +1329,6 @@ By induction on $\tctx_R$.
   \label{lemma:\SolvedVariableAdditionForExtensionName}
   \SolvedVariableAdditionForExtensionBody
 \end{lemma}
-
 \proof
 
 \mbox{} % an empty line to make sure long table appear after proof
@@ -1370,14 +1340,12 @@ By induction on $\tctx_R$.
   & $\tctx_L, \tctx_R \exto \tctx_L, \genA = \tau, \tctx_R$ &
   By Lemma~\ref{lemma:\ContextExtensionTransitivityName}
 \end{longtable}
-
 \qed
 
 \begin{lemma}[\ParallelAdmissibilityName]\leavevmode
   \label{lemma:\ParallelAdmissibilityName}
   \ParallelAdmissibilityBody
 \end{lemma}
-
 \proof
 
 \begin{description}
@@ -1412,28 +1380,24 @@ By induction on $\tctx_R$.
     \end{itemize}
   \item [Part 2] All rest parts are similar as Part 1.
 \end{description}
-
 \qed
 
 \begin{lemma}[\ParallelExtensionSolutionName]\leavevmode
   \label{lemma:\ParallelExtensionSolutionName}
   \ParallelExtensionSolutionBody
 \end{lemma}
-
 \proof
 
 By induction on $\ctxr_R$.
 
 Similar to the proof of
 Lemma~\ref{lemma:\ParallelAdmissibilityName}.
-
 \qed
 
 \begin{lemma}[\StabilityOfCompleteContextsName]
   \label{lemma:\StabilityOfCompleteContextsName}
   \StabilityOfCompleteContextsBody
 \end{lemma}
-
 \proof
 
 By induction on the derivation $\tctx \exto \cctx$.
@@ -1519,14 +1483,12 @@ By induction on the derivation $\tctx \exto \cctx$.
       & By definition of context application \\
     \end{longtable}
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\FinishingTypesName]
   \label{lemma:\FinishingTypesName}
   \FinishingTypesBody
 \end{lemma}
-
 \proof
 \mbox{} % an empty line to make sure long table appear after proof
 
@@ -1542,28 +1504,24 @@ By induction on the derivation $\tctx \exto \cctx$.
   & $= \applye {\cctx} \sigma $
   & Follows directly
 \end{longtable}
-
 \qed
 
 \begin{lemma}[\FinishingCompletionsName]
   \label{lemma:\FinishingCompletionsName}
   \FinishingCompletionsBody
 \end{lemma}
-
 \proof
 
 By a straightforward induction on the derivation $\cctx \exto \cctx'$.
 
 The case analysis is like
 Lemma~\ref{lemma:\StabilityOfCompleteContextsName}.
-
 \qed
 
 \begin{lemma}[\ConfluenceOfCompletenessName]
   \label{lemma:\ConfluenceOfCompletenessName}
   \ConfluenceOfCompletenessBody
 \end{lemma}
-
 \proof
 
 \mbox{} % an empty line to make sure long table appear after proof
@@ -1576,7 +1534,6 @@ Lemma~\ref{lemma:\StabilityOfCompleteContextsName}.
   & $= \applye \cctx {\ctxr_2} $
   & By Lemma~\ref{lemma:\StabilityOfCompleteContextsName} \\
 \end{longtable}
-
 \qed
 
 \subsection{Properties of Type Sanitization}
@@ -1585,7 +1542,6 @@ Lemma~\ref{lemma:\StabilityOfCompleteContextsName}.
   \label{lemma:\TypeSanitizationExtensionName}
   \TypeSanitizationExtensionBody
 \end{lemma}
-
 \proof
 
 By induction on type sanitization.
@@ -1649,14 +1605,12 @@ By induction on type sanitization.
   \item Case \[\ICastUp\]
     Follows directly from induction hypothesis.
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\TypeSanitizationEquivalenceName]
   \label{lemma:\TypeSanitizationEquivalenceName}
   \TypeSanitizationEquivalenceBody
 \end{lemma}
-
 \proof
 
 By induction on type sanitization.
@@ -1749,14 +1703,12 @@ By induction on type sanitization.
   \item Case \[\ICastUp\]
     Follows directly from induction hypothesis.
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\TypeSanitizationWellFormednessName]
   \label{lemma:\TypeSanitizationWellFormednessName}
   \TypeSanitizationWellFormednessBody
 \end{lemma}
-
 \proof
 
 By induction on the type sanitization.
@@ -1890,18 +1842,15 @@ By induction on the type sanitization.
   \item Case \[\ICastUp\]
     Similar as Case \rul{I-CastDn}
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\TypeSanitizationTailUnchangedName]
   \label{lemma:\TypeSanitizationTailUnchangedName}
   \TypeSanitizationTailUnchangedBody
 \end{lemma}
-
 \proof
 
 By a straightforward induction on the type sanitization derivation.
-
 \qed
 
 We use the notation $\tctx \bywf \tau_1 = \tau_2$ to mean that
@@ -2196,26 +2145,22 @@ We then case analyze the shape of $\sigma_1$.
     \item Case $\sigma_1 = \castdn e_1$.
       Similar as last case.
 \end{itemize}
-
 \qed
 
 \begin{corollary}[\TypeSanitizationCompletenessPrettyName]
   \label{lemma:\TypeSanitizationCompletenessPrettyName}
   \TypeSanitizationCompletenessPrettyBody
 \end{corollary}
-
 \proof
 
 Follows directly from Lemma~\ref{lemma:\TypeSanitizationCompletenessName}
 by choosing $\tctx_0 = \ctxinit$.
-
 \qed
 
 \begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
   \label{lemma:\TypeSanitizationCompletenessUnificationName}
   \TypeSanitizationCompletenessUnificationBody
 \end{lemma}
-
 \proof
 
 \begin{description}
@@ -2268,7 +2213,6 @@ by choosing $\tctx_0 = \ctxinit$.
 \item [Part 2]
   Similar as Part 1.
 \end{description}
-
 \qed
 
 
@@ -2278,7 +2222,6 @@ by choosing $\tctx_0 = \ctxinit$.
   \label{lemma:\UnificationExtensionName}
   \UnificationExtensionBody
 \end{lemma}
-
 \proof
 
 By induction on the height of unification derivation.
@@ -2387,14 +2330,12 @@ So the proof can terminate.
     Similar as Case \rul{U-CastDn} in Part 1.
   \end{itemize}
 \end{description}
-
 \qed
 
 \begin{lemma}[\UnificationEquivalenceName]\leavevmode
   \label{lemma:\UnificationEquivalenceName}
   \UnificationEquivalenceBody
 \end{lemma}
-
 \proof
 
 By induction on unification derivation.
@@ -2561,7 +2502,6 @@ By induction on unification derivation.
   \item Case \[\UCastUp\]
     Similar as Case \rul{U-CastDn}.
 \end{itemize}
-
 \qed
 
 We use the notation $\tctx \byinf \sigma_1 = \sigma_2 \infto \tau$ to mean that
@@ -2573,7 +2513,6 @@ and $\sigma_1 = \sigma_2$.
   \label{lemma:\UnificationCompletenessName}
     \UnificationCompletenessBody
 \end{lemma}
-
 \proof
 
 By induction on the typing size
@@ -2748,7 +2687,6 @@ We then do case analysis on the shape of $\sigma_1$.
   \item Case $\sigma_1 = \castup \tau_1 $
     Similar as last cast.
 \end{itemize}
-
 \qed
 
 \section{Implicit Polymorphic Type System}
@@ -2913,7 +2851,6 @@ We then do case analysis on the shape of $\sigma_1$.
   \label{lemma:\PolymorphicTypeSanitizationExtensionName}
   \PolymorphicTypeSanitizationExtensionBody
 \end{lemma}
-
 \proof
 
 By induction on polymorphic type sanitization derivation.
@@ -2977,14 +2914,12 @@ By induction on polymorphic type sanitization derivation.
       & By Lemma~\ref{lemma:dunfield:Reflexivity}
     \end{longtable}
 \end{itemize}
-
 \qed
 
 \begin{lemma}[\PolymorphicTypeSanitizationSoundnessName]\leavevmode
   \label{lemma:\PolymorphicTypeSanitizationSoundnessName}
   \PolymorphicTypeSanitizationSoundnessBody
 \end{lemma}
-
 \proof
 
 By induction on the polymorphic type sanitization derivation. These two parts
@@ -3132,14 +3067,12 @@ rely on each other, but the derivation get smaller so the proof terminates.
         Similar as in Part 1.
     \end{itemize}
 \end{description}
-
 \qed
 
 \begin{lemma}[\PolymorphicTypeSanitizationCompletenessName]
   \label{lemma:\PolymorphicTypeSanitizationCompletenessName}
   \PolymorphicTypeSanitizationCompletenessBody
 \end{lemma}
-
 \proof
 
 By induction on the height of subtyping derivation.
@@ -3450,7 +3383,6 @@ By induction on the height of subtyping derivation.
       \end{longtable}
     \end{itemize}
 \end{description}
-
 \qed
 
 \begin{corollary}[\PolymorphicTypeSanitizationCompletenessSubtypingName]
@@ -3509,6 +3441,4 @@ By induction on the height of subtyping derivation.
   \item [Part 2]
     Similar as Part 1.
 \end{description}
-
 \qed
-

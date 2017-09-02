@@ -1,10 +1,11 @@
 % SIGPLAN format
-\documentclass[acmsmall, 10pt, review, dvipsnames]{acmart}
+\documentclass[oribibl]{llncs}
+
+\usepackage[dvipsnames]{xcolor}
 
 % AMS packages
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{mdwlist}
 
@@ -32,7 +33,7 @@
 \usepackage{algpseudocode}
 \usepackage{longtable}
 
-\renewcommand\authornote[3]{\textcolor{#2}{#1: #3}}
+\newcommand\authornote[3]{\textcolor{#2}{#1: #3}}
 \newcommand\bruno[1]{\authornote{Bruno}{red}{#1}}
 \newcommand\ningning[1]{\authornote{Ningning}{blue}{#1}}
 \renewcommand\arraystretch{1.1}
@@ -41,8 +42,8 @@
 
 % Literal programming support
 \input{paper_utility.tex}
-\bibliographystyle{ACM-Reference-Format}
-\citestyle{acmauthoryear}
+\bibliographystyle{splncs}
+% \citestyle{acmauthoryear}
 \begin{document}
 \title{Type Inference for Dependent Types}
 
