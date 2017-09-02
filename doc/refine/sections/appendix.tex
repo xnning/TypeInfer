@@ -1250,12 +1250,9 @@ and typing through previous lemmas.
 By induction on $\tctx_R$.
 
 \begin{itemize}
-\item Case $\ctxinit$.
-  \begin{longtable}[l]{lll}
-    & $\tctx_L \exto \tctx_L $ & By
-    Lemma~\ref{lemma:\ContextExtensionReflexivityName} \\
-    & $\tctx_L, \genA \exto \tctx_L, \genA = \tau$ & By \rul{CE-Solve}
-  \end{longtable}
+\item Case $\ctxinit$. Follows directly by
+  Lemma~\ref{lemma:\ContextExtensionReflexivityName} and
+  \rul{CE-Solve}.
 \item Case $\tctx_R = \tctx_R', x: \sigma$
   \begin{longtable}[l]{lll}
     & $\tctx_L, \genA, \tctx_R' \exto \tctx_L, \genA = \tau, \tctx_R' $ & By
