@@ -1,0 +1,490 @@
+\section{Unification for Dependent Type System}
+
+\subsection{Language Overview}
+
+The syntax of the system is shown below:\\
+
+\begin{tabular}{lrcl}
+  Expressions & $e$ & \syndef & $x \mid \star
+                         \mid e_1~e_2 \mid \blam x \sigma e
+                         \mid \bpi x {\sigma_1} \sigma_2$ \\
+       && \synor & $\castup e \mid \castdn e$ \\
+  Types & $\tau, \sigma$ & \syndef & $e \mid \genA$ \\
+  Contexts & $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx,x:\sigma
+             \mid \tctx, \genA
+             \mid \tctx, \genA = \tau $ \\
+  Complete Contexts & $\cctx$ & \syndef & $\ctxinit \mid \cctx,x:\sigma
+             \mid \cctx, \genA = \tau $ \\
+\end{tabular}
+
+\paragraph{Expressions. }
+Expressions $e$ include variables x,
+a single sort $\star$ to represent the type of
+types,
+applications $e_1~e_2$,
+functions $\blam x \sigma e$,
+and Pi types
+$\bpi x {\sigma_1} {\sigma_2}$.
+$\castup e$ does beta expansion on the type of $e$,
+while $\castdn e$ does beta reduction on the type of $e$.
+
+\paragraph{Types.}
+Types $\tau, \sigma$ include existential variables $\genA$, and all the
+expressions $e$.
+Notice that categories of expressions and types are stratified to make sure that
+existential variables only appears in positions where types are expected.
+
+\paragraph{Contexts.}
+Contexts $\tctx$ are an ordered list of variables and
+existential variables, which
+can either be unsolved
+($\genA$) or solved by a type $\tau$ ($\genA = \tau$).
+It is important for a context to be ordered to solve the dependency between
+variables, for example, if a variable $x$ is introduced after a
+an existential variable $\genA$
+in the context, as in
+$\genA, x:\star, y :\genA$,
+then $\genA$ can never by solved by $x$, namely $y$ can never have type $x$.
+
+Complete contexts $\cctx$ only contain variables and solved existential variables.
+
+\paragraph{Hole notation.}
+We use hole notations like $\tctx[x]$ to
+denote that the variable $x$ appears in the context, sometimes it is also
+written as $\tctx_1, x, \tctx_2$.
+
+Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only
+require the existance of both variable $x$ and $\genA$, but also require that
+$x$ appears before $\genA$.
+
+The hole notation is also used for replacement and modification. For example,
+$\tctx[\genA = \star]$ means the context keeps unchanged except $\genA$
+now is solved by $\star$.
+
+\paragraph{Applying Contexts.} Since the context records all the solutions of
+solved unification variables, it can be used as a substitution. Figure
+\ref{fig:context-application} defines the substitution process, where all solved
+unification variables are substituted by their solutions.
+
+\begin{figure*}[t]
+  \centering
+  \begin{tabular}{rll}
+    $\applye {\emptyset} \sigma$ & = & $\sigma$ \\
+    $\applye {\tctx, x: \tau} \sigma$ & = & $\applye \tctx \sigma$ \\
+    $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ \\
+    $\applye {\tctx, \genA = \tau} \sigma$ & = & $\applye \tctx {\sigma \subst \genA \tau}$\\
+  \end{tabular}
+    \caption{Context application.}
+    \label{fig:context-application}
+\end{figure*}
+
+\subsection{Typing in Detail}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \byinf \sigma_1 \infto \sigma_2$} \\
+    \AAx \and \AVar \and \AEVar \and \ASolvedEVar \and
+    \ALamAnn \and \APi \and
+    \AApp \and \ACastDn \and \ACastUp
+  \end{mathpar}
+
+  \begin{mathpar}
+    \framebox{$\sigma_1 \redto \sigma_2$} \\
+    \RApp \and \RBeta \and
+    \RCastDown \and \RCastDownUp
+  \end{mathpar}
+    \caption{Typing and semantics.}
+    \label{fig:typing}
+\end{figure*}
+
+In order to show that our unification algorithm works correctly, we need to make
+sure that inputs to the algorithm are well-formed.
+In dependent type system, the well-formedness of types and contexts are relying
+on typing judgments.
+Therefore, to introduce the well-formedness of type and contexts,
+we first introduce the typing rules.
+
+Before we give the typing rule, we need to consider: what it
+means for an input type to the unification algorithm to be well-formed?
+For example, Given a context $(\genA, x : \genA)$,
+is type $((\blam y \Int \star) ~ x)$ well formed?
+Here, the type requests to solve $\genA = \Int$.
+Unfortunately, we do not regard this type well formed, because we keep the
+invariant: \textit{the
+constrains contained in the input type have already been solved.}
+Namely, the unification process only accepts inputs that are already type
+checked in current context.
+In this example, this type is well-formed under context
+$(\genA = \Int, x : \genA)$.
+This can also help prevent ill-formed contexts that contains conflicting
+constraints, for example, the context:
+
+$\genA, x: \genA, y : ((\blam x \Int \star)~x), z : ((\blam x \Bool \star)~x)$
+
+\noindent contains two constraints that request $\genA$ to be solved by $\Int$
+and $\Bool$ respectively, which cannot be satisfied at the same time.
+
+Given this interpretation of well-formedness, the typing rules that servers
+specifically for well-formedness is shown at the top of Figure~\ref{fig:typing}.
+The judgment $\tctx \byinf \sigma_1 \infto \sigma_2$ is read as: under typing
+context $\tctx$, the type $\sigma_1$ has type $\sigma_2$.
+
+Rule \rul{A-Ax} states that $\star$ always has type $\star$.
+Rule \rul{A-Var} acquire the type of the variable from the typing context, and
+applies the context to the type.
+This reveals another invariant we keep:
+\textit{the typing output is always fully substituted under current context.}
+
+Rule \rul{A-EVar} and \rul{A-SolvedEVar} ensures that existential variables
+always have type $\star$.
+
+Rule \rul{A-LamAnn} first infers the type $\star$ for the annotation, then put $x:
+\sigma_1$ into the typing context to infer the body. To make sure output type is
+fully substituted, we apply the context to $\sigma_1$ in the output Pi type.
+
+Rule \rul{A-Pi} infers the type $\star$ for the argument type $\sigma_1$, then put
+$x: \sigma_1$ into the typing context to infer $\sigma_2$, whose type is also a
+$\star$. And the result type for a Pi type is $\star$.
+
+Rule \rul{A-App} first infers a function type for $e_1$, and then infers $e_2$ to
+have the argument type. Again, to maintain the invariant, we apply the context
+to $e_1$ before substituting $x$ with $e_1$.
+
+Rule \rul{A-CastDn} infers the type $\sigma_1$ of $e$, that reduce the type
+$\sigma_1$ to $\sigma_2$, while rule \rul{A-CastUp} finds a fully substituted
+type $\applye \tctx
+{\sigma_1}$ that reduces to $\sigma_2$ as the output type. The call by name
+reduction is defined at the bottom of Figure~\ref{fig:typing}.
+Due to the design of the rule \rul{A-CastUp}, the typing rules are
+non-deterministic, which does not matter for our purpose: the typing is only
+used in propositions (such as lemmas, theories) but it never appears in the
+algorithm.
+
+\paragraph{Context well-formedness.}
+
+The first four typing rules have a common precondition $\tctx \wc$,
+which requests the context is well-formed.
+The judgment is defined at the top of Figure~\ref{fig:type-well}.
+Rule \rul{AC-Empty} states that an empty context is always well formed.
+Rule \rul{AC-Var} requires $x$ fresh, and the type annotation is typed with
+$\star$. Rule \rul{AC-EVar} and \rul{AC-SolvedEVar} are defined in a similar
+way.
+
+\paragraph{Type well-formedness.}
+
+We refer that a type $\sigma$ is well formed as $\tctx \byinf \sigma \infto \star$.
+We will also sometimes write it as $\tctx \bywf \sigma$.
+
+A weaker version of type well-formedness, which is type well-scopedness, written
+as $\tctx \bywt \sigma$, is defined at the bottom of Figure~\ref{fig:type-well}.
+Well-scopedness of types only requires all the variables involved in a type are
+bound in the typing contexts.
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \wc$} \\
+    \ACEmpty \and \ACVar \and
+    \ACEVar \and \ACSolvedEVar
+  \end{mathpar}
+
+  \begin{mathpar}
+    \framebox{$\tctx \bywt \sigma$} \\
+    \WSVar \and \WSEVar \and \WSSolvedEVar
+    \and \WSPi \and \WSLamAnn \and \WSApp
+    \and \WSCastDn \and \WSCastUp
+  \end{mathpar}
+    \caption{Context well-formedness and type well-scopedness.}
+    \label{fig:type-well}
+\end{figure*}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$} \\
+    \IEVarAfter \and \IEVarBefore \and
+    \IVar \and \IStar \and
+    \IApp \and \ILamAnn \and \IPi
+    \and \ICastDn \and \ICastUp
+  \end{mathpar}
+  \caption{Type sanitization.}
+  \label{fig:sanitization}
+\end{figure*}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$} \\
+    \UAEq \and \UEVarTy \and \UTyEVar \and
+    \UApp \and \ULamAnn \and \UPi
+    \and \UCastDn \and \UCastUp
+  \end{mathpar}
+  \caption{Unification.}
+  \label{fig:unification}
+\end{figure*}
+
+
+\subsection{Type Sanitization}
+
+As we mentioned before, our unification is based on alpha-equality. So in most
+cases, the unification rules are intuitively structural. The most difficult
+one which is also the most essential one, is how to unify an existential variable
+with another type.
+In this section, we first present the judgment of unification,
+then we discuss those cases before we present the unification process.
+
+\paragraph{Judgment of unification.}
+
+The unification problem is formalized as:
+
+\begin{lstlisting}
+$\tpreuni \tau_1 \uni \tau_2 \toctx$
+\end{lstlisting}
+
+The input of the unification is the current context $\tctx$, and two types
+$\tau_1$ and $\tau_2$ that are being unified. The output of the unification
+is a new context $\ctxl$ which extends the original context with probably more
+new existential variables or more existing
+existential variables solved.
+The formal definition of context extension is discussed in
+Section~\ref{sec:context-extension}.
+Following is an example of a unification problem:
+
+\begin{lstlisting}
+$\genA \byuni \genA \uni \Int \dashv \genA = \Int$
+\end{lstlisting}
+
+\noindent where we want to unify $\genA$ with $\Int$ under the input context
+$\genA$, which results in the output context $\genA = \Int$ that solves $\genA$
+with $\Int$.
+
+For a valid unification problem, it must have the invariant: $[\tctx] \tau_1 =
+\tau_1$, and $[\tctx] \tau_2 = \tau_2$. Namely,
+\textit{the input types must be
+fully applied under the input context}.
+ So the following is not a valid
+unification problem input:
+
+\begin{lstlisting}
+$\genA = \Bool \byuni \genA \uni \Int$
+\end{lstlisting}
+
+We assume this invariant is given with the inputs at the beginning,
+and the unification process would maintain it through the whole
+formalization.
+
+\paragraph{Variable Orders matter.}
+
+While unifying existential variable $\genA$ and type $\tau$, we tends to
+directly derive that $\genA = \tau$. But $\tau$ may not be a valid type as the
+solution for $\genA$.
+Consider a unification example:
+
+\begin{lstlisting}
+$\tctx, \genA, x \byuni \genA \uni x$
+\end{lstlisting}
+
+\noindent which has no feasible solution,
+because $x$ is not in the scope of $\genA$.
+
+From this observation, it seems whenever we have the unification problem as
+
+\begin{lstlisting}
+$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
+\end{lstlisting}
+
+\noindent we need to check if $\tau$ is well-scoped in $\tctx$. Only if it
+satisfies the scope constraint, we can derive $\genA = \tau$.
+
+\paragraph{Unification variable orders do not matter.}
+
+However, there are unification problems that even if the type does not satisfies the
+scope constraint, it still has feasible solutions. Consider:
+
+\begin{lstlisting}
+$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
+\end{lstlisting}
+
+Here because $\genB$ appears after $\genA$, we cannot directly derive $\genA =
+\bpi x \genB x$ which is ill typed.
+But this unification does have a solution context if we could sanitize the
+appearance of $\genB$ by solving it by a fresh unification variable $\genA_1$
+which is put in the scope of $\genA$, and then
+get an equivalent unification problem:
+
+\begin{lstlisting}
+$\tctx, \genA_1, \genA, \genB = \genA_1 \byuni \genA \uni \bpi x {\genA_1} x$
+\end{lstlisting}
+
+\noindent Then we can derive the solution of this equivalent unification problem:
+
+\begin{lstlisting}
+$\tctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1$.
+\end{lstlisting}
+
+From this example, we can see that the orders of unification variables do not
+matter because we can always solve it by a fresh unification variable that
+satisfies the scope constraint. So for a unification problem
+
+\begin{lstlisting}
+$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
+\end{lstlisting}
+
+\noindent we need to sanitize the unification variables in $\tau$
+before we check the scope constraint. We call this process \textit{type
+  sanitization}, which is given in Figure \ref{fig:sanitization}.
+The judgment $\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$ is interpreted as:
+under the context $\tctx$, which contains an existential variable $\genA$,
+we sanitize all the existential variables in the type $\tau_1$ that appears
+before $\genA$, which results in a sanitized type $\tau_2$.
+Computationally, there are three inputs $\tctx$, $\genA$ and $\tau_1$, with one
+output $\tau_2$.
+
+The most
+interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}.
+In \rul{I-EVarAfter},
+because $\genB$ appears after $\genA$, so we create a fresh unification variable
+$\genA_1$, which is put before $\genA$, and solve $\genB$ by $\genA_1$. In
+\rul{I-EVarBefore}, because $\genB$ is in the scope of $\genA$, so we leave it
+unchanged.
+
+The rest rules are structural.
+And as unification, we always apply intermediate output
+contexts to the input types to maintain the invariant that the types are fully
+substituted under current contexts.
+
+The sanitization process is remarkably simple. But it solves exactly what we
+want: correct the orders of existential variables so that we can focus on the
+orders that really matter.
+
+\subsection{Unification}
+
+Based on type sanitization, Figure \ref{fig:unification} presents the
+unification rules. Due to our design choice, there are two modes in the
+unification: expressions, and types. The expression mode ($\delta = e$) does
+unification between expressions, while the type mode ($\delta = \sigma$) does
+unification between types. The judgment $\tctx \bybuni \sigma_1 \uni \sigma_2
+\toctx$ is interpreted as: under the context $\tctx$, unifying two types (if
+$\delta = \sigma$) or two expressions (if $\delta = e$) $\sigma_1$ and
+$\sigma_2$ resulting in the output context $\ctxl$.
+
+Rule \rul{U-AEq} corresponds to the case when two types are already
+alpha-equivalent. Most of the rest rules are structural.
+Two most subtle ones are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which
+corresponding respectively to when the unification variable is on the left and on the
+right. We go through the first one. There are three preconditions.
+First is the occurs check, which is to make sure $\genA$ does not appear in the
+free variables of $\tau_1$.
+Then we use type sanitization to make sure all the
+unification types in $\tau_1$ that are out of scope of $\genA$ are turned into
+fresh ones that are in the scope of $\genA$. This process gives us the output
+type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$.
+Finally, $\tau_2$ could also contain
+variables of which the
+orders matter, so
+we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
+
+\paragraph{Example.} Below shows the process for the unification problem
+$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$.
+For clarity, we denote $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1$. And it is
+easy to verify  $\genA \notin FV(\bpi x \genB x)$.
+
+\[
+   \ExUni
+\]
+
+
+\paragraph{Comparison.}
+
+In \cite{dunfield2013complete}, they have no type sanitization because
+if one side is
+a unification variable $\genA$, and the other side is some type constructors, they will
+decompose the unification problem into several sub-unifications according to the
+type constructor, until type being unified is in the scope of $\genA$.
+If both
+sides are unification variables, they will take two cases into consideration:
+the left one appears first in the context, or the right one.
+For example, a decomposing rule for
+unification where the left hand side is a function type is:
+
+
+\[
+  \inferrule{
+     \tctx [\genA_2, \genA_2, \genA = \genA_1 \to \genA_2] \byuni \genA_1 \uni \tau_1
+     \toctx
+  \\ \ctxl \byuni [\ctxl]\tau_2 \uni \genA_2 \dashv \ctxr
+  }{
+     \tctx [\genA] \byuni \tau_1 \to \tau_2 \uni \genA \dashv \ctxr
+  }
+\]
+
+Here the original unification variable $\genA$ is solved by a function type
+consisting of two fresh
+unification variables $\genA_1$ and $\genA_2$, which are then unified with
+$\tau_1$ and $\tau_2$ sequentially.
+However, this cannot hold with dependent types. For example consider we apply this rule to
+this specific unification:
+
+$\tpreuni \genA \uni \bpi x \star x $
+
+\noindent It is obvious that $\genA_2$ should be solved by $x$. So in order to make
+it well typed, we need to put $x$ before $\genA_2$
+into the context.
+However, this means $x$ will remain in the context, and it is available
+for any later unification variable that
+should not have access to $x$.
+Type sanitization solves this problem by
+sanitizing Pi type instead of decomposing it.
+
+\subsection{Context Extension}
+\label{sec:context-extension}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \exto \ctxl$}
+    {\quad Context~ Extension} \\
+    \CEEmpty \and \CEVar \and \CEEVar \and
+    \CESolvedEVar \and \CESolve \and
+    \CEAdd \and \CEAddSolved
+  \end{mathpar}
+  \caption{Context Extension.}
+  \label{fig:context-extension}
+\end{figure*}
+
+\subsection{Soundness}
+
+\begin{lemma}[\TypeSanitizationExtensionName]
+  \TypeSanitizationExtensionBody
+\end{lemma}
+
+\begin{lemma}[\TypeSanitizationEquivalenceName]
+  \TypeSanitizationEquivalenceBody
+\end{lemma}
+
+\begin{lemma}[\TypeSanitizationWellFormednessName]
+  \TypeSanitizationWellFormednessBody
+\end{lemma}
+
+\begin{lemma}[\UnificationExtensionName]\leavevmode
+  \UnificationExtensionBody
+\end{lemma}
+
+\begin{lemma}[\UnificationEquivalenceName]\leavevmode
+  \UnificationEquivalenceBody
+\end{lemma}
+
+\subsection{Completeness}
+
+\begin{lemma}[\TypeSanitizationCompletenessName]\leavevmode
+  \TypeSanitizationCompletenessBody
+\end{lemma}
+
+\begin{corollary}[\TypeSanitizationCompletenessPrettyName]
+  \TypeSanitizationCompletenessPrettyBody
+\end{corollary}
+
+\begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
+  \TypeSanitizationCompletenessUnificationBody
+\end{lemma}
+
+\begin{lemma}[\UnificationCompletenessName]
+  \label{lemma:\UnificationCompletenessName}
+    \UnificationCompletenessBody
+\end{lemma}

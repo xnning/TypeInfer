@@ -830,3 +830,20 @@
             }{
             \tctx[\genA = \tau] \bywf \genA
             }\rname{SolvedEvarWF}}
+
+% ------------------------------------------------------------------------
+% EXAMPLES
+% ------------------------------------------------------------------------
+
+\newcommand*{\ExUni}{\inferrule{
+                                       \inferrule{\inferrule{ }
+                                                            {\tctx,\genA,\genB \bycg \genB \cgto \genA_1 \toctx}\rname{I-Evar2}
+                                                  \quad
+                                                  \inferrule{ }
+                                                            {\ctxl \bycg x \cgto x \toctx}\rname{I-Var}}
+                                                 {\tctx,\genA,\genB \bycg \bpi x \genB x \cgto \bpi x {\genA_1} x \toctx}\rname{I-Pi}
+                                      \quad
+                                      \inferrule{ %\inferrule{ }{\tctx,\genA_1 \bywf \genA_1}\rname{WF-EVar} \quad \inferrule{ }{\tctx,\genA_1,x \bywf x}\rname{WF-Var}
+                                                 }
+                                                {\tctx,\genA_1 \bywt \bpi x {\genA_1} x}}
+                               {\tctx,\genA,\genB \byuni \genA \uni \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1} \rname{U-EvarTy}}
