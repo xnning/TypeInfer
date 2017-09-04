@@ -1,6 +1,7 @@
 \section{Unification for Dependent Type System}
 
 \subsection{Language Overview}
+\label{subsec:language}
 
 The syntax of the system is shown below:\\
 
@@ -350,8 +351,8 @@ And as unification, we always apply intermediate output
 contexts to the input types to maintain the invariant that the types are fully
 substituted under current contexts.
 
-The sanitization process is remarkably simple. But it solves exactly what we
-want: correct the orders of existential variables so that we can focus on the
+The sanitization process is remarkably simple, while it solves exactly what we
+want: resolve the orders of existential variables so that we can focus on the
 orders that really matter.
 
 \subsection{Unification}
@@ -377,9 +378,11 @@ unification types in $\tau_1$ that are out of scope of $\genA$ are turned into
 fresh ones that are in the scope of $\genA$. This process gives us the output
 type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$.
 Finally, $\tau_2$ could also contain
-variables of which the
+variables whose
 orders matter, so
 we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
+Rule \rul{U-TyEVar} is symmetric to \rul{U-EVarTy}. Using well-scopedness
+instead of well-formedness gets us rid of the dependency on typing.
 
 \paragraph{Example.} Below shows the process for the unification problem
 $\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$.
@@ -390,10 +393,9 @@ easy to verify  $\genA \notin FV(\bpi x \genB x)$.
    \ExUni
 \]
 
-
 \paragraph{Comparison.}
 
-In \cite{dunfield2013complete}, they have no type sanitization because
+In \citet{dunfield2013complete}, they have no type sanitization because
 if one side is
 a unification variable $\genA$, and the other side is some type constructors, they will
 decompose the unification problem into several sub-unifications according to the
@@ -439,32 +441,91 @@ sanitizing Pi type instead of decomposing it.
 \begin{figure*}[t]
   \begin{mathpar}
     \framebox{$\tctx \exto \ctxl$}
-    {\quad Context~ Extension} \\
+     \\
     \CEEmpty \and \CEVar \and \CEEVar \and
     \CESolvedEVar \and \CESolve \and
     \CEAdd \and \CEAddSolved
   \end{mathpar}
-  \caption{Context Extension.}
+  \caption{Context extension.}
   \label{fig:context-extension}
 \end{figure*}
 
+We mentioned that the algorithm output context extends the input context with
+new existential variables or more existential variables solved. To accurately
+capture this kind of information increase, we present the definition of context
+extension in Figure~\ref{fig:context-extension},
+as similar in \citet{dunfield2013complete}.
+
+The empty context is an extension of itself (\rul{CE-Empty}). Existences of 
+variables or existential variables are preserved during the extension
+(\rul{CE-Var}, \rul{CE-EVar}), while the solutions for existential variables can
+be different only if they are equivalent under context application
+(\rul{CE-SolvedEVar}). The definition in \citet{{dunfield2013complete}} further
+allows the type annotation to change (in \rul{CE-Var}), which is not necessary for
+our algorithm. The extension can also add solutions to unsolved existential
+variables (\rul{CE-Solve}), or add new existential variables (\rul{CE-Add},
+\rul{CE-AddSolved}).
+
+\paragraph{Context application on contexts.}
+
+Complete contexts $\cctx$ are contexts with all existential variables solved, as
+defined in Section~\ref{subsec:language}. Applying a complete context to a
+well-formed type $\sigma$ yields a type without existential variables $\applye
+\cctx \sigma$. Similarly, we can also apply a complete context to a context that
+can extends to it to yield a context without existential variables. The formal
+definition of the operation is defined in
+Figure~\ref{fig:context-application-on-context}.
+
+\begin{figure*}[t]
+  \centering
+  \begin{tabular}{rlll}
+    $\applye {\emptyset} \emptyset$ & = & $\emptyset$ \\
+    $\applye {\cctx, x: \tau} {\tctx, x: \tau}$ & = & $\applye \cctx \tctx, x : \applye \cctx {\tau} $
+    \\
+    $\applye {\cctx, \genA = \tau} {\tctx, \genA}$ & = & $\applye \cctx \tctx$ \\
+    $\applye {\cctx, \genA = \tau_1} {\tctx, \genA = \tau_2}$ & = & $\applye \cctx \tctx$
+                                    & If $\applye \cctx {\tau_1} = \applye \cctx {\tau_2}$ \\
+    $\applye {\cctx, \genA = \tau_1} {\tctx}$ & = & $\applye \cctx \tctx$ \\
+  \end{tabular}
+    \caption{Context application.}
+    \label{fig:context-application-on-context}
+\end{figure*}
+
 \subsection{Soundness}
+
+We proved that our type sanitization strategy and the unification algorithm
+works is sound. First, we showed that the output context after type
+sanitization is really an extension of the input context:
 
 \begin{lemma}[\TypeSanitizationExtensionName]
   \TypeSanitizationExtensionBody
 \end{lemma}
 
+And except resolving the order problem, type sanitization will not change the
+type. Namely, the input type and the output type are equivalent after
+substitution by the output context:
+
 \begin{lemma}[\TypeSanitizationEquivalenceName]
   \TypeSanitizationEquivalenceBody
 \end{lemma}
+
+Moreover, if the input type is well-formed under the input context, then the
+output type is still well-formed under the output context:
 
 \begin{lemma}[\TypeSanitizationWellFormednessName]
   \TypeSanitizationWellFormednessBody
 \end{lemma}
 
+Having those lemmas related to type sanitization, we can prove the properties of
+the unification algorithm. For example, the output context of unification
+extends the input context:
+
 \begin{lemma}[\UnificationExtensionName]\leavevmode
   \UnificationExtensionBody
 \end{lemma}
+
+And finally, we can prove that two input types are really unified by the
+unification algorithm:
 
 \begin{lemma}[\UnificationEquivalenceName]\leavevmode
   \UnificationEquivalenceBody
@@ -472,17 +533,21 @@ sanitizing Pi type instead of decomposing it.
 
 \subsection{Completeness}
 
-\begin{lemma}[\TypeSanitizationCompletenessName]\leavevmode
-  \TypeSanitizationCompletenessBody
-\end{lemma}
+We use the notation $\tctx \bywf \tau_1 = \tau_2$ to mean that
+$\tctx \byinf \tau_1 \infto \sigma$, $\tctx \byinf \tau_2 \infto \sigma$ for
+some $\sigma$,
+and $\tau_1 = \tau_2$.
 
-\begin{corollary}[\TypeSanitizationCompletenessPrettyName]
-  \TypeSanitizationCompletenessPrettyBody
-\end{corollary}
+The completeness of type sanitization is proved by a more general lemma, which
+can be found in the appendix. The more readable version of the completeness of
+type sanitization is:
 
 \begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
   \TypeSanitizationCompletenessUnificationBody
 \end{lemma}
+
+Having the completeness of type sanitization, we are ready to prove that our
+unification algorithm is complete:
 
 \begin{lemma}[\UnificationCompletenessName]
   \label{lemma:\UnificationCompletenessName}
