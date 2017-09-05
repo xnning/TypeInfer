@@ -1,1 +1,176 @@
 \section{Higher Rank Polymorphic Type System}
+
+\subsection{Language}
+
+The syntax of \citet{dunfield2013complete} is given below. Notice there are
+notations reused from those in Section~\ref{sec:dependent}. We always
+make it clear from the contexts that which system is
+being referred. \\
+
+\begin{tabular}{lrcl}
+  Type & $A, B$ & \syndef & $\Unit \mid \varA \mid \genA \mid \forall \varA. A \mid A \to B $ \\
+  Monotype & $\sigma, \tau$ & \syndef & $\Unit \mid \varA \mid \genA \mid \sigma \to \tau $ \\
+  Contexts & $\tctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \tctx, \varA
+                                               \mid \tctx, x: A
+                                               \mid \tctx, \genA
+                                               \mid \tctx, \genA = \tau
+                                               \mid \tctx, \marker \genA $\\
+  Complete Contexts & $\cctx$ & \syndef & $\ctxinit \mid \cctx, \varA
+                                          \mid \cctx, x: A
+                                          \mid \cctx, \genA = \tau
+                                          \mid \cctx, \marker \genA $\\
+\end{tabular}
+
+\paragraph{Types.}
+Types $A, B$ include unit type $\Unit$, type variables $\varA$, existential
+variables $\genA$, polymorphic types $\forall \varA. A$ and function types $A
+\to B$.
+
+Monotypes $\sigma, \tau$ is a special kind of types without universal
+quantifiers.
+
+\paragraph{Contexts.}
+Contexts $\tctx$ are an ordered list of type variables $\varA$, variables $x:
+A$, existential variables $\genA$ and $\genA = \tau$, and special markers
+$\marker \genA$ for scoping reasons.
+
+And all existential variables in complete contexts $\cctx$ are solved.
+
+
+\subsection{Subtyping}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \bysub A \tsub B \toctx$}
+     \\
+    \ADunVar \and \ADunUnit \and
+    \ADunExvar \and \ADunArrow \and
+    \ADunForallL \and \ADunForallR \and
+    \ADunInstL \and \ADunInstR
+  \end{mathpar}
+  \caption{Algorithmic Subtyping (Original).}
+  \label{fig:subtyping}
+\end{figure*}
+
+The original definition of algorithmic subtyping is given in
+Figure~\ref{fig:subtyping}. The judgment $\tctx \bysub A \tsub B \toctx$ is
+interpreted as: given the context $\tctx$, $A$ is a subtype of $B$ under the
+output context $\ctxl$.
+The subtyping relation is reflexive (\rul{Var}, \rul{Exvar} and
+\rul{Unit}). The function type is contra-variant on the argument type,
+and co-variant on the return type (\rul{$\to$}). Here the intermediate context
+$\ctxl$ is applied to $A_2$ and $B_2$ to make sure the input types are fully
+substituted under the input context. In \rul{$\forall$L}, new existential
+variable $\genA$ is created to represent the universal quantifier. There is a
+marker before $\genA$ so that we can throw away all tailing contexts that are
+out of scope after the subtyping. Similarly, rule \rul{$\forall$R} puts a
+new type variable in the context and throw all contexts after the type variable.
+
+When the left hand side (\rul{InstL}) or the right hand side (\rul{InstR}) is an
+existential variable, the subtyping leaves all the work to the instantiation
+judgment ($\ist$). Due to the limitation of space, we put the complete
+definition of the instantiation relationship in the appendix.
+
+\subsection{Polymorphic Type Sanitization}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \bysub A \tsub B \toctx$} \\
+    \ADunSaL \and \ADunSaR
+  \end{mathpar}
+
+  \begin{mathpar}
+    \framebox{$\tctx[\genA] \bybsa A \sa \sigma \toctx$}
+     \\
+    \IAllPlus \and \IAllMinus \and
+    \IPiPoly \and \IUnit \and \ITVar \and
+    \IEVarAfterPoly \and \IEVarBeforePoly
+  \end{mathpar}
+  \caption{New subtyping rules, polymorphic type sanitization.}
+  \label{fig:polymorphic-sanitization}
+\end{figure*}
+
+The goal of polymorphic type sanitization is to replace the instantiation
+relationship with even simpler rules.
+
+Therefore, we replace the rules \rul{InstL} and \rul{InstR} with new rules
+\rul{SaL} and \rul{SaR} shown at the top of
+Figure~\ref{fig:polymorphic-sanitization}. Namely, the subtyping leaves the job
+to polymorphic type sanitization to resolve the order problem with existential
+variables and also sanitize the input type to a monotype, and finally checks
+that the sanitized job is well-formed under the context before $\genA$.
+If the type being sanitized appears on the right (as \rul{SaL}), we say it
+appears co-variantly, and we say it appears contra-variantly if it appears on
+the left (as \rul{SaR}). This corresponds to the fact that a polymorphic type
+can be a subtype of a monotype only if all the universal quantifiers appear
+contra-variantly in the type.
+
+The rules for polymorphic type sanitization are shown at the bottom of
+Figure~\ref{fig:polymorphic-sanitization}. According to whether the type appears
+co-variantly ($s = -$) or contra-variantly ($s = +$), we have two modes. The
+judgment $\tctx[\genA] \bybsa A \sa \sigma \toctx$ is interpreted as: under
+typing context $\tctx$ which contains $\genA$, sanitize a possibly polymorphic
+type $A$ to a monotype
+$\sigma$, with output context $\ctxl$. Computationally, there are three inputs
+($\tctx, \genA$ and $A$), and two outputs ($\sigma$ and $\ctxl$).
+
+The only difference between these two modes is how to sanitize polymorphic
+types. If a polymorphic type appears contra-variantly (\rul{I-All-Plus}), it
+means a monotype would make the final type more polymorphic. Therefore, we
+replace the universal binder $\varA$ with a fresh existential variable $\genB$
+and put it before $\genA$. Otherwise, in rule \rul{I-All-Minus}, we put $\varA$
+in the context and sanitize $A$. Notice the result $\sigma$ might not be
+well-formed under the output context $\ctxl$, since $\varA$ is discarded in the
+output context. Rule \rul{I-Pi-Poly} is where the mode is flipped.
+
+Polymorphic type sanitization does nothing if it is a unit type (\rul{I-Unit})
+or type variable (\rul{I-TVar}). Rule \rul{I-EVarAfter-Poly} and
+\rul{I-EVarBefore-Poly} deals with existential variables, and create fresh
+existential variables if the input existential variable appears after $\genA$,
+as we have seen in type sanitization in Section~\ref{subsec:type-sanitization}.
+
+\subsection{Example}
+
+\subsection{Meta-theory}
+
+The soundness and completeness of subtyping relies on the soundness and
+completeness of instantiation in \citet{dunfield2013complete}. To prove
+polymorphic type sanitization works correctly, there is no need to re-prove the
+lemmas about subtyping. Instead, we prove that polymorphic type sanitization
+leads to exactly the same result as instantiation.
+
+For soundness, we prove that
+under contra-variant mode ($s = +$), the input type is a
+declarative subtype of the output type after substituted by a complete context,
+while under co-variant mode ($s = -$), the input type is a declarative supertype:
+
+\begin{lemma}[\PolymorphicTypeSanitizationSoundnessName]\leavevmode
+  \label{lemma:\PolymorphicTypeSanitizationSoundnessName}
+  \PolymorphicTypeSanitizationSoundnessBody
+\end{lemma}
+
+For completeness, we first prove that for a possibly polymorphic type $\applye
+\cctx A$, if there is a monotype $\tau$ that is more polymorphic than it, there
+is a polymorphic type sanitization result $\sigma$ of $A$, and it is the most
+general subtype in the sense that we can recover the $\tau$ from applying a
+complete context to $\sigma$.
+
+\begin{lemma}[\PolymorphicTypeSanitizationCompletenessName]
+  \label{lemma:\PolymorphicTypeSanitizationCompletenessName}
+  \PolymorphicTypeSanitizationCompletenessBody
+\end{lemma}
+
+Based on the completeness of polymorphic type sanitization, we can prove exactly
+the same completeness lemma as the instantiation to show that subtyping for
+existential variables is complete:
+
+\begin{corollary}[\PolymorphicTypeSanitizationCompletenessSubtypingName]
+  \label{lemma:\PolymorphicTypeSanitizationCompletenessSubtypingName}
+  \PolymorphicTypeSanitizationCompletenessSubtypingBody
+\end{corollary}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% org-ref-default-bibliography: "citation.bib"
+%%% End:

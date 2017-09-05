@@ -747,52 +747,66 @@
 \newcommand*{\ADunVar}{\inferrule{
             }{
             \tctx[\varA] \bysub \varA \tsub \varA \toctxo[\varA]
-            }\rname{$\tsub$Var}}
+            }\rname{Var}}
 
 \newcommand*{\ADunUnit}{\inferrule{
             }{
             \tctx \bysub \Unit \tsub \Unit \toctxo
-            }\rname{$\tsub$Unit}}
+            }\rname{Unit}}
 
 \newcommand*{\ADunExvar}{\inferrule{
             }{
             \tctx[\genA] \bysub \genA \tsub \genA \toctxo[\genA]
-            }\rname{$\tsub$Exvar}}
+            }\rname{Exvar}}
 
 \newcommand*{\ADunArrow}{\inferrule{
             \tctx \bysub B_1 \tsub A_1 \toctx
          \\ \ctxl \bysub \applye \ctxl {A_2} \tsub \applye \ctxl {B_2} \toctxr
             }{
             \tctx \bysub A_1 \to A_2 \tsub B_1 \to B_2 \toctxr
-            }\rname{$\tsub \to$}}
+            }\rname{$\to$}}
 
 \newcommand*{\ADunForallL}{\inferrule{
             \tctx, \marker \genA, \genA \bysub A \subst \genA \varA \tsub B \toctxr, \marker \genA, \ctxl
             }{
             \tctx \bysub \forall \varA. A \tsub B \toctxr
-            }\rname{$\tsub \forall$L}}
+            }\rname{$\forall$L}}
 
 \newcommand*{\ADunForallR}{\inferrule{
             \tctx, \varA \bysub A \tsub B \toctxr, \varA, \ctxl
             }{
             \tctx \bysub A \tsub \forall \varA. B \toctxr
-            }\rname{$\tsub \forall$R}}
+            }\rname{$\forall$R}}
 
 \newcommand*{\ADunInstL}{\inferrule{
+            \genA \notin FV(A)
+         \\ \tctx[\genA] \byinst \genA \ist A \toctx
+            }{
+            \tctx[\genA] \byinst \genA \tsub A \toctx
+            }\rname{InstL}}
+
+\newcommand*{\ADunInstR}{\inferrule{
+            \genA \notin FV(A)
+         \\ \tctx[\genA] \byinst A \ist \genA \toctx
+            }{
+            \tctx[\genA] \byinst A \tsub \genA \toctx
+            }\rname{InstR}}
+
+\newcommand*{\ADunSaL}{\inferrule{
             \genA \notin FV(A)
          \\ \tctx[\genA] \bymsa A \sa \sigma \toctx, \genA, \ctxr
          \\ \ctxl \bywf \sigma
             }{
             \tctx[\genA] \bysub \genA \tsub A \toctx, \genA = \sigma, \ctxr
-            }\rname{$\tsub$InstL}}
+            }\rname{SaL}}
 
-\newcommand*{\ADunInstR}{\inferrule{
+\newcommand*{\ADunSaR}{\inferrule{
             \genA \notin FV(A)
          \\ \tctx[\genA] \bypsa A \sa \sigma \toctx, \genA, \ctxr
          \\ \ctxl \bywf \sigma
             }{
             \tctx[\genA] \bysub A \tsub \genA \toctx, \genA = \sigma, \ctxr
-            }\rname{$\tsub$InstR}}
+            }\rname{SaR}}
 
 % ------------------------------------------------------------------------
 % DUNFIELD WELL FORMEDNESS

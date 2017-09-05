@@ -84,7 +84,6 @@
 \newcommand{\To}{\Rightarrow}
 \newcommand{\Chk}{\Downarrow}
 \newcommand{\Inf}{\Uparrow}
-\newcommand{\Inst}{{inst}}
 \newcommand{\Gen}{{gen}}
 \newcommand{\eq}{\sim}
 \newcommand{\lt}{\sqsubseteq}
@@ -170,13 +169,14 @@
 \newcommand{\app}{\bullet}
 \newcommand{\byall}{\vdash_\delta}
 \newcommand{\bytar}{\vdash}
-\newcommand{\byinst}{\vdash_\Inst}
 \newcommand{\bygen}{\vdash_\Gen}
 \newcommand{\bysub}{\vdash}
 \newcommand{\byesub}{\vdash_e}
 \newcommand{\byssub}{\vdash_\sigma}
 \newcommand{\bybsub}{\vdash_\delta}
 \newcommand{\bydsub}{\vdash}
+\newcommand{\byinst}{\vdash}
+\newcommand{\ist}{:\leqq}
 \newcommand{\bycg}{\vdash}
 \newcommand{\byrf}{\vdash}
 \newcommand{\bywf}{\vdash}
@@ -190,7 +190,6 @@
 \newcommand{\dpreapp}[1][]{\dctx {#1} \byapp}
 \newcommand{\dpreuni}[1][]{\dctx {#1} \byuni}
 \newcommand{\dpretar}[1][]{\dtctx {#1} \bytar}
-\newcommand{\dpreinst}[1][]{\dctx {#1} \byinst}
 \newcommand{\dpregen}[1][]{\dctx {#1} \bygen}
 \newcommand{\dprecg}[1][]{\dctx {#1} \bycg}
 \newcommand{\dprewf}[1][]{\dctx {#1} \bywf}
@@ -202,7 +201,6 @@
 \newcommand{\tpreapp}[1][]{\tctx {#1} \byapp}
 \newcommand{\tpreuni}[1][]{\tctx {#1} \byuni}
 \newcommand{\tpretar}[1][]{\ttctx {#1} \bytar}
-\newcommand{\tpreinst}[1][]{\tctx {#1} \byinst}
 \newcommand{\tpregen}[1][]{\tctx {#1} \bygen}
 \newcommand{\tprecg}[1][]{\tctx {#1} \bycg}
 \newcommand{\tprewf}[1][]{\tctx {#1} \bywf}

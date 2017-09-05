@@ -1,4 +1,5 @@
 \section{Unification for Dependent Type System}
+\label{sec:dependent}
 
 \subsection{Language Overview}
 \label{subsec:language}
@@ -223,6 +224,7 @@ bound in the typing contexts.
 
 
 \subsection{Type Sanitization}
+\label{subsec:type-sanitization}
 
 As we mentioned before, our unification is based on alpha-equality. So in most
 cases, the unification rules are intuitively structural. The most difficult
@@ -493,9 +495,15 @@ Figure~\ref{fig:context-application-on-context}.
 
 \subsection{Soundness}
 
+Although our overall framework for proofs is quite similar as
+\citet{dunfield2013complete}, unlike their work that always implicitly assume
+the contexts and types involved are well-formed, we put much extra efforts on
+dealing with the well-formedness and the typing explicitly since we have to resolve the dependency carefully.
+
 We proved that our type sanitization strategy and the unification algorithm
-works is sound. First, we showed that the output context after type
-sanitization is really an extension of the input context:
+are sound.
+First, we showed that the output context after type
+sanitization is indeed an extension of the input context:
 
 \begin{lemma}[\TypeSanitizationExtensionName]
   \TypeSanitizationExtensionBody
@@ -542,7 +550,15 @@ The completeness of type sanitization is proved by a more general lemma, which
 can be found in the appendix. The more readable version of the completeness of
 type sanitization is:
 
+\begin{corollary}[\TypeSanitizationCompletenessPrettyName]
+  \label{lemma:\TypeSanitizationCompletenessPrettyName}
+  \TypeSanitizationCompletenessPrettyBody
+\end{corollary}
+
+\noindent which leads directly to the relation with subtyping:
+
 \begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
+  \label{lemma:\TypeSanitizationCompletenessUnificationName}
   \TypeSanitizationCompletenessUnificationBody
 \end{lemma}
 
