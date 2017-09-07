@@ -861,3 +861,55 @@
                                                  }
                                                 {\tctx,\genA_1 \bywt \bpi x {\genA_1} x}}
                                {\tctx,\genA,\genB \byuni \genA \uni \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1} \rname{U-EvarTy}}
+
+
+% ------------------------------------------------------------------------
+% TYPE INFERENCE IN CONTEXT
+% ------------------------------------------------------------------------
+
+\newcommand*{\Ignore}{\inferrule{
+            \tctx \ctxsplit \Xi \byinf \genA \equiv \tau \toctx
+         \\ v \notin FTV(\genA, \tau, \Xi)
+            }{
+            \tctx, v \ctxsplit \Xi \byinf \genA \equiv \tau \toctx
+            }\rname{Ignore}}
+
+\newcommand*{\Depend}{\inferrule{
+            \tctx \ctxsplit \genB, \Xi \byinf \genA \equiv \tau \toctx
+         \\ \genB \in FVT(\tau, \Xi)
+            }{
+            \tctx, \genB \ctxsplit \Xi \byinf \genA \equiv \tau \toctx
+            }\rname{Depend}}
+
+\newcommand*{\Define}{\inferrule{
+            }{
+            \tctx, \genA \ctxsplit \Xi \byinf \genA \equiv \tau \toctxo, \Xi, \genA = \tau
+            }\rname{Define}}
+
+% ------------------------------------------------------------------------
+% INSTANTIATION
+% ------------------------------------------------------------------------
+
+
+\newcommand*{\InstLSolve}{\inferrule{
+            \tctx_1 \bywt \tau
+            }{
+            \tctx_1, \genA, \tctx_2 \byuni \genA \ist \tau \toctxo_1, \genA = \tau, \tctx_2
+            }\rname{InstLSolve}}
+
+\newcommand*{\InstLReach}{\inferrule{
+            }{
+            \tctx[\genA][\genB] \byinf \genA \ist \genB \toctxo[\genA][\genB = \genA]
+            }\rname{InstLReach}}
+
+\newcommand*{\InstLArr}{\inferrule{
+            \tctx[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2] \bywf A_1 \ist \genA_1 \toctx
+         \\ \ctxl \byinf \genA_2 \ist \applye \ctxl {A_2} \toctxr
+            }{
+            \tctx[\genA] \byinf \genA \ist A_1 \to A_2 \toctxr
+            }\rname{InstLArr}}
+
+\newcommand*{\InstRReach}{\inferrule{
+            }{
+            \tctx[\genA][\genB] \byinf \genB \ist \genA \toctxo[\genA][\genB = \genA]
+            }\rname{InstRReach}}

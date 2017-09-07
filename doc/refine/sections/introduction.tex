@@ -4,17 +4,21 @@ Contributions:
 
 \begin{itemize}
 \item \textbf{A strategy called \textit{type sanitization}} that helps resolve
-  the dependency between existential variables in the context, which strengthens
-  the approach of type inference in context to be applicable to more advanced
-  features, such as dependent types.
+  the dependency between existential variables in the context, which simplifies
+  but also strengthens the approach of type inference in context
+  \citep{gundry2010type} so that information increase can be reasoned in a more
+  syntactic way to ease the meta-theory proving. Also, we show that our strategy
+  is applicable to advanced features, such as dependent types.
 \item \textbf{A specification of a unification algorithm} for dependent type
   systems with controls over type-level computations and first-order
-  constraints. The algorithm is remarkably simple and predictable.
+  constraints. The algorithm is remarkably simple and predictable. We prove that
+  the algorithm is sound and complete.
 \item \textbf{A replacement of the higher-rank type instantiation} for an
   implicitly polymorphic type system with higher rank types
-  \citep{dunfield2013complete} . The design of \textit{polymorphic type
+  \citep{dunfield2013complete}. The design of \textit{polymorphic type
     sanitization} simplifies the subtyping for existential variables, and also
-  removes the problem of duplication in original instantiation.
+  removes the problem of duplication in original instantiation, while preserves
+  the completeness and soundness of subtyping.
 \end{itemize}
 
 %%% Local Variables:
