@@ -1,8 +1,14 @@
 \section{Overview}
+\label{sec:overview}
 
 This section provides background and gives an overview of our work.
 
 \subsection{Background and Motivation}
+
+In this section, we discuss the background of type inference in context, also a
+variant of this approach in a higher rank polymorphic type system. While
+presenting the key ideas of the work, we also talk about the challenges of each
+approach, which motivates our work.
 
 \subsubsection{Type Inference In Context.}
 
@@ -15,45 +21,44 @@ Specifically, information and constraints about variables are stored in the
 context, which is a list maintaining information order. For example\footnote{We
   adopt our notations and terminologies for the examples}:
 
-$\tctx_1 = \genA, f, \genB, t :\genB \to \genB$
+$\tctx_1 = \genA, \genB, x :\genB$
 
 Here $\genA, \genB$ are existential variables waiting to be solved, whose
 meaning is given by solutions:
 
-$\tctx_2 = \genA, f, \genB = \Int, t :\genB \to \genB$
+$\tctx_2 = \genA, \genB = \Int, x :\genB$
 
 Then unification problem becomes finding a more informative context that
 contains solutions for the existential variables so that two expressions are
-equivalent up to substitution of the solutions for existential variables. For
+equivalent up to substitution of the solutions. For
 example, $\tctx_2$ can be the solution context for unifying
 $\Int$ and $\genB$ under $\tctx_1$.
 
-Beside contexts being ordered, a key design of the approach is when unify
-existential variables with other types. In this case, unification needs to
-resolve the dependency between existential variables, for example, unify $\genA$
-with $\genB \to \genB$ under context $\genA, f, \genB, t : \genB \to \genB$.
-Here $\genB$ is out of the scope of $\genA$. The way they
-solve it is to examine variables in the context from the tail to the head,
-\textit{moves segments of context to the left if necessary}, until the
-existential variable being unified is found. This design is implemented by an
-additional context that the unification takes with it. This can be interpreted
-from judgment $\tctx \ctxsplit \Xi \byuni \genA \equiv \tau \toctx$, which is
-read as: given input context $\tctx$, $\Xi$, solve $\genA$ with $\tau$ succeeds
-and produce an output context $\ctxl$.
+Besides contexts being ordered, a key insight of the approach lies in how to
+unify existential variables with other types. In this case, unification needs to
+resolve the dependency between existential variables. Consider unifying $\genA$
+with $\genB \to \genB$ under context $\genA, \genB, x : \genB$. Here $\genB$ is
+out of the scope of $\genA$. The way they solve it is to examine variables in
+the context from the tail to the head, \textit{moves segments of context to the
+  left if necessary}, until the existential variable being unified is found.
+This design is implemented by an additional context that records the context
+needed to be moved. This can be interpreted from the judgment $\tctx \ctxsplit
+\Xi \byuni \genA \equiv \tau \toctx$, which is read as: given input context
+$\tctx$, $\Xi$, solve $\genA$ with $\tau$ succeeds and produces an output
+context $\ctxl$.
 
-The key rules involving in the process is given in
+The essential rules involving in this process is given in
 Figure~\ref{fig:inference-context}. If a variable is useless for the
 unification, it is ignored (\rul{Ignore}). Otherwise, if the variable is needed,
 but it is out of the scope of $\genA$, then it is moved to the additional
 context (\rul{Depend}). Finally we arrive at the variable we want to unify,
-which is $\genA$, we then insert the additional context before $\genA$, and
-solve $\genA = \tau$ (\rul{Define}). Therefore, the output context for the above
-unification problem is $\genB, \genA = \genB \to \genB, f, t: \genB \to \genB$.
-Note that $\genB$ is moved to the front of $\genA$.
+which is $\genA$, we then insert $\Xi$ before $\genA$, and solve $\genA = \tau$
+(\rul{Define}). Therefore, the output context for the above unification problem
+is $\genB, \genA = \genB \to \genB, x: \genB$. Note that $\genB$ is now placed
+in the front of $\genA$.
 
 \begin{figure*}[t]
   \begin{mathpar}
-    % \framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$} \\
     \Ignore \and \Depend \and \Define
   \end{mathpar}
   \caption{Unification between an existential variable and a type (incomplete).}
@@ -62,17 +67,17 @@ Note that $\genB$ is moved to the front of $\genA$.
 
 \paragraph{Challenges.}
 
-Moving type variables around is a feasible way to resolve the dependency between
-existential variables. However, the unpredictable context movements make the
-information increase hard to formalize and reason about. In this sense, the
+While moving type variables around is a feasible way to resolve the dependency
+between existential variables, the unpredictable context movements make
+the information increase hard to formalize and reason about. In this sense, the
 information increase of contexts is defined in a much \textit{semantic} way:
 $\ctxl$ is more informative than $\tctx$, if there exists a substitution $S$
 that for every $v \in \tctx$, we have $\ctxl \bywf S(v)$.
 
 This semantic definition makes it hard to prove meta-theory formally, especially
 when advanced features are involved. For example, in dependent type systems,
-typing and types/contexts well-formedness are usually coupled, which makes proof
-even more complicated.
+typing and types/contexts well-formedness are usually coupled, which brings even
+more complication to the proofs.
 
 \subsubsection{Application in Higher Rank Type System.}
 
@@ -87,30 +92,31 @@ even more complicated.
 \end{figure*}
 
 \citet{dunfield2013complete} also use ordered contexts as input and output for
-type inference for a higher rank type system. However, they do it in a more
-\textit{syntactic} way.
+type inference for a higher rank polymorphic type system. However, they do it in
+a more \textit{syntactic} way.
 
 Instead of moving variables to the left in the context, in their subtyping
 between existential variable and a type, which they call instantiation, they
-choose to destruct type constructors so that existential variables can be
-unified individually, then there are only two cases to discuss: whether the left
+choose to destruct type constructs so that existential variables can be unified
+individually, then there are only two cases to discuss: whether the left
 existential variable appears first, or the right one appears first.
 Specifically, Figure~\ref{fig:instantiation} shows the key idea of instantiation
 rules between an existential variable and a type. For space reason, we only
 present the rules when the left hand side is an existential variables; but the
-other cases are quite symmetric. We save the formal explanations for notations
-later to Section~\ref{sec:dependent}. Notice in \rul{InstLArr}, the existential
-variable $\genA$ is solved by a function type consisting of two fresh
-existential variables, and then the function is destructed to do instantiation
-successively. And \rul{InstLReach} and \rul{InstRReach} deals with the order
-problem easily.
+other case is quite symmetric. We save the formal explanations for notations
+later to Section~\ref{sec:dependent}. But we can still gain the a rough idea
+there. Notice in \rul{InstLArr}, the existential variable $\genA$ is solved by a
+function type consisting of two fresh existential variables, and then the
+function is destructed to do instantiation successively. Rule \rul{InstLReach}
+deals with the case he lhs appears first, and \rul{InstRReach} deals with the
+other case.
 
 In this way, the information increase of contexts, which they call context
 extension, is formalized in an intuitive and straightforward \textit{syntactic}
-way, which enables them to prove the meta-theory in a thorough and formal way.
-Due to the space limitation, the definition of context extension can be found in
-appendix. Our definition shown in Section~\ref{sec:context-extension} also
-mimics their definition.
+way, which enables them to prove the meta-theory thoroughly and formally. Due to
+the complete definition of context extension can be found in appendix. Our
+definition presented in Section~\ref{sec:context-extension} also mimics their
+definition.
 
 \paragraph{Challenges.} While destructing type constructors makes perfect sense
 in their setting, it cannot deal with dependent types correctly. For example,
@@ -123,15 +129,99 @@ typed, we need to put $x$ before $\genA_2$ into the context. However, this means
 $x$ will remain in the context, and it is available for any later existential
 variable that should not have access to $x$.
 
-Also, destruction creates symmetric rules, for example, the rules in
+Also, destruction causes symmetric rules. The rules in
 Figure~\ref{fig:instantiation} is repeated for the cases when the existential
-variable is on the right. For example, there is a corresponding \rul{InstRArr}
-for the case the existential duplication This kind of ``duplication'' would grow
-with the increase of type constructors.
+variable is on the right. For example, there will be a \rul{InstRArr}
+corresponding to \rul{InstLArr}. This kind of ``duplication'' would grow with
+the increase of type constructs.
 
 \subsection{Type Sanitization}
+\label{subsec:sanitization}
 
-\subsection{Generalize Instantiation}
+Type sanitization provides another way to resolve dependency between existential
+variables. It combines two advantages of the previous approaches. First, it only
+makes predictable and reasonable context changes, so that information increase
+can still be modeled as \textit{syntactic} context extension, which ease the
+meta-theory proving. Also, it will not destruct types, so it is suitable for
+features like dependent types, and it causes no duplication.
+
+To understand how type sanitization works, we revisit the unification
+problem: given context
+
+$\genA, \genB, x: \genB$
+
+\noindent we want to unify $\genA$ with $\genB \to \genB$. The problem here is
+that $\genB$ is out of the scope of $\genA$. Therefore, we first ``sanitize''
+the type $\genB \to \genB$. The process of type sanitization will sanitize the
+existential variables in right hand side that are out of the scope of $\genA$ by
+solving them with fresh existential variables that is put in front of $\genA$.
+Specifically, we will solve
+$\genB$ with a fresh variable $\genA_1$, which results in an output context
+
+$\genA_1, \genA, \genB = \genA_1, x: \genB$
+
+Notice that $\genA_1$ is inserted right before $\genA$. Now the unification
+problem becomes unifying $\genA$ with $\genA_1 \to \genA_1$, and $\genA_1 \to
+\genA_1$ is a valid solution for $\genA$. Therefore, we get a final solution
+context:
+
+$\genA_1, \genA = \genA_1 \to \genA_1, \genB = \genA_1, x : \genB$.
+
+\paragraph{Interpretation of Type Sanitization.}
+The philosophy behind moving existential variables around in the approach of
+type inference in context \citep{gundry2010type}, the symmetric rules
+\rul{InstLReach} and \rul{InstRReach} \citep{dunfield2013complete}, and the
+approach of type sanitization is: \textit{the relative order between existential
+  variables does not matter}.
+
+This is kind of going against the design principle that the contexts are ordered
+lists. However, the fact that contexts are ordered is still important for
+variables \textit{whose order matter}. For instance, for polymorphic types, the
+order between existential variables ($\genA$) and type variables ($\varA$) is
+important, so you cannot unify $\genA$ with $\varA$ under the context $(\genA,
+\varA)$ since $\varA$ is not in the scope of $\genA$. A similar reason exists in
+dependent type systems: you cannot unify $\genA$ with $x$ if $x$ appears behind
+$\genA$ in the context.
+
+\subsection{Application: Unification for Dependent Types}
+
+As a first illustration of the utility of the type sanitization, we present a
+unification algorithm for dependent types with alpha-equality based
+first-order constrains.
+
+\paragraph{Explicit Casts.}
+
+Type systems with explicit controls on type-level computation has been adopted
+in several dependent type calculi \cite{???} since it allows type system to have
+both general recursion and decidable type checking at the same time. In order to
+have type-level computations, explicit casts are forced, which is implemented by
+two language constructs: $\castdn e$ that does one-step beta reduction on the
+type of $e$, and $\castup e$ that does one-step beta expansion on the type of
+$e$. For example, If given
+
+$e: (\blam x \Int \star) ~ 3$
+
+\noindent Then we have
+
+$\castdn e : \star$
+
+$\castup (\castdn e) : (\blam x \Int \star) ~ 3$
+
+In these systems, type comparison is naturally based on alpha-equality. This
+simplifies the unification algorithm in the sense that unification can be mostly
+structural. However, we still need to deal with the dependency introduced by
+dependent types carefully, which is mainly reflected in the unification problems
+between existential variables.
+
+\paragraph{Type Sanitization In Dependent Type System.}
+Type sanitization is applicable to dependent type system. Consider the previous
+example that we unify $\genA$ with $\bpi x \genB x$. By the same process
+described in Section~\ref{subsec:sanitization}, we can sanitize the type to be
+$\bpi x {\genA_1} x$ without destructing the Pi type, and solve $\genA$ with
+$\bpi x {\genA_1} x$.
+
+\subsection{Polymorphic Type Sanitization}
+
 
 %%% Local Variables:
 %%% mode: latex

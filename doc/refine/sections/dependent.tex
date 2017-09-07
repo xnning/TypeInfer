@@ -25,10 +25,10 @@ a single sort $\star$ to represent the type of
 types,
 applications $e_1~e_2$,
 functions $\blam x \sigma e$,
-and Pi types
-$\bpi x {\sigma_1} {\sigma_2}$.
-$\castup e$ does beta expansion on the type of $e$,
-while $\castdn e$ does beta reduction on the type of $e$.
+Pi types
+$\bpi x {\sigma_1} {\sigma_2}$,
+$\castup e$ that does beta expansion,
+and $\castdn e$ that does beta reduction.
 
 \paragraph{Types.}
 Types $\tau, \sigma$ include existential variables $\genA$, and all the
@@ -223,15 +223,15 @@ bound in the typing contexts.
 \end{figure*}
 
 
-\subsection{Type Sanitization}
-\label{subsec:type-sanitization}
+\subsection{Unification}
+\label{subsec:unification}
 
 As we mentioned before, our unification is based on alpha-equality. So in most
-cases, the unification rules are intuitively structural. The most difficult
-one which is also the most essential one, is how to unify an existential variable
-with another type.
-In this section, we first present the judgment of unification,
-then we discuss those cases before we present the unification process.
+cases, the unification rules are intuitively structural. The most difficult one
+which is also the most essential one, is how to unify an existential variable
+with another type. In this section, we first present the judgment of
+unification, then we discuss those cases before we present the unification
+process.
 
 \paragraph{Judgment of unification.}
 
@@ -273,80 +273,24 @@ We assume this invariant is given with the inputs at the beginning,
 and the unification process would maintain it through the whole
 formalization.
 
-\paragraph{Variable Orders matter.}
+\paragraph{Process of type sanitization.}
 
-While unifying existential variable $\genA$ and type $\tau$, we tends to
-directly derive that $\genA = \tau$. But $\tau$ may not be a valid type as the
-solution for $\genA$.
-Consider a unification example:
+As we discuss in Section~\ref{sec:overview}, before unifying an existential
+variable with a type, we will first sanitize the type so that the existential
+variables in the type that are out of the scope are solved by fresh existential
+variables within the scope. We call this process \textit{type sanitization},
+which is formally defined in Figure \ref{fig:sanitization}. The judgment
+$\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$ is interpreted as: under the
+context $\tctx$, which contains an existential variable $\genA$, we sanitize all
+the existential variables in the type $\tau_1$ that appears before $\genA$,
+which results in a sanitized type $\tau_2$. Computationally, there are three
+inputs $\tctx$, $\genA$ and $\tau_1$, with one output $\tau_2$.
 
-\begin{lstlisting}
-$\tctx, \genA, x \byuni \genA \uni x$
-\end{lstlisting}
-
-\noindent which has no feasible solution,
-because $x$ is not in the scope of $\genA$.
-
-From this observation, it seems whenever we have the unification problem as
-
-\begin{lstlisting}
-$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
-\end{lstlisting}
-
-\noindent we need to check if $\tau$ is well-scoped in $\tctx$. Only if it
-satisfies the scope constraint, we can derive $\genA = \tau$.
-
-\paragraph{Unification variable orders do not matter.}
-
-However, there are unification problems that even if the type does not satisfies the
-scope constraint, it still has feasible solutions. Consider:
-
-\begin{lstlisting}
-$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$
-\end{lstlisting}
-
-Here because $\genB$ appears after $\genA$, we cannot directly derive $\genA =
-\bpi x \genB x$ which is ill typed.
-But this unification does have a solution context if we could sanitize the
-appearance of $\genB$ by solving it by a fresh unification variable $\genA_1$
-which is put in the scope of $\genA$, and then
-get an equivalent unification problem:
-
-\begin{lstlisting}
-$\tctx, \genA_1, \genA, \genB = \genA_1 \byuni \genA \uni \bpi x {\genA_1} x$
-\end{lstlisting}
-
-\noindent Then we can derive the solution of this equivalent unification problem:
-
-\begin{lstlisting}
-$\tctx, \genA_1, \genA = \bpi x {\genA_1} x, \genB = \genA_1$.
-\end{lstlisting}
-
-From this example, we can see that the orders of unification variables do not
-matter because we can always solve it by a fresh unification variable that
-satisfies the scope constraint. So for a unification problem
-
-\begin{lstlisting}
-$\tctx, \genA, \ctxr \byuni \genA \uni \tau$
-\end{lstlisting}
-
-\noindent we need to sanitize the unification variables in $\tau$
-before we check the scope constraint. We call this process \textit{type
-  sanitization}, which is given in Figure \ref{fig:sanitization}.
-The judgment $\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$ is interpreted as:
-under the context $\tctx$, which contains an existential variable $\genA$,
-we sanitize all the existential variables in the type $\tau_1$ that appears
-before $\genA$, which results in a sanitized type $\tau_2$.
-Computationally, there are three inputs $\tctx$, $\genA$ and $\tau_1$, with one
-output $\tau_2$.
-
-The most
-interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}.
-In \rul{I-EVarAfter},
-because $\genB$ appears after $\genA$, so we create a fresh unification variable
-$\genA_1$, which is put before $\genA$, and solve $\genB$ by $\genA_1$. In
-\rul{I-EVarBefore}, because $\genB$ is in the scope of $\genA$, so we leave it
-unchanged.
+The most interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}. In
+\rul{I-EVarAfter}, because $\genB$ appears after $\genA$, so we create a fresh
+unification variable $\genA_1$, which is put before $\genA$, and solve $\genB$
+by $\genA_1$. In \rul{I-EVarBefore}, because $\genB$ is in the scope of $\genA$,
+so we leave it unchanged.
 
 The rest rules are structural.
 And as unification, we always apply intermediate output
@@ -357,7 +301,7 @@ The sanitization process is remarkably simple, while it solves exactly what we
 want: resolve the orders of existential variables so that we can focus on the
 orders that really matter.
 
-\subsection{Unification}
+\paragraph{Process of unification.}
 
 Based on type sanitization, Figure \ref{fig:unification} presents the
 unification rules. Due to our design choice, there are two modes in the
@@ -386,7 +330,8 @@ we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
 Rule \rul{U-TyEVar} is symmetric to \rul{U-EVarTy}. Using well-scopedness
 instead of well-formedness gets us rid of the dependency on typing.
 
-\paragraph{Example.} Below shows the process for the unification problem
+\paragraph{Example.}
+Below shows the process for the unification problem
 $\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$.
 For clarity, we denote $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1$. And it is
 easy to verify  $\genA \notin FV(\bpi x \genB x)$.
@@ -394,48 +339,6 @@ easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 \[
    \ExUni
 \]
-
-\paragraph{Comparison.}
-
-In \citet{dunfield2013complete}, they have no type sanitization because
-if one side is
-a unification variable $\genA$, and the other side is some type constructors, they will
-decompose the unification problem into several sub-unifications according to the
-type constructor, until type being unified is in the scope of $\genA$.
-If both
-sides are unification variables, they will take two cases into consideration:
-the left one appears first in the context, or the right one.
-For example, a decomposing rule for
-unification where the left hand side is a function type is:
-
-
-\[
-  \inferrule{
-     \tctx [\genA_2, \genA_2, \genA = \genA_1 \to \genA_2] \byuni \genA_1 \uni \tau_1
-     \toctx
-  \\ \ctxl \byuni [\ctxl]\tau_2 \uni \genA_2 \dashv \ctxr
-  }{
-     \tctx [\genA] \byuni \tau_1 \to \tau_2 \uni \genA \dashv \ctxr
-  }
-\]
-
-Here the original unification variable $\genA$ is solved by a function type
-consisting of two fresh
-unification variables $\genA_1$ and $\genA_2$, which are then unified with
-$\tau_1$ and $\tau_2$ sequentially.
-However, this cannot hold with dependent types. For example consider we apply this rule to
-this specific unification:
-
-$\tpreuni \genA \uni \bpi x \star x $
-
-\noindent It is obvious that $\genA_2$ should be solved by $x$. So in order to make
-it well typed, we need to put $x$ before $\genA_2$
-into the context.
-However, this means $x$ will remain in the context, and it is available
-for any later unification variable that
-should not have access to $x$.
-Type sanitization solves this problem by
-sanitizing Pi type instead of decomposing it.
 
 \subsection{Context Extension}
 \label{sec:context-extension}
