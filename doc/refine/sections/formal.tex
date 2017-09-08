@@ -862,6 +862,20 @@
                                                 {\tctx,\genA_1 \bywt \bpi x {\genA_1} x}}
                                {\tctx,\genA,\genB \bysuni \genA \uni \bpi x \genB x \toctxo, \genA_1, \genA=\bpi x {\genA_1} x, \genB=\genA_1} \rname{U-EvarTy}}
 
+\newcommand*{\ExSub}{\inferrule{
+                                       \inferrule{\inferrule{
+                                       \ctxl \bypsa \genB \to \genB \sa \genB \to \genB \toctx
+                                       }
+                                                            {\genA \bypsa \forall \varA. \varA \to \varA \sa \genB \to \genB \toctx}\rname{I-All-Plus}
+                                                  \quad
+                                                  \inferrule{ }
+                                                            {\ctxl \bymsa \Unit \sa \Unit \toctx}\rname{I-Unit}}
+                                                 {\genA \bymsa (\forall \varA. \varA \to \varA) \to \Unit \sa (\genB \to \genB) \to \Unit \toctx}\rname{I-Pi-Poly}
+                                      \quad
+                                      \inferrule{
+                                                 }
+                                                {\genB \bywf (\genB \to \genB) \to \Unit}}
+                               {\genA \bysub \genA \tsub (\forall \varA. \varA \to \varA) \to \Unit \dashv \genB, \genA = (\genB \to \genB) \to \Unit} \rname{SaL}}
 
 % ------------------------------------------------------------------------
 % TYPE INFERENCE IN CONTEXT
