@@ -19,7 +19,7 @@ The syntax of the system is shown below:\\
              \mid \cctx, \genA = \tau $ \\
 \end{tabular}
 
-\paragraph{Expressions. }
+\paragraph{Expressions.}
 Expressions $e$ include variables x,
 a single sort $\star$ to represent the type of
 types,
@@ -31,9 +31,9 @@ $\castup e$ that does beta expansion,
 and $\castdn e$ that does beta reduction.
 
 \paragraph{Types.}
-Types $\tau, \sigma$ include existential variables $\genA$, and all the
-expressions $e$.
-Notice that categories of expressions and types are stratified to make sure that
+Types $\tau, \sigma$ are the same as expressions, except types contain
+existential variables $\genA$.
+The categories of expressions and types are stratified to make sure that
 existential variables only appears in positions where types are expected.
 
 \paragraph{Contexts.}
@@ -64,9 +64,9 @@ $\tctx[\genA = \star]$ means the context keeps unchanged except $\genA$
 now is solved by $\star$.
 
 \paragraph{Applying Contexts.} Since the context records all the solutions of
-solved unification variables, it can be used as a substitution. Figure
+solved existential variables, it can be used as a substitution. Figure
 \ref{fig:context-application} defines the substitution process, where all solved
-unification variables are substituted by their solutions.
+existential variables are substituted by their solutions.
 
 \begin{figure*}[t]
   \centering
@@ -235,14 +235,19 @@ process.
 
 \paragraph{Judgment of unification.}
 
-The unification problem is formalized as:
+Due to our design choice, there are two modes in the
+unification: expressions, and types. The expression mode ($\delta = e$) does
+unification between expressions, while the type mode ($\delta = \sigma$) does
+unification between types.
+The judgment of unification problem is formalized as:
 
 \begin{lstlisting}
-$\tpreuni \tau_1 \uni \tau_2 \toctx$
+$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$
 \end{lstlisting}
 
 The input of the unification is the current context $\tctx$, and two types
-$\tau_1$ and $\tau_2$ that are being unified. The output of the unification
+(if $\delta = \sigma$) or two expressions (if $\delta = e$).
+The output of the unification
 is a new context $\ctxl$ which extends the original context with probably more
 new existential variables or more existing
 existential variables solved.
@@ -251,7 +256,7 @@ Section~\ref{sec:context-extension}.
 Following is an example of a unification problem:
 
 \begin{lstlisting}
-$\genA \byuni \genA \uni \Int \dashv \genA = \Int$
+$\genA \bysuni \genA \uni \Int \dashv \genA = \Int$
 \end{lstlisting}
 
 \noindent where we want to unify $\genA$ with $\Int$ under the input context
@@ -266,7 +271,7 @@ fully applied under the input context}.
 unification problem input:
 
 \begin{lstlisting}
-$\genA = \Bool \byuni \genA \uni \Int$
+$\genA = \Bool \bysuni \genA \uni \Int$
 \end{lstlisting}
 
 We assume this invariant is given with the inputs at the beginning,
@@ -288,7 +293,7 @@ inputs $\tctx$, $\genA$ and $\tau_1$, with one output $\tau_2$.
 
 The most interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}. In
 \rul{I-EVarAfter}, because $\genB$ appears after $\genA$, so we create a fresh
-unification variable $\genA_1$, which is put before $\genA$, and solve $\genB$
+existential variable $\genA_1$, which is put before $\genA$, and solve $\genB$
 by $\genA_1$. In \rul{I-EVarBefore}, because $\genB$ is in the scope of $\genA$,
 so we leave it unchanged.
 
@@ -298,41 +303,32 @@ contexts to the input types to maintain the invariant that the types are fully
 substituted under current contexts.
 
 The sanitization process is remarkably simple, while it solves exactly what we
-want: resolve the orders of existential variables so that we can focus on the
+want: resolve the order of existential variables so that we can focus on the
 orders that really matter.
 
 \paragraph{Process of unification.}
 
 Based on type sanitization, Figure \ref{fig:unification} presents the
-unification rules. Due to our design choice, there are two modes in the
-unification: expressions, and types. The expression mode ($\delta = e$) does
-unification between expressions, while the type mode ($\delta = \sigma$) does
-unification between types. The judgment $\tctx \bybuni \sigma_1 \uni \sigma_2
-\toctx$ is interpreted as: under the context $\tctx$, unifying two types (if
-$\delta = \sigma$) or two expressions (if $\delta = e$) $\sigma_1$ and
-$\sigma_2$ resulting in the output context $\ctxl$.
+unification rules.
 
 Rule \rul{U-AEq} corresponds to the case when two types are already
-alpha-equivalent. Most of the rest rules are structural.
-Two most subtle ones are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which
-corresponding respectively to when the unification variable is on the left and on the
-right. We go through the first one. There are three preconditions.
-First is the occurs check, which is to make sure $\genA$ does not appear in the
-free variables of $\tau_1$.
-Then we use type sanitization to make sure all the
-unification types in $\tau_1$ that are out of scope of $\genA$ are turned into
-fresh ones that are in the scope of $\genA$. This process gives us the output
-type $\tau_2$, and output context $\ctxl_1, \genA, \ctxl_2$.
-Finally, $\tau_2$ could also contain
-variables whose
-orders matter, so
-we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well scoped.
-Rule \rul{U-TyEVar} is symmetric to \rul{U-EVarTy}. Using well-scopedness
-instead of well-formedness gets us rid of the dependency on typing.
+alpha-equivalent. Most of the rest rules are structural. Two most subtle ones
+are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which corresponding respectively to
+when the existential variable is on the left and on the right. We go through the
+first one. There are three preconditions. First is the occurs check, which is to
+make sure $\genA$ does not appear in the free variables of $\tau_1$. Then we use
+type sanitization to make sure all the existential variables in $\tau_1$ that
+are out of scope of $\genA$ are turned into fresh ones that are in the scope of
+$\genA$. This process gives us the output type $\tau_2$, and output context
+$\ctxl_1, \genA, \ctxl_2$. Finally, $\tau_2$ could also contain variables whose
+order matters, so we use $\ctxl_1 \bywt \tau_2$ to make sure $\tau_2$ is well
+scoped. Rule \rul{U-TyEVar} is symmetric to \rul{U-EVarTy}. Using
+well-scopedness instead of well-formedness gets us rid of the dependency on
+typing.
 
 \paragraph{Example.}
 Below shows the process for the unification problem
-$\tctx, \genA, \genB \byuni \genA \uni \bpi x \genB x$.
+$\tctx, \genA, \genB \bysuni \genA \uni \bpi x \genB x$.
 For clarity, we denote $\ctxl = \tctx,\genA_1,\genA,\genB =\genA_1$. And it is
 easy to verify  $\genA \notin FV(\bpi x \genB x)$.
 
@@ -405,7 +401,7 @@ dealing with the well-formedness and the typing explicitly since we have to reso
 
 We proved that our type sanitization strategy and the unification algorithm
 are sound.
-First, we showed that the output context after type
+First, we show that the output context after type
 sanitization is indeed an extension of the input context:
 
 \begin{lemma}[\TypeSanitizationExtensionName]
@@ -458,7 +454,7 @@ type sanitization is:
   \TypeSanitizationCompletenessPrettyBody
 \end{corollary}
 
-\noindent which leads directly to the relation with subtyping:
+\noindent which leads directly to the unification between existential variables:
 
 \begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
   \label{lemma:\TypeSanitizationCompletenessUnificationName}
