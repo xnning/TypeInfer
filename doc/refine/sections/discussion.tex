@@ -1,1 +1,58 @@
 \section{Discussion}
+
+\subsection{Type Inference Algorithm For Dependent Types}
+
+In Section~\ref{sec:dependent}, we use unification algorithm for dependent types
+to show that type sanitization is applicable to advanced features. However,
+notice that the typing rules presented in Section~\ref{subsec:typing} works
+specifically for well-formedness of types. In other words, it is \textit{not} an
+algorithmic type system containing type inference. Therefore, readers may wonder:
+how can we design a type inference algorithm for practical usage based on the
+unification algorithm, and what is the relation between the type inference
+algorithm and the well-formedness typing rules? In this section, we discuss
+these two questions.
+
+\paragraph{Unification and Type Inference.} In a program, programmers may omit
+some type annotations, and the type system will try to infer them. A typical
+example is unannotated lambdas. For example
+
+$\erlam x {x + 1} $
+
+There is no annotation for the binder $x$, but the type system is able to
+recover that $x:\Int$ from the expression $x + 1$. This is done by generating a
+fresh existential variable $\genA$ for $x$, and then using the unification
+algorithm to unify $\genA$ with $\Int$. In summary, type inference generates
+existential variables that are waiting to be solved, while unification is in
+charge of finding the solutions according to the type constraints.
+
+Therefore, we can talk about unification separately from type inference. And
+type inference for dependent types is also a challenging topic, where the
+unification algorithm would definitely help with. Of course, in a type system
+with unannotated lambdas, we also need to extend the unification to deal with
+the new lambdas, which is not so complicated.
+
+\paragraph{Type Inference and Well-formedness.} Even if we are given an
+algorithmic type system containing type inference, the well-formedness system
+still works correctly as long as the definition of well-formedness not changed.
+Namely, any input type to the unification algorithm is already fully
+type-checked, therefore it will introduce no more new constraints. However,
+in our unification algorithm, well-formedness is only used for propositions,
+so we leave it non-deterministic for simplicity. If it is used in the
+algorithm, we would need to change it to an deterministic and decidable
+relation.
+
+\subsection{Feature Work}
+
+One possible future work is to apply the strategy of type sanitization to type
+systems with more advanced features. For example, the polymorphic type
+sanitization presented in Section~\ref{sec:higherrank} works specifically for
+subtyping between polymorphic types. We can try to extend type sanitization to
+other kind of subtyping, for instance, nominal subtyping and/or intersection
+types.
+
+Also, since type sanitization resolves unification problem between dependent
+types, another possible future work is to come up with a complete type inference
+algorithm for dependent types based on alpha-equality and first-order
+constraints. Also, extending the type sanitization to see whether if could play
+any roles in extended setting, such as beta-equality or higher-order constraints
+is also a feasible future work.
