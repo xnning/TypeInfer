@@ -1,6 +1,52 @@
 \section{Introduction}
 
-Contributions:
+Considering unification and/or type inference from a very general perspective
+helps to establish a common foundation to those kind of problems, which makes it
+applicative to various features. One of those perspectives is from information
+increase, which is specifically implemented by having contexts recording all the
+information including unification variables, with contexts as both the input and
+the output of the problem. \citet{gundry2010type} presents an implementation of
+Hindley-Milner \citep{damas1982principal,hindley69principal} type inference
+based on this idea to present a methodological understanding of this strategy.
+Also, \citet{dunfield2009greedy} uses this strategy to implement a greedy
+bidirectional typechecking algorithm for inferring polymorphic instances. Later
+on, \citet{dunfield2013complete} prove formal propositions of this strategy in a
+bi-directional algorithm for higher rank polymorphism.
+
+As mentioned in \citet{gundry2010type}, a longer-term objective of this strategy
+is to explain the elaboration of high-level dependently typed programs into
+fully explicit calculi. However, this objective is not achieved yet, which is
+possibly due to the complication of doing unification and/or type inference
+for dependent type systems.
+
+Dependent types are currently increasingly adopted in many language designs due
+to its expressiveness \citep{xi1999dependent, licata2005formulation,
+  pasalic2006concoqtion, mckinna2006dependent, norell2009dependently,
+  brady2013idris}. However, it is known that complete type inference or
+unification for dependent type system is generally undecidable. Still, there are
+many existing literatures aiming at providing some extent of unification for
+dependent type calculi \citep{ziliani2015unification, abel2011higher,
+  elliott1989higher}. While supporting many advanced features, those unification
+algorithm are complicated and hard to reason about.
+
+Due to the sophistication of type checking for dependent types, many recent
+studies \citep{van2013explicit, kimmell2012equational, sjoberg2012irrelevance,
+  sjoberg2015programming, stump2009verified, sulzmann2007system,
+  yang2016unified} attempt to use explicit casts to manage type-level
+computations. Casts are language constructs that control beta-reduction and
+beta-expansion of the type of an expression. Therefore, type equality is based
+on alpha-equality, and beta reductions are managed explicitly. In those type
+systems, we can have general recursion without losing decidable type checking.
+
+In this paper, we investigate how to adopt the approach of information increase
+in a unification algorithm for a dependent type system with
+explicit casts. We propose a strategy called \textit{type sanitization} that
+resolves the dependency problem introduced by dependent types. As we will see,
+this strategy simplifies the original approach of type inference in context.
+Also, to show that type sanitization is applicable to other features, we also
+extend it to \textit{polymorphic type sanitization} that deals with polymorphic
+subtyping in a higher rank polymorphic type system \citep{dunfield2013complete}.
+Specifically, our main contributions are:
 
 \begin{itemize}
 \item \textbf{A strategy called \textit{type sanitization}} that helps resolve
