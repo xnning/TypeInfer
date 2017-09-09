@@ -54,6 +54,14 @@
 \maketitle
 
 \begin{abstract}
+  Type inference in context is a general foundation for unification/type
+  inference algorithm, which is modeled based on information increase. In this
+  paper, we propose a strategy called \textit{type sanitization} that helps
+  resolve the dependency between existential variables in the framework of type
+  inference in context. We first apply this strategy to a unification algorithm
+  for a dependent type system with alpha-equality first-order constraints. We
+  then further extend this strategy to deal with polymorphic subtyping in a
+  higher rank polymorphic type system.
 \end{abstract}
 
 \input{sections/formal.tex}
