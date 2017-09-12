@@ -2,45 +2,60 @@
 
 Considering unification and/or type inference from a very general perspective
 helps to establish a common foundation to those kind of problems, which makes it
-applicative to various features. One of those perspectives is from information
-increase, which is specifically implemented by having contexts recording all the
+applicable to various programming language features. One of those
+perspectives is from the point-of-view of information 
+increase. Information increase in type-inference is implemented by having contexts recording all the
 information including unification variables, with contexts as both the input and
 the output of the problem. \citet{gundry2010type} presents an implementation of
 Hindley-Milner \citep{damas1982principal,hindley69principal} type inference
 based on this idea to present a methodological understanding of this strategy.
 Also, \citet{dunfield2009greedy} uses this strategy to implement a greedy
 bidirectional typechecking algorithm for inferring polymorphic instances. Later
-on, \citet{dunfield2013complete} prove formal propositions of this strategy in a
+on, \citet{dunfield2013complete} provide a meta-theoretical 
+foundation for this strategy in a
 bi-directional algorithm for higher rank polymorphism.
 
-As mentioned in \citet{gundry2010type}, a longer-term objective of this strategy
+As mentioned by \citet{gundry2010type}, a longer-term objective of this strategy
 is to explain the elaboration of high-level dependently typed programs into
-fully explicit calculi. However, this objective is not achieved yet, which is
-possibly due to the complication of doing unification and/or type inference
-for dependent type systems.
+fully explicit calculi. However, this objective has not yet been
+achieved, since unification and/or type inference
+for dependent type systems is still understudied, causing difficulties
+to the application of the type inference in context approach.
 
-Dependent types are currently increasingly adopted in many language designs due
-to its expressiveness \citep{xi1999dependent, licata2005formulation,
+Dependent types are increasingly being adopted in many language designs due
+to their expressiveness \citep{xi1999dependent, licata2005formulation,
   pasalic2006concoqtion, mckinna2006dependent, norell2009dependently,
   brady2013idris}. However, it is known that complete type inference or
-unification for dependent type system is generally undecidable. Still, there are
-many existing literatures aiming at providing some extent of unification for
+unification for many dependent type systems is undecidable. In
+particular the beta-equality, which is commonly employed in
+dependently type systems, is a major source of difficulty.
+There is
+much literature aiming at providing restricted forms of unification for
 dependent type calculi \citep{ziliani2015unification, abel2011higher,
   elliott1989higher}. While supporting many advanced features, those unification
-algorithm are complicated and hard to reason about.
+algorithms are fairly complicated and hard to reason about.
+\bruno{Say more as to why beta-equality is a main complication?}
+However beta-equality is not the only problem. Other complications
+arize from the dependencies introduced by dependent types.
 
-Due to the sophistication of type checking for dependent types, many recent
+Due to the sophistication of type checking for dependent types in the
+presence of beta-equality, many recent
 studies \citep{van2013explicit, kimmell2012equational, sjoberg2012irrelevance,
   sjoberg2015programming, stump2009verified, sulzmann2007system,
   yang2016unified} attempt to use explicit casts to manage type-level
-computations. Casts are language constructs that control beta-reduction and
-beta-expansion of the type of an expression. Therefore, type equality is based
-on alpha-equality, and beta reductions are managed explicitly. In those type
-systems, we can have general recursion without losing decidable type checking.
+computation. Type casts are language constructs that control beta-reduction and
+beta-expansion of the type of an expression. Therefore, type equality
+in those systems is based
+on \emph{alpha-equality}, and beta reductions are managed
+explicitly. While such type systems may lose some convenience over 
+traditional dependent types, there are also some benefits. 
+One particular benefit is that type casts 
+are a very easy way to introduce general recursion without losing 
+various interesting properties (such as decidable type checking).
 
 In this paper, we investigate how to adopt the approach of information increase
 in a unification algorithm for a dependent type system with
-explicit casts. We propose a strategy called \textit{type sanitization} that
+explicit type casts. We propose a strategy called \textit{type sanitization} that
 resolves the dependency problem introduced by dependent types. As we will see,
 this strategy simplifies the original approach of type inference in context.
 Also, to show that type sanitization is applicable to other features, we also
@@ -49,17 +64,21 @@ subtyping in a higher rank polymorphic type system \citep{dunfield2013complete}.
 Specifically, our main contributions are:
 
 \begin{itemize}
-\item \textbf{A strategy called \textit{type sanitization}} that helps resolve
-  the dependency between existential variables in the context, which simplifies
-  but also strengthens the approach of type inference in context
-  \citep{gundry2010type} so that information increase can be reasoned in a more
-  syntactic way to ease the meta-theory proving. Also, we show that our strategy
-  is applicable to advanced features, such as dependent types.
+\item \textbf{A strategy called \textit{type sanitization}} that helps
+  to resolve
+  the dependency between existential variables in the context. This simplifies
+  and at the same time strengthens the approach of type inference in context
+  \citep{gundry2010type}. A key benefit is that information increase can be reasoned in a more
+  syntactic way making the meta-theory easier to study. 
+\item \textbf{We show that type sanitization works for dependent
+    types}. This is in contrast to previous work~\cite{}, which does
+  not immediately extend to systems with dependent types.~\bruno{true?
+  How about Dunfield's follow up paper?}
 \item \textbf{A specification of a unification algorithm} for dependent type
   systems with controls over type-level computations and first-order
   constraints. The algorithm is remarkably simple and predictable. We prove that
   the algorithm is sound and complete.
-\item \textbf{A replacement of the higher-rank type instantiation} for an
+\item \textbf{A replacement for higher-rank type instantiation} for an
   implicitly polymorphic type system with higher rank types
   \citep{dunfield2013complete}. The design of \textit{polymorphic type
     sanitization} simplifies the subtyping for existential variables, and also
