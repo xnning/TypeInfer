@@ -54,14 +54,16 @@
 \maketitle
 
 \begin{abstract}
-  Type inference in context is a general foundation for unification/type
-  inference algorithm, which is modeled based on information increase. In this
+  Gundry et al. proposed type inference in context as a general foundation for unification/type
+  inference algorithms. The key idea is based on the notion of information increase. In this
   paper, we propose a strategy called \textit{type sanitization} that helps
   resolve the dependency between existential variables in the framework of type
-  inference in context. We first apply this strategy to a unification algorithm
-  for a dependent type system with alpha-equality first-order constraints. We
+  inference in context.\bruno{Why do we need help; what is the
+    problem? Say this first} 
+  We show that type sanitization works on a unification algorithm
+  for a dependent type system with alpha-equality and first-order constraints. We
   then further extend this strategy to deal with polymorphic subtyping in a
-  higher rank polymorphic type system.
+  higher ranked polymorphic type system.
 \end{abstract}
 
 \input{sections/formal.tex}
