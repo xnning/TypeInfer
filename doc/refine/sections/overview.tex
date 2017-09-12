@@ -2,18 +2,18 @@
 \label{sec:overview}
 
 This section provides background and gives an overview of our work.
+We discuss the background of type inference in context~\cite{}, and also a
+variant of this approach in a higher rank polymorphic type system~\cite{}. While
+presenting the key ideas of the work, we also talk about the challenges of each
+approach, which motivates our work. Then we discuss the key ideas of
+type sanitization and polymorphic type sanitization as a way to solve
+those problems.
 
 \subsection{Background and Motivation}
 
-In this section, we discuss the background of type inference in context, also a
-variant of this approach in a higher rank polymorphic type system. While
-presenting the key ideas of the work, we also talk about the challenges of each
-approach, which motivates our work.
-
-\subsubsection{Type Inference In Context.}
-
+\paragraph{Type Inference In Context.}
 \citet{gundry2010type} models unification and type inference from a general
-perspective of information increase in the problem context in a ML-style
+perspective of information increase. The problem context is a ML-style
 polymorphic system, based on the invariant that types can only depend on
 bindings appearing earlier in the context.
 
@@ -23,12 +23,12 @@ context, which is a list maintaining information order. For example\footnote{We
 
 $\tctx_1 = \genA, \genB, x :\genB$
 
-Here $\genA, \genB$ are existential variables waiting to be solved, whose
-meaning is given by solutions:
+Here $\genA, \genB$ are existential variables waiting to be solved. Their
+meanings can be given by solutions, such as:
 
 $\tctx_2 = \genA, \genB = \Int, x :\genB$
 
-Then unification problem becomes finding a more informative context that
+Then the unification problem becomes finding a more informative context that
 contains solutions for the existential variables so that two expressions are
 equivalent up to substitution of the solutions. For
 example, $\tctx_2$ can be the solution context for unifying
@@ -38,9 +38,9 @@ Besides contexts being ordered, a key insight of the approach lies in how to
 unify existential variables with other types. In this case, unification needs to
 resolve the dependency between existential variables. Consider unifying $\genA$
 with $\genB \to \genB$ under context $\genA, \genB, x : \genB$. Here $\genB$ is
-out of the scope of $\genA$. The way they solve it is to examine variables in
-the context from the tail to the head, \textit{moves segments of context to the
-  left if necessary}, until the existential variable being unified is found.
+out of the scope of $\genA$. The way Gundry et al. solve this problem is to examine variables in
+the context from the tail to the head, \textit{moving segments of context to the
+  left if necessary}. The process finishes when the existential variable being unified is found.
 This design is implemented by an additional context that records the context
 needed to be moved. This can be interpreted from the judgment $\tctx \ctxsplit
 \Xi \byuni \genA \equiv \tau \toctx$, which is read as: given input context
@@ -98,14 +98,14 @@ a more \textit{syntactic} way.
 Instead of moving variables to the left in the context, in their subtyping
 between an existential variable and a type, which they call instantiation, they
 choose to decompose type constructs so that unification between existential
-variables can only happen between single variables,
- then there are only two cases to discuss: whether the left
+variables can only happen between single variables.
+Then there are only two cases to discuss: whether the left
 existential variable appears first, or the right one appears first.
 Specifically, Figure~\ref{fig:instantiation} shows the key idea of instantiation
-rules between an existential variable and a type. For space reason, we only
-present the rules when the left hand side is an existential variables; but the
-other case is quite symmetric. We save the formal explanations for notations
-later to Section~\ref{sec:dependent}. But we can still gain the a rough idea
+rules between an existential variable and a type. For space reasons, we only
+present the rules when the left hand side is an existential variable, but the
+other case is quite symmetric. We save the formal explanations for notation
+to Section~\ref{sec:dependent}. But we can still get the rough idea
 there. Notice in \rul{InstLArr}, the existential variable $\genA$ is solved by a
 function type consisting of two fresh existential variables, and then the
 function is decomposed to do instantiation successively. Rule \rul{InstLReach}
@@ -115,20 +115,23 @@ other case.
 In this way, the information increase of contexts, which is named context
 extension, is formalized in an intuitive and straightforward \textit{syntactic}
 way, which enables them to prove the meta-theory thoroughly and formally.
-The complete definition of context extension can be found in appendix. Our
+The complete definition of context extension can be found in
+appendix~\bruno{which appendix are you refering to? Ours or Dunfield?}. Our
 definition presented in Section~\ref{sec:context-extension} also mimics their
 definition.
 
 \paragraph{Challenges.} While destructing type constructors makes perfect sense
 in their setting, it cannot deal with dependent types correctly. For example,
-given the context $\genA, \genB$ and we want to unify $\genA$ with a dependent
+given the context $\genA, \genB$, suppose that we want to unify $\genA$ with a dependent
 type $\bpi x \genB x$. Here because $\genB$ appears after $\genA$, we cannot
 directly derive $\genA = \bpi x \genB x$ which is ill typed. However, if we try
 to decompose this Pi type, then according to rule \rul{InstLArr}, it is obvious
 that $\genA_2$ should be solved by $x$. In order to make the solution well
 typed, we need to put $x$ before $\genA_2$ into the context. However, this means
 $x$ will remain in the context, and it is available for any later existential
-variable that should not have access to $x$.
+variable that should not have access to $x$. In essence the strategy
+for simple function types presented by ~\citet{} does not work for
+dependent function types. 
 
 Another drawback of decomposition is that it produces duplication. The rules in
 Figure~\ref{fig:instantiation} is repeated for the cases when the existential
@@ -136,11 +139,11 @@ variable is on the right. For example, there will be a symmetric \rul{InstRArr}
 corresponding to \rul{InstLArr}. Worse, This kind of ``duplication'' would
 scales up with the type constructs in the system.
 
-\subsection{Type Sanitization}
+\subsection{Our Approach: Type Sanitization}
 \label{subsec:sanitization}
 
-Type sanitization provides another way to resolve dependency between existential
-variables. It combines the advantages of previous approaches. First, it is a
+Type sanitization provides another way to resolve the dependency between existential
+variables. It combines the advantages of the previous two approaches. First, it is a
 simple and quite predictable process, so that information increase can still be
 modeled as \textit{syntactic} context extension. Also, it will not decompose
 types, nor cause any duplication.
@@ -154,7 +157,7 @@ $\genA, \genB, x: \genB$
 that $\genB$ is out of the scope of $\genA$. Therefore, we first ``sanitize''
 the type $\genB \to \genB$. The process of type sanitization will sanitize the
 existential variables in right hand side that are out of the scope of $\genA$ by
-solving them with fresh existential variables that is put in front of $\genA$.
+solving them with fresh existential variables added to the front of $\genA$.
 Specifically, we will solve
 $\genB$ with a fresh variable $\genA_1$, which results in an output context
 
@@ -173,9 +176,12 @@ Moving existential variables around in the approach of type inference in context
 \citep{gundry2010type}, the symmetric rules \rul{InstLReach} and
 \rul{InstRReach} \citep{dunfield2013complete}, and the approach of type
 sanitization all enjoy the same philosophy: \textit{the relative order between
-  existential variables does not matter}.
+  existential variables does not matter}.\bruno{You mean unsolved type
+variables here, right?}\bruno{Also I don't think this statement is
+correct. We discussed before that swapping unsolved variables is not
+always correct in the general case.}
 
-This seems like kind of going against the design principle that the
+This seems like to go against the design principle that the
 contexts are ordered lists. However, keeping order is still important for
 variables \textit{whose order matter}. For instance, for polymorphic types, the
 order between existential variables ($\genA$) and type variables ($\varA$) is
@@ -196,31 +202,32 @@ first-order constrains.
 
 \paragraph{Explicit Casts.}
 
-Type systems with explicit controls on type-level computation has been adopted
-in several dependent type calculi \cite{???} since it allows type system to have
-both general recursion and decidable type checking at the same time. In order to
-have type-level computations, explicit casts are forced, which is implemented by
+Type systems with explicit type casts on type-level computation have been adopted
+in several dependent type calculi \cite{???}. In order to
+have type-level computations, explicit casts are needed to trigger the
+computation. In this work we adopt the approach by ~\cite{}, where
+type casts can be triggered by 
 two language constructs: $\castdn e$ that does one-step beta reduction on the
 type of $e$, and $\castup e$ that does one-step beta expansion on the type of
-$e$. For example, If given
+$e$. For example, given
 
 $e: (\blam x \Int \star) ~ 3$
 
-\noindent Then we have
+\noindent then we have
 
 $\castdn e : \star$
 
 $\castup (\castdn e) : (\blam x \Int \star) ~ 3$
 
-In these systems, type comparison is naturally based on alpha-equality. This
+In type systems with such type casts, type comparison is naturally based on alpha-equality. This
 simplifies the unification algorithm in the sense that unification can be mostly
 structural. However, we still need to deal with the dependency introduced by
 dependent types carefully, which is mainly reflected in the unification problems
 between existential variables.
 
 \paragraph{Type Sanitization In Dependent Type System.}
-Type sanitization is applicable to dependent type system. Consider the previous
-example that we unify $\genA$ with $\bpi x \genB x$. By a similar process
+Type sanitization is applicable to dependently type systems. Consider the previous
+example, where we unify $\genA$ with $\bpi x \genB x$. By a similar process
 described in Section~\ref{subsec:sanitization}, we can sanitize the type to be
 $\bpi x {\genA_1} x$ without destructing the Pi type, and solve $\genA$ with
 $\bpi x {\genA_1} x$.
@@ -237,16 +244,16 @@ $\bpi x {\genA_1} x$.
 % contained in the scope of $\genA$, therefore it remains unchanged.
 
 Based on type sanitization, we come up with a unification algorithm, which is
-later proved sound and complete.
+later proved to be sound and complete.
 
 \subsection{Polymorphic Type Sanitization For Subtyping}
 
 Instead of unification, the instantiation relation in
-\citet{dunfield2013complete} is actually aiming at dealing with polymorphic
+\citet{dunfield2013complete} is actually aiming at dealing with the polymorphic
 subtyping relation between existential variables and other types. Here we say
 type $A$ is a subtype of $B$ if and only if $A$ is more polymorphic than $B$.
-The difficulty of subtyping that it needs to take unification
-into account at the same time. For example, given $\genA$ is a subtype of
+The difficulty of subtyping is that it needs to take unification
+into account at the same time. For example, given that $\genA$ is a subtype of
 $\Int$, then the only possible solution is $\genA = \Int$. And if given $\forall
 a. a \to a$ is a subtype $\genA$, then a feasible solution can be $\genA = \Int
 \to \Int$.
@@ -258,7 +265,7 @@ $\genA$
 
 \noindent and that $\forall \varA. \varA \to \varA$ is a subtype of $\genA$, how
 can we sanitize the polymorphic type into a valid solution for an existential
-variable while solutions can only be monotype? One observation is that, the most
+variable while solutions can only be monotypes? One observation is that, the most
 general solution for this subtyping problem is $\genA = \genB \to \genB$ for
 fresh $\genB$. Namely, we remove the universal quantifier and replace the
 variable $a$ with a fresh existential variable that should be in the scope of
@@ -268,14 +275,14 @@ $\genB, \genA = \genB \to \genB$
 
 From this observation, we extend type sanitization to polymorphic type
 sanitization, which is able to resolve the polymorphic subtyping relation for
-existential variables. Since function types are contra-variant in argument
-types, and co-variant in return types, for example
+existential variables. Function types are contra-variant in argument
+types, and co-variant in return types. For example, we have that:
 
 $(\Int \to \Int) \to \Int \tsub (\forall \varA. \varA \to \varA) \to \Int $
 
 $\forall \varA. \varA \to \varA \tsub \Int \to \Int$
 
-\noindent according to the position the universal
+\noindent According to the position the universal
 quantifier appears, polymorphic type sanitization has two modes, which we call
 contra-variant mode and co-variant mode respectively.
 In contra-variant mode, the universal quantifier is replaced by a fresh
@@ -284,7 +291,7 @@ common type variable.
 
 We show that the original instantiation relationship in
 \citet{dunfield2013complete} can be replaced by our polymorphic type
-sanitization process, while the subtyping remains complete and sound.
+sanitization process, while the subtyping remains sound and complete.
 
 %%% Local Variables:
 %%% mode: latex
