@@ -41,18 +41,18 @@ so we leave it non-deterministic for simplicity. If it is used in the
 algorithm, we would need to change it to an deterministic and decidable
 relation.
 
-\subsection{Feature Work}
+\subsection{Future Work}
 
 One possible future work is to apply the strategy of type sanitization to type
 systems with more advanced features. For example, the polymorphic type
 sanitization presented in Section~\ref{sec:higherrank} works specifically for
 subtyping between polymorphic types. We can try to extend type sanitization to
-other kind of subtyping, for instance, nominal subtyping and/or intersection
-types.
+other kinds of subtyping, for instance, nominal subtyping and/or intersection
+types~\cite{}.
 
 Also, since type sanitization resolves unification problem between dependent
 types, another possible future work is to come up with a complete type inference
 algorithm for dependent types based on alpha-equality and first-order
-constraints. Also, extending the type sanitization to see whether if could play
+constraints. Extending the type sanitization to see whether if could play
 any roles in extended setting, such as beta-equality or higher-order constraints
 is also a feasible future work.

@@ -1,6 +1,6 @@
 \section{Related Work}
 
-\subsection{Type Inference in Contexts}
+\subsection{Type Inference in Context}
 
 We have discussed the work by \citet{gundry2010type} and
 \citet{dunfield2013complete} in Section~\ref{sec:overview}, which in some sense
@@ -11,39 +11,40 @@ order problem of existential variables, with different emphasizes.
 longer-term goal is to elaborate high-level dependently typed programs into
 fully explicit calculi. However they do not present the algorithm nor prove it.
 \citet{dunfield2013complete} use the strategy specifically for higher rank
-polymorphism, while as we have seen it cannot be applied to dependent types.
+polymorphism, while as we have seen their strategy cannot be applied to dependent types.
 
 \subsection{Unification for Dependent Types}
 
 Unification for dependent types has been a challenging topic for years. While
 our unification only solves first-order constraints based on alpha-equality,
-existing literatures take some advanced features into account, with the price
+existing literatures takes some advanced features into account, with the price
 that the algorithm is usually complicated to understand, and also the
 meta-theory is hard to prove. \citet{elliott1989higher} develop a higher order
 unification algorithm for dependent function types in the spirit of
 \citet{huet1975unification}, though the problem is undecidable.
 \citet{reed2009higher} comes up with a constraint simplification algorithm that
-works on dynamic pattern fragment of higher-order unification in a dependent
+works on dynamic pattern fragment of higher-order unification in a
+dependent\bruno{finish sentence}.
 Later, \citet{abel2011higher} propose a constraint-based unification algorithm
 that solves a richer class of patterns.
 \citet{ziliani2015unification} formalize the unification algorithm used in the
-language Coq\citep{coqsite}, which is quite sophisticated and the correctness
-proof is still lacked.
+language Coq~\citep{coqsite}, which is quite sophisticated and the correctness
+proof is lacking.
 
-\subsection{Type Inference for Higher Rank Type System}
+\subsection{Type Inference for Higher Rank Type Systems}
 
-Type inference involving higher ranks are well studied in recent years.
+Type inference involving higher ranks has been well studied in recent years.
 \citet{jones2007practical} develop an approach using traditional bi-directional
 type checking, which is built upon \citet{odersky1996putting}. In this system,
 subtyping and unification are separated, and unification is only between
 monotypes. \citet{dunfield2013complete} build a simple and concise algorithm for
 higher ranked polymorphism, which is also based on traditional bidirectional
 type checking. The instantiation in their system is introduced in
-Section~\ref{sec:overview}. These two systems are predictive, in the sense that
+Section~\ref{sec:overview}. These two systems are predicative, in the sense that
 universal quantifiers can only be instantiated with monotypes. There are also
 impredictive systems, including $ML^F$
 \citep{le2014mlf,remy2008graphic,le2009recasting}, the HML system
-\citep{leijen2009flexible}, the FPH system \citep{vytiniotis2008fph} and so on.
+\citep{leijen2009flexible} and the FPH system \citep{vytiniotis2008fph}.
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "../main"
