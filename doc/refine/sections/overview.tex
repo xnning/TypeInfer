@@ -122,16 +122,16 @@ definition.
 
 \paragraph{Challenges.} While destructing type constructors makes perfect sense
 in their setting, it cannot deal with dependent types correctly. For example,
-given the context $\genA, \genB$, suppose that we want to unify $\genA$ with a dependent
-type $\bpi x \genB x$. Here because $\genB$ appears after $\genA$, we cannot
-directly derive $\genA = \bpi x \genB x$ which is ill typed. However, if we try
-to decompose this Pi type, then according to rule \rul{InstLArr}, it is obvious
-that $\genA_2$ should be solved by $x$. In order to make the solution well
-typed, we need to put $x$ before $\genA_2$ into the context. However, this means
-$x$ will remain in the context, and it is available for any later existential
-variable that should not have access to $x$. In essence the strategy
-for simple function types presented by ~\citet{} does not work for
-dependent function types. 
+given the context $\genA, \genB$, suppose that we want to unify $\genA$ with a
+dependent type $\bpi x \genB x$. Here because $\genB$ appears after $\genA$, we
+cannot directly derive $\genA = \bpi x \genB x$ which is ill typed. However, if
+we try to decompose this Pi type, then according to rule \rul{InstLArr}, it is
+obvious that $\genA_2$ should be solved by $x$. In order to make the solution
+well typed, we need to put $x$ before $\genA_2$ into the context. However, this
+means $x$ will remain in the context, and it is available for any later
+existential variable that should not have access to $x$. In essence the strategy
+for simple function types presented by ~\citet{dunfield2013complete} does not
+work for dependent function types.
 
 Another drawback of decomposition is that it produces duplication. The rules in
 Figure~\ref{fig:instantiation} is repeated for the cases when the existential
@@ -203,14 +203,15 @@ first-order constrains.
 
 \paragraph{Explicit Casts.}
 
-Type systems with explicit type casts on type-level computation have been adopted
-in several dependent type calculi \cite{???}. In order to
-have type-level computations, explicit casts are needed to trigger the
-computation. In this work we adopt the approach by ~\cite{}, where
-type casts can be triggered by 
-two language constructs: $\castdn e$ that does one-step beta reduction on the
-type of $e$, and $\castup e$ that does one-step beta expansion on the type of
-$e$. For example, given
+Type systems with explicit type casts on type-level computation have been
+adopted in several dependent type calculi \citep{van2013explicit,
+  kimmell2012equational, sjoberg2012irrelevance, sjoberg2015programming,
+  stump2009verified, sulzmann2007system, yang2016unified}. In order to have
+type-level computations, explicit casts are needed to trigger the computation.
+In this work we adopt the approach by ~\citet{yang2016unified}, where type casts
+can be triggered by two language constructs: $\castdn e$ that does one-step beta
+reduction on the type of $e$, and $\castup e$ that does one-step beta expansion
+on the type of $e$. For example, given
 
 $e: (\blam x \Int \star) ~ 3$
 
