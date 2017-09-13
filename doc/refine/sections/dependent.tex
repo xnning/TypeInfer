@@ -71,10 +71,10 @@ existential variables are substituted by their solutions.
 
 \begin{figure*}[t]
   \centering
-  \begin{tabular}{rll}
-    $\applye {\emptyset} \sigma$ & = & $\sigma$ \\
+  \begin{tabular}{rlp{2cm}rll}
+    $\applye {\emptyset} \sigma$ & = & $\sigma$ &
     $\applye {\tctx, x: \tau} \sigma$ & = & $\applye \tctx \sigma$ \\
-    $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ \\
+    $\applye {\tctx, \genA} \sigma$ & = & $\applye \tctx \sigma$ &
     $\applye {\tctx, \genA = \tau} \sigma$ & = & $\applye \tctx {\sigma \subst \genA \tau}$\\
   \end{tabular}
     \caption{Context application.}
@@ -82,6 +82,7 @@ existential variables are substituted by their solutions.
 \end{figure*}
 
 \subsection{Typing in Detail}
+\label{subsec:typing}
 
 \begin{figure*}[t]
   \begin{mathpar}

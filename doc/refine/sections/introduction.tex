@@ -22,21 +22,23 @@ achieved, since unification and/or type inference
 for dependent type systems is still understudied, causing difficulties
 to the application of the type inference in context approach.
 
-Dependent types are increasingly being adopted in many language designs due
-to their expressiveness \citep{xi1999dependent, licata2005formulation,
+Dependent types are increasingly being adopted in many language designs due to
+their expressiveness \citep{xi1999dependent, licata2005formulation,
   pasalic2006concoqtion, mckinna2006dependent, norell2009dependently,
   brady2013idris}. However, it is known that complete type inference or
-unification for many dependent type systems is undecidable. In
-particular the beta-equality, which is commonly employed in
-dependently type systems, is a major source of difficulty.
-There is
-much literature aiming at providing restricted forms of unification for
-dependent type calculi \citep{ziliani2015unification, abel2011higher,
-  elliott1989higher}. While supporting many advanced features, those unification
-algorithms are fairly complicated and hard to reason about.
-\bruno{Say more as to why beta-equality is a main complication?}
-However beta-equality is not the only problem. Other complications
-arize from the dependencies introduced by dependent types.
+unification for many dependent type systems is undecidable. In particular the
+beta-equality, which is commonly employed in dependently type systems, is a
+major source of difficulty. There is much literature aiming at providing
+restricted forms of unification for dependent type calculi
+\citep{ziliani2015unification, abel2011higher, elliott1989higher}. An important
+property of the beta-equality based algorithm is that it deals with higher order
+problems, which is known to be undecidable \citep{goldfarb1981undecidability}.
+Therefore in practice, many heuristics are integrated to have acceptable
+performance, in the meanwhile those heuristics make algorithm fairly complicated
+and even harder to reason about. \bruno{Say more as to why beta-equality is a
+  main complication?} \ningning{How about now?} However beta-equality is not the
+only problem. Other complications arize from the dependencies introduced by
+dependent types.
 
 Due to the sophistication of type checking for dependent types in the
 presence of beta-equality, many recent
@@ -70,10 +72,13 @@ Specifically, our main contributions are:
   and at the same time strengthens the approach of type inference in context
   \citep{gundry2010type}. A key benefit is that information increase can be reasoned in a more
   syntactic way making the meta-theory easier to study. 
-\item \textbf{We show that type sanitization works for dependent
-    types}. This is in contrast to previous work~\cite{}, which does
-  not immediately extend to systems with dependent types.~\bruno{true?
-  How about Dunfield's follow up paper?}
+\item \textbf{We show that type sanitization works for dependent types}. This is
+  in contrast to previous work~\citep{gundry2010type, dunfield2013complete, dunfield16gadts}, which does not immediately extend to systems with
+  dependent types.~\bruno{true? How about Dunfield's follow up paper?}
+  \ningning{ if you mean ``Sound and Complete Bidirectional Typechecking for
+    HigherRank Polymorphism with Existentials and Indexed Types'', no, i don't
+    think their approach can deal with dependent types. I cited the paper here.
+  }
 \item \textbf{A specification of a unification algorithm} for dependent type
   systems with controls over type-level computations and first-order
   constraints. The algorithm is remarkably simple and predictable. We prove that

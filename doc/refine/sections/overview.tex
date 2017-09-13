@@ -1,13 +1,13 @@
 \section{Overview}
 \label{sec:overview}
 
-This section provides background and gives an overview of our work.
-We discuss the background of type inference in context~\cite{}, and also a
-variant of this approach in a higher rank polymorphic type system~\cite{}. While
-presenting the key ideas of the work, we also talk about the challenges of each
-approach, which motivates our work. Then we discuss the key ideas of
-type sanitization and polymorphic type sanitization as a way to solve
-those problems.
+This section provides background and gives an overview of our work. We discuss
+the background of type inference in context~\citep{gundry2010type}, and also a
+variant of this approach in a higher rank polymorphic type
+system~\citep{dunfield2013complete}. While presenting the key ideas of the work,
+we also talk about the challenges of each approach, which motivates our work.
+Then we discuss the key ideas of type sanitization and polymorphic type
+sanitization as a way to solve those problems.
 
 \subsection{Background and Motivation}
 
@@ -115,8 +115,8 @@ other case.
 In this way, the information increase of contexts, which is named context
 extension, is formalized in an intuitive and straightforward \textit{syntactic}
 way, which enables them to prove the meta-theory thoroughly and formally.
-The complete definition of context extension can be found in
-appendix~\bruno{which appendix are you refering to? Ours or Dunfield?}. Our
+The complete definition of context extension can be found in the
+appendix. Our
 definition presented in Section~\ref{sec:context-extension} also mimics their
 definition.
 
@@ -175,11 +175,12 @@ $\genA_1, \genA = \genA_1 \to \genA_1, \genB = \genA_1, x : \genB$.
 Moving existential variables around in the approach of type inference in context
 \citep{gundry2010type}, the symmetric rules \rul{InstLReach} and
 \rul{InstRReach} \citep{dunfield2013complete}, and the approach of type
-sanitization all enjoy the same philosophy: \textit{the relative order between
-  existential variables does not matter}.\bruno{You mean unsolved type
-variables here, right?}\bruno{Also I don't think this statement is
-correct. We discussed before that swapping unsolved variables is not
-always correct in the general case.}
+sanitization all enjoy the same philosophy: \textit{for an unsolved existential
+  variable $\genA$, the relative order between it and another unsolved
+  existential variable $\genB$ does not matter}.\bruno{You mean unsolved type
+  variables here, right?}\bruno{Also I don't think this statement is correct. We
+  discussed before that swapping unsolved variables is not always correct in the
+  general case.} \ningning{I changed the statement now.}
 
 This seems like to go against the design principle that the
 contexts are ordered lists. However, keeping order is still important for
