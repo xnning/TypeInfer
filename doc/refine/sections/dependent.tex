@@ -1,10 +1,14 @@
-\section{Unification for Dependent Type System}
+\section{Unification and Type Sanitization for Dependent Types}
 \label{sec:dependent}
+
+This section introduces a simple dependently typed calculus with 
+alpha-equality and type casts. The main novelties are the unification and type
+sanitization mechanisms.
 
 \subsection{Language Overview}
 \label{subsec:language}
 
-The syntax of the system is shown below:\\
+The syntax of the calculus is shown below:\\
 
 \begin{tabular}{lrcl}
   Expressions & $e$ & \syndef & $x \mid \star
@@ -31,7 +35,7 @@ $\castup e$ that does beta expansion,
 and $\castdn e$ that does beta reduction.
 
 \paragraph{Types.}
-Types $\tau, \sigma$ are the same as expressions, except types contain
+Types $\tau, \sigma$ are the same as expressions, except that types contain
 existential variables $\genA$.
 The categories of expressions and types are stratified to make sure that
 existential variables only appears in positions where types are expected.
@@ -42,26 +46,23 @@ existential variables, which
 can either be unsolved
 ($\genA$) or solved by a type $\tau$ ($\genA = \tau$).
 It is important for a context to be ordered to solve the dependency between
-variables, for example, if a variable $x$ is introduced after a
+variables. For example, if a variable $x$ is introduced after a
 an existential variable $\genA$
 in the context, as in
 $\genA, x:\star, y :\genA$,
-then $\genA$ can never by solved by $x$, namely $y$ can never have type $x$.
-
+then $\genA$ can never be solved by $x$ (consequentely $y$ can never have type $x$).
 Complete contexts $\cctx$ only contain variables and solved existential variables.
 
 \paragraph{Hole notation.}
-We use hole notations like $\tctx[x]$ to
-denote that the variable $x$ appears in the context, sometimes it is also
-written as $\tctx_1, x, \tctx_2$.
-
+We use hole notations like $\tctx[x]$~\cite{} to
+denote that the variable $x$ appears in the context. Sometimes such a
+hole notation is also written as $\tctx_1, x, \tctx_2$.
 Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only
-require the existance of both variable $x$ and $\genA$, but also require that
+requires the existence of both variables $x$ and $\genA$, but also requires that
 $x$ appears before $\genA$.
-
 The hole notation is also used for replacement and modification. For example,
-$\tctx[\genA = \star]$ means the context keeps unchanged except $\genA$
-now is solved by $\star$.
+$\tctx[\genA = \star]$ means the context is mostly unchanged except
+that $\genA$ now is solved by $\star$.
 
 \paragraph{Applying Contexts.} Since the context records all the solutions of
 solved existential variables, it can be used as a substitution. Figure
@@ -102,19 +103,19 @@ existential variables are substituted by their solutions.
 
 In order to show that our unification algorithm works correctly, we need to make
 sure that inputs to the algorithm are well-formed.
-In dependent type system, the well-formedness of types and contexts are relying
+In a dependent type system, the well-formedness of types and contexts are relying
 on typing judgments.
 Therefore, to introduce the well-formedness of type and contexts,
 we first introduce the typing rules.
 
-Before we give the typing rule, we need to consider: what it
+Before we give the typing rules, we need to consider: what does it
 means for an input type to the unification algorithm to be well-formed?
 For example, Given a context $(\genA, x : \genA)$,
-is type $((\blam y \Int \star) ~ x)$ well formed?
-Here, the type requests to solve $\genA = \Int$.
-Unfortunately, we do not regard this type well formed, because we keep the
+is the type $((\blam y \Int \star) ~ x)$ well formed?
+Here, the type requests solving $\genA = \Int$.
+We do not regard this type well formed, because we keep the
 invariant: \textit{the
-constrains contained in the input type have already been solved.}
+constraints contained in the input type have already been solved.}
 Namely, the unification process only accepts inputs that are already type
 checked in current context.
 In this example, this type is well-formed under context
@@ -127,32 +128,28 @@ $\genA, x: \genA, y : ((\blam x \Int \star)~x), z : ((\blam x \Bool \star)~x)$
 \noindent contains two constraints that request $\genA$ to be solved by $\Int$
 and $\Bool$ respectively, which cannot be satisfied at the same time.
 
-Given this interpretation of well-formedness, the typing rules that servers
+\paragraph{Type System}
+Given this interpretation of well-formedness, the typing rules that serves
 specifically for well-formedness is shown at the top of Figure~\ref{fig:typing}.
 The judgment $\tctx \byinf \sigma_1 \infto \sigma_2$ is read as: under typing
 context $\tctx$, the type $\sigma_1$ has type $\sigma_2$.
 
 Rule \rul{A-Ax} states that $\star$ always has type $\star$.
-Rule \rul{A-Var} acquire the type of the variable from the typing context, and
+Rule \rul{A-Var} acquires the type of the variable from the typing context, and
 applies the context to the type.
-This reveals another invariant we keep:
+This reveals another invariant that we keep:
 \textit{the typing output is always fully substituted under current context.}
-
-Rule \rul{A-EVar} and \rul{A-SolvedEVar} ensures that existential variables
+Rules \rul{A-EVar} and \rul{A-SolvedEVar} ensures that existential variables
 always have type $\star$.
-
-Rule \rul{A-LamAnn} first infers the type $\star$ for the annotation, then put $x:
+Rule \rul{A-LamAnn} first infers the type $\star$ for the annotation, then puts $x:
 \sigma_1$ into the typing context to infer the body. To make sure output type is
 fully substituted, we apply the context to $\sigma_1$ in the output Pi type.
-
-Rule \rul{A-Pi} infers the type $\star$ for the argument type $\sigma_1$, then put
+Rule \rul{A-Pi} infers the type $\star$ for the argument type $\sigma_1$, then puts
 $x: \sigma_1$ into the typing context to infer $\sigma_2$, whose type is also a
 $\star$. And the result type for a Pi type is $\star$.
-
 Rule \rul{A-App} first infers a function type for $e_1$, and then infers $e_2$ to
 have the argument type. Again, to maintain the invariant, we apply the context
 to $e_1$ before substituting $x$ with $e_1$.
-
 Rule \rul{A-CastDn} infers the type $\sigma_1$ of $e$, that reduce the type
 $\sigma_1$ to $\sigma_2$, while rule \rul{A-CastUp} finds a fully substituted
 type $\applye \tctx
@@ -161,7 +158,7 @@ reduction is defined at the bottom of Figure~\ref{fig:typing}.
 Due to the design of the rule \rul{A-CastUp}, the typing rules are
 non-deterministic, which does not matter for our purpose: the typing is only
 used in propositions (such as lemmas, theories) but it never appears in the
-algorithm.
+\bruno{unification and type sanitization?} algorithms.
 
 \paragraph{Context well-formedness.}
 
@@ -175,9 +172,8 @@ way.
 
 \paragraph{Type well-formedness.}
 
-We refer that a type $\sigma$ is well formed as $\tctx \byinf \sigma \infto \star$.
+We denote a well-formed type $\sigma$ as $\tctx \byinf \sigma \infto \star$.
 We will also sometimes write it as $\tctx \bywf \sigma$.
-
 A weaker version of type well-formedness, which is type well-scopedness, written
 as $\tctx \bywt \sigma$, is defined at the bottom of Figure~\ref{fig:type-well}.
 Well-scopedness of types only requires all the variables involved in a type are
@@ -293,30 +289,28 @@ which results in a sanitized type $\tau_2$. Computationally, there are three
 inputs $\tctx$, $\genA$ and $\tau_1$, with one output $\tau_2$.
 
 The most interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}. In
-\rul{I-EVarAfter}, because $\genB$ appears after $\genA$, so we create a fresh
+\rul{I-EVarAfter}, because $\genB$ appears after $\genA$, we create a fresh
 existential variable $\genA_1$, which is put before $\genA$, and solve $\genB$
 by $\genA_1$. In \rul{I-EVarBefore}, because $\genB$ is in the scope of $\genA$,
-so we leave it unchanged.
-
-The rest rules are structural.
-And as unification, we always apply intermediate output
+we leave the existential variable unchanged.
+The remaining rules are structural.
+Similarly to unification, we always apply intermediate output
 contexts to the input types to maintain the invariant that the types are fully
 substituted under current contexts.
 
 The sanitization process is remarkably simple, while it solves exactly what we
 want: resolve the order of existential variables so that we can focus on the
-orders that really matter.
+order that really matter.
 
 \paragraph{Process of unification.}
 
 Based on type sanitization, Figure \ref{fig:unification} presents the
 unification rules.
-
 Rule \rul{U-AEq} corresponds to the case when two types are already
-alpha-equivalent. Most of the rest rules are structural. Two most subtle ones
-are rule \rul{U-EVarTy} and \rul{U-TyEVar}, which corresponding respectively to
+alpha-equivalent. Most of the rest rules are structural. The two most subtle cases
+are rules \rul{U-EVarTy} and \rul{U-TyEVar}, which correspond respectively to
 when the existential variable is on the left and on the right. We go through the
-first one. There are three preconditions. First is the occurs check, which is to
+first rule. There are three preconditions. First is the occurs check, which is to
 make sure $\genA$ does not appear in the free variables of $\tau_1$. Then we use
 type sanitization to make sure all the existential variables in $\tau_1$ that
 are out of scope of $\genA$ are turned into fresh ones that are in the scope of
@@ -353,14 +347,14 @@ FV(\bpi x \genB x)$.
   \label{fig:context-extension}
 \end{figure*}
 
-We mentioned that the algorithm output context extends the input context with
+We mentioned that the algorithmic output context extends the input context with
 new existential variables or more existential variables solved. To accurately
 capture this kind of information increase, we present the definition of context
-extension in Figure~\ref{fig:context-extension},
-as similar in \citet{dunfield2013complete}.
+extension in Figure~\ref{fig:context-extension}. This definition is
+similar to the one by \citet{dunfield2013complete}.
 
-The empty context is an extension of itself (\rul{CE-Empty}). Existences of 
-variables or existential variables are preserved during the extension
+The empty context is an extension of itself (\rul{CE-Empty}). 
+Variables or existential variables are preserved during the extension
 (\rul{CE-Var}, \rul{CE-EVar}), while the solutions for existential variables can
 be different only if they are equivalent under context application
 (\rul{CE-SolvedEVar}). The definition in \citet{{dunfield2013complete}} further
@@ -374,9 +368,10 @@ variables (\rul{CE-Solve}), or add new existential variables (\rul{CE-Add},
 Complete contexts $\cctx$ are contexts with all existential variables solved, as
 defined in Section~\ref{subsec:language}. Applying a complete context to a
 well-formed type $\sigma$ yields a type without existential variables $\applye
-\cctx \sigma$. Similarly, we can also apply a complete context to a context that
+\cctx \sigma$. Similarly, we can also apply a complete context to a
+context that\bruno{please rephrase. I cannot quite understand the sentence}
 can extends to it to yield a context without existential variables. The formal
-definition of the operation is defined in
+definition of context application is in
 Figure~\ref{fig:context-application-on-context}.
 
 \begin{figure*}[t]
@@ -396,10 +391,11 @@ Figure~\ref{fig:context-application-on-context}.
 
 \subsection{Soundness}
 
-Although our overall framework for proofs is quite similar as
-\citet{dunfield2013complete}, unlike their work that always implicitly assume
-the contexts and types involved are well-formed, we put much extra efforts on
-dealing with the well-formedness and the typing explicitly since we have to resolve the dependency carefully.
+Our overall framework for proofs is quite similar as
+\citet{dunfield2013complete}. However, unlike their work which always implicitly assumes
+the contexts and types involved are well-formed, we put extra effort on
+dealing with the well-formedness and the typing explicitly since we
+have to resolve the dependency carefully.
 
 We proved that our type sanitization strategy and the unification algorithm
 are sound.
@@ -410,7 +406,7 @@ sanitization is indeed an extension of the input context:
   \TypeSanitizationExtensionBody
 \end{lemma}
 
-And except resolving the order problem, type sanitization will not change the
+Except for resolving the order problem, type sanitization will not change the
 type. Namely, the input type and the output type are equivalent after
 substitution by the output context:
 
