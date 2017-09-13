@@ -1,7 +1,7 @@
 \section{Higher Rank Polymorphic Type System}
 \label{sec:higherrank}
 
-In this section, we adopt the type sanitization strategy in a higher rank
+In this section, we adopt the type sanitization strategy to a higher rank
 polymorphic type system from \citet{dunfield2013complete}. We show that type
 sanitization can be further extended to polymorphic type sanitization to deal
 with subtyping, which can be used to replace the instantiation relation in
@@ -9,9 +9,9 @@ original system while preserving the completeness and subtyping.
 
 \subsection{Language}
 
-The syntax of \citet{dunfield2013complete} is given below. Notice there are
-notations reused from those in Section~\ref{sec:dependent}. We always
-make it clear from the contexts that which system is
+The syntax of \citet{dunfield2013complete} is given below. Notice that
+notations from Section~\ref{sec:dependent} are reused here. We will always
+make it clear from the context which system is
 being referred. \\
 
 \begin{tabular}{lrcl}
@@ -33,7 +33,7 @@ Types $A, B$ include unit type $\Unit$, type variables $\varA$, existential
 variables $\genA$, polymorphic types $\forall \varA. A$ and function types $A
 \to B$.
 
-Monotypes $\sigma, \tau$ is a special kind of types without universal
+Monotypes $\sigma, \tau$ are a special kind of types without universal
 quantifiers.
 
 \paragraph{Contexts.}
@@ -71,13 +71,13 @@ substituted under the input context. In \rul{$\forall$L}, new existential
 variable $\genA$ is created to represent the universal quantifier. There is a
 marker before $\genA$ so that we can throw away all tailing contexts that are
 out of scope after the subtyping. Similarly, rule \rul{$\forall$R} puts a
-new type variable in the context and throw all contexts after the type variable.
+new type variable in the context and throws away all the contexts after the type variable.
 
 When the left hand side (\rul{InstL}) or the right hand side (\rul{InstR}) is an
 existential variable, the subtyping leaves all the work to the instantiation
 judgment ($\ist$), some of which we have seen in Section~\ref{sec:overview}. Due
 to the limitation of space, we put the complete definition of the instantiation
-relationship in the appendix.
+relation in the appendix.
 
 \subsection{Polymorphic Type Sanitization}
 
@@ -105,8 +105,8 @@ Therefore, we replace the rules \rul{InstL} and \rul{InstR} with new rules
 \rul{SaL} and \rul{SaR} shown at the top of
 Figure~\ref{fig:polymorphic-sanitization}. Namely, the subtyping leaves the job
 to polymorphic type sanitization to resolve the order problem with existential
-variables and also sanitize the input type to a monotype, and finally checks
-that the sanitized job is well-formed under the context before $\genA$.
+variables and also sanitize the input type to a monotype. A final check
+ensures that the sanatized type is well-formed under the context before $\genA$.
 If the type being sanitized appears on the right (as \rul{SaL}), we say it
 appears co-variantly, and we say it appears contra-variantly if it appears on
 the left (as \rul{SaR}). This corresponds to the fact that a polymorphic type
@@ -127,13 +127,13 @@ types. If a polymorphic type appears contra-variantly (\rul{I-All-Plus}), it
 means a monotype would make the final type more polymorphic. Therefore, we
 replace the universal binder $\varA$ with a fresh existential variable $\genB$
 and put it before $\genA$. Otherwise, in rule \rul{I-All-Minus}, we put $\varA$
-in the context and sanitize $A$. Notice the result $\sigma$ might not be
+in the context and sanitize $A$. Notice that the result $\sigma$ might not be
 well-formed under the output context $\ctxl$, since $\varA$ is discarded in the
 output context. Rule \rul{I-Pi-Poly} is where the mode is flipped.
 
 Polymorphic type sanitization does nothing if it is a unit type (\rul{I-Unit})
-or type variable (\rul{I-TVar}). Rule \rul{I-EVarAfter-Poly} and
-\rul{I-EVarBefore-Poly} deals with existential variables, and create fresh
+or a type variable (\rul{I-TVar}). Rule \rul{I-EVarAfter-Poly} and
+\rul{I-EVarBefore-Poly} deals with existential variables, and creates fresh
 existential variables if the input existential variable appears after $\genA$,
 as we have seen in type sanitization in Section~\ref{subsec:unification}.
 
@@ -141,7 +141,7 @@ as we have seen in type sanitization in Section~\ref{subsec:unification}.
 
 The derivation of the subtyping problem $\genA \bysub \genA \tsub (\forall
 \varA. \varA \to \varA) \to \Unit$ is given below. For clarity, we omit some
-detailed process, and denote $\ctxl = \genB, \genA$.
+detailed process, and denote $\ctxl = \genB, \genA$.\bruno{example overflows}
 
 \[
 \ExSub
