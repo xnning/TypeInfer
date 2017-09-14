@@ -79,7 +79,7 @@ when advanced features are involved. For example, in dependent type systems,
 typing and types/contexts well-formedness are usually coupled, which brings even
 more complication to the proofs.
 
-\subsubsection{Instantiation in Higher Rank Type System.}
+\subsubsection{Instantiation in Higher Rank Type Systems.}
 
 \begin{figure*}[t]
   \begin{mathpar}
@@ -106,7 +106,7 @@ rules between an existential variable and a type. For space reasons, we only
 present the rules when the left hand side is an existential variable, but the
 other case is quite symmetric. We save the formal explanations for notation
 to Section~\ref{sec:dependent}. But we can still get the rough idea
-there. Notice in \rul{InstLArr}, the existential variable $\genA$ is solved by a
+there. Notice that in \rul{InstLArr}, the existential variable $\genA$ is solved by a
 function type consisting of two fresh existential variables, and then the
 function is decomposed to do instantiation successively. Rule \rul{InstLReach}
 deals with the case that $\genA$ appears first, and \rul{InstRReach} deals with the
@@ -136,7 +136,7 @@ work for dependent function types.
 Another drawback of decomposition is that it produces duplication. The rules in
 Figure~\ref{fig:instantiation} is repeated for the cases when the existential
 variable is on the right. For example, there will be a symmetric \rul{InstRArr}
-corresponding to \rul{InstLArr}. Worse, This kind of ``duplication'' would
+corresponding to \rul{InstLArr}. Worse, this kind of ``duplication'' would
 scales up with the type constructs in the system.
 
 \subsection{Our Approach: Type Sanitization}
@@ -176,24 +176,21 @@ Moving existential variables around in the approach of type inference in context
 \citep{gundry2010type}, the symmetric rules \rul{InstLReach} and
 \rul{InstRReach} \citep{dunfield2013complete}, and the approach of type
 sanitization all enjoy the same philosophy: \textit{for an unsolved existential
-  variable $\genA$, the relative order between it and another unsolved
-  existential variable $\genB$ does not matter}.\bruno{You mean unsolved type
-  variables here, right?}\bruno{Also I don't think this statement is correct. We
-  discussed before that swapping unsolved variables is not always correct in the
-  general case.} \ningning{I changed the statement now.}
+  variable $\genA$, the relative order between $\genA$ and another unsolved
+  existential variable $\genB$ does not matter}.
 
-This seems like to go against the design principle that the
+This seems to go against the design principle that the
 contexts are ordered lists. However, keeping order is still important for
 variables \textit{whose order matter}. For instance, for polymorphic types, the
 order between existential variables ($\genA$) and type variables ($\varA$) is
-important, so you cannot unify $\genA$ with $\varA$ under the context $(\genA,
+important, so we cannot unify $\genA$ with $\varA$ under the context $(\genA,
 \varA)$ since $\varA$ is not in the scope of $\genA$. A similar reason exists in
-dependent type systems: you cannot unify $\genA$ with $x$ if $x$ appears behind
+dependent type systems: we cannot unify $\genA$ with $x$ if $x$ appears behind
 $\genA$ in the context.
 
 The task of type sanitization is to ``move'' existential variables to suitable
-places through a roundabout way: solving it with a fresh existential variable
-and make sure this new fresh variable is in the suitable place.
+positions in a roundabout way: solving the existential variables with a fresh existential variables
+and making sure that these new fresh variables appear in a suitable position.
 
 \subsection{Unification for Dependent Types}
 
@@ -253,7 +250,7 @@ later proved to be sound and complete.
 Instead of unification, the instantiation relation in
 \citet{dunfield2013complete} is actually aiming at dealing with the polymorphic
 subtyping relation between existential variables and other types. Here we say
-type $A$ is a subtype of $B$ if and only if $A$ is more polymorphic than $B$.
+that type $A$ is a subtype of $B$ if and only if $A$ is more polymorphic than $B$.
 The difficulty of subtyping is that it needs to take unification
 into account at the same time. For example, given that $\genA$ is a subtype of
 $\Int$, then the only possible solution is $\genA = \Int$. And if given $\forall
@@ -293,7 +290,7 @@ common type variable.
 
 We show that the original instantiation relationship in
 \citet{dunfield2013complete} can be replaced by our polymorphic type
-sanitization process, while the subtyping remains sound and complete.
+sanitization process, while subtyping remains sound and complete.
 
 %%% Local Variables:
 %%% mode: latex

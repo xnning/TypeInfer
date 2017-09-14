@@ -57,15 +57,14 @@
   Gundry et al. proposed type inference in context as a general foundation for
   unification/type inference algorithms. The key idea is based on the notion of
   information increase. Following this work, a more syntactic foundation for
-  information increase is also used to deal with higher rank polymorphism.
-  However, none of the existing work shows how it could be extended naturally to deal
-  with dependency between existential variables in the presence of dependent types.
+  information increase is presented by Dunfield and Krishnaswami to deal with higher rank polymorphism.
+  However, no existing work shows how it this idea can be extended naturally to deal
+  with dependencies between existential variables in the presence of dependent types.
   In this paper, we propose a strategy called \textit{type
     sanitization} that helps resolve this problem
-  in the framework of type inference in context.\bruno{Why do we need
-    help; what is the problem? Say this first} \ningning{how about now?}We show
-  that type sanitization works on a unification algorithm for a dependent type
-  system with alpha-equality and first-order constraints. We then further extend
+  in the framework of type inference in context. We show
+  that type sanitization works on a unification algorithm for a dependently typed
+  system with alpha-equality and first-order constraints. We then further illustrate
   this strategy to deal with polymorphic subtyping in a higher ranked
   polymorphic type system.
 \end{abstract}

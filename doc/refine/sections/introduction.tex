@@ -26,7 +26,7 @@ Dependent types are increasingly being adopted in many language designs due to
 their expressiveness \citep{xi1999dependent, licata2005formulation,
   pasalic2006concoqtion, mckinna2006dependent, norell2009dependently,
   brady2013idris}. However, it is known that complete type inference or
-unification for many dependent type systems is undecidable. In particular the
+unification for many dependent type systems is undecidable. In particular 
 beta-equality, which is commonly employed in dependently type systems, is a
 major source of difficulty. There is much literature aiming at providing
 restricted forms of unification for dependent type calculi
@@ -34,9 +34,8 @@ restricted forms of unification for dependent type calculi
 property of the beta-equality based algorithm is that it deals with higher order
 problems, which is known to be undecidable \citep{goldfarb1981undecidability}.
 Therefore in practice, many heuristics are integrated to have acceptable
-performance, in the meanwhile those heuristics make algorithm fairly complicated
-and even harder to reason about. \bruno{Say more as to why beta-equality is a
-  main complication?} \ningning{How about now?} However beta-equality is not the
+performance. Meanwhile those heuristics make algorithm fairly complicated
+and even harder to reason about. However beta-equality is not the
 only problem. Other complications arize from the dependencies introduced by
 dependent types.
 
@@ -51,8 +50,8 @@ in those systems is based
 on \emph{alpha-equality}, and beta reductions are managed
 explicitly. While such type systems may lose some convenience over 
 traditional dependent types, there are also some benefits. 
-One particular benefit is that type casts 
-are a very easy way to introduce general recursion without losing 
+One particular benefit is that with type casts 
+it is very easy to introduce general recursion without losing 
 various interesting properties (such as decidable type checking).
 
 In this paper, we investigate how to adopt the approach of information increase
@@ -60,7 +59,7 @@ in a unification algorithm for a dependent type system with
 explicit type casts. We propose a strategy called \textit{type sanitization} that
 resolves the dependency problem introduced by dependent types. As we will see,
 this strategy simplifies the original approach of type inference in context.
-Also, to show that type sanitization is applicable to other features, we also
+To show that type sanitization is applicable to other features, we also
 extend it to \textit{polymorphic type sanitization} that deals with polymorphic
 subtyping in a higher rank polymorphic type system \citep{dunfield2013complete}.
 Specifically, our main contributions are:
@@ -74,20 +73,16 @@ Specifically, our main contributions are:
   syntactic way making the meta-theory easier to study. 
 \item \textbf{We show that type sanitization works for dependent types}. This is
   in contrast to previous work~\citep{gundry2010type, dunfield2013complete, dunfield16gadts}, which does not immediately extend to systems with
-  dependent types.~\bruno{true? How about Dunfield's follow up paper?}
-  \ningning{ if you mean ``Sound and Complete Bidirectional Typechecking for
-    HigherRank Polymorphism with Existentials and Indexed Types'', no, i don't
-    think their approach can deal with dependent types. I cited the paper here.
-  }
+  dependent types.
 \item \textbf{A specification of a unification algorithm} for dependent type
-  systems with controls over type-level computations and first-order
+  systems with control over type-level computations, and first-order
   constraints. The algorithm is remarkably simple and predictable. We prove that
   the algorithm is sound and complete.
 \item \textbf{A replacement for higher-rank type instantiation} for an
   implicitly polymorphic type system with higher rank types
   \citep{dunfield2013complete}. The design of \textit{polymorphic type
     sanitization} simplifies the subtyping for existential variables, and also
-  removes the problem of duplication in original instantiation, while preserves
+  removes the problem of duplication in original instantiation, while preserving
   the completeness and soundness of subtyping.
 \end{itemize}
 
