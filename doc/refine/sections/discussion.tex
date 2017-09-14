@@ -2,9 +2,9 @@
 
 \subsection{Type Inference Algorithm For Dependent Types}
 
-In Section~\ref{sec:dependent}, we use unification algorithm for dependent types
+In Section~\ref{sec:dependent}, we use the unification algorithm for dependent types
 to show that type sanitization is applicable to advanced features. However,
-notice that the typing rules presented in Section~\ref{subsec:typing} works
+notice that the typing rules presented in Section~\ref{subsec:typing} work
 specifically for well-formedness of types. In other words, it is \textit{not} an
 algorithmic type system containing type inference. Therefore, readers may wonder:
 how can we design a type inference algorithm for practical usage based on the
@@ -48,9 +48,9 @@ systems with more advanced features. For example, the polymorphic type
 sanitization presented in Section~\ref{sec:higherrank} works specifically for
 subtyping between polymorphic types. We can try to extend type sanitization to
 other kinds of subtyping, for instance, nominal subtyping and/or intersection
-types~\cite{}.
+types~\cite{}\bruno{references here!}.
 
-Also, since type sanitization resolves unification problem between dependent
+Also, since type sanitization resolves the unification problem between dependent
 types, another possible future work is to come up with a complete type inference
 algorithm for dependent types based on alpha-equality and first-order
 constraints. Extending the type sanitization to see whether it could play

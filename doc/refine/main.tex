@@ -24,6 +24,8 @@
 \usepackage{paralist}
 \usepackage{graphicx}
 \usepackage{float}
+%\usepackage{titlesec}
+%\usepackage[parfill]{parskip}
 % \usepackage{balance} % Equalize column in the last page
 
 % Revision tools
@@ -39,6 +41,9 @@
 \renewcommand\arraystretch{1.1}
 %\renewcommand\bruno[1]{}
 %\renewcommand\ningning[1]{}
+
+\let\oldpar\paragraph
+\renewcommand{\paragraph}[1]{\oldpar{#1}\vspace{-10pt}}
 
 % Literal programming support
 \input{paper_utility.tex}
