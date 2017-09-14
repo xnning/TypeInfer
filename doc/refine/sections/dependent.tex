@@ -370,13 +370,13 @@ Figure~\ref{fig:context-application-on-context}.
 
 \begin{figure*}[t]
   \centering
-  \begin{tabular}{rlll}
-    $\applye {\emptyset} \emptyset$ & = & $\emptyset$ \\
+  \begin{tabular}{rlp{2cm}rll}
+    $\applye {\emptyset} \emptyset$ & = & $\emptyset$ &
     $\applye {\cctx, x: \tau} {\tctx, x: \tau}$ & = & $\applye \cctx \tctx, x : \applye \cctx {\tau} $
     \\
-    $\applye {\cctx, \genA = \tau} {\tctx, \genA}$ & = & $\applye \cctx \tctx$ \\
+    $\applye {\cctx, \genA = \tau} {\tctx, \genA}$ & = & $\applye \cctx \tctx$ &
     $\applye {\cctx, \genA = \tau_1} {\tctx, \genA = \tau_2}$ & = & $\applye \cctx \tctx$
-                                    & If $\applye \cctx {\tau_1} = \applye \cctx {\tau_2}$ \\
+                                    \quad If $\applye \cctx {\tau_1} = \applye \cctx {\tau_2}$ \\
     $\applye {\cctx, \genA = \tau_1} {\tctx}$ & = & $\applye \cctx \tctx$ \\
   \end{tabular}
     \caption{Context application.}
@@ -393,14 +393,7 @@ have to resolve the dependency carefully.
 
 We proved that our type sanitization strategy and the unification algorithm
 are sound.
-First, we show that the output context after type
-sanitization is indeed an extension of the input context:
-
-\begin{lemma}[\TypeSanitizationExtensionName]
-  \TypeSanitizationExtensionBody
-\end{lemma}
-
-Except for resolving the order problem, type sanitization will not change the
+First, we show that except for resolving the order problem, type sanitization will not change the
 type. Namely, the input type and the output type are equivalent after
 substitution by the output context:
 
@@ -415,15 +408,8 @@ output type is still well-formed under the output context:
   \TypeSanitizationWellFormednessBody
 \end{lemma}
 
-Having those lemmas related to type sanitization, we can prove the properties of
-the unification algorithm. For example, the output context of unification
-extends the input context:
-
-\begin{lemma}[\UnificationExtensionName]\leavevmode
-  \UnificationExtensionBody
-\end{lemma}
-
-And finally, we can prove that two input types are really unified by the
+Having those lemmas related to type sanitization,
+we can prove that two input types are really unified by the
 unification algorithm:
 
 \begin{lemma}[\UnificationEquivalenceName]\leavevmode
@@ -438,20 +424,12 @@ some $\sigma$,
 and $\tau_1 = \tau_2$.
 
 The completeness of type sanitization is proved by a more general lemma, which
-can be found in the appendix. The more readable version of the completeness of
-type sanitization is:
+can be found in the appendix. Here we present a more readable version:
 
 \begin{corollary}[\TypeSanitizationCompletenessPrettyName]
   \label{lemma:\TypeSanitizationCompletenessPrettyName}
   \TypeSanitizationCompletenessPrettyBody
 \end{corollary}
-
-\noindent which leads directly to the unification between existential variables:
-
-\begin{lemma}[\TypeSanitizationCompletenessUnificationName]\leavevmode
-  \label{lemma:\TypeSanitizationCompletenessUnificationName}
-  \TypeSanitizationCompletenessUnificationBody
-\end{lemma}
 
 Having the completeness of type sanitization, we are ready to prove that our
 unification algorithm is complete:

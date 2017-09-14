@@ -46,37 +46,20 @@ All existential variables in complete contexts $\cctx$ are solved.
 \subsection{Subtyping}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \bysub A \tsub B \toctx$}
-     \\
-    \ADunVar \and \ADunUnit \and
-    \ADunExvar \and \ADunArrow \and
-    \ADunForallL \and \ADunForallR \and
-    \ADunInstL \and \ADunInstR
-  \end{mathpar}
-  \caption{Algorithmic Subtyping (Original).}
+    \[\framebox{$\tctx \bysub A \tsub B \toctx$}\]
+    \[\ADunInstL \quad \ADunInstR\]
+  \caption{Algorithmic Subtyping (Original, incomplete).}
   \label{fig:subtyping}
 \end{figure*}
 
 The original definition of algorithmic subtyping is given in
 Figure~\ref{fig:subtyping}. The judgment $\tctx \bysub A \tsub B \toctx$ is
 interpreted as: given the context $\tctx$, $A$ is a subtype of $B$ under the
-output context $\ctxl$.
-The subtyping relation is reflexive (\rul{Var}, \rul{Exvar} and
-\rul{Unit}). The function type is contra-variant on the argument type,
-and co-variant on the return type (\rul{$\to$}). Here the intermediate context
-$\ctxl$ is applied to $A_2$ and $B_2$ to make sure the input types are fully
-substituted under the input context. In \rul{$\forall$L}, new existential
-variable $\genA$ is created to represent the universal quantifier. There is a
-marker before $\genA$ so that we can throw away all tailing contexts that are
-out of scope after the subtyping. Similarly, rule \rul{$\forall$R} puts a
-new type variable in the context and throws away all the contexts after the type variable.
-
-When the left hand side (\rul{InstL}) or the right hand side (\rul{InstR}) is an
-existential variable, the subtyping leaves all the work to the instantiation
-judgment ($\ist$), some of which we have seen in Section~\ref{sec:overview}. Due
-to the limitation of space, we put the complete definition of the instantiation
-relation in the appendix.
+output context $\ctxl$. Due to the space limitation, we only present when
+the left hand side (\rul{InstL}) or the right hand side (\rul{InstR}) is an
+existential variable. In those cases, the subtyping leaves all the work to the instantiation
+judgment ($\ist$), some of which we have seen in Section~\ref{sec:overview}.
+The complete definition can be found in the appendix.
 
 \subsection{Polymorphic Type Sanitization}
 
