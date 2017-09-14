@@ -46,7 +46,7 @@ existential variables, which
 can either be unsolved
 ($\genA$) or solved by a type $\tau$ ($\genA = \tau$).
 It is important for a context to be ordered to solve the dependency between
-variables. For example, if a variable $x$ is introduced after a
+variables. For example, if a variable $x$ is introduced after
 an existential variable $\genA$
 in the context, as in
 $\genA, x:\star, y :\genA$,
@@ -368,10 +368,8 @@ variables (\rul{CE-Solve}), or add new existential variables (\rul{CE-Add},
 Complete contexts $\cctx$ are contexts with all existential variables solved, as
 defined in Section~\ref{subsec:language}. Applying a complete context to a
 well-formed type $\sigma$ yields a type without existential variables $\applye
-\cctx \sigma$. Similarly, given $\tctx \to \cctx$, we can gain a context without
+\cctx \sigma$. Similarly, given $\tctx \to \cctx$, we can get a context without
 existential variables $\applye \cctx \tctx$.
-\bruno{please rephrase. I cannot quite understand the sentence}
-\ningning{done}
 The formal
 definition of context application is in
 Figure~\ref{fig:context-application-on-context}.
