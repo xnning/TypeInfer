@@ -54,7 +54,7 @@ then $\genA$ can never be solved by $x$ (consequentely $y$ can never have type $
 Complete contexts $\cctx$ only contain variables and solved existential variables.
 
 \paragraph{Hole notation.}
-We use hole notations like $\tctx[x]$~\cite{} to
+We use hole notations like $\tctx[x]$~\citep{dunfield2013complete} to
 denote that the variable $x$ appears in the context. Sometimes such a
 hole notation is also written as $\tctx_1, x, \tctx_2$.
 Multiple holes also keep the order. For example, $\tctx[x][\genA]$ not only
@@ -85,18 +85,16 @@ existential variables are substituted by their solutions.
 \label{subsec:typing}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \byinf \sigma_1 \infto \sigma_2$} \\
-    \AAx \and \AVar \and \AEVar \and \ASolvedEVar \and
-    \ALamAnn \and \APi \and
-    \AApp \and \ACastDn \and \ACastUp
-  \end{mathpar}
+    \[\framebox{$\tctx \byinf \sigma_1 \infto \sigma_2$}\]
+    \[\AAx \quad \AVar \quad \AEVar \]
+    \[\ASolvedEVar \quad \ALamAnn\]
+    \[\APi                          \]
+    \[\AApp\]
+    \[\ACastDn \quad \ACastUp       \]
 
-  \begin{mathpar}
-    \framebox{$\sigma_1 \redto \sigma_2$} \\
-    \RApp \and \RBeta \and
-    \RCastDown \and \RCastDownUp
-  \end{mathpar}
+    \[\framebox{$\sigma_1 \redto \sigma_2$} \]
+    \[\RApp \quad \RBeta \]
+    \[\RCastDown \quad \RCastDownUp\]
     \caption{Typing and semantics.}
     \label{fig:typing}
 \end{figure*}
@@ -129,9 +127,9 @@ $\genA, x: \genA, y : ((\blam x \Int \star)~x), z : ((\blam x \Bool \star)~x)$
 and $\Bool$ respectively, which cannot be satisfied at the same time.
 
 \paragraph{Type System}
-Given this interpretation of well-formedness, the typing rules that serves
+Given this interpretation of well-formedness, the typing rules that serve
 specifically for well-formedness is shown at the top of Figure~\ref{fig:typing}.
-The judgment $\tctx \byinf \sigma_1 \infto \sigma_2$ is read as: under typing
+The judgment $\tctx \byinf \sigma_1 \infto \sigma_2$ is read as: under the
 context $\tctx$, the type $\sigma_1$ has type $\sigma_2$.
 
 Rule \rul{A-Ax} states that $\star$ always has type $\star$.
@@ -180,41 +178,39 @@ Well-scopedness of types only requires all the variables involved in a type are
 bound in the typing contexts.
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \wc$} \\
-    \ACEmpty \and \ACVar \and
-    \ACEVar \and \ACSolvedEVar
-  \end{mathpar}
+    \[\framebox{$\tctx \wc$} \]
+    \[\ACEmpty \quad \ACVar \quad\]
+    \[\ACEVar \quad \ACSolvedEVar\]
 
-  \begin{mathpar}
-    \framebox{$\tctx \bywt \sigma$} \\
-    \WSVar \and \WSEVar \and \WSSolvedEVar
-    \and \WSPi \and \WSLamAnn \and \WSApp
-    \and \WSCastDn \and \WSCastUp
-  \end{mathpar}
+    \[\framebox{$\tctx \bywt \sigma$}     \]
+    \[\WSVar \quad \WSEVar \quad \WSSolvedEVar \]
+    \[\quad \WSPi \quad \WSLamAnn \]
+    \[\WSApp \quad \WSCastDn \quad \WSCastUp          \]
     \caption{Context well-formedness and type well-scopedness.}
     \label{fig:type-well}
 \end{figure*}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$} \\
-    \IEVarAfter \and \IEVarBefore \and
-    \IVar \and \IStar \and
-    \IApp \and \ILamAnn \and \IPi
-    \and \ICastDn \and \ICastUp
-  \end{mathpar}
+    \[\framebox{$\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$} \]
+    \[\IEVarAfter \]
+    \[\IEVarBefore \quad \IVar \]
+    \[\IStar \quad \IApp \]
+    \[\ILamAnn \]
+    \[\IPi \]
+    \[\ICastDn \quad \ICastUp\]
   \caption{Type sanitization.}
   \label{fig:sanitization}
 \end{figure*}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$} \\
-    \UAEq \and \UEVarTy \and \UTyEVar \and
-    \UApp \and \ULamAnn \and \UPi
-    \and \UCastDn \and \UCastUp
-  \end{mathpar}
+   \[\framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$} \]
+   \[\UAEq \]
+   \[\UEVarTy \]
+   \[\UTyEVar \]
+   \[\UApp \]
+   \[\ULamAnn \]
+   \[\UPi \]
+   \[\UCastDn \quad \UCastUp \]
   \caption{Unification.}
   \label{fig:unification}
 \end{figure*}
@@ -329,6 +325,7 @@ The derivation of the unification problem $\tctx, \genA, \genB \bysuni \genA
 FV(\bpi x \genB x)$.
 
 \[
+  \small
    \ExUni
 \]
 
@@ -336,13 +333,10 @@ FV(\bpi x \genB x)$.
 \label{sec:context-extension}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \exto \ctxl$}
-     \\
-    \CEEmpty \and \CEVar \and \CEEVar \and
-    \CESolvedEVar \and \CESolve \and
-    \CEAdd \and \CEAddSolved
-  \end{mathpar}
+   \[\framebox{$\tctx \exto \ctxl$} \]
+   \[\CEEmpty \quad \CEVar \quad \CEEVar \] \[\CESolvedEVar\]
+   \[\CESolve \quad \CEAdd \]
+   \[\CEAddSolved \]
   \caption{Context extension.}
   \label{fig:context-extension}
 \end{figure*}
@@ -393,7 +387,7 @@ Figure~\ref{fig:context-application-on-context}.
 
 Our overall framework for proofs is quite similar as
 \citet{dunfield2013complete}. However, unlike their work which always implicitly assumes
-the contexts and types involved are well-formed, we put extra effort on
+that contexts and types are well-formed, we put extra efforts on
 dealing with the well-formedness and the typing explicitly since we
 have to resolve the dependency carefully.
 
@@ -466,3 +460,9 @@ unification algorithm is complete:
   \label{lemma:\UnificationCompletenessName}
     \UnificationCompletenessBody
 \end{lemma}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% org-ref-default-bibliography: "citation.bib"
+%%% End:

@@ -11,7 +11,7 @@ sanitization as a way to solve those problems.
 
 \subsection{Background and Motivation}
 
-\paragraph{Type Inference In Context.}
+\subsubsection{Type Inference In Context.}
 \citet{gundry2010type} models unification and type inference from a general
 perspective of information increase. The problem context is a ML-style
 polymorphic system, based on the invariant that types can only depend on
@@ -58,9 +58,8 @@ is $\genB, \genA = \genB \to \genB, x: \genB$. Note that $\genB$ is now placed
 in the front of $\genA$.
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \Ignore \and \Depend \and \Define
-  \end{mathpar}
+\[\Ignore \]
+\[\Depend \quad \Define\]
   \caption{Unification between an existential variable and a type (incomplete).}
   \label{fig:inference-context}
 \end{figure*}
@@ -82,11 +81,10 @@ more complication to the proofs.
 \subsubsection{Instantiation in Higher Rank Type Systems.}
 
 \begin{figure*}[t]
-  \begin{mathpar}
     % \framebox{$\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$} \\
-    \InstLSolve \and \InstLReach \and \InstLArr
-    \and \InstRReach
-  \end{mathpar}
+    \[\InstLSolve \quad \InstLReach\]
+    \[\InstLArr  \]
+    \[\InstRReach\]
   \caption{Instantiation between an existential variable and a type (incomplete).}
   \label{fig:instantiation}
 \end{figure*}

@@ -81,18 +81,15 @@ relation in the appendix.
 \subsection{Polymorphic Type Sanitization}
 
 \begin{figure*}[t]
-  \begin{mathpar}
-    \framebox{$\tctx \bysub A \tsub B \toctx$} \\
-    \ADunSaL \and \ADunSaR
-  \end{mathpar}
+    \[\framebox{$\tctx \bysub A \tsub B \toctx$} \]
+    \[\ADunSaL                                     \]
+    \[\ADunSaR                                     \]
 
-  \begin{mathpar}
-    \framebox{$\tctx[\genA] \bybsa A \sa \sigma \toctx$}
-     \\
-    \IAllPlus \and \IAllMinus \and
-    \IPiPoly \and \IUnit \and \ITVar \and
-    \IEVarAfterPoly \and \IEVarBeforePoly
-  \end{mathpar}
+    \[\framebox{$\tctx[\genA] \bybsa A \sa \sigma \toctx$}\]
+    \[\IAllPlus \quad \IAllMinus    \]
+    \[\IPiPoly                \]
+    \[\IUnit \quad \IEVarAfterPoly \]
+    \[\ITVar \quad \IEVarBeforePoly     \]
   \caption{New subtyping rules, polymorphic type sanitization.}
   \label{fig:polymorphic-sanitization}
 \end{figure*}
