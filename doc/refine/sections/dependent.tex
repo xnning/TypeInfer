@@ -46,11 +46,7 @@ existential variables, which
 can either be unsolved
 ($\genA$) or solved by a type $\tau$ ($\genA = \tau$).
 It is important for a context to be ordered to solve the dependency between
-variables. For example, if a variable $x$ is introduced after
-an existential variable $\genA$
-in the context, as in
-$\genA, x:\star, y :\genA$,
-then $\genA$ can never be solved by $x$ (consequentely $y$ can never have type $x$).
+variables.
 Complete contexts $\cctx$ only contain variables and solved existential variables.
 
 \paragraph{Hole notation.}
@@ -107,7 +103,7 @@ Therefore, to introduce the well-formedness of type and contexts,
 we first introduce the typing rules.
 
 Before we give the typing rules, we need to consider: what does it
-means for an input type to the unification algorithm to be well-formed?
+mean for an input type to the unification algorithm to be well-formed?
 For example, Given a context $(\genA, x : \genA)$,
 is the type $((\blam y \Int \star) ~ x)$ well formed?
 Here, the type requests solving $\genA = \Int$.
@@ -238,8 +234,8 @@ The judgment of unification problem is formalized as:
 $\tctx \bybuni \sigma_1 \uni \sigma_2 \toctx$
 \end{lstlisting}
 
-The input of the unification is the current context $\tctx$, and two types
-(if $\delta = \sigma$) or two expressions (if $\delta = e$).
+The input of the unification is a context $\tctx$, and two types
+($\delta = \sigma$) or two expressions ($\delta = e$).
 The output of the unification
 is a new context $\ctxl$ which extends the original context with probably more
 new existential variables or more existing
@@ -274,15 +270,16 @@ formalization.
 \paragraph{Process of type sanitization.}
 
 As we discuss in Section~\ref{sec:overview}, before unifying an existential
-variable with a type, we will first sanitize the type so that the existential
+variable with a type, we first sanitize the type so that the existential
 variables in the type that are out of the scope are solved by fresh existential
 variables within the scope. We call this process \textit{type sanitization},
 which is formally defined in Figure \ref{fig:sanitization}. The judgment
 $\tctx[\genA] \bysa \tau_1 \sa \tau_2 \toctx$ is interpreted as: under the
 context $\tctx$, which contains an existential variable $\genA$, we sanitize all
 the existential variables in the type $\tau_1$ that appears before $\genA$,
-which results in a sanitized type $\tau_2$. Computationally, there are three
-inputs $\tctx$, $\genA$ and $\tau_1$, with one output $\tau_2$.
+which results in a sanitized type $\tau_2$ and an output context $\ctxl$. Computationally, there are three
+inputs $\tctx$, $\genA$ and $\tau_1$, with two outputs $\tau_2$ and $\ctxl$.
+We sometimes omit $\genA$ if it is clear which existential variable is being referred.
 
 The most interesting cases are \rul{I-EVarAfter} and \rul{I-EVarBefore}. In
 \rul{I-EVarAfter}, because $\genB$ appears after $\genA$, we create a fresh
@@ -296,7 +293,7 @@ substituted under current contexts.
 
 The sanitization process is remarkably simple, while it solves exactly what we
 want: resolve the order of existential variables so that we can focus on the
-order that really matter.
+order that really matters.
 
 \paragraph{Process of unification.}
 

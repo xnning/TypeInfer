@@ -88,9 +88,9 @@ variables and also sanitize the input type to a monotype. A final check
 ensures that the sanatized type is well-formed under the context before $\genA$.
 If the type being sanitized appears on the right (as \rul{SaL}), we say it
 appears co-variantly, and we say it appears contra-variantly if it appears on
-the left (as \rul{SaR}). This corresponds to the fact that a polymorphic type
-can be a subtype of a monotype only if all the universal quantifiers appear
-contra-variantly in the type.
+the left (as \rul{SaR}). This corresponds to the fact that a monotype
+can be a subtype of a polymorphic type only if all the universal quantifiers
+that appear in the body are contra-variant in the type.
 
 The rules for polymorphic type sanitization are shown at the bottom of
 Figure~\ref{fig:polymorphic-sanitization}. According to whether the type appears
@@ -98,8 +98,8 @@ co-variantly ($s = -$) or contra-variantly ($s = +$), we have two modes. The
 judgment $\tctx[\genA] \bybsa A \sa \sigma \toctx$ is interpreted as: under
 typing context $\tctx$ which contains $\genA$, sanitize a possibly polymorphic
 type $A$ to a monotype
-$\sigma$, with output context $\ctxl$. Computationally, there are three inputs
-($\tctx, \genA$ and $A$), and two outputs ($\sigma$ and $\ctxl$).
+$\sigma$ according to the mode $s$, with output context $\ctxl$. Computationally, there are four inputs
+($\tctx, s, \genA$ and $A$), and two outputs ($\sigma$ and $\ctxl$).
 
 The only difference between these two modes is how to sanitize polymorphic
 types. If a polymorphic type appears contra-variantly (\rul{I-All-Plus}), it
