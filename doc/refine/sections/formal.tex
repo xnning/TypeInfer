@@ -924,7 +924,91 @@
             \tctx[\genA] \byinf \genA \ist A_1 \to A_2 \toctxr
             }\rname{InstLArr}}
 
+\newcommand*{\InstLAllR}{\inferrule{
+            \ctxl[\genA], \varB \byinf \genA \ist B \toctx, \varB, \ctxr
+            }{
+            \tctx[\genA] \byinf \genA \ist \forall \varB. B \toctx
+            }\rname{InstLAllR}}
+
+\newcommand*{\InstRSolve}{\inferrule{
+            \tctx_1 \bywf \tau
+            }{
+            \tctx_1, \genA, \tctx_2 \byuni \tau \ist \genA \toctxo_1, \genA = \tau, \tctx_2
+            }\rname{InstRSolve}}
+
 \newcommand*{\InstRReach}{\inferrule{
             }{
             \tctx[\genA][\genB] \byinf \genB \ist \genA \toctxo[\genA][\genB = \genA]
             }\rname{InstRReach}}
+
+\newcommand*{\InstRArr}{\inferrule{
+            \tctx[\genA_2, \genA_1, \genA = \genA_1 \to \genA_2] \bywf \genA_1 \ist A_1 \toctx
+         \\ \ctxl \byinf  \applye \ctxl {A_2} \ist {\genA_2} \toctxr
+            }{
+            \tctx[\genA] \byinf A_1 \to A_2 \ist \genA \toctxr
+            }\rname{InstLArr}}
+
+\newcommand*{\InstRAllL}{\inferrule{
+            \ctxl[\genA], \marker \genB, \genB \byinf B \subst \varB \genB \ist \genA \toctx, \marker \genB, \ctxr
+            }{
+            \tctx[\genA] \byinf \forall \varB. B \ist \genA \toctx
+            }\rname{InstRAllL}}
+
+% ------------------------------------------------------------------------
+% CONTEXT EXTENSION IN DUNFIELD
+% ------------------------------------------------------------------------
+
+\newcommand*{\DCEEmpty}{\inferrule{
+            }{
+            \ctxinit \exto \ctxinit
+            }\rname{Empty}}
+
+\newcommand*{\DCEVar}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \applye \ctxr A = \applye \ctxr {A'}
+            }{
+            \tctx, x: A \exto \ctxr, x: A'
+            }\rname{Var}}
+
+\newcommand*{\DCETVar}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx, \varA \exto \ctxr, \varA
+            }\rname{TVar}}
+
+\newcommand*{\DCEEVar}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx, \genA \exto \ctxr, \genA
+            }\rname{EVar}}
+
+\newcommand*{\DCESolvedEVar}{\inferrule{
+            \tctx \exto \ctxr
+         \\ \applye \ctxr {\tau_1} = \applye \ctxr {\tau_2}
+             }{
+            \tctx, \genA = \tau_1 \exto \ctxr, \genA = \tau_2
+            }\rname{SolvedEVar}}
+
+\newcommand*{\DCESolve}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx, \genA \exto \ctxr, \genA = \tau
+            }\rname{CE-Solve}}
+
+\newcommand*{\DCEAdd}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx \exto \ctxr, \genA
+            }\rname{CE-Add}}
+
+\newcommand*{\DCEAddSolved}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx \exto \ctxr, \genA = \tau
+            }\rname{CE-AddSolved}}
+
+\newcommand*{\DCEMarker}{\inferrule{
+            \tctx \exto \ctxr
+            }{
+            \tctx, \marker \genA \exto \ctxr, \marker \genA
+            }\rname{CE-Marker}}
