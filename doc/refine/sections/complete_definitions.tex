@@ -1,0 +1,178 @@
+\clearpage
+
+\section{Appendix Overview}
+
+In this section, we give an overview of the all the appendixes.
+
+\subsection{Appendix \ref{sec:appendix-complete-definition}}
+
+Due to the space limitation, in the paper we only give some incomplete
+definitions. In this appendix, we present the full version of them.
+
+\subsection{Appendix \ref{sec:appendix-dependent}}
+
+This section gives the proofs for the dependent type system.
+Here we list some important lemmas.
+
+\subsubsection{Type Sanitization}
+\begin{itemize}
+\item Lemma~\ref{lemma:\TypeSanitizationExtensionName}.
+  \TypeSanitizationExtensionName.\\
+  \TypeSanitizationExtensionBody
+\item Lemma~\ref{lemma:\TypeSanitizationEquivalenceName}.
+  \TypeSanitizationEquivalenceName.\\
+  \TypeSanitizationEquivalenceBody
+\item Lemma~\ref{lemma:\TypeSanitizationWellFormednessName}.
+  \TypeSanitizationWellFormednessName.\\
+  \TypeSanitizationWellFormednessBody
+\item Lemma~\ref{lemma:\TypeSanitizationCompletenessName}.
+  \TypeSanitizationCompletenessName.\\
+  \TypeSanitizationCompletenessBody
+\item Corollary~\ref{lemma:\TypeSanitizationCompletenessPrettyName}.
+  \TypeSanitizationCompletenessPrettyName.\\
+  \TypeSanitizationCompletenessPrettyBody
+\item Lemma~\ref{lemma:\TypeSanitizationCompletenessUnificationName}.
+  \TypeSanitizationCompletenessUnificationName.\\
+  \TypeSanitizationCompletenessUnificationBody
+\end{itemize}
+
+\subsubsection{Unification}
+\begin{itemize}
+\item Lemma~\ref{lemma:\UnificationExtensionName}.
+  \UnificationExtensionName.\\
+  \UnificationExtensionBody
+\item Lemma~\ref{lemma:\UnificationEquivalenceName}.
+  \UnificationEquivalenceName.\\
+  \UnificationEquivalenceBody
+\item Lemma~\ref{lemma:\UnificationCompletenessName}.
+  \UnificationCompletenessName.\\
+  \UnificationCompletenessBody
+\end{itemize}
+
+\subsection{Appendix \ref{sec:appendix-dependent}}
+
+This section gives the proofs for the higher rank type system.
+Here we list some important lemmas.
+
+\subsubsection{Polymorphic Type Sanitization}
+
+\begin{itemize}
+\item Lemma~\ref{lemma:\PolymorphicTypeSanitizationExtensionName}.
+  \PolymorphicTypeSanitizationExtensionName.\\
+  \PolymorphicTypeSanitizationExtensionBody
+\item Lemma~\ref{lemma:\PolymorphicTypeSanitizationSoundnessName}.
+  \PolymorphicTypeSanitizationSoundnessName.\\
+  \PolymorphicTypeSanitizationSoundnessBody
+\item Lemma~\ref{lemma:\PolymorphicTypeSanitizationCompletenessName}.
+  \PolymorphicTypeSanitizationCompletenessName.\\
+  \PolymorphicTypeSanitizationCompletenessBody
+\item Corollary~\ref{lemma:\PolymorphicTypeSanitizationCompletenessSubtypingName}.
+  \PolymorphicTypeSanitizationCompletenessSubtypingName.\\
+  \PolymorphicTypeSanitizationCompletenessSubtypingBody
+\end{itemize}
+
+\section{Complete Definitions}
+\label{sec:appendix-complete-definition}
+
+In this section, we give the full definitions from \citet{dunfield2013complete} that are omitted in the paper.
+
+\subsubsection{Subtyping}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \bysub A \tsub B \toctx$}
+     \\
+    \ADunVar \and \ADunUnit \and
+    \ADunExvar \and \ADunArrow \and
+    \ADunForallL \and \ADunForallR \and
+    \ADunInstL \and \ADunInstR
+  \end{mathpar}
+  \caption{Algorithmic Subtyping (Original).}
+  \label{fig:subtyping-complete}
+\end{figure*}
+
+The original definition of algorithmic subtyping is given in
+Figure~\ref{fig:subtyping-complete} \citep{dunfield2013complete}. This is the complete definition for
+Figure~\ref{fig:subtyping}.
+The judgment $\tctx \bysub A \tsub B \toctx$ is
+interpreted as: given the context $\tctx$, $A$ is a subtype of $B$ under the
+output context $\ctxl$.
+The subtyping relation is reflexive (\rul{Var}, \rul{Exvar} and
+\rul{Unit}). The function type is contra-variant on the argument type,
+and co-variant on the return type (\rul{$\to$}). Here the intermediate context
+$\ctxl$ is applied to $A_2$ and $B_2$ to make sure the input types are fully
+substituted under the input context. In \rul{$\forall$L}, new existential
+variable $\genA$ is created to represent the universal quantifier. There is a
+marker before $\genA$ so that we can throw away all tailing contexts that are
+out of scope after the subtyping. Similarly, rule \rul{$\forall$R} puts a
+new type variable in the context and throws away all the contexts after the type variable.
+
+When the left hand side (\rul{InstL}) or the right hand side (\rul{InstR}) is an
+existential variable, the subtyping leaves all the work to the instantiation
+judgment ($\ist$), which is given at the bottom of Figure~\ref{fig:inst-complete}.
+
+\subsubsection{Instantiation}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \bysub \genA \ist A \toctx$}
+     \\
+     \InstLSolve \and \InstLReach \and \InstLArr \and
+     \InstLAllR
+     \\
+    \framebox{$\tctx \bysub A \ist \genA \toctx$}
+     \\
+     \InstRSolve \and \InstRReach \and \InstRArr \and
+     \InstRAllL
+  \end{mathpar}
+  \caption{Instantiation (Original).}
+  \label{fig:inst-complete}
+\end{figure*}
+
+The original definition of instantiation is given in
+Figure~\ref{fig:inst-complete} \citep{dunfield2013complete}. This is the complete definition for
+Figure~\ref{fig:instantiation}. There are two judgments corresponding to whether
+the existential variable is on the left or right.
+
+The judgment $\tctx \bysub \genA \ist A \toctx$ is
+interpreted as: given the context $\tctx$, instantiate $\genA$ so that it is a
+subtype of $A$. If $A$ is already a monotype and it is well-formed under context
+$\tctx_1$, then we directly solve $\genA = \tau$ (\rul{InstLSolve}). If $A$ is
+another existential variable that appears after $\genA$, then we solve $\genB =
+\genA$ (\rul{InstLReach}). If $A$ is a function type, it means $\genA$ must be a
+function. Therefore we generate two fresh existential variables $\genA_1,
+\genA_2$, and continue to instantiate $A_1$ with $\genA_1$, and $\genA_2$ with
+$\applye \ctxl {A_2}$ (\rul{InstLArr}). If $A$ is a polymorphic type, and we put
+the type variable $\varB$ into the context and continue to instantiate $\genA$
+with $B$ (\rul{InstLAllR}). Notice that since $\varB$ is not in the scope of $\genA$
+the context, if $\varB$ appears in $B$, then the instantiation will fail.
+
+The other judgment $\tctx \bysub A \ist \genA \toctx$ plays a symmetric role.
+The only difference is in \rul{InstRAllL}, where we put a fresh existential
+variable $\genB$ in the context. For example $\genA \bysub \forall \varB. \varB \to \varB
+\ist \genA$ has solution $\genB \to \genB$.
+
+\subsubsection{Context Extension}
+
+\begin{figure*}[t]
+  \begin{mathpar}
+    \framebox{$\tctx \exto \ctxr$}\\
+    \DCEEmpty \and \DCEVar \and
+    \DCETVar \and \DCEEVar \and \DCESolvedEVar \and
+    \DCESolve \and \DCEAdd \and \DCEAddSolved \and
+    \DCEMarker
+  \end{mathpar}
+  \caption{Context Extension.}
+  \label{fig:context-extension-original}
+\end{figure*}
+
+We give the definition of context extension in \citet{dunfield2013complete} in
+Figure~\ref{fig:context-extension-original}. Our definition in
+Figure~\ref{fig:context-extension} mimics the original definition. Therefore we
+save the explanation here.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% org-ref-default-bibliography: "citation.bib"
+%%% End:
