@@ -1,0 +1,271 @@
+
+\usepackage{listings}
+\lstdefinestyle{fun}{
+  aboveskip=0.5\baselineskip,
+  belowskip=0.5\baselineskip,
+  keepspaces=true,
+  mathescape=true,
+  columns=fullflexible,
+  basicstyle=\fontfamily{cmr}\selectfont\small,
+  xleftmargin=10pt,
+  keywordstyle=\bfseries,
+  identifierstyle=\itshape,
+  emphstyle=\fontfamily{cmss}\selectfont,
+  commentstyle=\fontfamily{cmtt}\selectfont,
+  emph={},
+  keywords={where, let, in, case, of, data, newtype, ret, if, then,
+    else, defrec, def},
+  morecomment=[l]{--},
+  literate={
+    {->}{{$\to$}}1
+    {=>}{{$\To$}}1
+    {~}{{$\eq$}}1
+    {\\}{{$\lambda$}}1
+    {/}{{$\mu$}}1
+    {\\~}{{$\lambda_\eq$}}1
+    {|->}{{$\mapsto$}}1
+    {~>}{{$\leadsto$}}1
+    {*}{{$\star$}}1
+    {**}{{$\times$}}1
+    {++}{{+\kern-1.0ex+\kern1.1ex}}1
+    {<}{{$\langle$}}1
+    {>}{{$\rangle$}}1
+    {|=}{{$\vDash$}}1
+    {|-}{{$\vdash$}}1
+    {||-}{{$\Vdash$}}1
+    {G}{{$\Gamma$}}1
+    {G0}{{$\cdot$}}1
+    {|>}{{$\vartriangleright$}}1
+    {forall}{{$\forall$}}1
+    {'}{{$^\prime$}}1
+    {_1}{{$_1$}}1
+    {_2}{{$_2$}}1
+    {^2}{{$^2$}}1
+    {@}{{$\bullet$}}1
+    {@t}{{$\tau$}}1
+    {@s}{{$\sigma$}}1
+    {castu2}{{$\fun{cast}_\uparrow^2$}}1
+    {castd2}{{$\fun{cast}_\downarrow^2$}}1
+    {castuf}{{$\fun{cast}_\uparrow^{\fun{f}}$}}1
+    {castup}{{$\fun{cast}_\uparrow$}}1
+    {castdn}{{$\fun{cast}_\downarrow$}}1
+  }
+}
+\lstset{style=fun}
+\newcommand{\lst}[1]{\text{\lstinline$#1$}}
+
+% Table
+\usepackage{multirow}
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{Z}{>{\raggedleft\arraybackslash}X}
+
+% Infer rules
+\usepackage{mathpartir}
+\newcommand{\rname}[1]{{\,\text{\scriptsize \textsc{#1}}}}
+\newcommand{\rul}[1]{\textsc{#1}}
+
+% Extra symbols
+\usepackage{stmaryrd}
+
+% Macros for math typesetting
+
+%% Names
+% \newcommand{\name}{{\bf $\lambda_{\mu}^{\eq}$}\xspace}
+
+%% Symbols
+\newcommand{\syndef}{$::=$}
+\newcommand{\synor}{$\mid$}
+\newcommand{\syneq}{$\triangleq$}
+\newcommand{\header}[1]{\multicolumn{1}{l}{$\boxed{#1}$}}
+\newcommand{\headercap}[2]{\multicolumn{1}{l}{$\boxed{#1}$\quad{#2}}}
+\newcommand{\headercapm}[2]{\vspace{1pt}\raggedright \framebox{\mbox{$#1$}} \quad
+  #2}
+\newcommand{\headercapt}[2]{\framebox{\mbox{$#1$}} \quad #2}
+\newcommand{\marker}[1]{\blacktriangleright_{#1}}
+
+%% Arrows
+\newcommand{\To}{\Rightarrow}
+\newcommand{\Chk}{\Downarrow}
+\newcommand{\Inf}{\Uparrow}
+\newcommand{\Inst}{{inst}}
+\newcommand{\Gen}{{gen}}
+\newcommand{\redto}{\hookrightarrow}
+\newcommand{\redton}{\hookrightarrow^*}
+\newcommand{\eq}{\sim}
+\newcommand{\lt}{\sqsubseteq}
+\newcommand{\sugar}{\triangleq}
+\newcommand{\trto}[1]{\textcolor{Orchid}{\rightsquigarrow{#1}}}
+\newcommand{\opt}[1]{}
+\newcommand{\trtop}{\rightsquigarrow}
+
+%% Styles
+\newcommand{\kw}[1]{\operatorname{\mathbf{#1}}}
+\newcommand{\var}{\mathit}
+\newcommand{\fun}{\mathsf}
+
+%% Constructs
+\newcommand{\bind}[3]{#1 #2:#3.~}
+\newcommand{\blam}{\bind \lambda}
+\newcommand{\bmu}{\bind \mu}
+\newcommand{\barr}[2]{(#1:#2) \to}
+
+\newcommand{\bindv}[4][]{#2\,\overline{#3:#4}^{#1}.~}
+\newcommand{\blamv}[3][]{\bindv[#1] \lambda {#2} {#3}}
+\newcommand{\bmuv}[3][]{\bindv[#1] \mu {#2} {#3}}
+\newcommand{\barrv}[3][]{\overline{#2:#3}^{#1} \to}
+
+\newcommand{\eqlam}[2]{\lambda_{\eq}({#1} \eq {#2}).~}
+\newcommand{\eqty}[2]{({#1} \eq {#2})\Rightarrow}
+\newcommand{\eqapp}[2][]{\langle {#2} \rangle^{#1}}
+\newcommand{\eqlamv}[3][]{\lambda_{\eq}\overline{{#2} \eq {#3}}^{#1}.~}
+\newcommand{\eqtyv}[3][]{\overline{({#2} \eq {#3})}^{#1}\Rightarrow}
+
+\newcommand{\bpi}{\bind \Pi}
+\newcommand{\bpiv}[3][]{\bindv[#1] \Pi {#2} {#3}}
+
+\newcommand{\fold}{\fun{fold}}
+\newcommand{\unfold}{\fun{unfold}}
+
+\newcommand{\castupz}{\fun{cast}_\uparrow}
+\newcommand{\castup}[2][]{\fun{cast}_\uparrow^{#1}~[#2]~}
+\newcommand{\castdnz}{\fun{cast}_\downarrow}
+\newcommand{\castdn}[1][]{\fun{cast}_\downarrow^{#1}~}
+\newcommand{\castdnt}[2][]{\fun{cast}_\downarrow^{#1}~[#2]~}
+\newcommand{\subst}[2]{[#1 \mapsto #2]}
+\newcommand{\Subst}[2]{\llbracket #1 \Mapsto #2 \rrbracket}
+\newcommand{\substv}[3][]{\overline{[#2 \mapsto #3]}^{#1}}
+\newcommand{\cast}[2][]{\fun{cast}^{#1}~[#2]~}
+
+\newcommand{\triv}{\_}
+\newcommand{\trivtm}{\bullet}
+\newcommand{\er}[1]{|{#1}|}
+\newcommand{\erf}[1]{\|{#1}\|}
+\newcommand{\erlam}[1]{\lambda {#1}.~}
+\newcommand{\ermu}[1]{\mu {#1}.~}
+\newcommand{\ercastup}{\castupz~}
+\newcommand{\ereqlam}{\lambda_\eq.~}
+
+\newcommand{\genvar}{\widehat}
+\newcommand{\genA}{\genvar{\alpha}}
+\newcommand{\genB}{\genvar{\beta}}
+\newcommand{\typA} {\alpha}
+\newcommand{\typB} {\beta}
+\newcommand{\varA}{\alpha}
+\newcommand{\varB}{\beta}
+\newcommand{\sa}{\longrightarrow}
+
+%% Context
+\newcommand{\dctx}{\Psi}
+\newcommand{\tctx}{\Gamma}
+\newcommand{\sctx}{\Psi}
+\newcommand{\sctxb}{\Psi'}
+\newcommand{\ctxsplit}{\shortmid}
+\newcommand{\ctxinit}{\varnothing}
+\newcommand{\ctxl}{\Theta}
+\newcommand{\ctxr}{\Delta}
+\newcommand{\cctx}{\Omega}
+\newcommand{\byuni}{\vdash}
+\newcommand{\bylessp}{\vdash}
+\newcommand{\byinf}{\vdash}
+\newcommand{\byfinf}{\vdash^F}
+\newcommand{\bysa}{\vdash}
+\newcommand{\infto}{{\color{MidnightBlue}~\Rightarrow~}}
+\newcommand{\bychk}{\vdash}
+\newcommand{\chkby}{{\color{Orange}~\Leftarrow~}}
+\newcommand{\app}{\bullet}
+\newcommand{\byall}{\vdash_\delta}
+\newcommand{\bytar}{\vdash}
+\newcommand{\byinst}{\vdash_\Inst}
+\newcommand{\bygen}{\vdash_\Gen}
+\newcommand{\bysub}{\vdash}
+\newcommand{\bydsub}{\vdash}
+\newcommand{\bycg}{\vdash}
+\newcommand{\byrf}{\vdash}
+\newcommand{\bywf}{\vdash}
+\newcommand{\byapp}{\vdash}
+\newcommand{\bywt}{\vDash}
+\newcommand{\toctx}{\dashv \ctxl}
+\newcommand{\toctxo}{\dashv \tctx}
+\newcommand{\toctxr}{\dashv \ctxr}
+\newcommand{\dpreinf}[1][]{\dctx {#1} \byinf}
+\newcommand{\dprechk}[1][]{\dctx {#1} \bychk}
+\newcommand{\dpreall}[1][]{\dctx {#1} \byall}
+\newcommand{\dpreapp}[1][]{\dctx {#1} \byapp}
+\newcommand{\dpreuni}[1][]{\dctx {#1} \byuni}
+\newcommand{\dpretar}[1][]{\dtctx {#1} \bytar}
+\newcommand{\dpreinst}[1][]{\dctx {#1} \byinst}
+\newcommand{\dpregen}[1][]{\dctx {#1} \bygen}
+\newcommand{\dprecg}[1][]{\dctx {#1} \bycg}
+\newcommand{\dprewf}[1][]{\dctx {#1} \bywf}
+\newcommand{\dprewt}[1][]{\dctx {#1} \bywt}
+\newcommand{\tpreinf}[1][]{\tctx {#1} \byinf}
+\newcommand{\fpreinf}[1][]{\tctx {#1} \byfinf}
+\newcommand{\tprechk}[1][]{\tctx {#1} \bychk}
+\newcommand{\tpreall}[1][]{\tctx {#1} \byall}
+\newcommand{\tpreapp}[1][]{\tctx {#1} \byapp}
+\newcommand{\tpreuni}[1][]{\tctx {#1} \byuni}
+\newcommand{\tpretar}[1][]{\ttctx {#1} \bytar}
+\newcommand{\tpreinst}[1][]{\tctx {#1} \byinst}
+\newcommand{\tpregen}[1][]{\tctx {#1} \bygen}
+\newcommand{\tprecg}[1][]{\tctx {#1} \bycg}
+\newcommand{\tprewf}[1][]{\tctx {#1} \bywf}
+\newcommand{\tprewt}[1][]{\tctx {#1} \bywt}
+\newcommand{\tpresub}[1][]{\tctx {#1} \bysub}
+\newcommand{\presub}[1][]{{#1} \bysub}
+\newcommand{\dpresub}[1][]{\dctx {#1} \bydsub}
+\newcommand{\wc}{\ \var{ctx}\ }
+\newcommand{\bywa}{\vdash}
+\newcommand{\reduce}{\hookrightarrow}
+\newcommand{\cgto}{\longmapsto}
+\newcommand{\rfto}{\rightsquigarrow}
+\newcommand{\aeq}{\equiv_\alpha}
+\newcommand{\uni}{\sim}
+\newcommand{\lessp}{\sqsubseteq}
+\newcommand{\dsub}{\leq}
+\newcommand{\tsub}{{\color{BrickRed}~\cong~}}
+\newcommand{\tsuper}{{\color{BrickRed}~:>~}}
+\newcommand{\tvarinst}{:\leqq}
+\newcommand{\tsubeither}{<:_m}
+\newcommand{\elet}[3]{\kw{let} {#1} = {#2} \kw{in} {#3}}
+\newcommand{\gen}[2]{\overbar{{#1}({#2})}}
+\newcommand{\agen}[2]{{#1}_{agen}({#2})}
+\newcommand{\tgen}[2]{{#1}_{gen}({#2})}
+
+\newcommand{\erase}[1]{|{#1}|}
+\newcommand{\etaeq}{\rightsquigarrow_{\eta id}}
+
+\newcommand{\applye}[2]{[{#1}] #2}
+\newcommand{\glb}{\rightsquigarrow}
+
+
+% algorithm subsitution
+\newcommand{\as}{S}
+% algorithm name supply
+\newcommand{\an}{N}
+\newcommand{\byalgo}{\vdash}
+\newcommand{\byarrow}{\vdash^\to}
+\newcommand{\bypair}{\vdash^{()}}
+\newcommand{\ato}{\hookrightarrow}
+\newcommand{\acons}{\cdot}
+\newcommand{\ex}[1]{\setminus_{#1}}
+
+
+% Primitives
+\newcommand{\nat}{Int}
+\newcommand{\bool}{\var{Bool}}
+\newcommand{\String}{\var{String}}
+\newcommand{\bflet}{\textbf{let}\xspace}
+\newcommand{\bfLet}{\textbf{Let}\xspace}
+\newcommand{\fst}{\kw{fst}}
+\newcommand{\snd}{\kw{snd}}
+\newcommand{\unknown}{\star}
+\newcommand{\match}{\triangleright}
+
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
+

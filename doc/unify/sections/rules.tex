@@ -1,0 +1,49 @@
+\section{Algorithm}
+
+\begin{tabular}{lrcl}
+  Expr & $e, A, B$ & \syndef & $x \mid \star \mid
+                               e_1 ~ e_2 $ \\%\mid \castup A e \mid \castdn e \\
+       &           & \synor  & $\blam x A {e_2} \mid
+                               \bpi x A B$ \\
+       &           & \synor  & $\erlam x {e_2} \mid \genA$ \\
+
+  Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, x : A$\\
+        &           & \synor  & $\tctx, \genA : A \mid \tctx, \genA = e : A $ \\
+\end{tabular}
+
+\begin{tabular}{llll}
+Syntactic Sugar & $A \to B$    & $\triangleq \bpi {x} A B$& where $x \notin FV(B)$ \\
+\end{tabular}
+
+\begin{mathpar}
+  \framebox{$\tctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
+  \AAx \and \AVarRefl
+  \and \AAbsInfer \and \AAbsCheck
+  \and \AAbs
+  \and \AApp \and \AProd
+  % \and \ACastUp \and \ACastDn
+  \and \ASub
+  \and \ASolvedEVarL \and \ASolvedEVarR
+  \and \AEVarL \and \AEVarR
+\end{mathpar}
+
+Notes:
+\begin{itemize}
+  \item \rul{A-AbsI} is not right.
+  \item Context well-formedness
+    \begin{itemize}
+    \item Mutual dependent with typing.
+    \item Weakening.
+    \end{itemize}
+  \item How to keep invariant: types are fully substituted under context application?
+    \begin{itemize}
+    \item Is it necessary?
+    \end{itemize}
+  \item Decidability
+\end{itemize}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "../main"
+%%% org-ref-default-bibliography: "citation.bib"
+%%% End:
