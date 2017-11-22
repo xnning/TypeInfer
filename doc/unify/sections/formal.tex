@@ -3,35 +3,35 @@
 
 
 \newcommand*{\AAx}{\inferrule{
-            \byinf \tctx
+            \byinf \tctx \ctxsplit \sctx
             }{
-            \tctx \byinf \star \tsub \star \infto \star \toctxo
+            \tctx \ctxsplit \sctx \byinf \star \tsub \star \infto \star \toctxo
             }\rname{A-Ax}}
 
 \newcommand*{\AVarRefl}{\inferrule{
-            \byinf \tctx
-         \\ x : A \in \tctx
+            \byinf \tctx \ctxsplit \sctx
+         \\ x : A \in \sctx
             }{
             \tctx \byinf x \tsub x \infto A \toctxo
             }\rname{A-VarRefl}}
 
 \newcommand*{\AAbs}{\inferrule*[narrower=0.5,right=\rname{A-Abs}]{
-            \tctx \bychk A \tsub A' \chkby \star \toctx_1
-         \\ \ctxl_1, x : A \byinf e \tsub e' \infto B \toctx, x : A, \ctxr
+            \tctx \ctxsplit \sctx \bychk A \tsub A' \chkby \star \toctx_1
+         \\ \ctxl_1 \ctxsplit \sctx, x : A \byinf \applye {\ctxl_1} e \tsub \applye {\ctxl_1} e' \infto B \toctx
             }{
-            \tctx \byinf \blam x {A} {e} \tsub \blam x {A'} {e'} \infto \bpi x A B \toctx
+            \tctx \ctxsplit \sctx \byinf \blam x {A} {e} \tsub \blam x {A'} {e'} \infto \bpi x A B \toctx
             }}
 
 \newcommand*{\AAbsInfer}{\inferrule*[narrower=0.5,right=\rname{A-AbsI}]{
-            \tctx, \genA:\star, x : \genA, \genB:\star \bychk e \tsub e' \chkby \genB \toctx, x : \genA, \ctxr
+            \tctx, \genA:\star[\sctx] \ctxsplit \sctx, x : \genA[\sctx] \byinf e \tsub e' \infto B \toctx
             }{
-            \tctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} \genA \genB \toctx
+            \tctx \ctxsplit \sctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} {\genA[\sctx]} B \toctx
             }}
 
 \newcommand*{\AAbsCheck}{\inferrule*[narrower=0.5,right=\rname{A-AbsC}]{
-            \tctx, x : A \bychk e \tsub e' \chkby B \toctx, x : A, \ctxr
+            \tctx \ctxsplit \sctx, x : A \bychk e \tsub e' \chkby B \toctx
             }{
-            \tctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \bpi x A B \toctx
+            \tctx \ctxsplit \sctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \bpi x A B \toctx
             }}
 
 \newcommand*{\AAbsCheckEVar}{\inferrule*[narrower=0.5,right=\rname{A-AbsCE}]{
@@ -41,15 +41,15 @@
             }}
 
 \newcommand*{\AApp}{\inferrule*[narrower=0.5,right=\rname{A-App}]{
-            \tctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
-         \\ \ctxl_1 \bychk e_2 \tsub e_2' \chkby A \toctx
+            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
+         \\ \ctxl_1 \ctxsplit \sctx \bychk \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \chkby A \toctx
             }{
-            \tctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_1} \toctx
+            \tctx \ctxsplit \sctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_1} \toctx
             }}
 
 \newcommand*{\AProd}{\inferrule*[narrower=0.5, right=\rname{A-Prod}]{
-            \tctx \bychk A \tsub A' \chkby \star \toctx_1
-         \\ \ctxl_1, x : A \bychk B \tsub B' \chkby \star \toctx, x : A, \ctxr
+            \tctx \ctxsplit \sctx \bychk A \tsub A' \chkby \star \toctx_1
+         \\ \ctxl_1 \ctxsplit \sctx, x : A \bychk \applye {\ctxl_1} B \tsub \applye {\ctxl_1} {B'} \chkby \star \toctx
             }{
             \tctx \byinf \bpi x {A} {B} \tsub \bpi x {A'} {B'} \infto \star \toctx
             }}
@@ -71,40 +71,40 @@
             }}
 
 \newcommand*{\ASub}{\inferrule*[narrower=0.5, right=\rname{A-Sub}]{
-            \tctx \byinf e_1 \tsub e_2 \infto A \toctx_1
-         \\ \ctxl_1 \bychk A \tsub B \chkby \star \toctx
+            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \infto A \toctx_1
+         \\ \ctxl_1 \ctxsplit \sctx \bychk \applye {\ctxl_1} A \tsub \applye {\ctxl_1} B \chkby \star \toctx
             }{
-            \tctx \byinf e_1 \tsub e_2 \chkby B \toctx
+            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \chkby B \toctx
             }}
 
 \newcommand*{\ASolvedEVarL}{\inferrule{
-            \genA = e_1 : A \in \tctx
-         \\ \tctx \byinf e_1 \tsub e_2 \chkby A \toctx
+            \genA = e_1 : A[\sctx'] \in \tctx
+         \\ \tctx \ctxsplit \sctx' \byinf e_1 \tsub e_2 \chkby A \toctx
             }{
-            \tctx \byinf \genA \tsub e_2 \infto A \toctx
+            \tctx \ctxsplit \sctx \byinf \genA \tsub e_2 \infto A \toctx
             }\rname{A-SEVarL}}
 
 \newcommand*{\ASolvedEVarR}{\inferrule{
-            \genA = e_1 : A \in \tctx
-         \\ \tctx \byinf e_1 \tsub e_2 \chkby A \toctx
+            \genA = e_1 : A[\sctx'] \in \tctx
+         \\ \tctx \ctxsplit \sctx' \byinf e_1 \tsub e_2 \chkby A \toctx
             }{
-            \tctx \byinf e_2 \tsub \genA \infto A \toctx
+            \tctx \ctxsplit \sctx \byinf e_2 \tsub \genA \infto A \toctx
             }\rname{A-SEVarR}}
 
 \newcommand*{\AEVarL}{\inferrule*[narrower=0.7, right=\rname{A-EVarL}]{
-            \byinf \tctx
-         \\ \genA : A \in \tctx
-         \\ \tctx[\genA] \bysa e_1 \sa e_2 \toctx_1, \genA:A, \ctxl_2
-         \\ \ctxl_1 \bychk e_2 \chkby A
+            \byinf \tctx \ctxsplit \sctx
+         \\ \genA : A[\sctx_2] \in \tctx
+         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2], \ctxl_2
+         \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
             }{
-            \tctx \byinf \genA \tsub e_1 \infto A \toctx_1, \genA = e_2:A, \ctxl_2
+            \tctx \ctxsplit \sctx \byinf \genA[\sctx_1] \tsub e_1 \infto A \toctx_1, \genA = e_2\subst {\sctx_1} {\sctx_2}:A[\sctx_2], \ctxl_2
             }}
 
 \newcommand*{\AEVarR}{\inferrule*[narrower=0.7, right=\rname{A-EVar}]{
-            \byinf \tctx
-         \\ \genA : A \in \tctx
-         \\ \tctx[\genA] \bysa e_1 \sa e_2 \toctx_1, \genA:A, \ctxl_2
-         \\ \ctxl_1 \bychk e_2 \chkby A
+            \byinf \tctx \ctxsplit \sctx
+         \\ \genA : A[\sctx_2] \in \tctx
+         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2], \ctxl_2
+         \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
             }{
-            \tctx \byinf e_1 \tsub \genA \infto A \toctx_1,  \genA=e_2:A, \ctxl_2
+            \tctx \ctxsplit \sctx \byinf e_1 \tsub \genA[\sctx_1] \infto A \toctx_1,  \genA=e_2\subst{\sctx_1}{\sctx_2}:A[\sctx_2], \ctxl_2
             }}

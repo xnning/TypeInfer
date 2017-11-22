@@ -6,9 +6,10 @@
        &           & \synor  & $\blam x A {e_2} \mid
                                \bpi x A B$ \\
        &           & \synor  & $\erlam x {e_2} \mid \genA$ \\
+  Local Context & $\sctx$ & \syndef & $\ctxinit \mid \sctx, x: A$\\
 
-  Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, x : A$\\
-        &           & \synor  & $\tctx, \genA : A \mid \tctx, \genA = e : A $ \\
+
+  Meta Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, \genA : A[\sctx] \mid \tctx, \genA = e : A[\sctx] $ \\
 \end{tabular}
 
 \begin{tabular}{llll}
@@ -16,26 +17,27 @@ Syntactic Sugar & $A \to B$    & $\triangleq \bpi {x} A B$& where $x \notin FV(B
 \end{tabular}
 
 \begin{mathpar}
-  \framebox{$\tctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
+  \framebox{$\tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
   \AAx \and \AVarRefl
   \and \AAbsInfer \and \AAbsCheck
   \and \AAbs
   \and \AApp \and \AProd
   % \and \ACastUp \and \ACastDn
   \and \ASub
-  \and \ASolvedEVarL \and \ASolvedEVarR
+  % \and \ASolvedEVarL \and \ASolvedEVarR
   \and \AEVarL \and \AEVarR
 \end{mathpar}
 
 Notes:
 \begin{itemize}
-  \item \rul{A-AbsI} is not right.
+  \item Missing App-EVar.
+  \item In A-App, how to deal with variables in local context?
   \item Context well-formedness
     \begin{itemize}
     \item Mutual dependent with typing.
     \item Weakening.
     \end{itemize}
-  \item How to keep invariant: types are fully substituted under context application?
+  \item Invariant: $e_1, e_2$ are fully substituted under context application
     \begin{itemize}
     \item Is it necessary?
     \end{itemize}
