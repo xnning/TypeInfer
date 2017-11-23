@@ -3,17 +3,36 @@
 
 
 \newcommand*{\AAx}{\inferrule{
-            \byinf \tctx \ctxsplit \sctx
             }{
-            \tctx \ctxsplit \sctx \byinf \star \tsub \star \infto \star \toctxo
+            \ctxinit \ctxsplit \ctxinit \byinf \star \tsub \star \infto \star \dashv \ctxinit
             }\rname{A-Ax}}
 
-\newcommand*{\AVarRefl}{\inferrule{
-            \byinf \tctx \ctxsplit \sctx
-         \\ x : A \in \sctx
+\newcommand*{\AVar}{\inferrule{
+            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
             }{
-            \tctx \byinf x \tsub x \infto A \toctxo
-            }\rname{A-VarRefl}}
+            \tctx \ctxsplit \sctx,x : A \byinf x \tsub x \infto A \toctxo
+            }\rname{A-Var}}
+
+\newcommand*{\AWeakLocal}{\inferrule*[narrower=0.5,right=\rname{A-WeakL}]{
+            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
+         \\ \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \infto B \toctx
+            }{
+            \tctx \ctxsplit \sctx, x: A \byinf e_1 \tsub e_2 \infto B \toctx
+            }}
+
+\newcommand*{\AWeakMeta}{\inferrule*[narrower=0.5,right=\rname{A-WeakM}]{
+            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
+         \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
+            }{
+            \tctx, \genA[\sctx]:A \byinf e_1 \tsub e_2 \infto B \toctx
+            }}
+
+\newcommand*{\AWeakSolvedMeta}{\inferrule*[narrower=0.5,right=\rname{A-WeakSM}]{
+            \tctx \ctxsplit \sctx \bychk e \chkby A \toctxo, \ctxr
+         \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
+            }{
+            \tctx, \genA[\sctx] = e :A \byinf e_1 \tsub e_2 \infto B \toctx
+            }}
 
 \newcommand*{\AAbs}{\inferrule*[narrower=0.5,right=\rname{A-Abs}]{
             \tctx \ctxsplit \sctx \bychk A \tsub A' \chkby \star \toctx_1
@@ -92,19 +111,15 @@
             }\rname{A-SEVarR}}
 
 \newcommand*{\AEVarL}{\inferrule*[narrower=0.7, right=\rname{A-EVarL}]{
-            \byinf \tctx \ctxsplit \sctx
-         \\ \genA : A[\sctx_2] \in \tctx
-         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2], \ctxl_2
+         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2]
          \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
             }{
-            \tctx \ctxsplit \sctx \byinf \genA[\sctx_1] \tsub e_1 \infto A \toctx_1, \genA = e_2\subst {\sctx_1} {\sctx_2}:A[\sctx_2], \ctxl_2
+            \tctx, \genA[\sctx_2]:A \byinf \genA[\sctx_1] \tsub e_1 \infto A \toctx_1, \genA = e_2\subst {\sctx_1} {\sctx_2}:A[\sctx_2]
             }}
 
 \newcommand*{\AEVarR}{\inferrule*[narrower=0.7, right=\rname{A-EVar}]{
-            \byinf \tctx \ctxsplit \sctx
-         \\ \genA : A[\sctx_2] \in \tctx
-         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2], \ctxl_2
+         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2]
          \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
             }{
-            \tctx \ctxsplit \sctx \byinf e_1 \tsub \genA[\sctx_1] \infto A \toctx_1,  \genA=e_2\subst{\sctx_1}{\sctx_2}:A[\sctx_2], \ctxl_2
+            \tctx, \genA[\sctx_2]: A \byinf e_1 \tsub \genA[\sctx_1] \infto A \toctx_1,  \genA=e_2\subst{\sctx_1}{\sctx_2}:A[\sctx_2]
             }}
