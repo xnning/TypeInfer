@@ -5,11 +5,11 @@
                                e_1 ~ e_2 $ \\%\mid \castup A e \mid \castdn e \\
        &           & \synor  & $\blam x A {e_2} \mid
                                \bpi x A B$ \\
-       &           & \synor  & $\erlam x {e_2} \mid \genA$ \\
+       &           & \synor  & $\erlam x {e_2} \mid \genA[\sctx]$ \\
   Local Context & $\sctx$ & \syndef & $\ctxinit \mid \sctx, x: A$\\
 
 
-  Meta Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, \genA : A[\sctx] \mid \tctx, \genA = e : A[\sctx] $ \\
+  Meta Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, \genA[\sctx] : A \mid \tctx, \genA[\sctx] = e : A $ \\
 \end{tabular}
 
 \begin{tabular}{llll}
