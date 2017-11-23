@@ -24,14 +24,14 @@
             \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
          \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
             }{
-            \tctx, \genA[\sctx]:A \byinf e_1 \tsub e_2 \infto B \toctx
+            \tctx, \genA[\sctx]:A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\sctx]:A
             }}
 
 \newcommand*{\AWeakSolvedMeta}{\inferrule*[narrower=0.5,right=\rname{A-WeakSM}]{
             \tctx \ctxsplit \sctx \bychk e \chkby A \toctxo, \ctxr
          \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
             }{
-            \tctx, \genA[\sctx] = e :A \byinf e_1 \tsub e_2 \infto B \toctx
+            \tctx, \genA[\sctx] = e :A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\sctx] = e : A
             }}
 
 \newcommand*{\AAbs}{\inferrule*[narrower=0.5,right=\rname{A-Abs}]{
