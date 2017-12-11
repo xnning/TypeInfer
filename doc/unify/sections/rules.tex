@@ -42,15 +42,21 @@
 \end{mathpar}
 
 \begin{figure}[t]
-    \begin{tabular}{llp{3cm}lll}
-        $\applye \tctx x $ & = & $x$ \\
-        $\applye \tctx \star $ & = & $\star$ \\
-        $\applye \tctx {e_1 ~ e_2} $ & = & ${\applye \tctx {e_1}} ~ {\applye \tctx {e_2}}$ \\
-        $\applye \tctx {\erlam x e} $ & = & $\erlam x {\applye \tctx e}$ \\
-        $\applye \tctx {\blam x A e} $ & = & $\blam x {\applye \tctx A} {\applye \tctx e}$ \\
-        $\applye \tctx {\bpi x A B} $ & = & $\bpi x {\applye \tctx A} {\applye \tctx B}$ \\
-        $\applye {\tctx[\genA[\sctx_2]]} {(\genA[\sctx_1])} $ & = & $\genA[\sctx_1] $ \\
-        $\applye {\tctx[\genA[\sctx_2] = e]} {(\genA[\sctx_1])} $ & = & $\applye \tctx {(e \subst {\sctx_2} {\sctx_1})} $ \\
+    \begin{tabular}{lll}
+      \multicolumn{3}{l}{Meta Context Application on terms}\\
+        $\applye \lctx x $ & = & $x$ \\
+        $\applye \lctx \star $ & = & $\star$ \\
+        $\applye \lctx {e_1 ~ e_2} $ & = & ${\applye \lctx {e_1}} ~ {\applye \lctx {e_2}}$ \\
+        $\applye \lctx {\erlam x e} $ & = & $\erlam x {\applye \lctx e}$ \\
+        $\applye \lctx {\blam x A e} $ & = & $\blam x {\applye \lctx A} {\applye \lctx e}$ \\
+        $\applye \lctx {\bpi x A B} $ & = & $\bpi x {\applye \lctx A} {\applye \lctx B}$ \\
+        $\applye {\lctx[\genA[\sctx]]} {(\genA[\sigma])} $ & = & $\genA[\sigma'] $ \\
+           & & where $\sigma' = \applye {\lctx[\genA[\sctx]]} \sigma$\\
+        $\applye {\lctx[\genA[\sctx] = e]} {(\genA[\sigma])} $ & = & ${(e \subst {\sctx} {\sigma'})} $ \\
+           & & where $\sigma' = \applye {\lctx[\genA[\sctx] = e]} \sigma$\\
+      \multicolumn{3}{l}{Meta Context Application on suspended substitution}\\
+        $\applye \lctx {\cdot} $ & = & $\cdot$ \\
+        $\applye \lctx {(\sigma, e)} $ & = & $\applye \lctx \sigma, \applye \lctx e$ \\
     \end{tabular}
     \caption{Meta Context Application}
     \label{figure:erasure}
