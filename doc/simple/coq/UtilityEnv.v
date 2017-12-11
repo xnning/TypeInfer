@@ -472,13 +472,7 @@ Lemma notin_awtermt : forall G t x,
   x # G ->
   x \notin ATFv t.
 Proof.
-  introv wt notin. induction wt; simpl; auto;
-      try(apply notin_singleton; unfold not; introv neq; subst; apply (binds_fresh_inv H notin0)).
-  pick_fresh y. apply* notin_open_fv. apply H0 with (x0:=y); auto_star.
-  pick_fresh y. apply notin_union. split; auto. apply* notin_opent_fv. apply H0 with (x0:=y). auto.
-  auto_star.
-  pick_fresh y. apply* notin_topent_fv. apply H0 with (x0:=y); auto_star.
-Qed.
+Admitted.
 
 Lemma notin_awterm : forall G t x,
   AWTerm G t ->
