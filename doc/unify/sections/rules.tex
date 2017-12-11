@@ -5,45 +5,74 @@
                                e_1 ~ e_2 $ \\%\mid \castup A e \mid \castdn e \\
        &           & \synor  & $\blam x A {e_2} \mid
                                \bpi x A B$ \\
-       &           & \synor  & $\erlam x {e_2} \mid \genA[\sctx]$ \\
-  Local Context & $\sctx$ & \syndef & $\ctxinit \mid \sctx, x: A$\\
+       &           & \synor  & $\erlam x {e_2} \mid \genA[\sigma]$ \\
+  Local Context & $\tctx, \sctx$ & \syndef & $\ctxinit \mid \tctx, x: A$\\
 
 
-  Meta Context & $\tctx$ & \syndef & $\ctxinit \mid \tctx, \genA[\sctx] : A \mid \tctx, \genA[\sctx] = e : A $ \\
+  Meta Context & $\lctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \lctx, \genA[\sctx] : A \mid \lctx, \genA[\sctx] = e : A $ \\
+  Suspended Substitution  & $\sigma$ & \syndef & $\overbar{e}$\\
 \end{tabular}
 
-\begin{tabular}{llll}
-Syntactic Sugar & $A \to B$    & $\triangleq \bpi {x} A B$& where $x \notin FV(B)$ \\
-\end{tabular}
+% \begin{tabular}{llll}
+% Syntactic Sugar & $A \to B$    & $\triangleq \bpi {x} A B$& where $x \notin FV(B)$ \\
+% \end{tabular}
 
 \begin{mathpar}
-  \framebox{$\tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
+  \framebox{$\lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
   \AAx
   \and \AWeakLocal
-  \and \AWeakMeta
-  \and \AWeakSolvedMeta
   \and \AVar
   \and \AAbsInfer \and \AAbsCheck
   \and \AAbs
-  \and \AApp \and \AProd
-  % \and \ACastUp \and \ACastDn
+  \and \AApp \and \APi
   \and \ASub
-  % \and \ASolvedEVarL \and \ASolvedEVarR
   \and \AEVarL \and \AEVarR
 \end{mathpar}
+
+\begin{mathpar}
+  \framebox{$\lctx \bysa e_1 \sa e_2 \toctx$} \\
+  \SAx
+  \and \SVar
+  \and \SApp
+  \and \SAbs
+  \and \SAbsAnn
+  \and \SPi
+  \and \SEVarB
+  \and \SEVarA
+\end{mathpar}
+
+\begin{figure}[t]
+    \begin{tabular}{llp{3cm}lll}
+        $\applye \tctx x $ & = & $x$ \\
+        $\applye \tctx \star $ & = & $\star$ \\
+        $\applye \tctx {e_1 ~ e_2} $ & = & ${\applye \tctx {e_1}} ~ {\applye \tctx {e_2}}$ \\
+        $\applye \tctx {\erlam x e} $ & = & $\erlam x {\applye \tctx e}$ \\
+        $\applye \tctx {\blam x A e} $ & = & $\blam x {\applye \tctx A} {\applye \tctx e}$ \\
+        $\applye \tctx {\bpi x A B} $ & = & $\bpi x {\applye \tctx A} {\applye \tctx B}$ \\
+        $\applye {\tctx[\genA[\sctx_2]]} {(\genA[\sctx_1])} $ & = & $\genA[\sctx_1] $ \\
+        $\applye {\tctx[\genA[\sctx_2] = e]} {(\genA[\sctx_1])} $ & = & $\applye \tctx {(e \subst {\sctx_2} {\sctx_1})} $ \\
+    \end{tabular}
+    \caption{Meta Context Application}
+    \label{figure:erasure}
+\end{figure}
+
 
 Notes:
 \begin{itemize}
   \item Sometimes empty local context is omitted.
+  \item Context well-formedness: Weakening.
+  \item Invariant: $e_1, e_2$ and checking type $A$ (not inferred types) are
+    fully substituted under context.
+    \item Invariant: variables in $\sctx$ are distinct. For any $\genA$, stored
+      $\sctx_1$ and actual $\sctx_2$ have the same length.
+\end{itemize}
+
+TODO:
+\begin{itemize}
   \item Well-formedness: output context is composed by original context and a
     trailing context. Is it right?
   \item Missing App-EVar.
   \item In A-App, how to deal with variables in local context?
-  \item Context well-formedness: Weakening.
-  \item Invariant: $e_1, e_2$ are fully substituted under context application
-    \begin{itemize}
-    \item Is it necessary?
-    \end{itemize}
   \item Decidability
 \end{itemize}
 

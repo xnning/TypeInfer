@@ -1,125 +1,181 @@
 % Setup spaces between column
 \setlength{\tabcolsep}{2pt}
 
+% -----------------------------------------
+% TYPING
+% -----------------------------------------
 
 \newcommand*{\AAx}{\inferrule{
             }{
-            \ctxinit \ctxsplit \ctxinit \byinf \star \tsub \star \infto \star \dashv \ctxinit
+            \lctx \ctxsplit \ctxinit \byinf \star \tsub \star \infto \star \dashv \lctx
             }\rname{A-Ax}}
 
 \newcommand*{\AVar}{\inferrule{
-            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
+            \lctx \ctxsplit \tctx \bychk A \chkby \star \toctxo, \ctxr
             }{
-            \tctx \ctxsplit \sctx,x : A \byinf x \tsub x \infto A \toctxo
+            \lctx \ctxsplit \tctx,x : A \byinf x \tsub x \infto A \toctxo
             }\rname{A-Var}}
 
 \newcommand*{\AWeakLocal}{\inferrule*[narrower=0.5,right=\rname{A-WeakL}]{
-            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
-         \\ \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \infto B \toctx
+            \lctx \ctxsplit \tctx \bychk A \chkby \star \toctxo, \ctxr
+         \\ \lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \infto B \toctx
             }{
-            \tctx \ctxsplit \sctx, x: A \byinf e_1 \tsub e_2 \infto B \toctx
+            \lctx \ctxsplit \tctx, x: A \byinf e_1 \tsub e_2 \infto B \toctx
             }}
 
 \newcommand*{\AWeakMeta}{\inferrule*[narrower=0.5,right=\rname{A-WeakM}]{
-            \tctx \ctxsplit \sctx \bychk A \chkby \star \toctxo, \ctxr
-         \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
+            \lctx \ctxsplit \tctx \bychk A \chkby \star \toctxo, \ctxr
+         \\ \lctx \byinf e_1 \tsub e_2 \infto B \toctx
             }{
-            \tctx, \genA[\sctx]:A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\sctx]:A
+            \lctx, \genA[\tctx]:A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\tctx]:A
             }}
 
 \newcommand*{\AWeakSolvedMeta}{\inferrule*[narrower=0.5,right=\rname{A-WeakSM}]{
-            \tctx \ctxsplit \sctx \bychk e \chkby A \toctxo, \ctxr
-         \\ \tctx \byinf e_1 \tsub e_2 \infto B \toctx
+            \lctx \ctxsplit \tctx \bychk e \chkby A \toctxo, \ctxr
+         \\ \lctx \byinf e_1 \tsub e_2 \infto B \toctx
             }{
-            \tctx, \genA[\sctx] = e :A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\sctx] = e : A
+            \lctx, \genA[\tctx] = e :A \byinf e_1 \tsub e_2 \infto B \toctx, \genA[\tctx] = e : A
             }}
 
-\newcommand*{\AAbs}{\inferrule*[narrower=0.5,right=\rname{A-Abs}]{
-            \tctx \ctxsplit \sctx \bychk A \tsub A' \chkby \star \toctx_1
-         \\ \ctxl_1 \ctxsplit \sctx, x : A \byinf \applye {\ctxl_1} e \tsub \applye {\ctxl_1} e' \infto B \toctx
+\newcommand*{\AAbs}{\inferrule*[narrower=0.5,right=\rname{A-AbsAnn}]{
+            \lctx \ctxsplit \tctx \bychk A \tsub A' \chkby \star \toctx_1
+         \\ \ctxl_1 \ctxsplit \tctx, x : A \byinf \applye {\ctxl_1} e \tsub \applye {\ctxl_1} e' \infto B \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf \blam x {A} {e} \tsub \blam x {A'} {e'} \infto \bpi x A B \toctx
+            \lctx \ctxsplit \tctx \byinf \blam x {A} {e} \tsub \blam x {A'} {e'} \infto \bpi x A B \toctx
             }}
 
 \newcommand*{\AAbsInfer}{\inferrule*[narrower=0.5,right=\rname{A-AbsI}]{
-            \tctx, \genA:\star[\sctx] \ctxsplit \sctx, x : \genA[\sctx] \byinf e \tsub e' \infto B \toctx
+            \lctx, \genA[\tctx]:\star \ctxsplit \tctx, x : \genA[\tctx] \byinf e \tsub e' \infto B \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} {\genA[\sctx]} B \toctx
+            \lctx \ctxsplit \tctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} {\genA[\tctx]} B \toctx
             }}
 
 \newcommand*{\AAbsCheck}{\inferrule*[narrower=0.5,right=\rname{A-AbsC}]{
-            \tctx \ctxsplit \sctx, x : A \bychk e \tsub e' \chkby B \toctx
+            \lctx \ctxsplit \tctx, x : A \bychk e \tsub e' \chkby B \toctx
             }{
-            \tctx \ctxsplit \sctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \bpi x A B \toctx
+            \lctx \ctxsplit \tctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \bpi x A B \toctx
             }}
 
 \newcommand*{\AAbsCheckEVar}{\inferrule*[narrower=0.5,right=\rname{A-AbsCE}]{
-            \tctx, x : A \bychk e \tsub e' \chkby B \toctx, x : A, \ctxr
+            \lctx, x : A \bychk e \tsub e' \chkby B \toctx, x : A, \ctxr
             }{
-            \tctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \genA \toctx
+            \lctx \bychk \erlam x e \tsub \erlam x {e'} \chkby \genA \toctx
             }}
 
 \newcommand*{\AApp}{\inferrule*[narrower=0.5,right=\rname{A-App}]{
-            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
-         \\ \ctxl_1 \ctxsplit \sctx \bychk \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \chkby A \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
+         \\ \ctxl_1 \ctxsplit \tctx \bychk \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \chkby A \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_1} \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_1} \toctx
             }}
 
-\newcommand*{\AProd}{\inferrule*[narrower=0.5, right=\rname{A-Prod}]{
-            \tctx \ctxsplit \sctx \bychk A \tsub A' \chkby \star \toctx_1
-         \\ \ctxl_1 \ctxsplit \sctx, x : A \bychk \applye {\ctxl_1} B \tsub \applye {\ctxl_1} {B'} \chkby \star \toctx
+\newcommand*{\APi}{\inferrule*[narrower=0.5, right=\rname{A-Pi}]{
+            \lctx \ctxsplit \tctx \bychk A \tsub A' \chkby \star \toctx_1
+         \\ \ctxl_1 \ctxsplit \tctx, x : A \bychk \applye {\ctxl_1} B \tsub \applye {\ctxl_1} {B'} \chkby \star \toctx
             }{
-            \tctx \byinf \bpi x {A} {B} \tsub \bpi x {A'} {B'} \infto \star \toctx
+            \lctx \byinf \bpi x {A} {B} \tsub \bpi x {A'} {B'} \infto \star \toctx
             }}
 
 \newcommand*{\ACastUp}{\inferrule*[narrower=0.5, right=\rname{A-CastUp}]{
-            \tctx \bychk B \tsub B' \chkby \star \toctx_1
+            \lctx \bychk B \tsub B' \chkby \star \toctx_1
          \\ \ctxl_1 \byinf e \tsub e' \infto A \toctx
          \\ B \reduce A
             }{
-            \tctx \byinf \castup B {e} \tsub \castup {B'} {e'} \infto B \toctx
+            \lctx \byinf \castup B {e} \tsub \castup {B'} {e'} \infto B \toctx
             }}
 
 \newcommand*{\ACastDn}{\inferrule*[narrower=0.5, right=\rname{A-CastDn}]{
-            \tctx \byinf e_1 \tsub e_2 \infto A \toctx_1
+            \lctx \byinf e_1 \tsub e_2 \infto A \toctx_1
          \\ A \reduce B
          \\ \ctxl_1 \bychk B \chkby \star \toctx
             }{
-            \tctx \byinf \castdn {e_1} \tsub \castdn {e_2} \infto B \toctx
+            \lctx \byinf \castdn {e_1} \tsub \castdn {e_2} \infto B \toctx
             }}
 
 \newcommand*{\ASub}{\inferrule*[narrower=0.5, right=\rname{A-Sub}]{
-            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \infto A \toctx_1
-         \\ \ctxl_1 \ctxsplit \sctx \bychk \applye {\ctxl_1} A \tsub \applye {\ctxl_1} B \chkby \star \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \infto A \toctx_1
+         \\ \ctxl_1 \ctxsplit \tctx \bychk \applye {\ctxl_1} A \tsub \applye {\ctxl_1} B \chkby \star \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf e_1 \tsub e_2 \chkby B \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \chkby B \toctx
             }}
 
 \newcommand*{\ASolvedEVarL}{\inferrule{
-            \genA = e_1 : A[\sctx'] \in \tctx
-         \\ \tctx \ctxsplit \sctx' \byinf e_1 \tsub e_2 \chkby A \toctx
+            \genA = e_1 : A[\tctx'] \in \lctx
+         \\ \lctx \ctxsplit \tctx' \byinf e_1 \tsub e_2 \chkby A \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf \genA \tsub e_2 \infto A \toctx
+            \lctx \ctxsplit \tctx \byinf \genA \tsub e_2 \infto A \toctx
             }\rname{A-SEVarL}}
 
 \newcommand*{\ASolvedEVarR}{\inferrule{
-            \genA = e_1 : A[\sctx'] \in \tctx
-         \\ \tctx \ctxsplit \sctx' \byinf e_1 \tsub e_2 \chkby A \toctx
+            \genA = e_1 : A[\tctx'] \in \lctx
+         \\ \lctx \ctxsplit \tctx' \byinf e_1 \tsub e_2 \chkby A \toctx
             }{
-            \tctx \ctxsplit \sctx \byinf e_2 \tsub \genA \infto A \toctx
+            \lctx \ctxsplit \tctx \byinf e_2 \tsub \genA \infto A \toctx
             }\rname{A-SEVarR}}
 
-\newcommand*{\AEVarL}{\inferrule*[narrower=0.7, right=\rname{A-EVarL}]{
-         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2]
-         \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
+\newcommand*{\AEVarL}{\inferrule*[narrower=0.5, right=\rname{A-EVarL}]{
+         \\ \lctx \bysa^{\genA[\tctx_1]} e_1 \sa e_2 \toctx_1, \genA[\tctx_2]:A, \ctxl_2
+         \\ \ctxl_1 \ctxsplit \tctx_1 \bychk e_2 \chkby A
             }{
-            \tctx, \genA[\sctx_2]:A \byinf \genA[\sctx_1] \tsub e_1 \infto A \toctx_1, \genA = e_2\subst {\sctx_1} {\sctx_2}:A[\sctx_2]
+            \lctx \byinf \genA[\tctx_1] \tsub e_1 \infto A \toctx_1, \genA[\tctx_2] = e_2\subst {\tctx_1} {\tctx_2}:A, \ctxl_2
             }}
 
-\newcommand*{\AEVarR}{\inferrule*[narrower=0.7, right=\rname{A-EVar}]{
-         \\ \tctx \bysa^{\genA} e_1 \sa e_2 \toctx_1, \genA:A[\sctx_2]
-         \\ \ctxl_1 \ctxsplit \sctx_1 \bychk e_2 \chkby A
+\newcommand*{\AEVarR}{\inferrule*[narrower=0.5, right=\rname{A-EVar}]{
+         \\ \lctx \bysa^{\genA[\tctx_1]} e_1 \sa e_2 \toctx_1, \genA[\tctx_2]:A, \ctxl_2
+         \\ \ctxl_1 \ctxsplit \tctx_1 \bychk e_2 \chkby A
             }{
-            \tctx, \genA[\sctx_2]: A \byinf e_1 \tsub \genA[\sctx_1] \infto A \toctx_1,  \genA=e_2\subst{\sctx_1}{\sctx_2}:A[\sctx_2]
+            \lctx\byinf e_1 \tsub \genA[\tctx_1] \infto A \toctx_1,  \genA[\tctx_2]=e_2\subst{\tctx_1}{\tctx_2}:A, \ctxl_2
+            }}
+
+% -----------------------------------------
+% SANITIZATION
+% -----------------------------------------
+
+\newcommand*{\SAx}{\inferrule*[narrower=0.5, right=\rname{S-Ax}]{
+            }{
+            \lctx \bysa \star \sa \star \toctxo
+            }}
+
+\newcommand*{\SVar}{\inferrule*[narrower=0.5, right=\rname{S-Var}]{
+            }{
+            \lctx \bysa x \sa x \toctxo
+            }}
+
+\newcommand*{\SApp}{\inferrule*[narrower=0.5, right=\rname{S-App}]{
+            \lctx \bysa e_1 \sa e_1' \toctx_1
+         \\ \ctxl_1 \bysa \applye {\ctxl_1} {e_2} \sa e_2' \toctx
+            }{
+            \lctx \bysa e_1 ~ e_2 \sa e_1' ~ e_2' \toctx
+            }}
+
+\newcommand*{\SAbs}{\inferrule*[narrower=0.5, right=\rname{S-Abs}]{
+            \lctx \bysa e \sa e' \toctx
+            }{
+            \lctx \bysa \erlam x e \sa \erlam x {e'} \toctx
+            }}
+
+\newcommand*{\SAbsAnn}{\inferrule*[narrower=0.5, right=\rname{S-AbsAnn}]{
+            \lctx \bysa A \sa A' \toctx_1
+         \\ \ctxl_1 \bysa \applye {\ctxl_1} e \sa e' \toctx
+            }{
+            \lctx \bysa \blam x A e \sa \blam x {A'} {e'} \toctx
+            }}
+
+\newcommand*{\SPi}{\inferrule*[narrower=0.5, right=\rname{S-Pi}]{
+            \lctx \bysa A \sa A' \toctx_1
+         \\ \ctxl_1 \bysa \applye {\ctxl_1} B \sa B' \toctx
+            }{
+            \lctx \bysa \bpi x A B \sa \blam x {A'} {B'} \toctx
+            }}
+
+\newcommand*{\SEVarB}{\inferrule*[narrower=0.5, right=\rname{S-EVarB}]{
+            \tctx_c = \tctx_a \cap \tctx_b
+         \\
+            }{
+            \lctx[\genB[\tctx_b]:B, \genA[\tctx_a]:A] \bysa \genB[\tctx_b'] \sa \genC[\tctx_b'] \toctxo[\genC[\tctx_c], \genB[\tctx_b] = \genC:B, \genA[\tctx_a]:A]
+            }}
+
+\newcommand*{\SEVarA}{\inferrule*[narrower=0.5, right=\rname{S-EVarA}]{
+            }{
+            \lctx[\genA[\tctx_a]:A, \genB[\tctx_b]:B] \bysa \genB[\tctx_b'] \sa \genC[\tctx_a \cap \tctx_b] \toctxo[\genC[\tctx_1 \cap \tctx_b] :B, \genA[\tctx_a]:A, \genB[\tctx_b]:B]
             }}
