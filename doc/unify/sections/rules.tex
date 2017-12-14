@@ -10,7 +10,8 @@
 
 
   Meta Context & $\lctx, \ctxl, \ctxr$ & \syndef & $\ctxinit \mid \lctx, \genA[\sctx] : A \mid \lctx, \genA[\sctx] = e : A $ \\
-  Suspended Substitution  & $\sigma$ & \syndef & $\overbar{e}$\\
+  Suspended Substitution  & $\sigma$ & \syndef & $\cdot \mid \sigma, e$\\
+  Suspended Var Substitution  & $\rho$ & \syndef & $\cdot \mid \rho, x$\\
 \end{tabular}
 
 % \begin{tabular}{llll}
@@ -20,28 +21,42 @@
 \begin{mathpar}
   \framebox{$\lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
   \AAx
-  \and \AWeakLocal
+  % \and \AWeakLocal
   \and \AVar
   \and \AAbsInfer \and \AAbsCheck
   \and \AAbs
   \and \AApp \and \APi
   \and \ASub
-  \and \AEVarL \and \AEVarR
+  \and \AEVarSame \and \AEVarR
 \end{mathpar}
 
 \begin{mathpar}
-  \framebox{$\lctx \bysa e_1 \sa e_2 \toctx$} \\
-  \SAx
-  \and \SVar
-  \and \SApp
-  \and \SAbs
-  \and \SAbsAnn
-  \and \SPi
-  \and \SEVarB
-  \and \SEVarA
+  \framebox{$\sctx_1 \byintersec \sigma_1 \cap \sigma_2 \intersec
+    \sigma_3 : \sctx_2$} \\
+  \ISNil \and
+  \ISKeep \and \ISRemove
 \end{mathpar}
 
-\begin{figure}[t]
+\begin{mathpar}
+  \framebox{$\lctx \byprune \prune \genA \rho e \toctx$} \\
+  \PAx
+  \and \PVar
+  \and \PApp
+  \and \PAbs
+  \and \PAbsAnn
+  \and \PPi
+  \and \PEVarNoPrune
+  \and \PEVarPrune
+\end{mathpar}
+
+\begin{mathpar}
+  \framebox{$\sctx \byprune \prunectx \genA \rho \sigma \dashv \sctx'$} \\
+  \PCNil
+  \and \PCPrune
+  \and \PCNoPrune
+\end{mathpar}
+
+\begin{figure}
     \begin{tabular}{lll}
       \multicolumn{3}{l}{Meta Context Application on terms}\\
         $\applye \lctx x $ & = & $x$ \\

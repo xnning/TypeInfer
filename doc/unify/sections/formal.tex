@@ -6,14 +6,16 @@
 % -----------------------------------------
 
 \newcommand*{\AAx}{\inferrule{
+            \lctx \ctxsplit \tctx \wc
             }{
-            \lctx \ctxsplit \ctxinit \byinf \star \tsub \star \infto \star \dashv \lctx
+            \lctx \ctxsplit \tctx \byinf \star \tsub \star \infto \star \dashv \lctx
             }\rname{A-Ax}}
 
 \newcommand*{\AVar}{\inferrule{
-            \lctx \ctxsplit \tctx \bychk A \chkby \star \toctxo, \ctxr
+            \lctx \ctxsplit \tctx \wc
+         \\ x: A \in \tctx
             }{
-            \lctx \ctxsplit \tctx,x : A \byinf x \tsub x \infto A \toctxo
+            \lctx \ctxsplit \tctx \byinf x \tsub x \infto A \toctxo
             }\rname{A-Var}}
 
 \newcommand*{\AWeakLocal}{\inferrule*[narrower=0.5,right=\rname{A-WeakL}]{
@@ -45,9 +47,9 @@
             }}
 
 \newcommand*{\AAbsInfer}{\inferrule*[narrower=0.5,right=\rname{A-AbsI}]{
-            \lctx, \genA[\tctx]:\star \ctxsplit \tctx, x : \genA[\tctx] \byinf e \tsub e' \infto B \toctx
+            \lctx, \genA[\tctx]:\star \ctxsplit \tctx, x : \genA[\hat \tctx] \byinf e \tsub e' \infto B \toctx
             }{
-            \lctx \ctxsplit \tctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} {\genA[\tctx]} B \toctx
+            \lctx \ctxsplit \tctx \byinf \erlam {x} {e} \tsub \erlam {x} {e'} \infto \bpi {x} {\genA[\hat \tctx]} B \toctx
             }}
 
 \newcommand*{\AAbsCheck}{\inferrule*[narrower=0.5,right=\rname{A-AbsC}]{
@@ -66,7 +68,7 @@
             \lctx \ctxsplit \tctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
          \\ \ctxl_1 \ctxsplit \tctx \bychk \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \chkby A \toctx
             }{
-            \lctx \ctxsplit \tctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_1} \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_2} \toctx
             }}
 
 \newcommand*{\APi}{\inferrule*[narrower=0.5, right=\rname{A-Pi}]{
@@ -113,69 +115,127 @@
             \lctx \ctxsplit \tctx \byinf e_2 \tsub \genA \infto A \toctx
             }\rname{A-SEVarR}}
 
-\newcommand*{\AEVarL}{\inferrule*[narrower=0.5, right=\rname{A-EVarL}]{
-         \\ \lctx \bysa^{\genA[\tctx_1]} e_1 \sa e_2 \toctx_1, \genA[\tctx_2]:A, \ctxl_2
-         \\ \ctxl_1 \ctxsplit \tctx_1 \bychk e_2 \chkby A
+\newcommand*{\AEVarSame}{\inferrule*[right=\rname{A-EVarSame}]{
+            \genA[\sctx]:A \in \lctx
+         \\ \lctx \ctxsplit \tctx \bychk \sigma_1 \chkby \sctx \toctxo, \ctxr
+         \\ \lctx \ctxsplit \tctx \bychk \sigma_2 \chkby \sctx \toctxo, \ctxr
+         \\ \sctx_1 \byintersec \sigma_1 \cap \sigma_2 \intersec \sigma_3 : \sctx'
+         \\ \lctx \ctxsplit \sctx' \bychk A \chkby \star \toctxo, \ctxr
             }{
-            \lctx \byinf \genA[\tctx_1] \tsub e_1 \infto A \toctx_1, \genA[\tctx_2] = e_2\subst {\tctx_1} {\tctx_2}:A, \ctxl_2
+            \lctx \ctxsplit \tctx \byinf \genA[\sigma_1] \tsub \genA[\sigma_2] \infto
+            A\subst {\sctx'} {\sigma_3} \toctxo[\genB[\sctx']:A, \genA[\sctx]:A = \genB]
             }}
 
-\newcommand*{\AEVarR}{\inferrule*[narrower=0.5, right=\rname{A-EVar}]{
-         \\ \lctx \bysa^{\genA[\tctx_1]} e_1 \sa e_2 \toctx_1, \genA[\tctx_2]:A, \ctxl_2
-         \\ \ctxl_1 \ctxsplit \tctx_1 \bychk e_2 \chkby A
+\newcommand*{\AEVarR}{\inferrule*[right=\rname{A-EVar}]{
+            \genA[\sctx]:A \in \lctx
+         \\ \lctx \ctxsplit \tctx \bychk \rho \chkby \sctx \toctxo, \ctxr
+         \\ \lctx \bysa \prune \genA \rho e  \pruneto \ctxl
+         \\ \ctxl \ctxsplit \sctx \bychk e \subst \rho \sctx \chkby A
+         \\ \genA \notin FMV(e)
             }{
-            \lctx\byinf e_1 \tsub \genA[\tctx_1] \infto A \toctx_1,  \genA[\tctx_2]=e_2\subst{\tctx_1}{\tctx_2}:A, \ctxl_2
+            \lctx\byinf e \tsub \genA[\rho] \infto
+            A \toctx[\genA[\sctx]=e\subst{\rho}{\sctx}:A]
             }}
 
 % -----------------------------------------
-% SANITIZATION
+% INTERSECTION
 % -----------------------------------------
 
-\newcommand*{\SAx}{\inferrule*[narrower=0.5, right=\rname{S-Ax}]{
+\newcommand*{\ISNil}{\inferrule*[narrower=0.5, right=\rname{Intersec-Nil}]{
             }{
-            \lctx \bysa \star \sa \star \toctxo
+            \ctxinit \byintersec \cdot \cap \cdot \intersec \ctxinit
             }}
 
-\newcommand*{\SVar}{\inferrule*[narrower=0.5, right=\rname{S-Var}]{
+\newcommand*{\ISKeep}{\inferrule*[narrower=0.5, right=\rname{Intersec-Keep}]{
+            \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sctx'
             }{
-            \lctx \bysa x \sa x \toctxo
+            \sctx, x:A \byintersec \sigma_1, e \cap \sigma_2, e \intersec \sctx', x:A
             }}
 
-\newcommand*{\SApp}{\inferrule*[narrower=0.5, right=\rname{S-App}]{
-            \lctx \bysa e_1 \sa e_1' \toctx_1
-         \\ \ctxl_1 \bysa \applye {\ctxl_1} {e_2} \sa e_2' \toctx
+\newcommand*{\ISRemove}{\inferrule*[narrower=0.5, right=\rname{Intersec-Remove}]{
+            e_1 \neq e_2
+         \\ \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sctx'
             }{
-            \lctx \bysa e_1 ~ e_2 \sa e_1' ~ e_2' \toctx
+            \sctx, x:A \byintersec \sigma_1, e_1 \cap \sigma_2, e_2 \intersec \sctx'
             }}
 
-\newcommand*{\SAbs}{\inferrule*[narrower=0.5, right=\rname{S-Abs}]{
-            \lctx \bysa e \sa e' \toctx
+% -----------------------------------------
+% PRUNE
+% -----------------------------------------
+
+\newcommand*{\PAx}{\inferrule*[narrower=0.5, right=\rname{S-Ax}]{
             }{
-            \lctx \bysa \erlam x e \sa \erlam x {e'} \toctx
+            \lctx \byprune \prune \genA \rho \star \pruneto \lctx
             }}
 
-\newcommand*{\SAbsAnn}{\inferrule*[narrower=0.5, right=\rname{S-AbsAnn}]{
-            \lctx \bysa A \sa A' \toctx_1
-         \\ \ctxl_1 \bysa \applye {\ctxl_1} e \sa e' \toctx
+\newcommand*{\PVar}{\inferrule*[narrower=0.5, right=\rname{P-Var}]{
+            x \in \rho
             }{
-            \lctx \bysa \blam x A e \sa \blam x {A'} {e'} \toctx
+            \lctx \byprune \prune \genA \rho x \pruneto \lctx
             }}
 
-\newcommand*{\SPi}{\inferrule*[narrower=0.5, right=\rname{S-Pi}]{
-            \lctx \bysa A \sa A' \toctx_1
-         \\ \ctxl_1 \bysa \applye {\ctxl_1} B \sa B' \toctx
+\newcommand*{\PApp}{\inferrule*[narrower=0.5, right=\rname{P-App}]{
+            \lctx \byprune \prune \genA \rho {e_1} \pruneto \ctxl_1
+         \\ \ctxl_1 \byprune \prune \genA \rho {\applye {\ctxl_1} {e_2}} \pruneto \ctxl
             }{
-            \lctx \bysa \bpi x A B \sa \blam x {A'} {B'} \toctx
+            \lctx \byprune \prune \genA \rho {e_1 ~ e_2} \prunetoctx
             }}
 
-\newcommand*{\SEVarB}{\inferrule*[narrower=0.5, right=\rname{S-EVarB}]{
-            \tctx_c = \tctx_a \cap \tctx_b
-         \\
+\newcommand*{\PAbs}{\inferrule*[narrower=0.5, right=\rname{P-Abs}]{
+            \lctx \byprune \prune \genA {\rho,x} e \prunetoctx
             }{
-            \lctx[\genB[\tctx_b]:B, \genA[\tctx_a]:A] \bysa \genB[\tctx_b'] \sa \genC[\tctx_b'] \toctxo[\genC[\tctx_c], \genB[\tctx_b] = \genC:B, \genA[\tctx_a]:A]
+            \lctx \byprune \prune \genA \rho {\erlam x e} \prunetoctx
             }}
 
-\newcommand*{\SEVarA}{\inferrule*[narrower=0.5, right=\rname{S-EVarA}]{
+\newcommand*{\PAbsAnn}{\inferrule*[narrower=0.5, right=\rname{P-AbsAnn}]{
+            \lctx \byprune \prune \genA {\rho} A \prunetoctx_1
+         \\ \ctxl_1 \byprune \prune \genA {\rho,x} {\applye {\ctxl_1} e} \prunetoctx
             }{
-            \lctx[\genA[\tctx_a]:A, \genB[\tctx_b]:B] \bysa \genB[\tctx_b'] \sa \genC[\tctx_a \cap \tctx_b] \toctxo[\genC[\tctx_1 \cap \tctx_b] :B, \genA[\tctx_a]:A, \genB[\tctx_b]:B]
+            \lctx \byprune \prune \genA \rho {\blam x A e} \prunetoctx
+            }}
+
+\newcommand*{\PPi}{\inferrule*[narrower=0.5, right=\rname{P-Pi}]{
+            \lctx \byprune \prune \genA \rho A \prunetoctx_1
+         \\ \ctxl_1 \byprune \prune \genA {\rho,x} {\applye {\ctxl_1} B} \prunetoctx
+            }{
+            \lctx \byprune \prune \genA \rho {\bpi x A B} \prunetoctx
+            }}
+
+\newcommand*{\PEVarNoPrune}{\inferrule*[narrower=0.5, right=\rname{P-EVarNoPrune}]{
+            \genB[\sctx]:A \in \lctx
+         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx
+            }{
+            \lctx \byprune \prune \genA \rho {\genB[\sigma]} \prunetoctxo
+            }}
+
+\newcommand*{\PEVarPrune}{\inferrule*[narrower=0.5, right=\rname{P-EVarPrune}]{
+            \genB[\sctx]:A \in \lctx
+         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+         \\ \lctx \byprune \prune \genA {\sctx'} A \prunetoctx
+            }{
+            \lctx \byprune \prune \genA \rho {\genB[\sigma]} \prunetoctx[\genB[\sctx]= \genC:A, \genC[\sctx']:A]
+            }}
+
+% -----------------------------------------
+% PRUNE CONTEXT
+% -----------------------------------------
+
+\newcommand*{\PCNil}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-Nil}]{
+            }{
+            \ctxinit \byprune \prunectx \genA \rho \cdot \pruneto \ctxinit
+            }}
+
+\newcommand*{\PCNoPrune}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-NoPrune}]{
+            FV(e) \subseteq \rho
+         \\ \genA \notin FMV(e)
+         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+            }{
+            \sctx, x:A \byprune \prunectx \genA \rho {\sigma, e} \pruneto \sctx', x:A
+            }}
+
+\newcommand*{\PCPrune}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-Prune}]{
+            FV(e) \nsubseteq \rho \vee \genA \in FMV(e)
+         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+            }{
+            \sctx, x:A \byprune \prunectx \genA \rho {\sigma, e} \pruneto \sctx'
             }}
