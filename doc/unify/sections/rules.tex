@@ -14,9 +14,17 @@
   Suspended Var Substitution  & $\rho$ & \syndef & $\cdot \mid \rho, x$\\
 \end{tabular}
 
-% \begin{tabular}{llll}
-% Syntactic Sugar & $A \to B$    & $\triangleq \bpi {x} A B$& where $x \notin FV(B)$ \\
-% \end{tabular}
+Syntactic Sugar $\lctx \ctxsplit \tctx \bychk e \chkby B \triangleq \lctx \ctxsplit \tctx \bychk e \chkby B \toctxo, \ctxr$
+
+\begin{mathpar}
+  \framebox{$\lctx \mwc$} \\
+  \MWC
+\end{mathpar}
+
+\begin{mathpar}
+  \framebox{$\lctx \bywc \tctx \wc$} \\
+  \WCEmpty \and \WCVar
+\end{mathpar}
 
 \begin{mathpar}
   \framebox{$\lctx \ctxsplit \tctx \byinf e_1 \tsub e_2 \Longleftrightarrow A \toctx$} \\
@@ -25,7 +33,10 @@
   \and \AVar
   \and \AAbsInfer \and \AAbsCheck
   \and \AAbs
-  \and \AApp \and \APi
+  \and \APi
+  \and \AApp
+  \and \AAppPi
+  \and \AAppEVar
   \and \ASub
   \and \AEVarSame \and \AEVarR
 \end{mathpar}
@@ -52,8 +63,8 @@
 \begin{mathpar}
   \framebox{$\sctx \byprune \prunectx \genA \rho \sigma \dashv \sctx'$} \\
   \PCNil
-  \and \PCPrune
   \and \PCNoPrune
+  \and \PCPrune
 \end{mathpar}
 
 \begin{figure}
@@ -80,8 +91,6 @@
 
 Notes:
 \begin{itemize}
-  \item Sometimes empty local context is omitted.
-  \item Context well-formedness: Weakening.
   \item Invariant: $e_1, e_2$ and checking type $A$ (not inferred types) are
     fully substituted under context.
     \item Invariant: variables in $\sctx$ are distinct. For any $\genA$, stored

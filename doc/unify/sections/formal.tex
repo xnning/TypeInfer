@@ -2,17 +2,47 @@
 \setlength{\tabcolsep}{2pt}
 
 % -----------------------------------------
+% CONTEXT WELL FORMEDNESS
+% -----------------------------------------
+
+\newcommand*{\MWC}{\inferrule{
+            \text{for all } \genA[\sctx]:A \in \lctx \quad
+            \lctx \bywc \sctx \wc \quad
+            \lctx \ctxsplit \sctx \bychk A \chkby \star
+         \\ 
+            \text{for all } \genA[\sctx]=e:A \in \lctx \quad
+            \lctx \bywc \sctx \wc \quad
+            \lctx \ctxsplit \sctx \bychk A \chkby \star \quad
+            \lctx \ctxsplit \sctx \bychk e \chkby A
+            }{
+            \lctx \mwc
+            }\rname{MWC}}
+
+\newcommand*{\WCEmpty}{\inferrule{
+            \lctx \mwc
+            }{
+            \lctx \bywc \ctxinit \wc
+            }\rname{WC-Empty}}
+
+\newcommand*{\WCVar}{\inferrule{
+            \lctx \bywc \tctx \wc
+         \\ \lctx \ctxsplit \tctx \bychk A \chkby \star
+            }{
+            \lctx \bywc \tctx, x: A \wc
+            }\rname{WC-Var}}
+
+% -----------------------------------------
 % TYPING
 % -----------------------------------------
 
 \newcommand*{\AAx}{\inferrule{
-            \lctx \ctxsplit \tctx \wc
+            \lctx \bywc \tctx \wc
             }{
             \lctx \ctxsplit \tctx \byinf \star \tsub \star \infto \star \dashv \lctx
             }\rname{A-Ax}}
 
 \newcommand*{\AVar}{\inferrule{
-            \lctx \ctxsplit \tctx \wc
+            \lctx \bywc \tctx \wc
          \\ x: A \in \tctx
             }{
             \lctx \ctxsplit \tctx \byinf x \tsub x \infto A \toctxo
@@ -65,17 +95,33 @@
             }}
 
 \newcommand*{\AApp}{\inferrule*[narrower=0.5,right=\rname{A-App}]{
-            \lctx \ctxsplit \tctx \byinf e_1 \tsub e_1' \infto \bpi x A B \toctx_1
-         \\ \ctxl_1 \ctxsplit \tctx \bychk \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \chkby A \toctx
+            \lctx \ctxsplit \tctx \byinf e_1 \tsub e_1' \infto A \toctx_1
+         \\ \ctxl_1 \ctxsplit \tctx \byapp  \applye {\ctxl_1} A \app  \applye {\ctxl_1} {e_2} \tsub \applye {\ctxl_1} {e_2'} \toctx
             }{
             \lctx \ctxsplit \tctx \byinf e_1 ~ e_2 \tsub e_1' ~ e_2' \infto B \subst x {e_2} \toctx
+            }}
+
+\newcommand*{\AAppPi}{\inferrule*[narrower=0.5,right=\rname{A-App-Pi}]{
+            \lctx \ctxsplit \tctx \bychk e \tsub e' \chkby A \toctx
+            }{
+            \lctx \ctxsplit \tctx \byapp \bpi x A B \app e \tsub e' \infto B \subst x {e} \toctx
+            }}
+
+\newcommand*{\AAppEVar}{\inferrule*[narrower=0.5,right=\rname{A-App-EVar}]{
+            \genA[\sctx] : A \in \lctx
+         \\ \lctx \ctxsplit \tctx \bychk \sigma \chkby \sctx 
+         \\ \lctx \ctxsplit \sctx \bychk A \tsub \star \chkby \star \toctx_1
+         \\ \ctxl_1[\genB[\sctx] : \star, \genC[\sctx,x:\genB]:\star, \genA[\sctx] = \bpi x {\genB[\hat \sctx]} {\genC[\hat \sctx, x]} :\star]
+               \ctxsplit \tctx \bychk e \tsub e' \chkby \genB[\sigma] \toctx
+            }{
+            \lctx \ctxsplit \tctx \byapp \genA[\sigma] \app e \tsub e' \infto \genC[\sigma,x] \toctx
             }}
 
 \newcommand*{\APi}{\inferrule*[narrower=0.5, right=\rname{A-Pi}]{
             \lctx \ctxsplit \tctx \bychk A \tsub A' \chkby \star \toctx_1
          \\ \ctxl_1 \ctxsplit \tctx, x : A \bychk \applye {\ctxl_1} B \tsub \applye {\ctxl_1} {B'} \chkby \star \toctx
             }{
-            \lctx \byinf \bpi x {A} {B} \tsub \bpi x {A'} {B'} \infto \star \toctx
+            \lctx \ctxsplit \tctx \byinf \bpi x {A} {B} \tsub \bpi x {A'} {B'} \infto \star \toctx
             }}
 
 \newcommand*{\ACastUp}{\inferrule*[narrower=0.5, right=\rname{A-CastUp}]{
@@ -117,10 +163,10 @@
 
 \newcommand*{\AEVarSame}{\inferrule*[right=\rname{A-EVarSame}]{
             \genA[\sctx]:A \in \lctx
-         \\ \lctx \ctxsplit \tctx \bychk \sigma_1 \chkby \sctx \toctxo, \ctxr
-         \\ \lctx \ctxsplit \tctx \bychk \sigma_2 \chkby \sctx \toctxo, \ctxr
-         \\ \sctx_1 \byintersec \sigma_1 \cap \sigma_2 \intersec \sigma_3 : \sctx'
-         \\ \lctx \ctxsplit \sctx' \bychk A \chkby \star \toctxo, \ctxr
+         \\ \lctx \ctxsplit \tctx \bychk \sigma_1 \chkby \sctx
+         \\ \lctx \ctxsplit \tctx \bychk \sigma_2 \chkby \sctx
+         \\ \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sigma_3 : \sctx'
+         \\ \lctx \ctxsplit \sctx' \bychk A \chkby \star 
             }{
             \lctx \ctxsplit \tctx \byinf \genA[\sigma_1] \tsub \genA[\sigma_2] \infto
             A\subst {\sctx'} {\sigma_3} \toctxo[\genB[\sctx']:A, \genA[\sctx]:A = \genB]
@@ -128,12 +174,12 @@
 
 \newcommand*{\AEVarR}{\inferrule*[right=\rname{A-EVar}]{
             \genA[\sctx]:A \in \lctx
-         \\ \lctx \ctxsplit \tctx \bychk \rho \chkby \sctx \toctxo, \ctxr
+         \\ \lctx \ctxsplit \tctx \bychk \rho \chkby \sctx
          \\ \lctx \bysa \prune \genA \rho e  \pruneto \ctxl
          \\ \ctxl \ctxsplit \sctx \bychk e \subst \rho \sctx \chkby A
          \\ \genA \notin FMV(e)
             }{
-            \lctx\byinf e \tsub \genA[\rho] \infto
+            \lctx \ctxsplit \tctx \byinf e \tsub \genA[\rho] \infto
             A \toctx[\genA[\sctx]=e\subst{\rho}{\sctx}:A]
             }}
 
@@ -148,13 +194,14 @@
 
 \newcommand*{\ISKeep}{\inferrule*[narrower=0.5, right=\rname{Intersec-Keep}]{
             \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sctx'
+         \\ FV(A) \subseteq \hat {\sctx'}
             }{
             \sctx, x:A \byintersec \sigma_1, e \cap \sigma_2, e \intersec \sctx', x:A
             }}
 
-\newcommand*{\ISRemove}{\inferrule*[narrower=0.5, right=\rname{Intersec-Remove}]{
-            e_1 \neq e_2
-         \\ \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sctx'
+\newcommand*{\ISRemove}{\inferrule*[right=\rname{Intersec-Remove}]{
+            \sctx \byintersec \sigma_1 \cap \sigma_2 \intersec \sctx'
+        \\  e_1 \neq e_2 \vee FV(A) \nsubseteq \hat{\sctx'}
             }{
             \sctx, x:A \byintersec \sigma_1, e_1 \cap \sigma_2, e_2 \intersec \sctx'
             }}
@@ -203,6 +250,7 @@
 
 \newcommand*{\PEVarNoPrune}{\inferrule*[narrower=0.5, right=\rname{P-EVarNoPrune}]{
             \genB[\sctx]:A \in \lctx
+         \\ \genA \neq \genB
          \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx
             }{
             \lctx \byprune \prune \genA \rho {\genB[\sigma]} \prunetoctxo
@@ -210,6 +258,7 @@
 
 \newcommand*{\PEVarPrune}{\inferrule*[narrower=0.5, right=\rname{P-EVarPrune}]{
             \genB[\sctx]:A \in \lctx
+         \\ \genA \neq \genB
          \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
          \\ \lctx \byprune \prune \genA {\sctx'} A \prunetoctx
             }{
@@ -220,22 +269,23 @@
 % PRUNE CONTEXT
 % -----------------------------------------
 
-\newcommand*{\PCNil}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-Nil}]{
+\newcommand*{\PCNil}{\inferrule*[narrower=0.5, right=\rname{PCtx-Nil}]{
             }{
             \ctxinit \byprune \prunectx \genA \rho \cdot \pruneto \ctxinit
             }}
 
-\newcommand*{\PCNoPrune}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-NoPrune}]{
-            FV(e) \subseteq \rho
+\newcommand*{\PCNoPrune}{\inferrule*[narrower=0.5, right=\rname{PCtx-NoPrune}]{
+            \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+         \\ FV(e) \subseteq \rho
          \\ \genA \notin FMV(e)
-         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+         \\ FV(A) \subseteq \hat {\sctx'}
             }{
             \sctx, x:A \byprune \prunectx \genA \rho {\sigma, e} \pruneto \sctx', x:A
             }}
 
-\newcommand*{\PCPrune}{\inferrule*[narrower=0.5, right=\rname{PruneCtx-Prune}]{
-            FV(e) \nsubseteq \rho \vee \genA \in FMV(e)
-         \\ \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+\newcommand*{\PCPrune}{\inferrule*[narrower=0.5, right=\rname{PCtx-Prune}]{
+            \sctx \byprune \prunectx \genA \rho \sigma \pruneto \sctx'
+         \\ FV(e) \nsubseteq \rho \vee \genA \in FMV(e) \vee FV(A) \nsubseteq \hat {\sctx'}
             }{
             \sctx, x:A \byprune \prunectx \genA \rho {\sigma, e} \pruneto \sctx'
             }}
