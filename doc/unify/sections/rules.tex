@@ -91,18 +91,18 @@ Syntactic Sugar $\lctx \ctxsplit \tctx \bychk e \chkby B \triangleq \lctx \ctxsp
 
 Notes:
 \begin{itemize}
+  \item Invariant: Meta context is idempotent
   \item Invariant: $e_1, e_2$ and checking type $A$ (not inferred types) are
     fully substituted under context.
     \item Invariant: variables in $\sctx$ are distinct. For any $\genA$, stored
-      $\sctx_1$ and actual $\sctx_2$ have the same length.
+      $\sctx$ and actual $\sigma$ have the same length.
 \end{itemize}
 
 TODO:
 \begin{itemize}
+  \item Well-formedness: Loop!.
   \item Well-formedness: output context is composed by original context and a
     trailing context. Is it right?
-  \item Missing App-EVar.
-  \item In A-App, how to deal with variables in local context?
   \item Decidability
 \end{itemize}
 

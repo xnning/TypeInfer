@@ -111,7 +111,7 @@
             \genA[\sctx] : A \in \lctx
          \\ \lctx \ctxsplit \tctx \bychk \sigma \chkby \sctx 
          \\ \lctx \ctxsplit \sctx \bychk A \tsub \star \chkby \star \toctx_1
-         \\ \ctxl_1[\genB[\sctx] : \star, \genC[\sctx,x:\genB]:\star, \genA[\sctx] = \bpi x {\genB[\hat \sctx]} {\genC[\hat \sctx, x]} :\star]
+         \\ \ctxl_1\update \genA[\sctx] = \bpi x {\genB[\hat \sctx]} {\genC[\hat \sctx, x]} :\star, \genB[\sctx] : \star, \genC[\sctx,x:\genB]:\star
                \ctxsplit \tctx \bychk e \tsub e' \chkby \genB[\sigma] \toctx
             }{
             \lctx \ctxsplit \tctx \byapp \genA[\sigma] \app e \tsub e' \infto \genC[\sigma,x] \toctx
@@ -169,7 +169,7 @@
          \\ \lctx \ctxsplit \sctx' \bychk A \chkby \star 
             }{
             \lctx \ctxsplit \tctx \byinf \genA[\sigma_1] \tsub \genA[\sigma_2] \infto
-            A\subst {\sctx'} {\sigma_3} \toctxo[\genB[\sctx']:A, \genA[\sctx]:A = \genB]
+            A\subst {\sctx'} {\sigma_3} \toctxo \update \genA[\sctx]:A = \genB,  \genB[\sctx']:A
             }}
 
 \newcommand*{\AEVarR}{\inferrule*[right=\rname{A-EVar}]{
@@ -180,7 +180,7 @@
          \\ \genA \notin FMV(e)
             }{
             \lctx \ctxsplit \tctx \byinf e \tsub \genA[\rho] \infto
-            A \toctx[\genA[\sctx]=e\subst{\rho}{\sctx}:A]
+            A \toctx \update  \genA[\sctx]=e\subst{\rho}{\sctx}:A
             }}
 
 % -----------------------------------------
