@@ -91,11 +91,18 @@ Syntactic Sugar $\lctx \ctxsplit \tctx \bychk e \chkby B \triangleq \lctx \ctxsp
 
 Notes:
 \begin{itemize}
-  \item Invariant: Meta context is idempotent
+  \item If meta context is unordered
+    \begin{itemize}
+    \item meta context should be idempotent
+    \item it can be a set, instead of a list
+    \item Then maybe no need to do eager application
+    \item proof strategy?
+    \end{itemize}
   \item Invariant: $e_1, e_2$ and checking type $A$ (not inferred types) are
     fully substituted under context.
-    \item Invariant: variables in $\sctx$ are distinct. For any $\genA$, stored
+  \item Invariant: variables in $\sctx$ are distinct. For any $\genA$, stored
       $\sctx$ and actual $\sigma$ have the same length.
+  \item A-Sub terminating?
 \end{itemize}
 
 TODO:
